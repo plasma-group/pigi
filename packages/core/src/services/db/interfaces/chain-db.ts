@@ -12,6 +12,7 @@ import { PlasmaBlock, Exit, ExitArgs } from '../../../models/chain'
 import { Deposit } from '../../../models/chain/deposit'
 import { BaseDBProvider } from '../backends/base-db.provider'
 import { StateManager } from '../../../utils'
+import { DB_PREFIXES } from '../../../constants'
 
 /**
  * Service that exposes an interface to chain-related
@@ -46,7 +47,10 @@ export class ChainDB implements OnStart {
    * @returns the transaction object.
    */
   public async getTransaction(hash: string): Promise<Transaction> {
-    const encoded = await this.db.get(`transaction:${hash}`, undefined)
+    const encoded = await this.db.get(
+      `${DB_PREFIXES.TRANSACTIONS}:${hash}`,
+      undefined
+    )
     if (encoded === undefined) {
       throw new Error('Transaction not found in database.')
     }
@@ -58,7 +62,10 @@ export class ChainDB implements OnStart {
    * @param transaction Transaction to store.
    */
   public async setTransaction(transaction: Transaction): Promise<void> {
-    await this.db.set(`transaction:${transaction.hash}`, transaction.encoded)
+    await this.db.set(
+      `${DB_PREFIXES.TRANSACTIONS}:${transaction.hash}`,
+      transaction.encoded
+    )
   }
 
   /**
@@ -67,7 +74,7 @@ export class ChainDB implements OnStart {
    * @returns `true` if the chain has stored the transaction, `false` otherwise.
    */
   public async hasTransaction(hash: string): Promise<boolean> {
-    return this.db.exists(`transaction:${hash}`)
+    return this.db.exists(`${DB_PREFIXES.TRANSACTIONS}:${hash}`)
   }
 
   /**
@@ -75,7 +82,7 @@ export class ChainDB implements OnStart {
    * @returns the latest block.
    */
   public async getLatestBlock(): Promise<number> {
-    return (await this.db.get('latestblock', -1)) as number
+    return (await this.db.get(DB_PREFIXES.LATEST_BLOCK, -1)) as number
   }
 
   /**
@@ -83,7 +90,7 @@ export class ChainDB implements OnStart {
    * @param block A block number.
    */
   public async setLatestBlock(block: number): Promise<void> {
-    await this.db.set('latestblock', block)
+    await this.db.set(DB_PREFIXES.LATEST_BLOCK, block)
   }
 
   /**
@@ -92,7 +99,10 @@ export class ChainDB implements OnStart {
    * @returns the hash of the specified block.
    */
   public async getBlockHeader(block: number): Promise<string | null> {
-    return (await this.db.get(`header:${block}`, null)) as string | null
+    return (await this.db.get(
+      `${DB_PREFIXES.BLOCK_HEADERS}:${block}`,
+      null
+    )) as string | null
   }
 
   /**
@@ -102,7 +112,7 @@ export class ChainDB implements OnStart {
    */
   public async addBlockHeader(block: number, hash: string): Promise<void> {
     await this.setLatestBlock(block)
-    await this.db.set(`header:${block}`, hash)
+    await this.db.set(`${DB_PREFIXES.BLOCK_HEADERS}:${block}`, hash)
   }
 
   /**
@@ -117,7 +127,10 @@ export class ChainDB implements OnStart {
     await this.setLatestBlock(latest.number)
 
     const objects = blocks.map((block) => {
-      return { key: `header:${block.number}`, value: block.hash }
+      return {
+        key: `${DB_PREFIXES.BLOCK_HEADERS}:${block.number}`,
+        value: block.hash,
+      }
     })
     await this.db.bulkPut(objects)
   }
@@ -128,7 +141,10 @@ export class ChainDB implements OnStart {
    * @returns a list of known deposits.
    */
   public async getDeposits(address: string): Promise<Deposit[]> {
-    const deposits = (await this.db.get(`deposits:${address}`, [])) as Deposit[]
+    const deposits = (await this.db.get(
+      `${DB_PREFIXES.DEPOSITS}:${address}`,
+      []
+    )) as Deposit[]
     return deposits.map((deposit) => {
       return new Deposit(deposit)
     })
@@ -140,7 +156,10 @@ export class ChainDB implements OnStart {
    * @returns a list of known exits.
    */
   public async getExits(address: string): Promise<Exit[]> {
-    const exits = (await this.db.get(`exits:${address}`, [])) as ExitArgs[]
+    const exits = (await this.db.get(
+      `${DB_PREFIXES.EXITS}:${address}`,
+      []
+    )) as ExitArgs[]
     return exits.map((exit) => {
       return new Exit(exit)
     })
@@ -164,7 +183,7 @@ export class ChainDB implements OnStart {
 
     // Add exits for the owners.
     for (const owner of Object.keys(exitsByOwner)) {
-      await this.db.push(`exits:${owner}`, exitsByOwner[owner])
+      await this.db.push(`${DB_PREFIXES.EXITS}:${owner}`, exitsByOwner[owner])
     }
   }
 
@@ -186,7 +205,10 @@ export class ChainDB implements OnStart {
    */
   public async addExitableEnds(ends: BigNum[]): Promise<void> {
     const objects = ends.map((end) => {
-      return { key: `exitable:${end}`, value: end.toString('hex') }
+      return {
+        key: `${DB_PREFIXES.EXITABLE_ENDS}:${end}`,
+        value: end.toString('hex'),
+      }
     })
 
     await this.db.bulkPut(objects)
@@ -198,7 +220,9 @@ export class ChainDB implements OnStart {
    * @returns the exitable end.
    */
   public async getExitableEnd(end: BigNum): Promise<BigNum> {
-    const nextKey = await this.db.findNextKey(`exitable:${end}`)
+    const nextKey = await this.db.findNextKey(
+      `${DB_PREFIXES.EXITABLE_ENDS}:${end}`
+    )
     const exitableEnd = (await this.db.get(nextKey)) as string
     return new BigNum(exitableEnd, 'hex')
   }
@@ -211,7 +235,10 @@ export class ChainDB implements OnStart {
     ranges: Array<{ start: BigNum; end: BigNum }>
   ): Promise<void> {
     const objects = ranges.map((range) => {
-      return { key: `exited:${range.start}:${range.end}`, value: true }
+      return {
+        key: `${DB_PREFIXES.EXITED_RANGES}:${range.start}:${range.end}`,
+        value: true,
+      }
     })
 
     await this.db.bulkPut(objects)
@@ -226,8 +253,9 @@ export class ChainDB implements OnStart {
     start: BigNum
     end: BigNum
   }): Promise<boolean> {
+    // TODO: This is wrong. Should be looking to see if it's inside an exited range.
     return (await this.db.get(
-      `exited:${range.start}:${range.end}`,
+      `${DB_PREFIXES.EXITED_RANGES}:${range.start}:${range.end}`,
       false
     )) as boolean
   }
@@ -240,7 +268,10 @@ export class ChainDB implements OnStart {
     start: BigNum
     end: BigNum
   }): Promise<void> {
-    await this.db.set(`finalized:${exit.start}:${exit.end}`, true)
+    await this.db.set(
+      `${DB_PREFIXES.FINALIZED_EXITS}:${exit.start}:${exit.end}`,
+      true
+    )
   }
 
   /**
@@ -253,7 +284,7 @@ export class ChainDB implements OnStart {
     end: BigNum
   }): Promise<boolean> {
     return (await this.db.get(
-      `finalized:${exit.start}:${exit.end}`,
+      `${DB_PREFIXES.FINALIZED_EXITS}:${exit.start}:${exit.end}`,
       false
     )) as boolean
   }
@@ -263,7 +294,10 @@ export class ChainDB implements OnStart {
    * @returns a list of snapshots.
    */
   public async getState(): Promise<StateManager> {
-    const snapshots = (await this.db.get(`state:latest`, [])) as StateObject[]
+    const snapshots = (await this.db.get(
+      DB_PREFIXES.LATEST_STATE,
+      []
+    )) as StateObject[]
     const state = snapshots.map((snapshot) => {
       return new StateObject(snapshot)
     })
@@ -275,7 +309,7 @@ export class ChainDB implements OnStart {
    * @param state A list of snapshots.
    */
   public async setState(stateManager: StateManager): Promise<void> {
-    await this.db.set('state:latest', stateManager.state)
+    await this.db.set(DB_PREFIXES.LATEST_STATE, stateManager.state)
   }
 
   /**
@@ -284,7 +318,10 @@ export class ChainDB implements OnStart {
    * @returns the predicate bytecode.
    */
   public async getPredicateBytecode(address: string): Promise<string> {
-    const bytecode = await this.db.get(`predicate:${address}`, undefined)
+    const bytecode = await this.db.get(
+      `${DB_PREFIXES.PREDICATES}:${address}`,
+      undefined
+    )
     if (bytecode === undefined) {
       throw new Error('Predicate not found in database.')
     }
@@ -301,6 +338,6 @@ export class ChainDB implements OnStart {
     address: string,
     bytecode: string
   ): Promise<void> {
-    await this.db.set(`predicate:${address}`, bytecode)
+    await this.db.set(`${DB_PREFIXES.PREDICATES}:${address}`, bytecode)
   }
 }

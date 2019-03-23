@@ -7,8 +7,8 @@ import { BaseDBProvider } from '../backends/base-db.provider'
 import { DBService } from '../db.service'
 
 /* Internal Imports */
-import { EthereumEvent } from '../../../models/eth'
 import { ContractService } from '../../eth/contract.service'
+import { DB_PREFIXES } from '../../../constants'
 
 /**
  * Service that exposes an interface to sync-related
@@ -43,7 +43,10 @@ export class SyncDB implements OnStart {
    * @returns Last synced block number.
    */
   public async getLastLoggedBlock(event: string): Promise<number> {
-    return (await this.db.get(`lastlogged:${event}`, -1)) as number
+    return (await this.db.get(
+      `${DB_PREFIXES.LAST_LOGGED_BLOCK}:${event}`,
+      -1
+    )) as number
   }
 
   /**
@@ -52,7 +55,7 @@ export class SyncDB implements OnStart {
    * @param block Last synced block number.
    */
   public async setLastLoggedBlock(event: string, block: number): Promise<void> {
-    await this.db.set(`lastlogged:${event}`, block)
+    await this.db.set(`${DB_PREFIXES.LAST_LOGGED_BLOCK}:${event}`, block)
   }
 
   /**
@@ -61,7 +64,10 @@ export class SyncDB implements OnStart {
    * @returns `true` if the event has been seen, `false` otherwise.
    */
   public async getEventSeen(event: string): Promise<boolean> {
-    return (await this.db.get(`seen:${event}`, false)) as boolean
+    return (await this.db.get(
+      `${DB_PREFIXES.SEEN_EVENTS}:${event}`,
+      false
+    )) as boolean
   }
 
   /**
@@ -69,7 +75,7 @@ export class SyncDB implements OnStart {
    * @param event Hash of the event.
    */
   public async setEventSeen(event: string): Promise<void> {
-    await this.db.set(`seen:${event}`, true)
+    await this.db.set(`${DB_PREFIXES.SEEN_EVENTS}:${event}`, true)
   }
 
   /**
@@ -77,7 +83,7 @@ export class SyncDB implements OnStart {
    * @returns Last synced block number.
    */
   public async getLastSyncedBlock(): Promise<number> {
-    return (await this.db.get('sync:block', -1)) as number
+    return (await this.db.get(DB_PREFIXES.LAST_SYNCED_BLOCK, -1)) as number
   }
 
   /**
@@ -85,7 +91,7 @@ export class SyncDB implements OnStart {
    * @param block Block number to set.
    */
   public async setLastSyncedBlock(block: number): Promise<void> {
-    await this.db.set('sync:block', block)
+    await this.db.set(DB_PREFIXES.LAST_SYNCED_BLOCK, block)
   }
 
   /**
@@ -93,7 +99,10 @@ export class SyncDB implements OnStart {
    * @returns An array of encoded transactions.
    */
   public async getFailedTransactions(): Promise<Transaction[]> {
-    const encodedTxs = (await this.db.get('sync:failed', [])) as string[]
+    const encodedTxs = (await this.db.get(
+      DB_PREFIXES.FAILED_TRANSACTION_IMPORTS,
+      []
+    )) as string[]
     return encodedTxs.map((encodedTx) => {
       return Transaction.from(encodedTx)
     })
@@ -104,26 +113,6 @@ export class SyncDB implements OnStart {
    * @param transactions An array of encoded transactions.
    */
   public async setFailedTransactions(transactions: string[]): Promise<void> {
-    await this.db.set('sync:failed', transactions)
-  }
-
-  /**
-   * Marks a set of Ethereum events as seen.
-   * @param events Ethereum events.
-   */
-  public async addEvents(events: EthereumEvent[]): Promise<void> {
-    const objects = events.map((event) => {
-      return { key: `event:${event.hash}`, value: true }
-    })
-    await this.db.bulkPut(objects)
-  }
-
-  /**
-   * Checks if we've seen a specific event
-   * @param event An Ethereum event.
-   * @returns `true` if we've seen the event, `false` otherwise.
-   */
-  public async hasEvent(event: EthereumEvent): Promise<boolean> {
-    return this.db.exists(`event:${event.hash}`)
+    await this.db.set(DB_PREFIXES.FAILED_TRANSACTION_IMPORTS, transactions)
   }
 }

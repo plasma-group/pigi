@@ -8,6 +8,7 @@ import { DBService } from '../db.service'
 /* Internal Imports */
 import { EthereumAccount } from '../../../models/eth'
 import { BaseDBProvider } from '../backends/base-db.provider'
+import { DB_PREFIXES } from '../../../constants'
 
 /**
  * Service that exposes an interface to wallet-related
@@ -37,7 +38,7 @@ export class WalletDB implements OnStart {
    * @returns a list of account addresses.
    */
   public async getAccounts(): Promise<string[]> {
-    return (await this.db.get('accounts', [])) as string[]
+    return (await this.db.get(DB_PREFIXES.ACCOUNTS, [])) as string[]
   }
 
   /**
@@ -47,7 +48,7 @@ export class WalletDB implements OnStart {
    */
   public async getAccount(address: string): Promise<EthereumAccount> {
     const keystore = (await this.db.get(
-      `keystore:${address}`,
+      `${DB_PREFIXES.KEYSTORES}:${address}`,
       undefined
     )) as EthereumAccount
     if (keystore === undefined) {
@@ -64,7 +65,7 @@ export class WalletDB implements OnStart {
   public async addAccount(account: EthereumAccount): Promise<void> {
     const accounts = await this.getAccounts()
     accounts.push(account.address)
-    await this.db.set('accounts', accounts)
-    await this.db.set(`keystore:${account.address}`, account)
+    await this.db.set(DB_PREFIXES.ACCOUNTS, accounts)
+    await this.db.set(`${DB_PREFIXES.KEYSTORES}:${account.address}`, account)
   }
 }
