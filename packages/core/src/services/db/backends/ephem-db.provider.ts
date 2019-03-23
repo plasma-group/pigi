@@ -1,5 +1,7 @@
+/* External Imports */
+import { jsonify, stringify } from '@pigi/utils'
+
 /* Internal Imports */
-import { jsonify, stringify } from '../../../utils'
 import { DBValue, DBObject, DBResult, BaseDBProvider } from './base-db.provider'
 
 export class EphemDBProvider implements BaseDBProvider {

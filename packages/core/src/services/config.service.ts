@@ -1,6 +1,6 @@
 /* External Imports */
 import { Service } from '@nestd/core'
-import { stringify, jsonify } from '../utils'
+import { stringify, jsonify } from '@pigi/utils'
 
 /**
  * Service used for storing configuration for other services.
