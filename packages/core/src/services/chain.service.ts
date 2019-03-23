@@ -12,6 +12,7 @@ import { EthDataService } from './eth/eth-data.service'
 /* Internal Imports */
 import { Exit, TransactionProof, Deposit } from '../models/chain'
 import { StateManager } from '../utils'
+import { InvalidProofException } from '../exceptions'
 
 /**
  * Service that manages core state-related functionality.
@@ -95,7 +96,7 @@ export class ChainService {
       tempManager = await this.verifier.applyProof(proof)
     } catch (err) {
       this.logger.error(`Rejecting transaction proof for: ${tx.hash}`, err)
-      throw new Error(`Invalid transaction proof: ${err}`)
+      throw new InvalidProofException(tx.hash)
     }
     this.logger.log(`Verified transaction proof for: ${tx.hash}`)
 

@@ -13,8 +13,17 @@ import { ConfigService } from './config.service'
 /* Internal Imports */
 import { TransactionProof } from '../models/chain'
 import { EthInfo } from '../models/operator'
-import { JsonRpcParam, JsonRpcResponse, JsonRpcResult } from '../models/rpc'
+import {
+  JsonRpcParam,
+  JsonRpcResponse,
+  JsonRpcResult,
+  isJsonRpcResponse,
+} from '../models/rpc'
 import { CONFIG } from '../constants'
+import {
+  InvalidJsonRpcResponseException,
+  UninitializedValueException,
+} from '../exceptions'
 
 interface OperatorOptions {
   operatorPingInterval: number
@@ -138,7 +147,7 @@ export class OperatorService implements OnStart {
     params: JsonRpcParam[] = []
   ): Promise<JsonRpcResult | JsonRpcResult[]> {
     if (this.http === undefined) {
-      throw new Error('Cannot make request because endpoint has not been set.')
+      throw new UninitializedValueException('Operator RPC Endpoint')
     }
 
     let response: AxiosResponse
@@ -155,12 +164,12 @@ export class OperatorService implements OnStart {
     }
 
     const data: JsonRpcResponse = JSON.parse(response.data)
+    if (!isJsonRpcResponse(data)) {
+      throw new InvalidJsonRpcResponseException(data)
+    }
 
     if (data.error) {
       throw data.error
-    }
-    if (data.result === undefined) {
-      throw new Error('No result in JSON-RPC response from operator.')
     }
 
     return data.result

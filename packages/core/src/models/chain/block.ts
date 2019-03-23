@@ -1,5 +1,6 @@
 /* Internal Imports */
 import { EthereumEvent } from '../eth'
+import { InvalidCastException } from '../../exceptions'
 
 export interface BlockArgs {
   number: number
@@ -40,6 +41,6 @@ export class PlasmaBlock {
       return PlasmaBlock.fromEthereumEvent(args)
     }
 
-    throw new Error('Cannot cast to Block.')
+    throw new InvalidCastException(typeof args, typeof PlasmaBlock)
   }
 }

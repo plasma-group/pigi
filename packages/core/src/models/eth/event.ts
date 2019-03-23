@@ -1,7 +1,11 @@
+/* External Imports */
 import BigNum = require('bn.js')
 import _ = require('lodash')
 import { isAddress, sha3 } from 'web3-utils'
 import { EventLog } from 'web3-core/types'
+
+/* Internal Imports */
+import { InvalidCastException } from '../../exceptions'
 
 interface RawEventData {
   [key: string]: string | number
@@ -57,6 +61,18 @@ interface EthereumEventArgs {
  * Represents an Ethereum event log object.
  */
 export class EthereumEvent {
+  public raw: RawEventData
+  public data: EventData
+  public block: BigNum
+  public hash: string
+
+  constructor(event: EthereumEventArgs) {
+    this.raw = event.raw
+    this.data = event.data
+    this.block = event.block
+    this.hash = event.hash
+  }
+
   /**
    * Creates an EthereumEvent from an EthereumEvent.
    * @param event The EthereumEvent to cast.
@@ -81,18 +97,6 @@ export class EthereumEvent {
       return EthereumEvent.fromEventLog(args)
     }
 
-    throw new Error('Cannot cast to EthereumEvent.')
-  }
-
-  public raw: RawEventData
-  public data: EventData
-  public block: BigNum
-  public hash: string
-
-  constructor(event: EthereumEventArgs) {
-    this.raw = event.raw
-    this.data = event.data
-    this.block = event.block
-    this.hash = event.hash
+    throw new InvalidCastException(typeof args, typeof EthereumEvent)
   }
 }

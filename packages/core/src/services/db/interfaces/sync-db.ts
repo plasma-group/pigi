@@ -9,6 +9,7 @@ import { DBService } from '../db.service'
 /* Internal Imports */
 import { EthereumEvent } from '../../../models/eth'
 import { ContractService } from '../../eth/contract.service'
+import { UninitializedValueException } from '../../../exceptions'
 
 /**
  * Service that exposes an interface to sync-related
@@ -27,7 +28,7 @@ export class SyncDB implements OnStart {
   get db(): BaseDBProvider {
     const db = this.dbservice.dbs.sync
     if (db === undefined) {
-      throw new Error('SyncDB is not yet initialized.')
+      throw new UninitializedValueException('SyncDB')
     }
     return db
   }

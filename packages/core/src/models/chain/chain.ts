@@ -3,6 +3,7 @@ import { hexToAscii } from 'web3-utils'
 
 /* Internal Imports */
 import { EthereumEvent } from '../eth'
+import { InvalidCastException } from '../../exceptions'
 
 interface PlasmaChainArgs {
   plasmaChainAddress: string
@@ -53,6 +54,6 @@ export class PlasmaChain {
       return PlasmaChain.fromEthereumEvent(args)
     }
 
-    throw new Error('Cannot cast to PlasmaChain.')
+    throw new InvalidCastException(typeof args, typeof PlasmaChain)
   }
 }

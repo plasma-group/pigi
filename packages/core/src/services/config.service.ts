@@ -1,6 +1,7 @@
 /* External Imports */
 import { Service } from '@nestd/core'
 import { stringify, jsonify } from '../utils'
+import { KeyNotFoundException } from '../exceptions'
 
 /**
  * Service used for storing configuration for other services.
@@ -16,7 +17,7 @@ export class ConfigService {
    */
   public get(key: string): any {
     if (!this.db.has(key)) {
-      throw new Error('Key not found in configuration.')
+      throw new KeyNotFoundException(key, 'config')
     }
 
     const value = this.db.get(key)

@@ -1,6 +1,7 @@
 /* Internal Imports */
 import { jsonify, stringify } from '../../../utils'
 import { DBValue, DBObject, DBResult, BaseDBProvider } from './base-db.provider'
+import { KeyNotFoundException } from '../../../exceptions'
 
 export class EphemDBProvider implements BaseDBProvider {
   private db = new Map<string, string>()
@@ -24,7 +25,7 @@ export class EphemDBProvider implements BaseDBProvider {
       if (fallback !== undefined) {
         return fallback
       } else {
-        throw new Error('Key not found in database')
+        throw new KeyNotFoundException(key, 'database')
       }
     }
 
@@ -77,7 +78,7 @@ export class EphemDBProvider implements BaseDBProvider {
       })
 
     if (!nextKey) {
-      throw new Error('Could not find next key in database.')
+      throw new KeyNotFoundException(key, 'database')
     }
 
     return nextKey

@@ -14,6 +14,7 @@ import {
   EthRpcModule,
   WalletRpcModule,
 } from './rpc-modules'
+import { KeyNotFoundException } from '../../exceptions'
 
 /**
  * Service that handles JSON-RPC requests.
@@ -74,7 +75,7 @@ export class JsonRpcService {
     if (name in methods) {
       return methods[name]
     }
-    throw new Error('Method not found.')
+    throw new KeyNotFoundException(name, 'methods')
   }
 
   /**

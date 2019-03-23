@@ -4,6 +4,7 @@ import { StateObject, StateObjectData } from '@pigi/utils'
 
 /* Internal Imports */
 import { EthereumEvent } from '../eth'
+import { InvalidCastException } from '../../exceptions'
 
 export interface ExitArgs extends StateObjectData {
   owner: string
@@ -57,6 +58,6 @@ export class Exit extends StateObject {
       return Exit.fromEthereumEvent(args)
     }
 
-    throw new Error('Cannot cast to Exit.')
+    throw new InvalidCastException(typeof args, typeof Exit)
   }
 }

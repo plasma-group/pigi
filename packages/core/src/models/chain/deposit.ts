@@ -4,6 +4,7 @@ import { StateObject, StateObjectData } from '@pigi/utils'
 
 /* Internal Imports */
 import { EthereumEvent } from '../eth'
+import { InvalidCastException } from '../../exceptions'
 
 export interface DepositArgs extends StateObjectData {
   owner: string
@@ -63,6 +64,6 @@ export class Deposit extends StateObject {
       return Deposit.fromEthereumEvent(args)
     }
 
-    throw new Error('Cannot cast to Deposit.')
+    throw new InvalidCastException(typeof args, typeof Deposit)
   }
 }

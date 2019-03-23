@@ -12,6 +12,10 @@ import { PlasmaBlock, Exit, ExitArgs } from '../../../models/chain'
 import { Deposit } from '../../../models/chain/deposit'
 import { BaseDBProvider } from '../backends/base-db.provider'
 import { StateManager } from '../../../utils'
+import {
+  KeyNotFoundException,
+  UninitializedValueException,
+} from '../../../exceptions'
 
 /**
  * Service that exposes an interface to chain-related
@@ -30,7 +34,7 @@ export class ChainDB implements OnStart {
   get db(): BaseDBProvider {
     const db = this.dbservice.dbs.chain
     if (db === undefined) {
-      throw new Error('ChainDB is not yet initialized.')
+      throw new UninitializedValueException('ChainDB')
     }
     return db
   }
@@ -48,7 +52,7 @@ export class ChainDB implements OnStart {
   public async getTransaction(hash: string): Promise<Transaction> {
     const encoded = await this.db.get(`transaction:${hash}`, undefined)
     if (encoded === undefined) {
-      throw new Error('Transaction not found in database.')
+      throw new KeyNotFoundException(hash, 'transactions')
     }
     return Transaction.from(encoded as string)
   }
@@ -286,7 +290,7 @@ export class ChainDB implements OnStart {
   public async getPredicateBytecode(address: string): Promise<string> {
     const bytecode = await this.db.get(`predicate:${address}`, undefined)
     if (bytecode === undefined) {
-      throw new Error('Predicate not found in database.')
+      throw new KeyNotFoundException(address, 'predicates')
     }
 
     return bytecode as string

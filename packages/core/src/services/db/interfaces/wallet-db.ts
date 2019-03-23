@@ -8,6 +8,10 @@ import { DBService } from '../db.service'
 /* Internal Imports */
 import { EthereumAccount } from '../../../models/eth'
 import { BaseDBProvider } from '../backends/base-db.provider'
+import {
+  KeyNotFoundException,
+  UninitializedValueException,
+} from '../../../exceptions'
 
 /**
  * Service that exposes an interface to wallet-related
@@ -23,7 +27,7 @@ export class WalletDB implements OnStart {
   public get db(): BaseDBProvider {
     const db = this.dbservice.dbs.wallet
     if (db === undefined) {
-      throw new Error('WalletDB is not yet initialized.')
+      throw new UninitializedValueException('WalletDB')
     }
     return db
   }
@@ -51,7 +55,7 @@ export class WalletDB implements OnStart {
       undefined
     )) as EthereumAccount
     if (keystore === undefined) {
-      throw new Error('Account not found.')
+      throw new KeyNotFoundException(address, 'accounts')
     }
 
     return Account.fromPrivate(keystore.privateKey)

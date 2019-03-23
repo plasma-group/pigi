@@ -12,6 +12,7 @@ import { LoggerService, SyncLogger } from '../logging'
 /* Internal Imports */
 import { EthereumAccount, isAccount } from '../../models/eth'
 import { isString } from 'util'
+import { KeyNotFoundException } from '../../exceptions'
 
 /**
  * Service used to manage the local wallet.
@@ -114,7 +115,7 @@ export class WalletService {
       }
     }
 
-    throw new Error('Account not found.')
+    throw new KeyNotFoundException(address, 'accounts')
   }
 
   /**

@@ -21,6 +21,10 @@ import { ConfigService } from '../config.service'
 import { Deposit, PlasmaChain } from '../../models/chain'
 import { EthereumEvent, EthereumTransactionReceipt } from '../../models/eth'
 import { CONFIG } from '../../constants'
+import {
+  KeyNotFoundException,
+  UninitializedValueException,
+} from '../../exceptions'
 
 interface ContractOptions {
   registryAddress: string
@@ -380,10 +384,6 @@ export class ContractService implements OnStart {
    * Queries information from the registry.
    */
   private async initContractInfo() {
-    if (!this.plasmaChainName) {
-      throw new Error('ERROR: Plasma chain name not provided.')
-    }
-
     const plasmaChainName = asciiToHex(this.plasmaChainName).padEnd(66, '0')
     const operator = await this.registry.methods
       .plasmaChainNames(plasmaChainName)
@@ -405,7 +405,7 @@ export class ContractService implements OnStart {
     })
 
     if (!event) {
-      throw new Error('ERROR: Plasma chain name not found in registry.')
+      throw new KeyNotFoundException(plasmaChainName, 'registry')
     }
 
     // Set the appropriate instance variables.
