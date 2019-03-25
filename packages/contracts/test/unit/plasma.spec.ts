@@ -1,29 +1,38 @@
-import './setup'
+import '../setup'
 
 /* External Imports */
-import { Contract } from 'web3-eth-contract/types'
+import { Contract } from 'web3-eth-contract'
 
 /* Internal Imports */
 import { Ethereum } from '../ethereum'
 import { compiledPlasmaChain } from '../../src/compiled'
+import { AssertionError } from 'assert';
 
 describe('PlasmaChain', () => {
 	let ethereum: Ethereum
-  let snapshot: any
-  let plasma: Contract
-	before(async () => {
-  	ethereum = new Ethereum()
-    await ethereum.start()
-    { snapshot, plasma } = await ethereum.deploy(compiledPlasmaChain.bytecode)
-	})
+    let snapshot: any
+    let plasma: Contract
+    before(async () => {
+        console.log('ran')
+        ethereum = new Ethereum()
+        await ethereum.start()
+        plasma = await ethereum.deployCompiledContract(compiledPlasmaChain)
+        console.log(plasma)
+    })
 
-  beforeEach(async () => {
-		await ethereum.revert(snapshot)
-  })
+    beforeEach(async () => {
+            await ethereum.revert(snapshot)
+    })
 
-  after(async () => {
-    await ethereum.stop()
-  })
+    after(async () => {
+        await ethereum.stop()
+    })
+
+    it('lols', async() => {
+        console.log('take2')
+        console.log(plasma)
+        true.should.equal(true)
+    })
   
   // tests
 })
