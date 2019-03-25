@@ -1,17 +1,18 @@
 import * as ganache from 'ganache-cli'
 import Web3 from 'web3'
 import { Http2Server } from 'http2'
+import { Contract } from 'web3-eth-contract/types'
 
 export interface EthereumOptions {
-  port: number
-  gasLimit: string
+  port?: number
+  gasLimit?: string
 }
 
 export class Ethereum {
   private ethereum: Http2Server
   private web3: Web3
 
-  constructor({ port = 8545, gasLimit = '0x7A1200' }: EthereumOptions) {
+  constructor({ port = 8545, gasLimit = '0x7A1200' }: EthereumOptions = {}) {
     this.ethereum = ganache.server({ port, gasLimit })
     this.web3 = new Web3(
       new Web3.providers.HttpProvider(`http://localhost:${port}`)
