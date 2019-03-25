@@ -21,7 +21,7 @@ const createKey = (
 }
 
 export class EphemDB implements BaseDB {
-  private db = new Map<Buffer, string>()
+  private db = new Map<string, string>()
 
   /**
    * Empty method since it's required.
@@ -43,7 +43,7 @@ export class EphemDB implements BaseDB {
     fallback?: T
   ): Promise<T | any | any[]> {
     key = createKey(prefix, key)
-    const result = this.db.get(key)
+    const result = this.db.get(key.toString())
     if (!result) {
       if (fallback !== undefined) {
         return fallback
@@ -68,7 +68,7 @@ export class EphemDB implements BaseDB {
   ): Promise<void> {
     key = createKey(prefix, key)
     const stringified = stringify(value)
-    this.db.set(key, stringified)
+    this.db.set(key.toString(), stringified)
   }
 
   /**
@@ -80,7 +80,7 @@ export class EphemDB implements BaseDB {
     key: string | Buffer | null
   ): Promise<void> {
     key = createKey(prefix, key)
-    this.db.delete(key)
+    this.db.delete(key.toString())
   }
 
   /**
@@ -94,7 +94,7 @@ export class EphemDB implements BaseDB {
     key: string | Buffer | null
   ): Promise<boolean> {
     key = createKey(prefix, key)
-    return this.db.has(key)
+    return this.db.has(key.toString())
   }
 
   /**
@@ -112,7 +112,7 @@ export class EphemDB implements BaseDB {
 
     const nextKey = keys
       .filter((k) => {
-        return k.indexOf(prefix) === 0
+        return k.startsWith(prefix.toString())
       })
       .sort()
       .find((k) => {
@@ -124,8 +124,8 @@ export class EphemDB implements BaseDB {
     }
 
     return {
-      prefix: nextKey.slice(0, prefix.length),
-      key: nextKey.slice(prefix.length),
+      prefix: Buffer.from(nextKey.slice(0, prefix.length)),
+      key: Buffer.from(nextKey.slice(prefix.length)),
     }
   }
 

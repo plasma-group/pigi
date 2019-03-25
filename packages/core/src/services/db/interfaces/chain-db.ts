@@ -14,6 +14,10 @@ import { BaseDB } from '../backends/base.db'
 import { StateManager } from '../../../utils'
 import { DB_PREFIXES } from '../../../constants'
 
+const toBuffer = (...bns: BigNum[]): Buffer => {
+  return Buffer.concat(bns.map((bn) => bn.toBuffer('be', 32)))
+}
+
 /**
  * Service that exposes an interface to chain-related
  * database calls.
@@ -47,10 +51,7 @@ export class ChainDB implements OnStart {
    * @returns the transaction object.
    */
   public async getTransaction(hash: string): Promise<Transaction> {
-    const encoded = await this.db.get(
-      `${DB_PREFIXES.TRANSACTIONS}:${hash}`,
-      undefined
-    )
+    const encoded = await this.db.get(DB_PREFIXES.TRANSACTIONS, hash, undefined)
     if (encoded === undefined) {
       throw new Error('Transaction not found in database.')
     }
@@ -244,7 +245,7 @@ export class ChainDB implements OnStart {
     const objects = ranges.map((range) => {
       return {
         prefix: DB_PREFIXES.EXITED_RANGES,
-        key: `${range.start}:${range.end}`,
+        key: toBuffer(range.start, range.end),
         value: true,
       }
     })
@@ -264,7 +265,7 @@ export class ChainDB implements OnStart {
     // TODO: This is wrong. Should be looking to see if it's inside an exited range.
     return (await this.db.get(
       DB_PREFIXES.EXITED_RANGES,
-      range.end.toString('hex'),
+      toBuffer(range.end),
       false
     )) as boolean
   }
@@ -279,7 +280,7 @@ export class ChainDB implements OnStart {
   }): Promise<void> {
     await this.db.set(
       DB_PREFIXES.FINALIZED_EXITS,
-      `${exit.start}:${exit.end}`,
+      toBuffer(exit.start, exit.end),
       true
     )
   }
@@ -295,7 +296,7 @@ export class ChainDB implements OnStart {
   }): Promise<boolean> {
     return (await this.db.get(
       DB_PREFIXES.FINALIZED_EXITS,
-      `${exit.start}:${exit.end}`,
+      toBuffer(exit.start, exit.end),
       false
     )) as boolean
   }
