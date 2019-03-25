@@ -3,7 +3,7 @@ import { Service, OnStart } from '@nestd/core'
 import { Transaction } from '@pigi/utils'
 
 /* Services */
-import { BaseDBProvider } from '../backends/base-db.provider'
+import { BaseDB } from '../backends/base.db'
 import { DBService } from '../db.service'
 
 /* Internal Imports */
@@ -24,7 +24,7 @@ export class SyncDB implements OnStart {
   /**
    * @returns the current db instance.
    */
-  get db(): BaseDBProvider {
+  get db(): BaseDB {
     const db = this.dbservice.dbs.sync
     if (db === undefined) {
       throw new Error('SyncDB is not yet initialized.')

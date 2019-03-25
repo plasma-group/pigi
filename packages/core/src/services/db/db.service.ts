@@ -6,7 +6,7 @@ import { Type } from '@nestd/core/src/interfaces'
 import { ConfigService } from '../config.service'
 
 /* Internal Imports */
-import { BaseDBProvider, DBOptions } from './backends/base-db.provider'
+import { BaseDB, DBOptions } from './backends/base.db'
 import { CONFIG } from '../../constants'
 
 /**
@@ -15,7 +15,7 @@ import { CONFIG } from '../../constants'
  */
 @Service()
 export class DBService {
-  public dbs: { [key: string]: BaseDBProvider } = {}
+  public dbs: { [key: string]: BaseDB } = {}
 
   constructor(private readonly config: ConfigService) {}
 
@@ -26,8 +26,8 @@ export class DBService {
    */
   public async open(
     options: DBOptions,
-    provider?: Type<BaseDBProvider>
-  ): Promise<BaseDBProvider> {
+    provider?: Type<BaseDB>
+  ): Promise<BaseDB> {
     // Return the database if it already exists.
     const name = options.name + (options.id ? `.${options.id}` : '')
     if (name in this.dbs) {
@@ -47,7 +47,7 @@ export class DBService {
   /**
    * @returns the current default database provider.
    */
-  private dbProvider(): Type<BaseDBProvider> {
+  private dbProvider(): Type<BaseDB> {
     return this.config.get(CONFIG.DB_PROVIDER)
   }
 }

@@ -1,10 +1,10 @@
 import '../../../../setup'
 
 /* Internal Imports */
-import { EphemDBProvider } from '../../../../../src/services/db/backends/ephem-db.provider'
+import { EphemDB } from '../../../../../src/services/db/backends/ephem.db'
 
-describe('EphemDBProvider', async () => {
-  const db = new EphemDBProvider()
+describe('EphemDB', async () => {
+  const db = new EphemDB()
 
   it('should add a new item to the database', async () => {
     const expected = 'value'

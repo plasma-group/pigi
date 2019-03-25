@@ -10,7 +10,7 @@ import { DBService } from '../db.service'
 /* Internal Imports */
 import { PlasmaBlock, Exit, ExitArgs } from '../../../models/chain'
 import { Deposit } from '../../../models/chain/deposit'
-import { BaseDBProvider } from '../backends/base-db.provider'
+import { BaseDB } from '../backends/base.db'
 import { StateManager } from '../../../utils'
 import { DB_PREFIXES } from '../../../constants'
 
@@ -28,7 +28,7 @@ export class ChainDB implements OnStart {
   /**
    * @returns the current db instance.
    */
-  get db(): BaseDBProvider {
+  get db(): BaseDB {
     const db = this.dbservice.dbs.chain
     if (db === undefined) {
       throw new Error('ChainDB is not yet initialized.')

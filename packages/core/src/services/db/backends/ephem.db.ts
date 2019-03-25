@@ -1,9 +1,27 @@
 /* Internal Imports */
 import { jsonify, stringify } from '../../../utils'
-import { DBObject, BaseDBProvider } from './base-db.provider'
+import { DBObject, BaseDB } from './base.db'
 
-export class EphemDBProvider implements BaseDBProvider {
-  private db = new Map<string, string>()
+const toBuffer = (value: string | Buffer): Buffer => {
+  return Buffer.isBuffer(value) ? value : Buffer.from(value)
+}
+
+/**
+ * Creates the internal database key given the prefix and the key.
+ * @param prefix Prefix for the  key.
+ * @param key Database key.
+ * @returns the combined key as a buffer.
+ */
+const createKey = (
+  prefix: string | Buffer | Buffer | Buffer,
+  key: string | Buffer | null
+): Buffer => {
+  prefix = toBuffer(prefix)
+  return key !== null ? Buffer.concat([prefix, toBuffer(key)]) : prefix
+}
+
+export class EphemDB implements BaseDB {
+  private db = new Map<Buffer, string>()
 
   /**
    * Empty method since it's required.
@@ -14,16 +32,17 @@ export class EphemDBProvider implements BaseDBProvider {
 
   /**
    * Returns the value stored at the given key.
+   * @param prefix Prefix for the key.
    * @param key Key to query.
    * @param fallback A fallback value if the key doesn't exist.
    * @returns the stored value or the fallback.
    */
   public async get<T>(
-    prefix: string,
-    key: string | null,
+    prefix: string | Buffer,
+    key: string | Buffer | null,
     fallback?: T
   ): Promise<T | any | any[]> {
-    key = this.createKey(prefix, key)
+    key = createKey(prefix, key)
     const result = this.db.get(key)
     if (!result) {
       if (fallback !== undefined) {
@@ -38,15 +57,16 @@ export class EphemDBProvider implements BaseDBProvider {
 
   /**
    * Sets a given key with the value.
+   * @param prefix Prefix for the key.
    * @param key Key to set.
    * @param value Value to store.
    */
   public async set(
-    prefix: string,
-    key: string | null,
+    prefix: string | Buffer,
+    key: string | Buffer | null,
     value: any
   ): Promise<void> {
-    key = this.createKey(prefix, key)
+    key = createKey(prefix, key)
     const stringified = stringify(value)
     this.db.set(key, stringified)
   }
@@ -55,36 +75,44 @@ export class EphemDBProvider implements BaseDBProvider {
    * Deletes a given key from storage.
    * @param key Key to delete.
    */
-  public async delete(prefix: string, key: string | null): Promise<void> {
-    key = this.createKey(prefix, key)
+  public async delete(
+    prefix: string | Buffer,
+    key: string | Buffer | null
+  ): Promise<void> {
+    key = createKey(prefix, key)
     this.db.delete(key)
   }
 
   /**
    * Checks if a key exists in storage.
+   * @param prefix Prefix for the key.
    * @param key Key to check.
    * @returns `true` if the key exists, `false` otherwise.
    */
-  public async exists(prefix: string, key: string | null): Promise<boolean> {
-    key = this.createKey(prefix, key)
+  public async exists(
+    prefix: string | Buffer,
+    key: string | Buffer | null
+  ): Promise<boolean> {
+    key = createKey(prefix, key)
     return this.db.has(key)
   }
 
   /**
    * Finds the next key after a given key.
+   * @param prefix Prefix for the key.
    * @param key The key to start searching from.
    * @returns the next key with the same prefix.
    */
   public async findNextKey(
-    prefix: string,
-    key: string | null
-  ): Promise<{ prefix: string; key: string }> {
-    key = this.createKey(prefix, key)
+    prefix: string | Buffer,
+    key: string | Buffer | null
+  ): Promise<{ prefix: Buffer; key: Buffer }> {
+    key = createKey(prefix, key)
     const keys = Array.from(this.db.keys())
 
     const nextKey = keys
       .filter((k) => {
-        return k.startsWith(prefix)
+        return k.indexOf(prefix) === 0
       })
       .sort()
       .find((k) => {
@@ -95,10 +123,9 @@ export class EphemDBProvider implements BaseDBProvider {
       throw new Error('Could not find next key in database.')
     }
 
-    const splitKey = nextKey.split(':', 2)
     return {
-      prefix: splitKey[0],
-      key: splitKey[1],
+      prefix: nextKey.slice(0, prefix.length),
+      key: nextKey.slice(prefix.length),
     }
   }
 
@@ -115,21 +142,18 @@ export class EphemDBProvider implements BaseDBProvider {
 
   /**
    * Pushes to an array stored at a key in the database.
+   * @param prefix Prefix for the key.
    * @param key The key at which the array is stored.
    * @param value Value to add to the array.
    */
   public async push<T>(
-    prefix: string,
-    key: string | null,
+    prefix: string | Buffer,
+    key: string | Buffer | null,
     value: T | T[]
   ): Promise<void> {
     const current = (await this.get(prefix, key, [])) as T[]
     value = Array.isArray(value) ? value : [value]
     current.concat(value)
     await this.set(prefix, key, current)
-  }
-
-  private createKey(prefix: string, key: string | null): string {
-    return key !== null ? `${prefix}:${key}` : prefix
   }
 }

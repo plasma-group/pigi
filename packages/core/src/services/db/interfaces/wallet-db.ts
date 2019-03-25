@@ -7,7 +7,7 @@ import { DBService } from '../db.service'
 
 /* Internal Imports */
 import { EthereumAccount } from '../../../models/eth'
-import { BaseDBProvider } from '../backends/base-db.provider'
+import { BaseDB } from '../backends/base.db'
 import { DB_PREFIXES } from '../../../constants'
 
 /**
@@ -21,7 +21,7 @@ export class WalletDB implements OnStart {
   /**
    * @returns the current DB instance.
    */
-  public get db(): BaseDBProvider {
+  public get db(): BaseDB {
     const db = this.dbservice.dbs.wallet
     if (db === undefined) {
       throw new Error('WalletDB is not yet initialized.')
