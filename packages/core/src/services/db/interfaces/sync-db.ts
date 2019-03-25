@@ -44,7 +44,8 @@ export class SyncDB implements OnStart {
    */
   public async getLastLoggedBlock(event: string): Promise<number> {
     return (await this.db.get(
-      `${DB_PREFIXES.LAST_LOGGED_BLOCK}:${event}`,
+      DB_PREFIXES.LAST_LOGGED_BLOCK,
+      event,
       -1
     )) as number
   }
@@ -55,7 +56,7 @@ export class SyncDB implements OnStart {
    * @param block Last synced block number.
    */
   public async setLastLoggedBlock(event: string, block: number): Promise<void> {
-    await this.db.set(`${DB_PREFIXES.LAST_LOGGED_BLOCK}:${event}`, block)
+    await this.db.set(DB_PREFIXES.LAST_LOGGED_BLOCK, event, block)
   }
 
   /**
@@ -64,10 +65,7 @@ export class SyncDB implements OnStart {
    * @returns `true` if the event has been seen, `false` otherwise.
    */
   public async getEventSeen(event: string): Promise<boolean> {
-    return (await this.db.get(
-      `${DB_PREFIXES.SEEN_EVENTS}:${event}`,
-      false
-    )) as boolean
+    return (await this.db.get(DB_PREFIXES.SEEN_EVENTS, event, false)) as boolean
   }
 
   /**
@@ -75,7 +73,7 @@ export class SyncDB implements OnStart {
    * @param event Hash of the event.
    */
   public async setEventSeen(event: string): Promise<void> {
-    await this.db.set(`${DB_PREFIXES.SEEN_EVENTS}:${event}`, true)
+    await this.db.set(DB_PREFIXES.SEEN_EVENTS, event, true)
   }
 
   /**
@@ -83,7 +81,11 @@ export class SyncDB implements OnStart {
    * @returns Last synced block number.
    */
   public async getLastSyncedBlock(): Promise<number> {
-    return (await this.db.get(DB_PREFIXES.LAST_SYNCED_BLOCK, -1)) as number
+    return (await this.db.get(
+      DB_PREFIXES.LAST_SYNCED_BLOCK,
+      null,
+      -1
+    )) as number
   }
 
   /**
@@ -91,7 +93,7 @@ export class SyncDB implements OnStart {
    * @param block Block number to set.
    */
   public async setLastSyncedBlock(block: number): Promise<void> {
-    await this.db.set(DB_PREFIXES.LAST_SYNCED_BLOCK, block)
+    await this.db.set(DB_PREFIXES.LAST_SYNCED_BLOCK, null, block)
   }
 
   /**
@@ -101,6 +103,7 @@ export class SyncDB implements OnStart {
   public async getFailedTransactions(): Promise<Transaction[]> {
     const encodedTxs = (await this.db.get(
       DB_PREFIXES.FAILED_TRANSACTION_IMPORTS,
+      null,
       []
     )) as string[]
     return encodedTxs.map((encodedTx) => {
@@ -113,6 +116,10 @@ export class SyncDB implements OnStart {
    * @param transactions An array of encoded transactions.
    */
   public async setFailedTransactions(transactions: string[]): Promise<void> {
-    await this.db.set(DB_PREFIXES.FAILED_TRANSACTION_IMPORTS, transactions)
+    await this.db.set(
+      DB_PREFIXES.FAILED_TRANSACTION_IMPORTS,
+      null,
+      transactions
+    )
   }
 }

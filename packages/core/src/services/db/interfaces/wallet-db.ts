@@ -38,7 +38,7 @@ export class WalletDB implements OnStart {
    * @returns a list of account addresses.
    */
   public async getAccounts(): Promise<string[]> {
-    return (await this.db.get(DB_PREFIXES.ACCOUNTS, [])) as string[]
+    return (await this.db.get(DB_PREFIXES.ACCOUNTS, null, [])) as string[]
   }
 
   /**
@@ -65,7 +65,7 @@ export class WalletDB implements OnStart {
   public async addAccount(account: EthereumAccount): Promise<void> {
     const accounts = await this.getAccounts()
     accounts.push(account.address)
-    await this.db.set(DB_PREFIXES.ACCOUNTS, accounts)
-    await this.db.set(`${DB_PREFIXES.KEYSTORES}:${account.address}`, account)
+    await this.db.set(DB_PREFIXES.ACCOUNTS, null, accounts)
+    await this.db.set(DB_PREFIXES.KEYSTORES, account.address, account)
   }
 }

@@ -63,7 +63,8 @@ export class ChainDB implements OnStart {
    */
   public async setTransaction(transaction: Transaction): Promise<void> {
     await this.db.set(
-      `${DB_PREFIXES.TRANSACTIONS}:${transaction.hash}`,
+      DB_PREFIXES.TRANSACTIONS,
+      transaction.hash,
       transaction.encoded
     )
   }
@@ -74,7 +75,7 @@ export class ChainDB implements OnStart {
    * @returns `true` if the chain has stored the transaction, `false` otherwise.
    */
   public async hasTransaction(hash: string): Promise<boolean> {
-    return this.db.exists(`${DB_PREFIXES.TRANSACTIONS}:${hash}`)
+    return this.db.exists(DB_PREFIXES.TRANSACTIONS, hash)
   }
 
   /**
@@ -82,7 +83,7 @@ export class ChainDB implements OnStart {
    * @returns the latest block.
    */
   public async getLatestBlock(): Promise<number> {
-    return (await this.db.get(DB_PREFIXES.LATEST_BLOCK, -1)) as number
+    return (await this.db.get(DB_PREFIXES.LATEST_BLOCK, null, -1)) as number
   }
 
   /**
@@ -90,7 +91,7 @@ export class ChainDB implements OnStart {
    * @param block A block number.
    */
   public async setLatestBlock(block: number): Promise<void> {
-    await this.db.set(DB_PREFIXES.LATEST_BLOCK, block)
+    await this.db.set(DB_PREFIXES.LATEST_BLOCK, null, block)
   }
 
   /**
@@ -100,7 +101,8 @@ export class ChainDB implements OnStart {
    */
   public async getBlockHeader(block: number): Promise<string | null> {
     return (await this.db.get(
-      `${DB_PREFIXES.BLOCK_HEADERS}:${block}`,
+      DB_PREFIXES.BLOCK_HEADERS,
+      block.toString(),
       null
     )) as string | null
   }
@@ -112,7 +114,7 @@ export class ChainDB implements OnStart {
    */
   public async addBlockHeader(block: number, hash: string): Promise<void> {
     await this.setLatestBlock(block)
-    await this.db.set(`${DB_PREFIXES.BLOCK_HEADERS}:${block}`, hash)
+    await this.db.set(DB_PREFIXES.BLOCK_HEADERS, block.toString(), hash)
   }
 
   /**
@@ -128,7 +130,8 @@ export class ChainDB implements OnStart {
 
     const objects = blocks.map((block) => {
       return {
-        key: `${DB_PREFIXES.BLOCK_HEADERS}:${block.number}`,
+        prefix: DB_PREFIXES.BLOCK_HEADERS,
+        key: block.number.toString(),
         value: block.hash,
       }
     })
@@ -142,7 +145,8 @@ export class ChainDB implements OnStart {
    */
   public async getDeposits(address: string): Promise<Deposit[]> {
     const deposits = (await this.db.get(
-      `${DB_PREFIXES.DEPOSITS}:${address}`,
+      DB_PREFIXES.DEPOSITS,
+      address,
       []
     )) as Deposit[]
     return deposits.map((deposit) => {
@@ -157,7 +161,8 @@ export class ChainDB implements OnStart {
    */
   public async getExits(address: string): Promise<Exit[]> {
     const exits = (await this.db.get(
-      `${DB_PREFIXES.EXITS}:${address}`,
+      DB_PREFIXES.EXITS,
+      address,
       []
     )) as ExitArgs[]
     return exits.map((exit) => {
@@ -183,7 +188,7 @@ export class ChainDB implements OnStart {
 
     // Add exits for the owners.
     for (const owner of Object.keys(exitsByOwner)) {
-      await this.db.push(`${DB_PREFIXES.EXITS}:${owner}`, exitsByOwner[owner])
+      await this.db.push(DB_PREFIXES.EXITS, owner, exitsByOwner[owner])
     }
   }
 
@@ -206,7 +211,8 @@ export class ChainDB implements OnStart {
   public async addExitableEnds(ends: BigNum[]): Promise<void> {
     const objects = ends.map((end) => {
       return {
-        key: `${DB_PREFIXES.EXITABLE_ENDS}:${end}`,
+        prefix: DB_PREFIXES.EXITABLE_ENDS,
+        key: end.toString('hex'),
         value: end.toString('hex'),
       }
     })
@@ -220,10 +226,11 @@ export class ChainDB implements OnStart {
    * @returns the exitable end.
    */
   public async getExitableEnd(end: BigNum): Promise<BigNum> {
-    const nextKey = await this.db.findNextKey(
-      `${DB_PREFIXES.EXITABLE_ENDS}:${end}`
+    const { prefix, key } = await this.db.findNextKey(
+      DB_PREFIXES.EXITABLE_ENDS,
+      end.toString('hex')
     )
-    const exitableEnd = (await this.db.get(nextKey)) as string
+    const exitableEnd = (await this.db.get(prefix, key)) as string
     return new BigNum(exitableEnd, 'hex')
   }
 
@@ -236,7 +243,8 @@ export class ChainDB implements OnStart {
   ): Promise<void> {
     const objects = ranges.map((range) => {
       return {
-        key: `${DB_PREFIXES.EXITED_RANGES}:${range.start}:${range.end}`,
+        prefix: DB_PREFIXES.EXITED_RANGES,
+        key: `${range.start}:${range.end}`,
         value: true,
       }
     })
@@ -255,7 +263,8 @@ export class ChainDB implements OnStart {
   }): Promise<boolean> {
     // TODO: This is wrong. Should be looking to see if it's inside an exited range.
     return (await this.db.get(
-      `${DB_PREFIXES.EXITED_RANGES}:${range.start}:${range.end}`,
+      DB_PREFIXES.EXITED_RANGES,
+      range.end.toString('hex'),
       false
     )) as boolean
   }
@@ -269,7 +278,8 @@ export class ChainDB implements OnStart {
     end: BigNum
   }): Promise<void> {
     await this.db.set(
-      `${DB_PREFIXES.FINALIZED_EXITS}:${exit.start}:${exit.end}`,
+      DB_PREFIXES.FINALIZED_EXITS,
+      `${exit.start}:${exit.end}`,
       true
     )
   }
@@ -284,7 +294,8 @@ export class ChainDB implements OnStart {
     end: BigNum
   }): Promise<boolean> {
     return (await this.db.get(
-      `${DB_PREFIXES.FINALIZED_EXITS}:${exit.start}:${exit.end}`,
+      DB_PREFIXES.FINALIZED_EXITS,
+      `${exit.start}:${exit.end}`,
       false
     )) as boolean
   }
@@ -296,6 +307,7 @@ export class ChainDB implements OnStart {
   public async getState(): Promise<StateManager> {
     const snapshots = (await this.db.get(
       DB_PREFIXES.LATEST_STATE,
+      null,
       []
     )) as StateObject[]
     const state = snapshots.map((snapshot) => {
@@ -309,7 +321,7 @@ export class ChainDB implements OnStart {
    * @param state A list of snapshots.
    */
   public async setState(stateManager: StateManager): Promise<void> {
-    await this.db.set(DB_PREFIXES.LATEST_STATE, stateManager.state)
+    await this.db.set(DB_PREFIXES.LATEST_STATE, null, stateManager.state)
   }
 
   /**
@@ -319,7 +331,8 @@ export class ChainDB implements OnStart {
    */
   public async getPredicateBytecode(address: string): Promise<string> {
     const bytecode = await this.db.get(
-      `${DB_PREFIXES.PREDICATES}:${address}`,
+      DB_PREFIXES.PREDICATES,
+      address,
       undefined
     )
     if (bytecode === undefined) {
@@ -338,6 +351,6 @@ export class ChainDB implements OnStart {
     address: string,
     bytecode: string
   ): Promise<void> {
-    await this.db.set(`${DB_PREFIXES.PREDICATES}:${address}`, bytecode)
+    await this.db.set(DB_PREFIXES.PREDICATES, address, bytecode)
   }
 }

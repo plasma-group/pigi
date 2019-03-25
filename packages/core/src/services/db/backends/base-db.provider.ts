@@ -1,10 +1,7 @@
-export type DBValue = string | object | number | boolean
-
-export type DBResult = DBValue | DBValue[]
-
 export interface DBObject {
-  key: string
-  value: DBValue
+  prefix: string
+  key: string | null
+  value: any
 }
 
 export interface DBOptions {
@@ -16,11 +13,18 @@ export interface DBOptions {
 
 export interface BaseDBProvider {
   start(): Promise<void>
-  get<T>(key: string, fallback?: T): Promise<T | DBResult>
-  set(key: string, value: DBValue): Promise<void>
-  delete(key: string): Promise<void>
-  exists(key: string): Promise<boolean>
-  findNextKey(key: string): Promise<string>
+  get<T>(
+    prefix: string,
+    key: string | null,
+    fallback?: T
+  ): Promise<T | any | any[]>
+  set(prefix: string, key: string | null, value: any): Promise<void>
+  delete(prefix: string, key: string | null): Promise<void>
+  exists(prefix: string, key: string | null): Promise<boolean>
+  findNextKey(
+    prefix: string,
+    key: string | null
+  ): Promise<{ prefix: string; key: string }>
   bulkPut(objects: DBObject[]): Promise<void>
-  push<T>(key: string, value: T | T[]): Promise<void>
+  push<T>(prefix: string, key: string | null, value: T | T[]): Promise<void>
 }
