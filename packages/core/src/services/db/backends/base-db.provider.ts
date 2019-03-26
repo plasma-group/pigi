@@ -3,7 +3,7 @@ export type DBValue = string | object | number | boolean
 export type DBResult = DBValue | DBValue[]
 
 export interface DBObject {
-  key: string
+  key: Buffer | string
   value: DBValue
 }
 
@@ -22,10 +22,10 @@ export interface DBOptions {
 
 export interface BaseDBProvider {
   start(): Promise<void>
-  get<T>(key: string, fallback?: T): Promise<T | DBResult>
-  put(key: string, value: DBValue): Promise<void>
-  del(key: string): Promise<void>
-  exists(key: string): Promise<boolean>
-  seek(key: string): Promise<string>
+  get<T>(key: Buffer | string, fallback?: T): Promise<T | DBResult>
+  put(key: Buffer | string, value: DBValue): Promise<void>
+  del(key: Buffer | string): Promise<void>
+  exists(key: Buffer | string): Promise<boolean>
+  seek(key: Buffer | string): Promise<string>
   batch(objects: DBObject[]): Promise<void>
 }

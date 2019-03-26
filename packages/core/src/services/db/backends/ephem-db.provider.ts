@@ -18,7 +18,8 @@ export class EphemDBProvider implements BaseDBProvider {
    * @param fallback A fallback value if the key doesn't exist.
    * @returns the stored value or the fallback.
    */
-  public async get<T>(key: string, fallback?: T): Promise<T | DBResult> {
+  public async get<T>(_key: Buffer | string, fallback?: T): Promise<T | DBResult> {
+    const key = this.convertToString(_key)
     const result = this.db.get(key)
     if (!result) {
       if (fallback !== undefined) {
@@ -36,7 +37,8 @@ export class EphemDBProvider implements BaseDBProvider {
    * @param key Key to set.
    * @param value Value to store.
    */
-  public async put(key: string, value: DBValue): Promise<void> {
+  public async put(_key: Buffer | string, value: DBValue): Promise<void> {
+    const key = this.convertToString(_key)
     const stringified = stringify(value)
     this.db.set(key, stringified)
   }
@@ -45,7 +47,8 @@ export class EphemDBProvider implements BaseDBProvider {
    * Deletes a given key from storage.
    * @param key Key to delete.
    */
-  public async del(key: string): Promise<void> {
+  public async del(_key: Buffer | string): Promise<void> {
+    const key = this.convertToString(_key)
     this.db.delete(key)
   }
 
@@ -54,7 +57,8 @@ export class EphemDBProvider implements BaseDBProvider {
    * @param key Key to check.
    * @returns `true` if the key exists, `false` otherwise.
    */
-  public async exists(key: string): Promise<boolean> {
+  public async exists(_key: Buffer | string): Promise<boolean> {
+    const key = this.convertToString(_key)
     return this.db.has(key)
   }
 
@@ -63,7 +67,8 @@ export class EphemDBProvider implements BaseDBProvider {
    * @param key The key to start searching from.
    * @returns the next key with the same prefix.
    */
-  public async seek(key: string): Promise<string> {
+  public async seek(_key: Buffer | string): Promise<string> {
+    const key = this.convertToString(_key)
     const prefix = key.split(':')[0]
     const keys = Array.from(this.db.keys())
 
@@ -104,5 +109,18 @@ export class EphemDBProvider implements BaseDBProvider {
     value = Array.isArray(value) ? value : [value]
     current.concat(value)
     await this.put(key, current)
+  }
+
+  /**
+   * Accepts a string or Buffer and returns a string representation of
+   * the input.
+   * @param value
+   * @returns the value as a string
+   */
+  private convertToString(value: Buffer | string) {
+    if (typeof value === 'string')
+      return value
+    else
+      return value.toString()
   }
 }
