@@ -20,12 +20,19 @@ export interface DBOptions {
   id?: string
 }
 
+export interface DBIterator {
+  iterator: any
+  next(): Promise<any>
+  end(): Promise<void>
+}
+
 export interface BaseDBProvider {
   start(): Promise<void>
   get<T>(key: Buffer | string, fallback?: T): Promise<T | DBResult>
   put(key: Buffer | string, value: DBValue): Promise<void>
   del(key: Buffer | string): Promise<void>
   exists(key: Buffer | string): Promise<boolean>
+  iterator(options: object): Promise<DBIterator>
   seek(key: Buffer | string): Promise<string>
   batch(objects: DBObject[]): Promise<void>
 }

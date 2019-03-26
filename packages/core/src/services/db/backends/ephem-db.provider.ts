@@ -1,6 +1,20 @@
 /* Internal Imports */
 import { jsonify, stringify } from '../../../utils'
-import { DBValue, DBObject, DBResult, BaseDBProvider } from './base-db.provider'
+import { DBValue, DBObject, DBResult, DBIterator, BaseDBProvider } from './base-db.provider'
+
+class EphemDBIterator implements DBIterator {
+  constructor(
+    public iterator: any
+  ) {}
+
+  public next(): Promise<any> {
+    return new Promise((resolve, reject) => {})
+  }
+
+  public end(): Promise<void> {
+    return new Promise((resolve, reject) => {})
+  }
+}
 
 export class EphemDBProvider implements BaseDBProvider {
   private db = new Map<string, string>()
@@ -60,6 +74,15 @@ export class EphemDBProvider implements BaseDBProvider {
   public async exists(_key: Buffer | string): Promise<boolean> {
     const key = this.convertToString(_key)
     return this.db.has(key)
+  }
+
+  /**
+   * Creates a DB iterator based on the supplied options
+   * @param options The key to start searching from.
+   * @returns the DB iterator
+   */
+  public async iterator(options: object): Promise<DBIterator> {
+    return new EphemDBIterator('NOT IMPLEMENTED')
   }
 
   /**

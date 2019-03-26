@@ -40,4 +40,21 @@ describe('LevelDB', async () => {
 
     exists.should.be.false
   })
+
+  it('should be able to iterate through db entries', async () => {
+    const expected = ['value0', 'value1', 'value2']
+    // Fill db with some dummy values
+    for (let i = 0; i < 3; i++)
+      await db.put(Buffer.from([i]), expected[i])
+    // Next we will start iterating over them
+    const it = await db.iterator(Buffer.from([0]))
+    const results = []
+    results.push((await it.next()))
+    results.push((await it.next()))
+    results.push((await it.next()))
+    // Make sure results match with expected
+    for (const [i, r] of results.entries()) {
+      r.value.toString().should.equal(expected[i])
+    }
+  })
 })
