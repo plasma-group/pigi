@@ -16,12 +16,14 @@ describe('PlasmaChain', () => {
         console.log('ran')
         ethereum = new Ethereum()
         await ethereum.start()
+        await ethereum.stop()
         plasma = await ethereum.deployCompiledContract(compiledPlasmaChain)
-        console.log(plasma)
+        console.log('oh')
+        //console.log(plasma)
     })
 
     beforeEach(async () => {
-            await ethereum.revert(snapshot)
+        await ethereum.revert(snapshot)
     })
 
     after(async () => {

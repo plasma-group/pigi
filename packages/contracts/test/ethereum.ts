@@ -1,8 +1,8 @@
-import * as ganache from 'ganache-cli'
+//import * as ganache from 'ganache-cli'
+const ganache = require('ganache-cli')
 import Web3 from 'web3'
 import { Http2Server } from 'http2'
 import { Contract } from 'web3-eth-contract'
-//import {HttpProvider} from 'web3-providers'
 
 export interface EthereumOptions {
   port?: number
@@ -12,25 +12,32 @@ export interface EthereumOptions {
 export class Ethereum {
   private ethereum: Http2Server
   private web3: Web3
+  private accounts: string[] 
 
   constructor({ port = 8545, gasLimit = '0x7A1200' }: EthereumOptions = {}) {
     this.ethereum = ganache.server({ port, gasLimit })
-    console.log('welp')
-
-    this.web3 = new Web3(
-      new Web3.providers.HttpProvider(`http://localhost:${port}`)
-      //new HttpProvider(`http://localhost:${port}`)
-    )
-    console.log('nop')
-
+    
+    const ganacheAccounts = []
+    for (let i = 0; i < 5; i++) {
+      const privateKey = '0xc1912fee45d61c87cc5ea59dae311904cd86b84fee17cc96966216f811ce6a7' + i
+      ganacheAccounts.push({
+        balance: '0x99999999991',
+        secretKey: privateKey
+      })
+    }
+  
+    const providerOptions = { 'accounts': ganacheAccounts, 'locked': false, 'gasLimit': '0x996acfc0', 'logger': console }
+    this.web3 = new Web3(ganache.provider(providerOptions));
   }
 
   /**
    * Starts the Ethereum node.
    */
   public async start(): Promise<void> {
+    this.accounts = await this.web3.eth.getAccounts()
     await new Promise((resolve) => {
-      this.ethereum.close(resolve)
+      this.ethereum.listen('8545', resolve)
+      //this.ethereum.close(resolve)
     })
   }
 
@@ -39,7 +46,8 @@ export class Ethereum {
    */
   public async stop(): Promise<void> {
     await new Promise((resolve) => {
-      this.ethereum.listen('8545', resolve)
+      //this.ethereum.listen('8545', resolve)
+      this.ethereum.close(resolve)
     })
   }
 
@@ -47,9 +55,14 @@ export class Ethereum {
    * Deploys a compiled contract and returns the contract object.
    */
   public async deployCompiledContract(compiledContract: any): Promise<Contract> {
-    const addr: any = this.web3.eth.accounts.wallet[0].address
+    const addr: any = this.accounts[0]
+    console.log(addr)
     const undeployedContract = new Contract(this.web3.currentProvider, compiledContract.abi, addr, { from: addr, gas: 7000000, gasPrice: '3000', data: compiledContract.bytecode })
-    return undeployedContract.deploy({data: compiledContract.bytecode}).send({from: addr})
+    //const a = await undeployedContract.deploy({data: compiledContract.bytecode})
+    //console.log(a)
+    await undeployedContract.deploy({data: compiledContract.bytecode}).send({from: addr})
+    console.log('and here')
+    return undeployedContract
   }
 
   /**
