@@ -64,7 +64,7 @@ export class WalletDB implements OnStart {
   public async addAccount(account: EthereumAccount): Promise<void> {
     const accounts = await this.getAccounts()
     accounts.push(account.address)
-    await this.db.set('accounts', accounts)
-    await this.db.set(`keystore:${account.address}`, account)
+    await this.db.put('accounts', accounts)
+    await this.db.put(`keystore:${account.address}`, account)
   }
 }

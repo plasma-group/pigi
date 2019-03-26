@@ -17,10 +17,9 @@ export interface DBOptions {
 export interface BaseDBProvider {
   start(): Promise<void>
   get<T>(key: string, fallback?: T): Promise<T | DBResult>
-  set(key: string, value: DBValue): Promise<void>
-  delete(key: string): Promise<void>
+  put(key: string, value: DBValue): Promise<void>
+  del(key: string): Promise<void>
   exists(key: string): Promise<boolean>
-  findNextKey(key: string): Promise<string>
-  bulkPut(objects: DBObject[]): Promise<void>
-  push<T>(key: string, value: T | T[]): Promise<void>
+  seek(key: string): Promise<string>
+  batch(objects: DBObject[]): Promise<void>
 }

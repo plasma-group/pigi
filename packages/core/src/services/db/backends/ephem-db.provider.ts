@@ -36,7 +36,7 @@ export class EphemDBProvider implements BaseDBProvider {
    * @param key Key to set.
    * @param value Value to store.
    */
-  public async set(key: string, value: DBValue): Promise<void> {
+  public async put(key: string, value: DBValue): Promise<void> {
     const stringified = stringify(value)
     this.db.set(key, stringified)
   }
@@ -45,7 +45,7 @@ export class EphemDBProvider implements BaseDBProvider {
    * Deletes a given key from storage.
    * @param key Key to delete.
    */
-  public async delete(key: string): Promise<void> {
+  public async del(key: string): Promise<void> {
     this.db.delete(key)
   }
 
@@ -63,7 +63,7 @@ export class EphemDBProvider implements BaseDBProvider {
    * @param key The key to start searching from.
    * @returns the next key with the same prefix.
    */
-  public async findNextKey(key: string): Promise<string> {
+  public async seek(key: string): Promise<string> {
     const prefix = key.split(':')[0]
     const keys = Array.from(this.db.keys())
 
@@ -88,9 +88,9 @@ export class EphemDBProvider implements BaseDBProvider {
    * Should be more efficient than simply calling `set` repeatedly.
    * @param objects A series of objects to put into the database.
    */
-  public async bulkPut(objects: DBObject[]): Promise<void> {
+  public async batch(objects: DBObject[]): Promise<void> {
     for (const object of objects) {
-      await this.set(object.key, object.value)
+      await this.put(object.key, object.value)
     }
   }
 
@@ -103,6 +103,6 @@ export class EphemDBProvider implements BaseDBProvider {
     const current = (await this.get(key, [])) as T[]
     value = Array.isArray(value) ? value : [value]
     current.concat(value)
-    await this.set(key, current)
+    await this.put(key, current)
   }
 }

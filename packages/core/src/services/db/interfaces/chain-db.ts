@@ -58,7 +58,7 @@ export class ChainDB implements OnStart {
    * @param transaction Transaction to store.
    */
   public async setTransaction(transaction: Transaction): Promise<void> {
-    await this.db.set(`transaction:${transaction.hash}`, transaction.encoded)
+    await this.db.put(`transaction:${transaction.hash}`, transaction.encoded)
   }
 
   /**
@@ -83,7 +83,7 @@ export class ChainDB implements OnStart {
    * @param block A block number.
    */
   public async setLatestBlock(block: number): Promise<void> {
-    await this.db.set('latestblock', block)
+    await this.db.put('latestblock', block)
   }
 
   /**
@@ -102,7 +102,7 @@ export class ChainDB implements OnStart {
    */
   public async addBlockHeader(block: number, hash: string): Promise<void> {
     await this.setLatestBlock(block)
-    await this.db.set(`header:${block}`, hash)
+    await this.db.put(`header:${block}`, hash)
   }
 
   /**
@@ -119,7 +119,7 @@ export class ChainDB implements OnStart {
     const objects = blocks.map((block) => {
       return { key: `header:${block.number}`, value: block.hash }
     })
-    await this.db.bulkPut(objects)
+    await this.db.batch(objects)
   }
 
   /**
@@ -164,7 +164,7 @@ export class ChainDB implements OnStart {
 
     // Add exits for the owners.
     for (const owner of Object.keys(exitsByOwner)) {
-      await this.db.push(`exits:${owner}`, exitsByOwner[owner])
+      await this.db.put(`exits:${owner}`, exitsByOwner[owner])
     }
   }
 
@@ -189,7 +189,7 @@ export class ChainDB implements OnStart {
       return { key: `exitable:${end}`, value: end.toString('hex') }
     })
 
-    await this.db.bulkPut(objects)
+    await this.db.batch(objects)
   }
 
   /**
@@ -198,7 +198,7 @@ export class ChainDB implements OnStart {
    * @returns the exitable end.
    */
   public async getExitableEnd(end: BigNum): Promise<BigNum> {
-    const nextKey = await this.db.findNextKey(`exitable:${end}`)
+    const nextKey = await this.db.seek(`exitable:${end}`)
     const exitableEnd = (await this.db.get(nextKey)) as string
     return new BigNum(exitableEnd, 'hex')
   }
@@ -214,7 +214,7 @@ export class ChainDB implements OnStart {
       return { key: `exited:${range.start}:${range.end}`, value: true }
     })
 
-    await this.db.bulkPut(objects)
+    await this.db.batch(objects)
   }
 
   /**
@@ -240,7 +240,7 @@ export class ChainDB implements OnStart {
     start: BigNum
     end: BigNum
   }): Promise<void> {
-    await this.db.set(`finalized:${exit.start}:${exit.end}`, true)
+    await this.db.put(`finalized:${exit.start}:${exit.end}`, true)
   }
 
   /**
@@ -275,7 +275,7 @@ export class ChainDB implements OnStart {
    * @param state A list of snapshots.
    */
   public async setState(stateManager: StateManager): Promise<void> {
-    await this.db.set('state:latest', stateManager.state)
+    await this.db.put('state:latest', stateManager.state)
   }
 
   /**
@@ -301,6 +301,6 @@ export class ChainDB implements OnStart {
     address: string,
     bytecode: string
   ): Promise<void> {
-    await this.db.set(`predicate:${address}`, bytecode)
+    await this.db.put(`predicate:${address}`, bytecode)
   }
 }

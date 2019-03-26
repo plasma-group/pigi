@@ -52,7 +52,7 @@ export class SyncDB implements OnStart {
    * @param block Last synced block number.
    */
   public async setLastLoggedBlock(event: string, block: number): Promise<void> {
-    await this.db.set(`lastlogged:${event}`, block)
+    await this.db.put(`lastlogged:${event}`, block)
   }
 
   /**
@@ -69,7 +69,7 @@ export class SyncDB implements OnStart {
    * @param event Hash of the event.
    */
   public async setEventSeen(event: string): Promise<void> {
-    await this.db.set(`seen:${event}`, true)
+    await this.db.put(`seen:${event}`, true)
   }
 
   /**
@@ -85,7 +85,7 @@ export class SyncDB implements OnStart {
    * @param block Block number to set.
    */
   public async setLastSyncedBlock(block: number): Promise<void> {
-    await this.db.set('sync:block', block)
+    await this.db.put('sync:block', block)
   }
 
   /**
@@ -104,7 +104,7 @@ export class SyncDB implements OnStart {
    * @param transactions An array of encoded transactions.
    */
   public async setFailedTransactions(transactions: string[]): Promise<void> {
-    await this.db.set('sync:failed', transactions)
+    await this.db.put('sync:failed', transactions)
   }
 
   /**
@@ -115,7 +115,7 @@ export class SyncDB implements OnStart {
     const objects = events.map((event) => {
       return { key: `event:${event.hash}`, value: true }
     })
-    await this.db.bulkPut(objects)
+    await this.db.batch(objects)
   }
 
   /**
