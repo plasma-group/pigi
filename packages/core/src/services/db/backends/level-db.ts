@@ -113,7 +113,7 @@ export class LevelDB implements BaseDBProvider {
    * @returns the next key with the same prefix.
    */
   public async seek(key: Buffer | string): Promise<string> {
-    return 'NOT IMPLEMENTED'
+    throw new Error('Method not implemented')
   }
 
   /**

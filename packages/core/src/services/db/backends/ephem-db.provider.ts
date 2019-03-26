@@ -89,7 +89,7 @@ export class EphemDBProvider implements BaseDBProvider {
    * @returns the DB iterator
    */
   public async iterator(options: object): Promise<DBIterator> {
-    return new EphemDBIterator('NOT IMPLEMENTED')
+    throw new Error('Method not implemented')
   }
 
   /**
