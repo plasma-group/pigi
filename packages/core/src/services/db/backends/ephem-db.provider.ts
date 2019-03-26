@@ -1,11 +1,15 @@
 /* Internal Imports */
 import { jsonify, stringify } from '../../../utils'
-import { DBValue, DBObject, DBResult, DBIterator, BaseDBProvider } from './base-db.provider'
+import {
+  DBValue,
+  DBObject,
+  DBResult,
+  DBIterator,
+  BaseDBProvider,
+} from './base-db.provider'
 
 class EphemDBIterator implements DBIterator {
-  constructor(
-    public iterator: any
-  ) {}
+  constructor(public iterator: any) {}
 
   public next(): Promise<any> {
     return new Promise((resolve, reject) => {})
@@ -32,7 +36,10 @@ export class EphemDBProvider implements BaseDBProvider {
    * @param fallback A fallback value if the key doesn't exist.
    * @returns the stored value or the fallback.
    */
-  public async get<T>(_key: Buffer | string, fallback?: T): Promise<T | DBResult> {
+  public async get<T>(
+    _key: Buffer | string,
+    fallback?: T
+  ): Promise<T | DBResult> {
     const key = this.convertToString(_key)
     const result = this.db.get(key)
     if (!result) {
@@ -141,9 +148,7 @@ export class EphemDBProvider implements BaseDBProvider {
    * @returns the value as a string
    */
   private convertToString(value: Buffer | string) {
-    if (typeof value === 'string')
-      return value
-    else
-      return value.toString()
+    if (typeof value === 'string') return value
+    else return value.toString()
   }
 }

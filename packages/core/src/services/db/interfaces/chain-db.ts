@@ -211,7 +211,11 @@ export class ChainDB implements OnStart {
     ranges: Array<{ start: BigNum; end: BigNum }>
   ): Promise<void> {
     const objects = ranges.map((range) => {
-      return { type: 'put', key: `exited:${range.start}:${range.end}`, value: true }
+      return {
+        type: 'put',
+        key: `exited:${range.start}:${range.end}`,
+        value: true,
+      }
     })
 
     await this.db.batch(objects)

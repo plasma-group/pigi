@@ -1,15 +1,20 @@
 /* Internal Imports */
 import { jsonify, stringify } from '../../../utils'
-import { DBValue, DBOperation, DBObject, DBIterator, DBResult, BaseDBProvider } from './base-db.provider'
+import {
+  DBValue,
+  DBOperation,
+  DBObject,
+  DBIterator,
+  DBResult,
+  BaseDBProvider,
+} from './base-db.provider'
 
 /* External Imports */
 import levelup = require('levelup')
 import leveldown = require('leveldown')
 
 class LevelDBIterator implements DBIterator {
-  constructor(
-    public iterator: any
-  ) {}
+  constructor(public iterator: any) {}
 
   public next(): Promise<any> {
     return new Promise((resolve, reject) => {
@@ -54,7 +59,10 @@ export class LevelDB implements BaseDBProvider {
    * @param fallback A fallback value if the key doesn't exist.
    * @returns the stored value or the fallback.
    */
-  public async get<T>(key: Buffer | string, fallback?: T): Promise<T | DBResult> {
+  public async get<T>(
+    key: Buffer | string,
+    fallback?: T
+  ): Promise<T | DBResult> {
     const result = await this.db.get(key)
     return result
   }
@@ -85,7 +93,7 @@ export class LevelDB implements BaseDBProvider {
     try {
       await this.db.get(key)
       return true
-    } catch(err) {
+    } catch (err) {
       return false
     }
   }
