@@ -113,7 +113,7 @@ export class SyncDB implements OnStart {
    */
   public async addEvents(events: EthereumEvent[]): Promise<void> {
     const objects = events.map((event) => {
-      return { key: `event:${event.hash}`, value: true }
+      return { type: 'put', key: `event:${event.hash}`, value: true }
     })
     await this.db.batch(objects)
   }

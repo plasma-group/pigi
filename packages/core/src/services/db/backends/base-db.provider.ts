@@ -34,5 +34,5 @@ export interface BaseDBProvider {
   exists(key: Buffer | string): Promise<boolean>
   iterator(options: object): Promise<DBIterator>
   seek(key: Buffer | string): Promise<string>
-  batch(objects: DBObject[]): Promise<void>
+  batch(objects: DBOperation[]): Promise<void>
 }

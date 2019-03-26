@@ -117,7 +117,7 @@ export class ChainDB implements OnStart {
     await this.setLatestBlock(latest.number)
 
     const objects = blocks.map((block) => {
-      return { key: `header:${block.number}`, value: block.hash }
+      return { type: 'put', key: `header:${block.number}`, value: block.hash }
     })
     await this.db.batch(objects)
   }
@@ -186,7 +186,7 @@ export class ChainDB implements OnStart {
    */
   public async addExitableEnds(ends: BigNum[]): Promise<void> {
     const objects = ends.map((end) => {
-      return { key: `exitable:${end}`, value: end.toString('hex') }
+      return { type: 'put', key: `exitable:${end}`, value: end.toString('hex') }
     })
 
     await this.db.batch(objects)
@@ -211,7 +211,7 @@ export class ChainDB implements OnStart {
     ranges: Array<{ start: BigNum; end: BigNum }>
   ): Promise<void> {
     const objects = ranges.map((range) => {
-      return { key: `exited:${range.start}:${range.end}`, value: true }
+      return { type: 'put', key: `exited:${range.start}:${range.end}`, value: true }
     })
 
     await this.db.batch(objects)
