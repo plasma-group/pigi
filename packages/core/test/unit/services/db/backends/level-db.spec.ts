@@ -3,14 +3,16 @@ import '../../../../setup'
 /* Internal Imports */
 import { LevelDB } from '../../../../../src/services/db/backends/level-db'
 
+/* External Imports */
+const path = require('path')
+
 describe('LevelDB', async () => {
-  const db = new LevelDB()
+  const db = new LevelDB(path.join(__dirname, './test-db'))
 
   it('should add a new item to the database', async () => {
     const expected = 'value'
     await db.put('key', expected)
-    const value = await db.get('key')
-
+    const value = (await db.get('key')).toString()
     value.should.equal(expected)
   })
 

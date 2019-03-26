@@ -7,6 +7,12 @@ export interface DBObject {
   value: DBValue
 }
 
+export interface DBOperation {
+  type: string
+  key: string
+  value: DBValue
+}
+
 export interface DBOptions {
   [key: string]: any
 

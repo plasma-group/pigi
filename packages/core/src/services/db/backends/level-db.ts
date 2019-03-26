@@ -1,9 +1,17 @@
 /* Internal Imports */
 import { jsonify, stringify } from '../../../utils'
-import { DBValue, DBObject, DBResult, BaseDBProvider } from './base-db.provider'
+import { DBValue, DBOperation, DBObject, DBResult, BaseDBProvider } from './base-db.provider'
+
+/* External Imports */
+import levelup = require('levelup')
+import leveldown = require('leveldown')
 
 export class LevelDB implements BaseDBProvider {
-  private db = new Map<string, string>()
+  private db
+
+  constructor(path: string) {
+    this.db = levelup(leveldown(path))
+  }
 
   /**
    * Empty method since it's required.
@@ -19,7 +27,8 @@ export class LevelDB implements BaseDBProvider {
    * @returns the stored value or the fallback.
    */
   public async get<T>(key: string, fallback?: T): Promise<T | DBResult> {
-    return 'NOT IMPLEMENTED'
+    const result = await this.db.get(key)
+    return result
   }
 
   /**
@@ -28,7 +37,7 @@ export class LevelDB implements BaseDBProvider {
    * @param value Value to store.
    */
   public async put(key: string, value: DBValue): Promise<void> {
-    // NOT IMPLEMENTED
+    await this.db.put(key, value)
   }
 
   /**
@@ -36,7 +45,7 @@ export class LevelDB implements BaseDBProvider {
    * @param key Key to delete.
    */
   public async del(key: string): Promise<void> {
-    // NOT IMPLEMENTED
+    await this.db.del(key)
   }
 
   /**
@@ -45,7 +54,12 @@ export class LevelDB implements BaseDBProvider {
    * @returns `true` if the key exists, `false` otherwise.
    */
   public async exists(key: string): Promise<boolean> {
-    return false
+    try {
+      await this.db.get(key)
+      return true
+    } catch(err) {
+      return false
+    }
   }
 
   /**
@@ -62,7 +76,7 @@ export class LevelDB implements BaseDBProvider {
    * Should be more efficient than simply calling `set` repeatedly.
    * @param objects A series of objects to put into the database.
    */
-  public async batch(objects: DBObject[]): Promise<void> {
-    // NOT IMPLEMENTED
+  public async batch(operations: DBOperation[]): Promise<void> {
+    await this.db.batch(operations)
   }
 }
