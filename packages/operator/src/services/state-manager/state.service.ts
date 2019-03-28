@@ -4,7 +4,7 @@ import AsyncLock = require('async-lock')
 import { BaseDBProvider, EphemDBProvider, LevelDB } from '@pigi/core'
 
 /* Internal Imports */
-import { TransactionLog } from './tx-log.service'
+import { TransactionLog } from './transaction-log'
 
 export class StateService {
   private lock = new AsyncLock()

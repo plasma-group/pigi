@@ -7,7 +7,7 @@ const path = require('path')
 
 /* Internal Imports */
 import { StateService } from '../../../../src/services/state-manager/state.service'
-import { FileSystemTransactionLog } from '../../../../src/services/state-manager/tx-log.service'
+import { FileSystemTransactionLog } from '../../../../src/services/state-manager/transaction-log'
 
 describe('StateService', () => {
   const config = {
