@@ -1,4 +1,5 @@
 import '../../../setup'
+import { dbRootPath } from '../../../setup'
 
 /* External Imports */
 const path = require('path')
@@ -10,11 +11,10 @@ import { FileSystemTransactionLog } from '../../../../src/services/state-manager
 
 describe('StateService', () => {
   const config = {
-    txLogPath: 'tx-log.test.tmp',
+    txLogPath: path.join(dbRootPath, 'transaction-log-unit-tests')
   }
-  const txLogPath = path.join(__dirname, config.txLogPath)
-  const txLog = new FileSystemTransactionLog(txLogPath)
+  const txLog = new FileSystemTransactionLog(config.txLogPath)
   it('should create a new directory at the given path', async () => {
-    fs.existsSync(txLogPath).should.be.true
+    fs.existsSync(config.txLogPath).should.be.true
   })
 })

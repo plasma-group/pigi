@@ -1,4 +1,5 @@
 import '../../../setup'
+import { dbRootPath } from '../../../setup'
 
 /* External Imports */
 import BigNum = require('bn.js')
@@ -11,11 +12,11 @@ import { FileSystemTransactionLog } from '../../../../src/services/state-manager
 
 describe('StateService', () => {
   const config = {
-    stateDBPath: 'state-db.test.tmp',
-    txLogPath: 'tx-log.test.tmp',
+    stateDBPath: path.join(dbRootPath, 'state-service-unit--state-db'),
+    txLogPath: path.join(dbRootPath, 'state-service-unit--transaction-log'),
   }
-  const db = new LevelDB(path.join(__dirname, config.stateDBPath))
-  const txLog = new FileSystemTransactionLog(path.join(__dirname, config.txLogPath))
+  const db = new LevelDB(config.stateDBPath)
+  const txLog = new FileSystemTransactionLog(config.txLogPath)
   const stateService = new StateService(db, txLog)
 
   it('should open two DBs', async () => {
