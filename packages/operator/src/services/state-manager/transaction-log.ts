@@ -1,6 +1,7 @@
 /* External Imports */
 const fs = require('fs')
 const log = require('debug')('info:state-manager:tx-log')
+const path = require('path')
 
 /* Internal Imports */
 
@@ -16,7 +17,7 @@ export class FileSystemTransactionLog implements TransactionLog {
   constructor(
     private readonly txLogDirPath: string,
   ) {
-    this.tmpTxLogPath = txLogDirPath + 'tmp-tx-log.bin'
+    this.tmpTxLogPath = path.join(txLogDirPath, 'tmp-tx-log.bin')
 
     // Make a new tx-log directory if it doesn't exist.
     if (!fs.existsSync(txLogDirPath)) {

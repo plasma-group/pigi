@@ -11,8 +11,8 @@ import { FileSystemTransactionLog } from '../../../../src/services/state-manager
 
 describe('StateService', () => {
   const config = {
-    stateDBPath: 'state-db',
-    txLogPath: 'tx-log',
+    stateDBPath: 'state-db.test.tmp',
+    txLogPath: 'tx-log.test.tmp',
   }
   const db = new LevelDB(path.join(__dirname, config.stateDBPath))
   const txLog = new FileSystemTransactionLog(path.join(__dirname, config.txLogPath))
