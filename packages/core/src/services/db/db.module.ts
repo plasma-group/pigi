@@ -12,3 +12,9 @@ import { WalletDB } from './interfaces/wallet-db'
   services: [DBService, EphemDBProvider, ChainDB, SyncDB, WalletDB],
 })
 export class DBModule {}
+
+/* Other Exports */
+export { DBService } from './db.service'
+export { BaseDBProvider } from './backends/base-db.provider'
+export { EphemDBProvider } from './backends/ephem-db.provider'
+export { LevelDB } from './backends/level-db'
