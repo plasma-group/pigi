@@ -1,24 +1,26 @@
 /* External Imports */
-const fs = require('fs')
+const fs = require('fs-extra')
 const log = require('debug')('info:state-manager:tx-log')
 const path = require('path')
+import BigNum = require('bn.js')
 
 /* Internal Imports */
+import { BLOCKNUMBER_BYTE_SIZE } from '../../constants/serialization'
+
 
 export interface TransactionLog {
-  writeTransaction(transaction: Buffer): Promise<boolean>
-  startNewBlock(): Promise<number>
+  writeTransaction(transaction: Buffer): Promise<void>
+  startNewBlock(blockNumber: BigNum): Promise<void>
 }
 
 export class FileSystemTransactionLog implements TransactionLog {
   private tmpTxLogPath:string
-  private writeStream:NodeJS.ReadableStream
+  private writeStream:NodeJS.WritableStream
 
   constructor(
     private readonly txLogDirPath: string,
   ) {
     this.tmpTxLogPath = path.join(txLogDirPath, 'tmp-tx-log.bin')
-
     // Make a new tx-log directory if it doesn't exist.
     if (!fs.existsSync(txLogDirPath)) {
       log('Creating a new tx-log directory')
@@ -37,10 +39,13 @@ export class FileSystemTransactionLog implements TransactionLog {
   }
 
   public async writeTransaction(transaction: Buffer) {
-    return true
+    this.writeStream.write(transaction)
   }
 
-  public async startNewBlock() {
-    return 10
+  public async startNewBlock(blockNumber: BigNum) {
+    this.writeStream.end()
+    const txLogPath = path.join(this.txLogDirPath, blockNumber.toString(10, BLOCKNUMBER_BYTE_SIZE * 2))
+    await fs.rename(this.tmpTxLogPath, txLogPath)
+    this.writeStream = fs.createWriteStream(this.tmpTxLogPath, { flags: 'a' })
   }
 }
