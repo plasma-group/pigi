@@ -21,12 +21,12 @@ export class Ethereum {
     for (let i = 0; i < 5; i++) {
       const privateKey = '0xc1912fee45d61c87cc5ea59dae311904cd86b84fee17cc96966216f811ce6a7' + i
       ganacheAccounts.push({
-        balance: '0x99999999991',
+        balance: '0x999999999999999999999999991',
         secretKey: privateKey
       })
     }
   
-    const providerOptions = { 'accounts': ganacheAccounts, 'locked': false, 'gasLimit': '0x996acfc0', 'logger': console }
+    const providerOptions = { 'accounts': ganacheAccounts, 'locked': false, 'gasLimit': '0x7A1200', 'logger': console }
     this.web3 = new Web3(ganache.provider(providerOptions));
   }
 
@@ -57,10 +57,13 @@ export class Ethereum {
   public async deployCompiledContract(compiledContract: any): Promise<Contract> {
     const addr: any = this.accounts[0]
     console.log(addr)
-    const undeployedContract = new Contract(this.web3.currentProvider, compiledContract.abi, addr, { from: addr, gas: 7000000, gasPrice: '3000', data: compiledContract.bytecode })
+    const genesisBlock: any = await this.web3.eth.getBlock(0)
+    console.log(genesisBlock.gasLimit)
+    //const undeployedContract = new Contract(this.web3.currentProvider, compiledContract.abi, addr, { from: addr, gas: 7000000, gasPrice: '3000', data: compiledContract.bytecode })
+    const undeployedContract = new this.web3.eth.Contract(compiledContract.abi)
     //const a = await undeployedContract.deploy({data: compiledContract.bytecode})
     //console.log(a)
-    await undeployedContract.deploy({data: compiledContract.bytecode}).send({from: addr})
+    await undeployedContract.deploy({data: compiledContract.bytecode, }).send({from: addr, gas: 8000000, gasPrice: '30000000000000'})
     console.log('and here')
     return undeployedContract
   }
