@@ -1,6 +1,6 @@
 /* Internal Imports */
 import { ConfigManager } from '../../../interfaces'
-import { stringify, jsonify } from '../../common'
+import { stringify, jsonify, KeyNotFoundException } from '../../common'
 
 /**
  * Simple config manager that stores configuration values
@@ -20,7 +20,7 @@ export class SimpleConfigManager implements ConfigManager {
    */
   public get(key: string): any {
     if (!(key in this.config)) {
-      throw new Error('Key not found in configuration.')
+      throw new KeyNotFoundException(key, 'configuration')
     }
 
     const value = this.config[key]

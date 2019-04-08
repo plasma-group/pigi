@@ -8,6 +8,7 @@ import {
   buildJsonRpcError,
   isJsonRpcRequest,
   ExpressHttpServer,
+  KeyAlreadyExistsException,
 } from '../../common'
 
 /**
@@ -66,7 +67,7 @@ export class SimpleJsonRpcServer extends ExpressHttpServer
    */
   public register(name: string, method: Function): void {
     if (name in this.methods) {
-      throw new Error(`method already registered: ${name}`)
+      throw new KeyAlreadyExistsException(name, 'rpc methods')
     }
 
     this.methods[name] = method

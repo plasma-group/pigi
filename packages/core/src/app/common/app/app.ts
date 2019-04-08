@@ -1,6 +1,7 @@
 /* Internal Imports */
 import { DebugLogger } from '../utils'
 import { Process } from './process'
+import { KeyNotFoundException, KeyAlreadyExistsException } from '../err'
 
 /**
  * Basic application framework. Makes it easy to
@@ -17,7 +18,7 @@ export class BaseApp {
    */
   public register(name: string, process: Process<any>): void {
     if (name in this.processes) {
-      throw new Error(`process already registered: ${name}`)
+      throw new KeyAlreadyExistsException(name, 'app processes')
     }
 
     this.processes[name] = process
@@ -30,7 +31,7 @@ export class BaseApp {
    */
   public query(name: string): Process<any> {
     if (!(name in this.processes)) {
-      throw new Error(`process does not exist: ${name}`)
+      throw new KeyNotFoundException(name, 'app processes')
     }
 
     return this.processes[name]

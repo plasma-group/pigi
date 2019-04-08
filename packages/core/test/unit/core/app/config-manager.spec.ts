@@ -42,6 +42,6 @@ describe('SimpleConfigManager', () => {
 
     should.Throw(() => {
       manager.get('not-a-real-key')
-    }, 'Key not found in configuration.')
+    }, 'was not found during lookup')
   })
 })

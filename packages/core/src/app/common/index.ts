@@ -1,4 +1,5 @@
 export * from './app'
 export * from './db'
+export * from './err'
 export * from './net'
 export * from './utils'
