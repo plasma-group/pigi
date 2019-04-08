@@ -5,7 +5,7 @@ export interface JsonRpcMessage {
 
 export interface JsonRpcRequest extends JsonRpcMessage {
   method: string
-  params?: any[]
+  params?: any
 }
 
 export interface JsonRpcError {
