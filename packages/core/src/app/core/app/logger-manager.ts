@@ -7,7 +7,7 @@ import { DebugLogger } from '../../common'
  * instances based on a namespace.
  */
 export class DebugLoggerManager implements LoggerManager {
-  private loggers: Record<string, DebugLogger>
+  private loggers: Record<string, DebugLogger> = {}
 
   /**
    * Creates a new logger using `debug`.

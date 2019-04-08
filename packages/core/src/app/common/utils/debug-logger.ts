@@ -7,7 +7,7 @@ declare const process: any
 export class DebugLogger implements Logger {
   private logger: Debugger
 
-  constructor(readonly namespace: string) {
+  constructor(public readonly namespace: string) {
     this.logger = debug(namespace)
     debug.enable(namespace)
   }
