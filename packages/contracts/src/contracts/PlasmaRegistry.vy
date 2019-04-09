@@ -10,9 +10,10 @@ NewPlasmaChain: event({
     _metadata: bytes32
 })
 
-# Variables
+# Public Variables
 plasmaChainTemplate: public(address)
 plasmaChains: public(map(bytes32, address))
+
 
 @public
 def __init__(_template: address):
@@ -24,6 +25,7 @@ def __init__(_template: address):
 
     """
     self.plasmaChainTemplate = _template
+
 
 @public
 def createPlasmaChain(_name: bytes32, _operator: address, _metadata: bytes32) -> address:
