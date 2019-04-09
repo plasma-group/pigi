@@ -1,6 +1,9 @@
 /* External Imports */
 import BigNum = require('bn.js')
 
+/* Internal Imports */
+import { FunctionPropertyNames, OneOrMore } from '../../../interfaces'
+
 /**
  * JSON-stringifies a value if it's not already a string.
  * @param value Value to stringify.
@@ -74,4 +77,28 @@ export const prettify = (obj: PrettyPrintable): string => {
       : value
   }
   return JSON.stringify(parsed, null, 2)
+}
+
+/**
+ * Binds a function or list of functions to
+ * an object. Gets around the annoying
+ * `x.fn.bind(x)` syntax. If several functions
+ * are provided, returns an Record instead of
+ * just a sigle bound function.
+ * @param obj Object to bind to.
+ * @param fns Function(s) to bind.
+ * @returns the bound function(s).
+ */
+export const autobind = <T>(
+  obj: T,
+  fns: OneOrMore<FunctionPropertyNames<T>>
+): any => {
+  if (!Array.isArray(fns)) {
+    return (obj[fns] as any).bind(obj)
+  }
+  const bound = {}
+  for (const fn of fns) {
+    bound[fn as any] = obj[fn as any].bind(obj)
+  }
+  return bound
 }

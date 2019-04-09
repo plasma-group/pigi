@@ -14,7 +14,7 @@ import { Process, BaseApp } from '../common'
 import { SimpleConfigManagerProcess, DebugLoggerManagerProcess } from './app'
 import { SimpleDBManagerProcess } from './db'
 import { Web3EthClientProcess, SimpleKeyManagerProcess } from './eth'
-import { SimpleJsonRpcServerProcess } from './net'
+import { SimpleJsonRpcServerProcess, CoreRpcRegistrarProcess } from './net'
 
 export interface CoreAppConfig {
   ETHEREUM_ENDPOINT: string
@@ -35,6 +35,7 @@ export class CoreApp extends BaseApp {
   public readonly ethClient: Process<EthClient>
   public readonly keyManager: Process<KeyManager>
   public readonly rpcServer: Process<RpcServer>
+  public readonly coreRpcRegistrar: Process<void>
 
   /**
    * Creates the app.
@@ -49,11 +50,16 @@ export class CoreApp extends BaseApp {
     this.ethClient = new Web3EthClientProcess(this.configManager)
     this.keyManager = new SimpleKeyManagerProcess(this.dbManager)
     this.rpcServer = new SimpleJsonRpcServerProcess(this.configManager)
+    this.coreRpcRegistrar = new CoreRpcRegistrarProcess(
+      this.rpcServer,
+      this.keyManager
+    )
 
     this.register('ConfigManager', this.configManager)
     this.register('LogCollector', this.loggerManager)
     this.register('DBManager', this.dbManager)
     this.register('EthClient', this.ethClient)
     this.register('KeyManager', this.keyManager)
+    this.register('CoreRpcRegistrar', this.coreRpcRegistrar)
   }
 }
