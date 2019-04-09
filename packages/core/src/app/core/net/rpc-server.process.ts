@@ -28,6 +28,7 @@ export class SimpleJsonRpcServerProcess extends Process<RpcServer> {
     const hostname = this.config.subject.get(
       CORE_CONFIG_KEYS.RPC_SERVER_HOSTNAME
     )
+
     this.subject = new SimpleJsonRpcServer({}, port, hostname)
     await this.subject.listen()
   }

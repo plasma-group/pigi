@@ -60,6 +60,7 @@ export class CoreApp extends BaseApp {
     this.register('DBManager', this.dbManager)
     this.register('EthClient', this.ethClient)
     this.register('KeyManager', this.keyManager)
+    this.register('RpcServer', this.rpcServer)
     this.register('CoreRpcRegistrar', this.coreRpcRegistrar)
   }
 }

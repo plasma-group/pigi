@@ -65,18 +65,22 @@ export class BaseApp {
   private async execute(
     fn: (name: string, process: Process<any>) => Promise<void>
   ): Promise<void> {
-    await Promise.all(
-      Object.keys(this.processes).map((name) => {
-        return new Promise<void>(async (resolve, reject) => {
-          try {
-            await fn(name, this.processes[name])
-          } catch (err) {
-            reject(err)
-            return
-          }
-          resolve()
+    try {
+      await Promise.all(
+        Object.keys(this.processes).map((name) => {
+          return new Promise<void>(async (resolve, reject) => {
+            try {
+              await fn(name, this.processes[name])
+            } catch (err) {
+              reject(err)
+              return
+            }
+            resolve()
+          })
         })
-      })
-    )
+      )
+    } catch (err) {
+      this.logger.error(`app execution failed`, err.stack)
+    }
   }
 }
