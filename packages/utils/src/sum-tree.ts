@@ -1,10 +1,14 @@
+/* External Imports */
 import BigNum = require('bn.js')
-import { keccak256, reverse } from './utils'
+
+/* Internal Imports */
+import { keccak256 } from './eth'
+import { reverse } from './misc'
 import { NULL_HASH } from './constants'
 
 export interface ImplicitBounds {
-  start: BigNum
-  end: BigNum
+  implicitStart: BigNum
+  implicitEnd: BigNum
 }
 
 export interface MerkleTreeNode {
@@ -152,8 +156,8 @@ export class MerkleSumTree {
       .eqn(leafIndex)
 
     return {
-      start: firstLeftSibling ? firstLeftSibling.end : new BigNum(0),
-      end: isLastLeaf ? this.maxTreeSize : leaf.end,
+      implicitStart: firstLeftSibling ? firstLeftSibling.end : new BigNum(0),
+      implicitEnd: isLastLeaf ? this.maxTreeSize : leaf.end,
     }
   }
 

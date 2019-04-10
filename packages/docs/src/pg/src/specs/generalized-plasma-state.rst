@@ -64,13 +64,13 @@ Generalized Plasma State Spec
          - ``self.DISPUTE_PERIOD: uint`` - the minimum dispute period before a claim can be redeemed
      - Public methods:
          - ``deposit(amount, state)``
-             - Deposits specifiy an initial state and the amount of money being deposited into that state
+             - Deposits specify an initial state and the amount of money being deposited into that state
              - adds to ``self.deposits``
              - extends ``self.claimableRanges`` so that the state is now claimable
          - ``exitStateUpdate(exitStart: uint, exitEnd: uint, update: stateUpdate, updateWitness: stateUpdateWitness, initiationWitness: bytes)`` - allows users to submit a claim on a committed state
              - ``assert verifyUpdate(update, self.address, stateUpdateWitness)``
-             - assert ``exitStart >= update.start``
-             - assert ``exitEnd <= update.end ``
+             - ``assert exitStart >= update.start``
+             - ``assert exitEnd <= update.end``
              - ``assert update.state.predicate.can_initiate_exit(update, initiationWitness)``
              - if so, adds a new exit to ``self.exits``
              - sets the exit's ``ethBlockRedeemable`` to: ``eth.block + self.CHALLENGE_PERIOD + state.predicateAddress.getAdditionalLockup(update)``
@@ -126,7 +126,7 @@ Generalized Plasma State Spec
          - ``public function finalizeExit(exit: exit):``
                ``redeemedAmount: uint = exit.end - exit.start #length of sequential stateIDs claimed``
                ``ERC20.transferFrom(self.address, exit.update.state.owner, )``
-         - ``public function canInitiateExit(update: stateUpdate, initiationWitness: bytes):
+         - ``public function canInitiateExit(update: stateUpdate, initiationWitness: bytes)``:
               assert tx.sender = commitment.state.parameters.owner``
      - Multisig
      - Atomic Swap
