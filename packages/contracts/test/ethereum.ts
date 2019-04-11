@@ -26,7 +26,7 @@ export class Ethereum {
       })
     }
   
-    const providerOptions = { 'accounts': ganacheAccounts, 'locked': false, 'gasLimit': '0x7A1200', 'logger': console }
+    const providerOptions = { 'accounts': ganacheAccounts, 'locked': false, 'gasLimit': '0x7A1200', 'logger': console, 'debug': true }
     this.web3 = new Web3(ganache.provider(providerOptions));
   }
 
@@ -34,7 +34,7 @@ export class Ethereum {
    * Starts the Ethereum node.
    */
   public async start(): Promise<void> {
-    this.accounts = await this.web3.eth.getAccounts()
+    this.accounts = await this.web3.eth.getAccounts() // cannot be done in synchronous constructor
     await new Promise((resolve) => {
       this.ethereum.listen('8545', resolve)
       //this.ethereum.close(resolve)
@@ -56,14 +56,17 @@ export class Ethereum {
    */
   public async deployCompiledContract(compiledContract: any): Promise<Contract> {
     const addr: any = this.accounts[0]
-    console.log(addr)
-    const genesisBlock: any = await this.web3.eth.getBlock(0)
-    console.log(genesisBlock.gasLimit)
     //const undeployedContract = new Contract(this.web3.currentProvider, compiledContract.abi, addr, { from: addr, gas: 7000000, gasPrice: '3000', data: compiledContract.bytecode })
-    const undeployedContract = new this.web3.eth.Contract(compiledContract.abi)
+    console.log('abi is:')
+    console.log(compiledContract.abi)
+    
+    const undeployedContract = new this.web3.eth.Contract(compiledContract.abi, addr, {data: compiledContract.bytecode, from: addr, gas: 8000000, gasPrice: '30000000000000'})
     //const a = await undeployedContract.deploy({data: compiledContract.bytecode})
     //console.log(a)
-    await undeployedContract.deploy({data: compiledContract.bytecode, }).send({from: addr, gas: 8000000, gasPrice: '30000000000000'})
+    const depltx: any = await undeployedContract.deploy({data: compiledContract.bytecode})
+    console.log('tx is:')
+    console.log(depltx.encodeABI())
+    depltx.send({from: addr, gas: 8000000, gasPrice: '30'})
     console.log('and here')
     return undeployedContract
   }

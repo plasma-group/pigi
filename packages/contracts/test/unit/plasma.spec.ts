@@ -5,7 +5,7 @@ import { Contract } from 'web3-eth-contract'
 
 /* Internal Imports */
 import { Ethereum } from '../ethereum'
-import { compiledPlasmaChain } from '../../src/compiled'
+import { compiledPlasmaChain, compiledNewPlasma } from '../../src/compiled'
 import { AssertionError } from 'assert';
 
 describe('PlasmaChain', () => {
@@ -16,7 +16,7 @@ describe('PlasmaChain', () => {
         console.log('ran')
         ethereum = new Ethereum()
         await ethereum.start()
-        await ethereum.stop()
+        //await ethereum.stop()
         plasma = await ethereum.deployCompiledContract(compiledPlasmaChain)
         console.log('oh')
         //console.log(plasma)

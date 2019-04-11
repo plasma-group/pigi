@@ -44,7 +44,7 @@ def createPlasmaChain(_name: bytes32, _operator: address, _metadata: bytes32) ->
     """
     assert self.plasmaChains[_name] == ZERO_ADDRESS
 
-    plasmaChain: address = create_with_code_of(self.plasmaChainTemplate)
+    plasmaChain: address = create_forwarder_to(self.plasmaChainTemplate)
     PlasmaChain(plasmaChain).setup(_operator, 0)
     self.plasmaChains[_name] = plasmaChain
 
