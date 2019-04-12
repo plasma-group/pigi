@@ -20,20 +20,24 @@ def __init__(_template: address):
     """Creates the registry.
 
     Args:
-        _template (address): Address of the contract to use as
-            the template for chains created through this registry.
+        _template (address): Address of the contract to use as the template for
+            chains created through this registry.
 
     """
     self.plasmaChainTemplate = _template
 
 
 @public
-def createPlasmaChain(_name: bytes32, _operator: address, _metadata: bytes32) -> address:
+def createPlasmaChain(
+    _name: bytes32,
+    _operator: address,
+    _metadata: bytes32
+) -> address:
     """Creates a new plasma chain and registers it.
 
-    Plasma chains in the registry must be created through the registry
-    to ensure that they all share the same code. We then store
-    the address of the new chain in the registry and emit an event.
+    Plasma chains in the registry must be created through the registry to
+    ensure that they all share the same code. We then store the address of the
+    new chain in the registry and emit an event.
 
     Args:
         _name (bytes32): Name of the new plasma chain. Must be unique.
@@ -46,7 +50,7 @@ def createPlasmaChain(_name: bytes32, _operator: address, _metadata: bytes32) ->
     """
     assert self.plasmaChains[_name] == ZERO_ADDRESS
 
-    plasmaChain: address = create_with_code_of(self.plasmaChainTemplate)
+    plasmaChain: address = create_forwarder_to(self.plasmaChainTemplate)
     PlasmaChain(plasmaChain).setup(_operator, 0)
     self.plasmaChains[_name] = plasmaChain
 
