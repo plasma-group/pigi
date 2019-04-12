@@ -1,3 +1,4 @@
+# Structs
 struct deposit:
     untypedStart: uint256
     depositer: address
@@ -28,104 +29,195 @@ struct invalidHistoryChallenge:
     ongoing: bool
 
 struct tokenListing:
-    # formula: ERC20 amount = (plasma coin amount * 10^decimalOffset)
-    decimalOffset:  uint256 # the denomination offset between the plasma-wrapped coins and the ERC20's decimals.
-    # address of the ERC20
+    decimalOffset:  uint256
     contractAddress: address
 
+
+# External Contracts
 contract ERC20:
-    def transferFrom(_from: address, _to: address, _value: uint256) -> bool: modifying
+    def transferFrom(
+        _from: address,
+        _to: address,
+        _value: uint256
+    ) -> bool: modifying
     def transfer(_to: address, _value: uint256) -> bool: modifying
 
 contract Serializer:
-    def getLeafHash(transactionEncoding: bytes[277]) -> bytes32: constant
-    def decodeBlockNumber(transactionEncoding: bytes[277]) -> uint256: constant
-    def decodeNumTransfers(transactionEncoding: bytes[277]) -> uint256: constant
-    def decodeIthTransfer( index: int128, ransactionEncoding: bytes[277] ) -> bytes[68]: constant
-    def bytes20ToAddress(addr: bytes[20]) -> address: constant
-    def decodeSender( transferEncoding: bytes[68] ) -> address: constant
-    def decodeRecipient( transferEncoding: bytes[68] ) -> address: constant
-    def decodeTokenTypeBytes( transferEncoding: bytes[68] ) -> bytes[4]: constant
-    def decodeTokenType( transferEncoding: bytes[68] ) -> uint256: constant
-    def getTypedFromTokenAndUntyped(tokenType: uint256, coinID: uint256) -> uint256: constant
-    def decodeTypedTransferRange(transferEncoding: bytes[68] ) -> (uint256, uint256): constant
-    def decodeParsedSumBytes( transferProofEncoding: bytes[4821]  ) -> bytes[16]: constant
-    def decodeLeafIndex( transferProofEncoding: bytes[4821] ) -> int128: constant
-    def decodeSignature(transferProofEncoding: bytes[4821]) -> (uint256,  uint256, uint256): constant
-    def decodeNumInclusionProofNodesFromTRProof(transferProof: bytes[4821]) -> int128: constant
-    def decodeIthInclusionProofNode(index: int128, transferProofEncoding: bytes[4821]) -> bytes[48]: constant
-    def decodeNumInclusionProofNodesFromTXProof(transactionProof: bytes[4821]) -> int128: constant
-    def decodeNumTransactionProofs(transactionProofEncoding: bytes[4821]) -> int128: constant
-    def decodeIthTransferProofWithNumNodes(index: int128, numInclusionProofNodes: int128, transactionProofEncoding: bytes[4821]) -> bytes[4821]: constant
+    def getLeafHash(_transactionEncoding: bytes[277]) -> bytes32: constant
+    def decodeBlockNumber(
+        _transactionEncoding: bytes[277]
+    ) -> uint256: constant
+    def decodeNumTransfers(
+        _transactionEncoding: bytes[277]
+    ) -> uint256: constant
+    def decodeIthTransfer(
+        _index: int128,
+        _transactionEncoding: bytes[277]
+    ) -> bytes[68]: constant
+    def bytes20ToAddress(_address: bytes[20]) -> address: constant
+    def decodeSender(_transferEncoding: bytes[68]) -> address: constant
+    def decodeRecipient(_transferEncoding: bytes[68]) -> address: constant
+    def decodeTokenTypeBytes(
+        _transferEncoding: bytes[68]
+    ) -> bytes[4]: constant
+    def decodeTokenType(_transferEncoding: bytes[68]) -> uint256: constant
+    def getTypedFromTokenAndUntyped(
+        _tokenType: uint256,
+        _coinID: uint256
+    ) -> uint256: constant
+    def decodeTypedTransferRange(
+        _transferEncoding: bytes[68]
+    ) -> (uint256, uint256): constant
+    def decodeParsedSumBytes(
+        _transferProofEncoding: bytes[4821]
+    ) -> bytes[16]: constant
+    def decodeLeafIndex(
+        _transferProofEncoding: bytes[4821]
+    ) -> int128: constant
+    def decodeSignature(
+        _transferProofEncoding: bytes[4821]
+    ) -> (uint256,  uint256, uint256): constant
+    def decodeNumInclusionProofNodesFromTRProof(
+        _transferProof: bytes[4821]
+    ) -> int128: constant
+    def decodeIthInclusionProofNode(
+        _index: int128,
+        _transferProofEncoding: bytes[4821]
+    ) -> bytes[48]: constant
+    def decodeNumInclusionProofNodesFromTXProof(
+        _transactionProof: bytes[4821]
+    ) -> int128: constant
+    def decodeNumTransactionProofs(
+        _transactionProofEncoding: bytes[4821]
+    ) -> int128: constant
+    def decodeIthTransferProofWithNumNodes(
+        _index: int128,
+        _numInclusionProofNodes: int128,
+        _transactionProofEncoding: bytes[4821]
+    ) -> bytes[4821]: constant
 
-# Events to log in web3
-ListingEvent: event({tokenType: uint256, tokenAddress: address})
-DepositEvent: event({plasmaBlockNumber: indexed(uint256), depositer: indexed(address), tokenType: uint256, untypedStart: uint256, untypedEnd: uint256})
-SubmitBlockEvent: event({blockNumber: indexed(uint256), submittedHash: indexed(bytes32)})
-BeginExitEvent: event({tokenType: indexed(uint256), untypedStart: indexed(uint256), untypedEnd: indexed(uint256), exiter: address, exitID: uint256})
-FinalizeExitEvent: event({tokenType: indexed(uint256), untypedStart: indexed(uint256), untypedEnd: indexed(uint256), exitID: uint256, exiter: address})
-ChallengeEvent: event({exitID: uint256, challengeID: indexed(uint256)})
 
-# operator related publics
+# Events
+ListingEvent: event({
+    tokenType: uint256, tokenAddress: address
+})
+
+DepositEvent: event({
+    plasmaBlockNumber: indexed(uint256),
+    depositer: indexed(address),
+    tokenType: uint256,
+    untypedStart: uint256,
+    untypedEnd: uint256
+})
+
+SubmitBlockEvent: event({
+    blockNumber: indexed(uint256),
+    submittedHash: indexed(bytes32)
+})
+
+BeginExitEvent: event({
+    tokenType: indexed(uint256),
+    untypedStart: indexed(uint256),
+    untypedEnd: indexed(uint256),
+    exiter: address,
+    exitID: uint256
+})
+
+FinalizeExitEvent: event({
+    tokenType: indexed(uint256),
+    untypedStart: indexed(uint256),
+    untypedEnd: indexed(uint256),
+    exitID: uint256,
+    exiter: address
+})
+
+ChallengeEvent: event({
+    exitID: uint256,
+    challengeID: indexed(uint256)
+})
+
+
+# Public Variables
+# Operator
 operator: public(address)
 nextPlasmaBlockNumber: public(uint256)
-lastPublish: public(uint256) # ethereum block number of most recent plasma block
+lastPublish: public(uint256)
 blockHashes: public(map(uint256, bytes32))
 
-# token related publics
+# Token
 listings: public(map(uint256, tokenListing))
 listingNonce: public(uint256)
-listed: public(map(address, uint256)) #which address is what token type
+listed: public(map(address, uint256))
+ethDecimalOffset: public(uint256)
 
-weiDecimalOffset: public(uint256)
-
-# deposit and exit related publics
+# Deposit/Exit
 exits: public(map(uint256, Exit))
 exitNonce: public(uint256)
-exitable: public(map(uint256, map(uint256, exitableRange))) # tokentype -> ( end -> start because it makes for cleaner code
-deposits: public(map(uint256, map(uint256, deposit))) # first val is tokentype. also has end -> start for consistency
+exitable: public(map(uint256, map(uint256, exitableRange)))
+deposits: public(map(uint256, map(uint256, deposit)))
 totalDeposited: public(map(uint256, uint256))
 
-# challenge-related publics
+# Challenges
 inclusionChallenges: public(map(uint256, inclusionChallenge))
 invalidHistoryChallenges: public(map(uint256, invalidHistoryChallenge))
 challengeNonce: public(uint256)
 
+# Setup
 isSetup: public(bool)
-
 serializer: public(address)
 
-# publics for ethereum message hash gen
-# this is "\x19Ethereum Signed Message:\n32"
-#PADDED_PREFIX: constant(bytes32) = 0x0000000019457468657265756d205369676e6564204d6573736167653a0a3332
-#PADDED_PREFIX: constant(bytes32) = EMPTY_BYTES32
-# pad and concat with self and slice at startup is the only way to get from string literal...
+# Constants
 MESSAGE_PREFIX: public(bytes[28])
-
-# period (of ethereum blocks) during which an exit can be challenged
 CHALLENGE_PERIOD: public(uint256)
-# period (of ethereum blocks) during which an invalid history history challenge can be responded
 SPENTCOIN_CHALLENGE_PERIOD: public(uint256)
-# minimum number of ethereum blocks between new plasma blocks
 PLASMA_BLOCK_INTERVAL: constant(uint256) = 0
-
 MAX_COINS_PER_TOKEN: public(uint256)
-
 MAX_TREE_DEPTH: constant(int128) = 8
 MAX_TRANSFERS: constant(uint256) = 4
+COINID_BYTES: constant(int128) = 16
+PROOF_MAX_LENGTH: constant(uint256) = 1152
+ENCODING_LENGTH_PER_TRANSFER: constant(int128) = 165
+
 
 @public
 @constant
 def checkTransferProofAndGetTypedBounds(
-    leafHash: bytes32,
-    blockNum: uint256,
-    transferProof: bytes[4821]
-) -> (uint256, uint256): # typedimplicitstart, typedimplicitEnd
-    parsedSum: bytes[16] = Serializer(self.serializer).decodeParsedSumBytes(transferProof)
-    numProofNodes: int128 = Serializer(self.serializer).decodeNumInclusionProofNodesFromTRProof(transferProof)
-    leafIndex: int128 = Serializer(self.serializer).decodeLeafIndex(transferProof)
+    _leafHash: bytes32,
+    _blockNum: uint256,
+    _transferProof: bytes[4821]
+) -> (uint256, uint256):
+    """Checks an inclusion proof and returns implicit bounds.
 
-    computedNode: bytes[48] = concat(leafHash, parsedSum)
+    We occasionally need to check that transactions actually happened by
+    validating a Merkle proof of inclusion. We also need to compute so-called
+    "implicit bounds" -- an additional range that a transfer implicitly proves
+    is unspent.
+
+    Args:
+        _leafHash (bytes32): Hash of the encoded transfer.
+        _blockNum (uint256): Block number in which the transaction was included.
+        _transferProof (bytes): Inclusion proof for the transfer that shows the
+            transfer was actually included in the given block.
+    
+    Returns:
+        (uint256, uint256): The left and right boundaries that the transfer
+            implicitly proves are unspent.
+
+    """
+    parsedSum: bytes[16] = (
+        Serializer(self.serializer).decodeParsedSumBytes(_transferProof)
+    )
+    numProofNodes: int128 = (
+        Serializer(self.serializer)
+        .decodeNumInclusionProofNodesFromTRProof(
+            _transferProof
+        )
+    )
+    leafIndex: int128 = (
+        Serializer(self.serializer).decodeLeafIndex(_transferProof)
+    )
+
+    computedNode: bytes[48] = concat(_leafHash, parsedSum)
     totalSum: uint256 = convert(parsedSum, uint256)
     leftSum: uint256 = 0
     rightSum: uint256 = 0
@@ -134,8 +226,13 @@ def checkTransferProofAndGetTypedBounds(
     for nodeIndex in range(MAX_TREE_DEPTH):
         if nodeIndex == numProofNodes:
             break
-        proofNode: bytes[48] = Serializer(self.serializer).decodeIthInclusionProofNode(nodeIndex, transferProof)
-        siblingSum: uint256 = convert(slice(proofNode, start=32, len=16), uint256)
+        proofNode: bytes[48] = (
+            Serializer(self.serializer)
+            .decodeIthInclusionProofNode(nodeIndex, _transferProof)
+        )
+        siblingSum: uint256 = convert(
+            slice(proofNode, start=32, len=16), uint256
+        )
         totalSum += siblingSum
         hashed: bytes32
         if pathIndex % 2 == 0:
@@ -144,7 +241,7 @@ def checkTransferProofAndGetTypedBounds(
         else:
             hashed = sha3(concat(proofNode, computedNode))
             leftSum += siblingSum
-        totalSumAsBytes: bytes[16] = slice( #This is all a silly trick since vyper won't directly convert numbers to bytes[]...classic :P
+        totalSumAsBytes: bytes[16] = slice(
             concat(EMPTY_BYTES32, convert(totalSum, bytes32)),
             start=48,
             len=16
@@ -153,78 +250,108 @@ def checkTransferProofAndGetTypedBounds(
         pathIndex /= 2
     rootHash: bytes[32] = slice(computedNode, start=0, len=32)
     rootSum: uint256 = convert(slice(computedNode, start=32, len=16), uint256)
-    assert convert(rootHash, bytes32) == self.blockHashes[blockNum]
+    assert convert(rootHash, bytes32) == self.blockHashes[_blockNum]
     return (leftSum, rootSum - rightSum)
 
-COINID_BYTES: constant(int128) = 16
-PROOF_MAX_LENGTH: constant(uint256) = 1152 # 1152 = TREENODE_LEN (48) * MAX_TREE_DEPTH (24) 
-ENCODING_LENGTH_PER_TRANSFER: constant(int128) = 165
 
 @public
 @constant
 def checkTransactionProofAndGetTypedTransfer(
-        transactionEncoding: bytes[277],
-        transactionProofEncoding: bytes[4821],
-        transferIndex: int128
-    ) -> (
-        address, # transfer.to
-        address, # transfer.from
-        uint256, # transfer.start (typed)
-        uint256, # transfer.end (typed)
-        uint256 # transaction plasmaBlockNumber
-    ):
-    leafHash: bytes32 = Serializer(self.serializer).getLeafHash(transactionEncoding)
-    plasmaBlockNumber: uint256 = Serializer(self.serializer).decodeBlockNumber(transactionEncoding)
+    _transactionEncoding: bytes[277],
+    _transactionProofEncoding: bytes[4821],
+    _transferIndex: int128
+) -> (address, address, uint256, uint256, uint256):
+    """Checks a transfer proof and returns a nicely structured transfer object.
 
+    Args:
+        _transactionEncoding (bytes): Encoded transaction.
+        _transactionProofEncoding (bytes): Encoded transaction inclusion proof.
+        _transferIndex (int128): Index of the transfer within the transaction.
+            Transactions may have more than one transfer, so the user needs to
+            prove that their specific transfer was included in the transaction.
 
-    numTransfers: int128 = convert(Serializer(self.serializer).decodeNumTransfers(transactionEncoding), int128)
-    numInclusionProofNodes: int128 = Serializer(self.serializer).decodeNumInclusionProofNodesFromTXProof(transactionProofEncoding)
+    Returns:
+        (address, address, uint256, uint256, uint256): Address of the sender,
+            address of the recipient, typed start of the sent range, typed end
+            of the sent range, and the block in which the transfer occurred.
 
-    requestedTypedTransferStart: uint256 # these will be the ones at the trIndex we are being asked about by the exit game
+    """
+    leafHash: bytes32 = (
+        Serializer(self.serializer).getLeafHash(_transactionEncoding)
+    )
+    plasmaBlockNumber: uint256 = (
+        Serializer(self.serializer).decodeBlockNumber(_transactionEncoding)
+    )
+
+    numTransfers: int128 = convert(
+        Serializer(self.serializer).decodeNumTransfers(_transactionEncoding),
+        int128
+    )
+    numInclusionProofNodes: int128 = (
+        Serializer(self.serializer)
+        .decodeNumInclusionProofNodesFromTXProof(_transactionProofEncoding)
+    )
+
+    requestedTypedTransferStart: uint256
     requestedTypedTransferEnd: uint256
     requestedTransferTo: address
     requestedTransferFrom: address
     for i in range(MAX_TRANSFERS):
-        if i == numTransfers: #loop for max possible transfers, but break so we don't go past
+        if i == numTransfers:
             break
-        transferEncoding: bytes[68] = Serializer(self.serializer).decodeIthTransfer(i, transactionEncoding)
+
+        transferEncoding: bytes[68] = (
+            Serializer(self.serializer)
+            .decodeIthTransfer(i, _transactionEncoding)
+        )
         
-        transferProof: bytes[4821] = Serializer(self.serializer).decodeIthTransferProofWithNumNodes(
-            i,
-            numInclusionProofNodes,
-            transactionProofEncoding
+        transferProof: bytes[4821] = (
+            Serializer(self.serializer)
+            .decodeIthTransferProofWithNumNodes(
+                i,
+                numInclusionProofNodes,
+                _transactionProofEncoding
+            )
         )
 
         implicitTypedStart: uint256
         implicitTypedEnd: uint256
 
-        (implicitTypedStart, implicitTypedEnd) = self.checkTransferProofAndGetTypedBounds(
-            leafHash,
-            plasmaBlockNumber,
-            transferProof
+        (implicitTypedStart, implicitTypedEnd) = (
+            self.checkTransferProofAndGetTypedBounds(
+                leafHash,
+                plasmaBlockNumber,
+                transferProof
+            )
         )
 
         transferTypedStart: uint256
         transferTypedEnd: uint256
 
-        (transferTypedStart, transferTypedEnd) = Serializer(self.serializer).decodeTypedTransferRange(transferEncoding)
+        (transferTypedStart, transferTypedEnd) = (
+            Serializer(self.serializer)
+            .decodeTypedTransferRange(transferEncoding)
+        )
 
         assert implicitTypedStart <= transferTypedStart
         assert transferTypedStart < transferTypedEnd
         assert transferTypedEnd <= implicitTypedEnd
 
-        #check the sig
-        v: uint256 # v
-        r: uint256 # r
-        s: uint256 # s
+        v: uint256
+        r: uint256
+        s: uint256
         (v, r, s) = Serializer(self.serializer).decodeSignature(transferProof)
-        sender: address = Serializer(self.serializer).decodeSender(transferEncoding)
+        sender: address = (
+            Serializer(self.serializer).decodeSender(transferEncoding)
+        )
 
         messageHash: bytes32 = sha3(concat(self.MESSAGE_PREFIX, leafHash))
         assert sender == ecrecover(messageHash, v, r, s)
 
-        if i == transferIndex:
-            requestedTransferTo = Serializer(self.serializer).decodeRecipient(transferEncoding)
+        if i == _transferIndex:
+            requestedTransferTo = (
+                Serializer(self.serializer).decodeRecipient(transferEncoding)
+            )
             requestedTransferFrom = sender
             requestedTypedTransferStart = transferTypedStart
             requestedTypedTransferEnd = transferTypedEnd
@@ -237,238 +364,457 @@ def checkTransactionProofAndGetTypedTransfer(
         plasmaBlockNumber
     )
 
-### BEGIN CONTRACT LOGIC ###
 
 @public
-def setup(_operator: address, ethDecimalOffset: uint256, serializerAddr: address): # last val should be properly hardcoded as a constant eventually
+def setup(
+    _operator: address,
+    _ethDecimalOffset: uint256,
+    _serializer: address
+):
+    """Initializes the contract.
+
+    We use a setup function instead of an __init__ function
+    because of a bug where create_with_code_of doesn't correctly
+    call __init__. See https://github.com/ethereum/vyper/issues/773
+    for more information.
+
+    Args:
+        _operator (address): Address of the operator.
+        _ethDecimalOffset (uint256): Additional decimal offset for ETH.
+            For example, an offset of 1 means a deposit of 1 wei will
+            credit the user with 10 tokens.
+        _serializer (address): Address of the contract used to
+            deserialize transaction data. Necessary because
+            the contract is too big otherwise.
+
+    """
+    # Make sure we haven't called this already.
     assert self.isSetup == False
+
+    # Save those constructor variables.
+    self.operator = _operator
+    self.serializer = _serializer
+    self.ethDecimalOffset = _ethDecimalOffset
+
+    # Set up some constants.
     self.CHALLENGE_PERIOD = 20
     self.SPENTCOIN_CHALLENGE_PERIOD =  self.CHALLENGE_PERIOD / 2
+    self.MAX_COINS_PER_TOKEN = 256**12
 
-    
-    self.operator = _operator
-    self.nextPlasmaBlockNumber = 1 # starts at 1 so deposits before the first block have a precedingPlasmaBlock of 0 since it can't be negative (it's a uint)
+    paddedMessagePrefix: bytes32 = (
+        0x0000000019457468657265756d205369676e6564204d6573736167653a0a3332
+    )
+    self.MESSAGE_PREFIX = slice(
+        concat(paddedMessagePrefix, paddedMessagePrefix), start = 4, len = 28
+    )
+
+    # Set up some initial values.
+    self.nextPlasmaBlockNumber = 1
     self.exitNonce = 0
     self.lastPublish = 0
     self.challengeNonce = 0
     self.exitable[0][0].isSet = True
-    self.listingNonce = 1 # first list is ETH baby!!!
+    self.listingNonce = 1
 
-    self.MAX_COINS_PER_TOKEN = 256**12
-    self.weiDecimalOffset = 0 # ethDecimalOffset setting to 0 for now until enabled in core
-    paddedMessagePrefix: bytes32 = 0x0000000019457468657265756d205369676e6564204d6573736167653a0a3332
-    #do the thing to get a bytes[28] prefix for message hash gen
-    self.MESSAGE_PREFIX = slice(concat(paddedMessagePrefix, paddedMessagePrefix), start = 4, len = 28)
-
-    self.serializer = serializerAddr
-
+    # Make sure we can't call this again.
     self.isSetup = True
-    
+
+
 @public
-def submitBlock(newBlockHash: bytes32):
+def submitBlock(_hash: bytes32):
+    """Adds a block to the plasma chain.
+
+    Can only be called by the operator.
+
+    Args:
+        _hash (bytes32): Hash of the block to submit.
+
+    """
     assert msg.sender == self.operator
     assert block.number >= self.lastPublish + PLASMA_BLOCK_INTERVAL
 
-    #log the event for clients to check for
-    log.SubmitBlockEvent(self.nextPlasmaBlockNumber, newBlockHash)
+    log.SubmitBlockEvent(self.nextPlasmaBlockNumber, _hash)
 
-    # add the block to the contract
-    self.blockHashes[self.nextPlasmaBlockNumber] = newBlockHash
+    self.blockHashes[self.nextPlasmaBlockNumber] = _hash
     self.nextPlasmaBlockNumber += 1
     self.lastPublish = block.number
 
+
 @public
-def listToken(tokenAddress: address, denomination: uint256):
-    assert self.listed[tokenAddress] == 0
+def listToken(_address: address, _decimals: uint256):
+    """Lists a token so it can be deposited.
+
+    Tokens must be listed before they can be deposited.
+    Attempts to deposit an unlisted token will be
+    rejected. Currently we can only list ERC-20 tokens.
+
+    Args:
+        _address (address): Address of the token's contract.
+        _decimals (uint256): Decimal offset for the token.
+
+    """
+    assert self.listed[_address] == 0
     
     tokenType: uint256 = self.listingNonce
     self.listingNonce += 1
 
-    self.listed[tokenAddress] = tokenType
+    self.listed[_address] = tokenType
 
-    self.listings[tokenType].decimalOffset = 0 # denomination setting to 0 now until core supports
-    self.listings[tokenType].contractAddress = tokenAddress
+    self.listings[tokenType].decimalOffset = _decimals
+    self.listings[tokenType].contractAddress = _address
 
-    self.exitable[tokenType][0].isSet = True # init the new token exitable ranges
-    log.ListingEvent(tokenType, tokenAddress)
+    self.exitable[tokenType][0].isSet = True
+    log.ListingEvent(tokenType, _address)
 
-### BEGIN DEPOSITS AND EXITS SECTION ###
 
 @private
-def processDeposit(depositer: address, depositAmount: uint256, tokenType: uint256):
-    assert depositAmount > 0
+def processDeposit(_owner: address, _amount: uint256, _tokenType: uint256):
+    """Processes a deposit.
 
-    oldUntypedEnd: uint256 = self.totalDeposited[tokenType]
-    oldRange: exitableRange = self.exitable[tokenType][oldUntypedEnd] # remember, map is end -> start!
+    Called by other (public) deposit functions
+    in order to finalize a deposit for a given token.
 
-    self.totalDeposited[tokenType] += depositAmount # add deposit
-    newUntypedEnd: uint256 = self.totalDeposited[tokenType] # this is how much there is now, so the end of this deposit.
-    # removed, replace with per ERC -->    assert self.totalDeposited < MAX_END # make sure we're not at capacity
-    clear(self.exitable[tokenType][oldUntypedEnd]) # delete old exitable range
-    self.exitable[tokenType][newUntypedEnd] = oldRange #make exitable
+    Args:
+        _owner (address): Address to own the deposited funds.
+        _amount (uint256): Amount of the token to deposit.
+        _tokenType (uint256): Token to deposit.
 
-    self.deposits[tokenType][newUntypedEnd].untypedStart = oldUntypedEnd # the range (oldUntypedEnd, newTotalDeposited) was deposited by the depositer
-    self.deposits[tokenType][newUntypedEnd].depositer = depositer
-    self.deposits[tokenType][newUntypedEnd].precedingPlasmaBlockNumber = self.nextPlasmaBlockNumber - 1
+    """
+    assert _amount > 0
 
-    # log the deposit so participants can take note
-    log.DepositEvent(self.nextPlasmaBlockNumber - 1, depositer, tokenType, oldUntypedEnd, newUntypedEnd)
+    oldUntypedEnd: uint256 = self.totalDeposited[_tokenType]
+    oldRange: exitableRange = self.exitable[_tokenType][oldUntypedEnd]
+
+    self.totalDeposited[_tokenType] += _amount
+    newUntypedEnd: uint256 = self.totalDeposited[_tokenType]
+    clear(self.exitable[_tokenType][oldUntypedEnd])
+    self.exitable[_tokenType][newUntypedEnd] = oldRange
+
+    self.deposits[_tokenType][newUntypedEnd].untypedStart = oldUntypedEnd
+    self.deposits[_tokenType][newUntypedEnd].depositer = _owner
+    self.deposits[_tokenType][newUntypedEnd].precedingPlasmaBlockNumber = (
+        self.nextPlasmaBlockNumber - 1
+    )
+
+    log.DepositEvent(
+        self.nextPlasmaBlockNumber - 1,
+        _owner,
+        _tokenType,
+        oldUntypedEnd,
+        newUntypedEnd
+    )
 
 
 @public
 @payable
 def depositETH():
-    weiMuiltiplier: uint256 = 10**self.weiDecimalOffset
+    """Allows a user to deposit ETH.
+
+    Since ETH doesn't conform to the ERC-20 standard,
+    we need a custom function to support ETH deposits.
+    Simply allows the user to deposit ETH by sending
+    it to the contract.
+
+    """
+    weiMuiltiplier: uint256 = 10**self.ethDecimalOffset
     depositAmount: uint256 = as_unitless_number(msg.value) * weiMuiltiplier
     self.processDeposit(msg.sender, depositAmount, 0)
 
+
 @public
-def depositERC20(tokenAddress: address, depositSize: uint256):
+def depositERC20(_address: address, _amount: uint256):
+    """Allows a user to deposit an ERC-20 token.
+
+    Args:
+        _address (address): Address of the token to deposit.
+        _amount (uint256): Amount of the token to deposit.
+
+    """
     depositer: address = msg.sender
 
-    tokenType: uint256 = self.listed[tokenAddress]
-    assert tokenType > 0 # make sure it's been listed
+    tokenType: uint256 = self.listed[_address]
+    assert tokenType > 0
 
-    passed: bool = ERC20(tokenAddress).transferFrom(depositer, self, depositSize)
+    passed: bool = ERC20(_address).transferFrom(depositer, self, _amount)
     assert passed
 
-    tokenMultiplier: uint256 = 10**self.listings[tokenType].decimalOffset
-    depositInPlasmaCoins: uint256 = depositSize * tokenMultiplier
+    tokenMultiplier: uint256 = 10 ** self.listings[tokenType].decimalOffset
+    depositInPlasmaCoins: uint256 = _amount * tokenMultiplier
     self.processDeposit(depositer, depositInPlasmaCoins, tokenType)
 
+
 @public
-def beginExit(tokenType: uint256, blockNumber: uint256, untypedStart: uint256, untypedEnd: uint256) -> uint256:
-    assert blockNumber < self.nextPlasmaBlockNumber
+def beginExit(
+    _tokenType: uint256,
+    _blockNumber: uint256,
+    _untypedStart: uint256,
+    _untypedEnd: uint256
+) -> uint256:
+    """Starts an exit.
+
+    Args:
+        _tokenType (uint256): ID of the token to withdraw.
+        _blockNumber (uint256): Block in which the transaction we're
+            withdrawing from was included.
+        _untypedStart (uint256): Start of the range to withdraw.
+        _untypedEnd (uint256): End of the range to withdraw.
+
+    Returns:
+        uint256: ID of the exit.
+
+    """
+    assert _blockNumber < self.nextPlasmaBlockNumber
 
     exiter: address = msg.sender
 
     exitID: uint256 = self.exitNonce
     self.exits[exitID].exiter = exiter
-    self.exits[exitID].plasmaBlockNumber = blockNumber
+    self.exits[exitID].plasmaBlockNumber = _blockNumber
     self.exits[exitID].ethBlockNumber = block.number
-    self.exits[exitID].tokenType = tokenType
-    self.exits[exitID].untypedStart = untypedStart
-    self.exits[exitID].untypedEnd = untypedEnd
+    self.exits[exitID].tokenType = _tokenType
+    self.exits[exitID].untypedStart = _untypedStart
+    self.exits[exitID].untypedEnd = _untypedEnd
     self.exits[exitID].challengeCount = 0
 
     self.exitNonce += 1
 
-    #log the event
-    log.BeginExitEvent(tokenType, untypedStart, untypedEnd, exiter, exitID)
+    log.BeginExitEvent(_tokenType, _untypedStart, _untypedEnd, exiter, exitID)
     
     return exitID
 
+
 @public
 @constant
-def checkRangeExitable(tokenType: uint256, untypedStart: uint256, untypedEnd: uint256, claimedExitableEnd: uint256):
-    assert untypedEnd <= self.MAX_COINS_PER_TOKEN
-    assert untypedEnd <= claimedExitableEnd
-    assert untypedStart >= self.exitable[tokenType][claimedExitableEnd].untypedStart
-    assert self.exitable[tokenType][claimedExitableEnd].isSet
+def checkRangeExitable(
+    _tokenType: uint256,
+    _untypedStart: uint256,
+    _untypedEnd: uint256,
+    _claimedExitableEnd: uint256
+) -> bool:
+    """Checks whether a range can be exited.
 
-# this function updates the exitable ranges to reflect a newly finalized exit.
+    Args:
+        _tokenType (uint256): ID of the token to withdraw.
+        _untypedStart (uint256): Start of the range to withdraw.
+        _untypedEnd (uint256): End of the range to withdraw.
+        _claimedExitableEnd (uint256): The exitable end for that range.
+
+    Returns:
+        bool: True if the range can be exited.
+
+    """
+    assert _untypedEnd <= self.MAX_COINS_PER_TOKEN
+    assert _untypedEnd <= _claimedExitableEnd
+    assert _untypedStart >= (
+        self.exitable[_tokenType][_claimedExitableEnd].untypedStart
+    )
+    assert self.exitable[_tokenType][_claimedExitableEnd].isSet
+
+    return True
+
+
 @private
-def removeFromExitable(tokenType: uint256, untypedStart: uint256, untypedEnd: uint256, exitableEnd: uint256):
-    oldUntypedStart: uint256 = self.exitable[tokenType][exitableEnd].untypedStart
-    #todo fix/check  the case with totally filled exit finalization
-    if untypedStart != oldUntypedStart: # then we have a new exitable region to the left
-        self.exitable[tokenType][untypedStart].untypedStart = oldUntypedStart # new exitable range from oldstart to the start of the exit (which has just become the end of the new exitable range)
-        self.exitable[tokenType][untypedStart].isSet = True
-    if untypedEnd != exitableEnd: # then we have leftovers to the right which are exitable
-        self.exitable[tokenType][exitableEnd].untypedStart = untypedEnd # and it starts at the end of the finalized exit!
-        self.exitable[tokenType][exitableEnd].isSet = True
-    else: # otherwise, no leftovers on the right, so we can delete the map entry...
-        if untypedEnd != self.totalDeposited[tokenType]: # ...UNLESS it's the rightmost deposited value, which we need to keep (even though it will be "empty", i.e. have start == end,because submitDeposit() uses it to make the new deposit exitable)
-            clear(self.exitable[tokenType][untypedEnd])
-        else: # and if it is the rightmost, 
-            self.exitable[tokenType][untypedEnd].untypedStart = untypedEnd # start = end so won't ever be exitable, but allows for new deposit logic to work
+def removeFromExitable(
+    _tokenType: uint256,
+    _untypedStart: uint256,
+    _untypedEnd: uint256,
+    _exitableEnd: uint256
+):
+    """Marks a range as exited.
+
+    We need to remove the range from the set of "exitable" ranges. Otherwise,
+    it's possible for a user to withdraw the same range twice. This would be
+    an attack vector that would allow a user to drain the contract.
+
+    Args:
+        _tokenType (uint256): ID of the token that was exited.
+        _untypedStart (uint256): Start of the exited range.
+        _untypedEnd (uint256): End of the exited range.
+        _exitableEnd (uint256): The exitable end for the exited range.
+
+    """
+
+    oldUntypedStart: uint256 = (
+        self.exitable[_tokenType][_exitableEnd].untypedStart
+    )
+    if _untypedStart != oldUntypedStart:
+        self.exitable[_tokenType][_untypedStart].untypedStart = oldUntypedStart
+        self.exitable[_tokenType][_untypedStart].isSet = True
+    if _untypedEnd != _exitableEnd:
+        self.exitable[_tokenType][_exitableEnd].untypedStart = _untypedEnd
+        self.exitable[_tokenType][_exitableEnd].isSet = True
+    else:
+        if _untypedEnd != self.totalDeposited[_tokenType]:
+            clear(self.exitable[_tokenType][_untypedEnd])
+        else:
+            self.exitable[_tokenType][_untypedEnd].untypedStart = _untypedEnd
+
 
 @public
-def finalizeExit(exitID: uint256, exitableEnd: uint256):
-    exiter: address = self.exits[exitID].exiter
-    exitETHBlockNumber: uint256 = self.exits[exitID].ethBlockNumber
+def finalizeExit(_exitID: uint256, _exitableEnd: uint256):
+    """Finalizes an exit.
+
+    Exits need to be "finalized" after they've finished their challenge period.
+    This is because it's not really possible for a transaction in one block to
+    cause a state transition in another block. Only exits that were not
+    challenged can be finalized.
+
+    Args:
+        _exitID (uint256): ID of the exit to finalize.
+        _exitableEnd (uint256): Exitable end for the exited range.
+
+    """
+    exiter: address = self.exits[_exitID].exiter
+    exitETHBlockNumber: uint256 = self.exits[_exitID].ethBlockNumber
     exitToken: uint256 = 0
-    exitUntypedStart: uint256  = self.exits[exitID].untypedStart
-    exitUntypedEnd: uint256 = self.exits[exitID].untypedEnd
-    challengeCount: uint256 = self.exits[exitID].challengeCount
-    tokenType: uint256 = self.exits[exitID].tokenType
+    exitUntypedStart: uint256  = self.exits[_exitID].untypedStart
+    exitUntypedEnd: uint256 = self.exits[_exitID].untypedEnd
+    challengeCount: uint256 = self.exits[_exitID].challengeCount
+    tokenType: uint256 = self.exits[_exitID].tokenType
 
     assert challengeCount == 0
     assert block.number > exitETHBlockNumber + self.CHALLENGE_PERIOD
 
-    self.checkRangeExitable(tokenType, exitUntypedStart, exitUntypedEnd, exitableEnd)
-    self.removeFromExitable(tokenType, exitUntypedStart, exitUntypedEnd, exitableEnd)
+    self.checkRangeExitable(
+        tokenType, exitUntypedStart, exitUntypedEnd, _exitableEnd
+    )
+    self.removeFromExitable(
+        tokenType, exitUntypedStart, exitUntypedEnd, _exitableEnd
+    )
 
-    if tokenType == 0: # then we're exiting ETH
-        weiMiltiplier: uint256 = 10**self.weiDecimalOffset
-        exitValue: uint256 = (exitUntypedEnd - exitUntypedStart) / weiMiltiplier
+    if tokenType == 0:
+        weiMiltiplier: uint256 = 10**self.ethDecimalOffset
+        exitValue: uint256 = (
+            (exitUntypedEnd - exitUntypedStart) / weiMiltiplier
+        )
         send(exiter, as_wei_value(exitValue, "wei"))
-    else: #then we're exiting ERC
+    else:
         tokenMultiplier: uint256 = 10**self.listings[tokenType].decimalOffset
-        exitValue: uint256 = (exitUntypedEnd - exitUntypedStart) / tokenMultiplier
-        
-        passed: bool = ERC20(self.listings[tokenType].contractAddress).transfer(exiter, exitValue)
+        exitValue: uint256 = (
+            (exitUntypedEnd - exitUntypedStart) / tokenMultiplier
+        )
+
+        passed: bool = (
+            ERC20(self.listings[tokenType].contractAddress)
+            .transfer(exiter, exitValue)
+        )
         assert passed
 
-    # log the event    
-    log.FinalizeExitEvent(tokenType, exitUntypedStart, exitUntypedEnd, exitID, exiter)
+    log.FinalizeExitEvent(
+        tokenType, exitUntypedStart, exitUntypedEnd, _exitID, exiter
+    )
+
 
 @public
 def challengeBeforeDeposit(
-    exitID: uint256,
-    coinID: uint256,
-    depositUntypedEnd: uint256
+    _exitID: uint256,
+    _coinID: uint256,
+    _depositUntypedEnd: uint256
 ):
-    exitTokenType: uint256 = self.exits[exitID].tokenType
+    """Challenge for exits from blocks before the range was deposited.
 
-    # note: this can always be challenged because no response and all info on-chain, no invalidity period needed
-    depositPrecedingPlasmaBlock: uint256 = self.deposits[exitTokenType][depositUntypedEnd].precedingPlasmaBlockNumber
-    assert self.deposits[exitTokenType][depositUntypedEnd].depositer != ZERO_ADDRESS # requires the deposit to be a valid deposit and not something unset
-    
-    depositUntypedStart: uint256 = self.deposits[exitTokenType][depositUntypedEnd].untypedStart
+    It's possible for someone to start an exit of a range from a block that
+    comes *before* the block in which the range was actually deposited. This
+    can happen if the operator includes such a transaction without the
+    knowledge of the person who deposited the range. We therefore need to
+    provide a challenge that allows someone to point to the deposit and block
+    the exit.
 
-    tokenType: uint256 = self.exits[exitID].tokenType
-    depositTypedStart: uint256 = Serializer(self.serializer).getTypedFromTokenAndUntyped(tokenType, depositUntypedStart)
-    depositTypedEnd: uint256 = Serializer(self.serializer).getTypedFromTokenAndUntyped(tokenType, depositUntypedEnd)
+    Args:
+        _exitID (uint256): ID of the exit to challenge.
+        _coinID (uint256): ID of the coin to challenge. Coin must be included
+            in the range referenced by the exit for the challenge to be valid.
+        _depositUntypedEnd (uint256): End of the deposited range that covers
+            the referenced coin ID.
 
-    assert coinID >= depositTypedStart
-    assert coinID < depositTypedEnd
+    """
+    exitTokenType: uint256 = self.exits[_exitID].tokenType
 
-    assert depositPrecedingPlasmaBlock > self.exits[exitID].plasmaBlockNumber
+    depositPrecedingPlasmaBlock: uint256 = (
+        self.deposits[exitTokenType][_depositUntypedEnd]
+        .precedingPlasmaBlockNumber
+    )
+    assert self.deposits[exitTokenType][_depositUntypedEnd].depositer != (
+        ZERO_ADDRESS
+    )
 
-    clear(self.exits[exitID])
+    depositUntypedStart: uint256 = (
+        self.deposits[exitTokenType][_depositUntypedEnd].untypedStart
+    )
+
+    tokenType: uint256 = self.exits[_exitID].tokenType
+    depositTypedStart: uint256 = (
+        Serializer(self.serializer)
+        .getTypedFromTokenAndUntyped(tokenType, depositUntypedStart)
+    )
+    depositTypedEnd: uint256 = (
+        Serializer(self.serializer)
+        .getTypedFromTokenAndUntyped(tokenType, _depositUntypedEnd)
+    )
+
+    assert _coinID >= depositTypedStart
+    assert _coinID < depositTypedEnd
+
+    assert depositPrecedingPlasmaBlock > self.exits[_exitID].plasmaBlockNumber
+
+    clear(self.exits[_exitID])
+
 
 @public
-def challengeInclusion(exitID: uint256):
-    # check the exit being challenged exists
-    assert exitID < self.exitNonce
+def challengeInclusion(_exitID: uint256):
+    """Challenge for exits from transactions that weren't included.
 
-    # check we can still challenge
-    exitethBlockNumber: uint256 = self.exits[exitID].ethBlockNumber
+    Since we don't require users to submit inclusion proofs when starting
+    exits, it's possible for a user to start an exit from a transaction that
+    doesn't actually exist. Once this challenge is started, the original
+    user may respond within a set period of time.
+
+    Args:
+        _exitID (uint256): ID of the exit to challenge.
+
+    """
+    assert _exitID < self.exitNonce
+
+    exitethBlockNumber: uint256 = self.exits[_exitID].ethBlockNumber
     assert block.number < exitethBlockNumber + self.CHALLENGE_PERIOD
 
-    # store challenge
     challengeID: uint256 = self.challengeNonce
-    self.inclusionChallenges[challengeID].exitID = exitID
+    self.inclusionChallenges[challengeID].exitID = _exitID
 
     self.inclusionChallenges[challengeID].ongoing = True
-    self.exits[exitID].challengeCount += 1
+    self.exits[_exitID].challengeCount += 1
 
     self.challengeNonce += 1
 
-    # log the event so clients can respond
-    log.ChallengeEvent(exitID, challengeID)
+    log.ChallengeEvent(_exitID, challengeID)
+
 
 @public
 def respondTransactionInclusion(
-        challengeID: uint256,
-        transferIndex: int128,
-        transactionEncoding: bytes[277],
-        transactionProofEncoding: bytes[4821],
+    _challengeID: uint256,
+    _transferIndex: int128,
+    _transactionEncoding: bytes[277],
+    _transactionProofEncoding: bytes[4821],
 ):
-    assert self.inclusionChallenges[challengeID].ongoing
+    """Response for inclusion challenges.
 
-    transferTypedStart: uint256 # these will be the ones at the trIndex we are being asked about by the exit game
+    This method allows users to respond to challenges asserting that a given
+    exit references a transaction that wasn't included. The user must provide
+    the full transaction as well as an inclusion proof showing that the
+    transaction was, indeed, part of the specified block.
+
+    Args:
+        _challengeID (uint256): ID of the challenge to respond to.
+        _transferIndex (int128): Index of the transfer within the transaction.
+            Transactions may have more than one transfer, so the user needs to
+            prove that their specific transfer was included in the transaction.
+        _transactionEncoding (bytes): Encoded transaction.
+        _transactionProofEncoding (bytes): Encoded transaction inclusion proof.
+
+    """
+    assert self.inclusionChallenges[_challengeID].ongoing
+
+    transferTypedStart: uint256
     transferTypedEnd: uint256
     transferRecipient: address
     transferSender: address
@@ -481,80 +827,141 @@ def respondTransactionInclusion(
         transferTypedEnd, 
         responseBlockNumber
     ) = self.checkTransactionProofAndGetTypedTransfer(
-        transactionEncoding,
-        transactionProofEncoding,
-        transferIndex
+        _transactionEncoding,
+        _transactionProofEncoding,
+        _transferIndex
     )
 
-    exitID: uint256 = self.inclusionChallenges[challengeID].exitID
+    exitID: uint256 = self.inclusionChallenges[_challengeID].exitID
     exiter: address = self.exits[exitID].exiter
     exitPlasmaBlockNumber: uint256 = self.exits[exitID].plasmaBlockNumber
 
-    # check exit exiter is indeed recipient
     assert transferRecipient == exiter
 
-    # check the inclusion was indeed at this block
     assert exitPlasmaBlockNumber == responseBlockNumber
 
-    # check the inclusion for relevant bounds
     exitTokenType: uint256 = self.exits[exitID].tokenType
-    exitTypedStart: uint256 = Serializer(self.serializer).getTypedFromTokenAndUntyped(exitTokenType, self.exits[exitID].untypedStart)
-    exitTypedEnd: uint256 = Serializer(self.serializer).getTypedFromTokenAndUntyped(exitTokenType, self.exits[exitID].untypedEnd)
+    exitTypedStart: uint256 = (
+        Serializer(self.serializer)
+        .getTypedFromTokenAndUntyped(
+            exitTokenType, self.exits[exitID].untypedStart
+        )
+    )
+    exitTypedEnd: uint256 = (
+        Serializer(self.serializer)
+        .getTypedFromTokenAndUntyped(
+            exitTokenType,
+            self.exits[exitID].untypedEnd
+        )
+    )
 
     assert transferTypedStart >= exitTypedStart
     assert transferTypedEnd <= exitTypedEnd
 
-    # response was successful
-    clear(self.inclusionChallenges[challengeID])
+    clear(self.inclusionChallenges[_challengeID])
     self.exits[exitID].challengeCount -= 1
+
 
 @public
 def respondDepositInclusion(
-    challengeID: uint256,
-    depositUntypedEnd: uint256
+    _challengeID: uint256,
+    _depositUntypedEnd: uint256
 ):
-    assert self.inclusionChallenges[challengeID].ongoing
+    """Response for inclusion challenges on deposits.
+
+    Users are allowed to directly withdraw from deposits. However, it's not
+    possible to provide an inclusion proof for deposits because they're not
+    part of any block. This method can be used to respond to inclusion
+    challenges on exits from deposits.
+
+    Args:
+        _challengeID (uint256): ID of the challenge to respond to.
+        _depositUntypedEnd (uint256): End of the range that was originally
+            deposited. Something like a unique deposit identifier, used to
+            look up the deposit.
+
+    """
+    assert self.inclusionChallenges[_challengeID].ongoing
     
-    exitID: uint256 = self.inclusionChallenges[challengeID].exitID
+    exitID: uint256 = self.inclusionChallenges[_challengeID].exitID
     exiter: address = self.exits[exitID].exiter
     exitPlasmaBlockNumber: uint256 = self.exits[exitID].plasmaBlockNumber
     exitTokenType: uint256 = self.exits[exitID].tokenType
 
-    # check exit exiter is indeed recipient
-    depositer: address = self.deposits[exitTokenType][depositUntypedEnd].depositer
+    depositer: address = (
+        self.deposits[exitTokenType][_depositUntypedEnd].depositer
+    )
     assert depositer == exiter
 
-    #check the inclusion was indeed at this block
-    depositBlockNumber: uint256 = self.deposits[exitTokenType][depositUntypedEnd].precedingPlasmaBlockNumber
+    depositBlockNumber: uint256 = (
+        self.deposits[exitTokenType][_depositUntypedEnd]
+        .precedingPlasmaBlockNumber
+    )
     assert exitPlasmaBlockNumber == depositBlockNumber
 
-    # chcek the inclusion was indeed within the bounds
-    exitTypedStart: uint256 = Serializer(self.serializer).getTypedFromTokenAndUntyped(exitTokenType, self.exits[exitID].untypedStart)
-    exitTypedEnd: uint256 = Serializer(self.serializer).getTypedFromTokenAndUntyped(exitTokenType, self.exits[exitID].untypedEnd)
+    exitTypedStart: uint256 = (
+        Serializer(self.serializer)
+        .getTypedFromTokenAndUntyped(
+            exitTokenType, self.exits[exitID].untypedStart
+        )
+    )
+    exitTypedEnd: uint256 = (
+        Serializer(self.serializer)
+        .getTypedFromTokenAndUntyped(
+            exitTokenType, self.exits[exitID].untypedEnd
+        )
+    )
 
-    depositTypedStart: uint256 = Serializer(self.serializer).getTypedFromTokenAndUntyped(exitTokenType, self.deposits[exitTokenType][depositUntypedEnd].untypedStart)
-    depositTypedEnd: uint256 = Serializer(self.serializer).getTypedFromTokenAndUntyped(exitTokenType, depositUntypedEnd)
+    depositTypedStart: uint256 = (
+        Serializer(self.serializer)
+        .getTypedFromTokenAndUntyped(
+            exitTokenType,
+            self.deposits[exitTokenType][_depositUntypedEnd].untypedStart
+        )
+    )
+    depositTypedEnd: uint256 = (
+        Serializer(self.serializer)
+        .getTypedFromTokenAndUntyped(exitTokenType, _depositUntypedEnd)
+    )
 
     assert depositTypedStart >= exitTypedStart
     assert depositTypedEnd <= exitTypedEnd
 
-    # response was successful
-    clear(self.inclusionChallenges[challengeID])
+    clear(self.inclusionChallenges[_challengeID])
     self.exits[exitID].challengeCount -= 1
+
 
 @public
 def challengeSpentCoin(
-    exitID: uint256,
-    coinID: uint256,
-    transferIndex: int128,
-    transactionEncoding: bytes[277],
-    transactionProofEncoding: bytes[4821],
+    _exitID: uint256,
+    _coinID: uint256,
+    _transferIndex: int128,
+    _transactionEncoding: bytes[277],
+    _transactionProofEncoding: bytes[4821],
 ):
-    # check we can still challenge
-    exitethBlockNumberNumber: uint256 = self.exits[exitID].ethBlockNumber
-    assert block.number < exitethBlockNumberNumber + self.SPENTCOIN_CHALLENGE_PERIOD
+    """Challenge for exits that are withdrawing an already spent coin.
 
-    transferTypedStart: uint256 # these will be the ones at the trIndex we are being asked about by the exit game
+    Since the plasma chain contract doesn't know what's going on inside the
+    plasma chain, it's possible for someone to spend a coin and then attempt to
+    exit the same coin. We therefore need a challenge that allows someone to
+    prove that a given coin was spent by the user attempting to exit.
+
+    Args:
+        _exitID (uint256): ID of the exit to challenge.
+        _coinID (uint256): ID of a coin within the range being exited to
+            specifically point out and challenge.
+        _transferIndex (uint256): Index of the transfer within a transaction
+            that specifically spends the referenced coin.
+        _transactionEncoding (bytes): Encoded transaction.
+        _transactionProofEncoding (bytes): Encoded transaction inclusion proof.
+
+    """
+    exitethBlockNumberNumber: uint256 = self.exits[_exitID].ethBlockNumber
+    assert block.number < (
+        exitethBlockNumberNumber + self.SPENTCOIN_CHALLENGE_PERIOD
+    )
+
+    transferTypedStart: uint256
     transferTypedEnd: uint256
     transferRecipient: address
     transferSender: address
@@ -567,88 +974,134 @@ def challengeSpentCoin(
         transferTypedEnd, 
         bn
     ) = self.checkTransactionProofAndGetTypedTransfer(
-        transactionEncoding,
-        transactionProofEncoding,
-        transferIndex
+        _transactionEncoding,
+        _transactionProofEncoding,
+        _transferIndex
     )
 
-    exiter: address = self.exits[exitID].exiter
-    exitPlasmaBlockNumber: uint256 = self.exits[exitID].plasmaBlockNumber
-    exitTokenType: uint256 = self.exits[exitID].tokenType
-    exitTypedStart: uint256 = Serializer(self.serializer).getTypedFromTokenAndUntyped(exitTokenType, self.exits[exitID].untypedStart)
-    exitTypedEnd: uint256 = Serializer(self.serializer).getTypedFromTokenAndUntyped(exitTokenType, self.exits[exitID].untypedEnd)
+    exiter: address = self.exits[_exitID].exiter
+    exitPlasmaBlockNumber: uint256 = self.exits[_exitID].plasmaBlockNumber
+    exitTokenType: uint256 = self.exits[_exitID].tokenType
+    exitTypedStart: uint256 = (
+        Serializer(self.serializer)
+        .getTypedFromTokenAndUntyped(
+            exitTokenType, self.exits[_exitID].untypedStart
+        )
+    )
+    exitTypedEnd: uint256 = (
+        Serializer(self.serializer)
+        .getTypedFromTokenAndUntyped(
+            exitTokenType, self.exits[_exitID].untypedEnd
+        )
+    )
 
-    # check the coinspend came after the exit block
     assert bn > exitPlasmaBlockNumber
 
-    # check the coinspend intersects both the exit and proven transfer
-    assert coinID >=  exitTypedStart
-    assert coinID < exitTypedEnd
-    assert coinID >= transferTypedStart
-    assert coinID < transferTypedEnd
+    assert _coinID >=  exitTypedStart
+    assert _coinID < exitTypedEnd
+    assert _coinID >= transferTypedStart
+    assert _coinID < transferTypedEnd
 
-    # check the sender was the exiter
     assert transferSender == exiter
 
-    # if all these passed, the coin was indeed spent.  CANCEL!
-    clear(self.exits[exitID])
+    clear(self.exits[_exitID])
+
 
 @private
 def challengeInvalidHistory(
-    exitID: uint256,
-    coinID: uint256,
-    claimant: address,
-    typedStart: uint256,
-    typedEnd: uint256,
-    blockNumber: uint256
+    _exitID: uint256,
+    _coinID: uint256,
+    _claimant: address,
+    _typedStart: uint256,
+    _typedEnd: uint256,
+    _blockNumber: uint256
 ):
-    # check we can still challenge
-    exitethBlockNumberNumber: uint256 = self.exits[exitID].ethBlockNumber
+    """Challenge for exits of ranges with an invalid history.
+
+    It's possible for a malicious operator to insert transactions of a coin
+    that aren't actually signed by the current owner. Although these
+    transactions aren't valid, it's still possible for the operator to then
+    attempt withdrawals of the coin. This challenge forces the user who
+    started the exit to prove that a valid spend of the coin exists.
+    Since the malicious operator could only add invalid transactions, they
+    won't be able to respond.
+
+    Args:
+        _exitID (uint256): ID of the exit to challenge.
+        _coinID (uint256): ID of a coin within the range being exited to
+            specifically point out and challenge.
+        _claimant (address): User who originally owned the coin.
+        _typedStart (uint256): Start of the range being exited.
+        _typedEnd (uint256): End of the range being exited.
+        _blockNumber (uint256): Block in which the last known valid spend
+            occurred.
+
+    """
+    exitethBlockNumberNumber: uint256 = self.exits[_exitID].ethBlockNumber
     assert block.number < exitethBlockNumberNumber + self.CHALLENGE_PERIOD
 
-    # check the coinspend came before the exit block
-    assert blockNumber < self.exits[exitID].plasmaBlockNumber
+    assert _blockNumber < self.exits[_exitID].plasmaBlockNumber
 
-    # check the coinspend intersects the exit
-    tokenType: uint256 = self.exits[exitID].tokenType
-    exitTypedStart: uint256 = Serializer(self.serializer).getTypedFromTokenAndUntyped(tokenType, self.exits[exitID].untypedStart)
-    exitTypedEnd: uint256 = Serializer(self.serializer).getTypedFromTokenAndUntyped(tokenType, self.exits[exitID].untypedEnd)
+    tokenType: uint256 = self.exits[_exitID].tokenType
+    exitTypedStart: uint256 = (
+        Serializer(self.serializer)
+        .getTypedFromTokenAndUntyped(
+            tokenType, self.exits[_exitID].untypedStart
+        )
+    )
+    exitTypedEnd: uint256 = (
+        Serializer(self.serializer)
+        .getTypedFromTokenAndUntyped(
+            tokenType, self.exits[_exitID].untypedEnd
+        )
+    )
 
-    assert coinID >= exitTypedStart
-    assert coinID < exitTypedEnd
+    assert _coinID >= exitTypedStart
+    assert _coinID < exitTypedEnd
 
-    # check the coinspend intersects the proven transfer
-    assert coinID >= typedStart
-    assert coinID < typedEnd
+    assert _coinID >= _typedStart
+    assert _coinID < _typedEnd
 
-    # check the exit being challenged exists
-    assert exitID < self.exitNonce
+    assert _exitID < self.exitNonce
 
-    # get and increment challengeID
     challengeID: uint256 = self.challengeNonce
-    self.exits[exitID].challengeCount += 1
+    self.exits[_exitID].challengeCount += 1
     
     self.challengeNonce += 1
 
-    # store challenge
     self.invalidHistoryChallenges[challengeID].ongoing = True
-    self.invalidHistoryChallenges[challengeID].exitID = exitID
-    self.invalidHistoryChallenges[challengeID].coinID = coinID
-    self.invalidHistoryChallenges[challengeID].recipient = claimant
-    self.invalidHistoryChallenges[challengeID].blockNumber = blockNumber
+    self.invalidHistoryChallenges[challengeID].exitID = _exitID
+    self.invalidHistoryChallenges[challengeID].coinID = _coinID
+    self.invalidHistoryChallenges[challengeID].recipient = _claimant
+    self.invalidHistoryChallenges[challengeID].blockNumber = _blockNumber
 
-    # log the event so clients can respond
-    log.ChallengeEvent(exitID, challengeID)
+    log.ChallengeEvent(_exitID, challengeID)
+
 
 @public
 def challengeInvalidHistoryWithTransaction(
-    exitID: uint256,
-    coinID: uint256,
-    transferIndex: int128,
-    transactionEncoding: bytes[277],
-    transactionProofEncoding: bytes[4821]
+    _exitID: uint256,
+    _coinID: uint256,
+    _transferIndex: int128,
+    _transactionEncoding: bytes[277],
+    _transactionProofEncoding: bytes[4821]
 ):
-    transferTypedStart: uint256 # these will be the ones at the trIndex we are being asked about by the exit game
+    """Starts an invalid history challenge from a transaction.
+
+    Allows a user to start an invalid history challenge (as described above) by
+    referencing a transaction that previously occurred in the coin's history.
+
+    Args:
+        _exitID (uint256): ID of the exit to challenge.
+        _coinID (uint256): ID of a coin within the range being exited to
+            specifically point out and challenge.
+        _transferIndex (uint256): Index of the transfer within a transaction
+            that specifically spends the referenced coin.
+        _transactionEncoding (bytes): Encoded transaction.
+        _transactionProofEncoding (bytes): Encoded transaction inclusion proof.
+
+    """
+    transferTypedStart: uint256
     transferTypedEnd: uint256
     transferRecipient: address
     transferSender: address
@@ -660,56 +1113,93 @@ def challengeInvalidHistoryWithTransaction(
         transferTypedEnd, 
         bn
     ) = self.checkTransactionProofAndGetTypedTransfer(
-        transactionEncoding,
-        transactionProofEncoding,
-        transferIndex
+        _transactionEncoding,
+        _transactionProofEncoding,
+        _transferIndex
     )
 
     self.challengeInvalidHistory(
-        exitID,
-        coinID,
+        _exitID,
+        _coinID,
         transferRecipient,
         transferTypedStart,
         transferTypedEnd,
         bn
     )
 
+
 @public
 def challengeInvalidHistoryWithDeposit(
-    exitID: uint256,
-    coinID: uint256,
-    depositUntypedEnd: uint256
+    _exitID: uint256,
+    _coinID: uint256,
+    _depositUntypedEnd: uint256
 ):
-    tokenType: uint256 = self.exits[exitID].tokenType
-    depositer: address = self.deposits[tokenType][depositUntypedEnd].depositer
-    assert depositer != ZERO_ADDRESS # make sure the deposit was really set/valid
+    """Starts an invalid history challenge by referencing a deposit.
 
-    # get typed deposit bounds
-    depositBlockNumber: uint256 = self.deposits[tokenType][depositUntypedEnd].precedingPlasmaBlockNumber
+    Allows a user to start an invalid history challenge by referencing a
+    deposit that the user claims is unspent.
 
-   # check the coinspend intersects the exit
-    depositTypedStart: uint256 = Serializer(self.serializer).getTypedFromTokenAndUntyped(tokenType, self.deposits[tokenType][depositUntypedEnd].untypedStart)
-    depositTypedEnd: uint256 = Serializer(self.serializer).getTypedFromTokenAndUntyped(tokenType, depositUntypedEnd)
+    Args:
+        _exitID (uint256): ID of the exit to challenge.
+        _coinID (uint256): ID of a coin within the range being exited to
+            specifically point out and challenge.
+        _depositUntypedEnd (uint256): End of the range that was originally
+            deposited. Something like a unique deposit identifier, used to
+            look up the deposit.
+
+    """
+    tokenType: uint256 = self.exits[_exitID].tokenType
+    depositer: address = self.deposits[tokenType][_depositUntypedEnd].depositer
+    assert depositer != ZERO_ADDRESS
+
+    depositBlockNumber: uint256 = (
+        self.deposits[tokenType][_depositUntypedEnd].precedingPlasmaBlockNumber
+    )
+
+    depositTypedStart: uint256 = (
+        Serializer(self.serializer)
+        .getTypedFromTokenAndUntyped(
+            tokenType, self.deposits[tokenType][_depositUntypedEnd].untypedStart
+        )
+    )
+    depositTypedEnd: uint256 = (
+        Serializer(self.serializer)
+        .getTypedFromTokenAndUntyped(tokenType, _depositUntypedEnd)
+    )
 
     self.challengeInvalidHistory(
-        exitID,
-        coinID,
+        _exitID,
+        _coinID,
         depositer,
         depositTypedStart,
         depositTypedEnd,
         depositBlockNumber
     )
 
+
 @public
 def respondInvalidHistoryTransaction(
-        challengeID: uint256,
-        transferIndex: int128,
-        transactionEncoding: bytes[277],
-        transactionProofEncoding: bytes[4821],
+    _challengeID: uint256,
+    _transferIndex: int128,
+    _transactionEncoding: bytes[277],
+    _transactionProofEncoding: bytes[4821],
 ):
-    assert self.invalidHistoryChallenges[challengeID].ongoing
+    """Response for invalid history challenges.
 
-    transferTypedStart: uint256 # these will be the ones at the trIndex we are being asked about by the exit game
+    Allows a user to respond to an invalid history challenge by revealing a
+    valid spend of the coin.
+
+    Args:
+        _challengeID (uint256): ID of the challenge to respond to.
+        _transferIndex (uint256): Index of the transfer within a transaction
+            that specifically spends the referenced coin.
+        _transactionEncoding (bytes): Encoded transaction.
+        _transactionProofEncoding (bytes): Encoded transaction inclusion proof.
+
+    """
+    assert self.invalidHistoryChallenges[_challengeID].ongoing
+
+    transferTypedStart: uint256
     transferTypedEnd: uint256
     transferRecipient: address
     transferSender: address
@@ -722,63 +1212,86 @@ def respondInvalidHistoryTransaction(
         transferTypedEnd, 
         bn
     ) = self.checkTransactionProofAndGetTypedTransfer(
-        transactionEncoding,
-        transactionProofEncoding,
-        transferIndex
+        _transactionEncoding,
+        _transactionProofEncoding,
+        _transferIndex
     )
 
-    # check the response transfer addresses the challenged coin
-    chalCoinID: uint256 = self.invalidHistoryChallenges[challengeID].coinID
+    chalCoinID: uint256 = self.invalidHistoryChallenges[_challengeID].coinID
     assert chalCoinID >= transferTypedStart
     assert chalCoinID  < transferTypedEnd
 
-    # check exit the response's sender is indeed the challenge's recipient
-    chalRecipient: address = self.invalidHistoryChallenges[challengeID].recipient
+    chalRecipient: address = self.invalidHistoryChallenges[_challengeID].recipient
     assert chalRecipient == transferSender
 
-    # check the response was between exit and challenge
-    exitID: uint256 = self.invalidHistoryChallenges[challengeID].exitID
+    exitID: uint256 = self.invalidHistoryChallenges[_challengeID].exitID
     exitPlasmaBlockNumber: uint256 = self.exits[exitID].plasmaBlockNumber
-    chalBlockNumber: uint256 = self.invalidHistoryChallenges[challengeID].blockNumber
+    chalBlockNumber: uint256 = self.invalidHistoryChallenges[_challengeID].blockNumber
     
     assert bn > chalBlockNumber
     assert bn <= exitPlasmaBlockNumber
 
-    # response was successful
-    clear(self.invalidHistoryChallenges[challengeID])
+    clear(self.invalidHistoryChallenges[_challengeID])
     self.exits[exitID].challengeCount -= 1
+
 
 @public
 def respondInvalidHistoryDeposit(
-    challengeID: uint256,
-    depositUntypedEnd: uint256
+    _challengeID: uint256,
+    _depositUntypedEnd: uint256
 ):
-    assert self.invalidHistoryChallenges[challengeID].ongoing
+    """Response for invalid history challenges from invalid blocks.
 
-    exitID: uint256 = self.invalidHistoryChallenges[challengeID].exitID
+    It's possible for the operator to include transactions of a coin *before*
+    that coin was actually deposited. The operator could then use these
+    invalid transactions to start invalid history challenges. This response
+    type allows the user to show that the coin was deposited *after* the
+    invalid history challenge and that the challenge is therefore invalid.
+
+    Args:
+        _challengeID (uint256): ID of the challenge to respond to.
+        _depositUntypedEnd (uint256): End of the range that was originally
+            deposited. Something like a unique deposit identifier, used to
+            look up the deposit.
+
+    """
+    assert self.invalidHistoryChallenges[_challengeID].ongoing
+
+    exitID: uint256 = self.invalidHistoryChallenges[_challengeID].exitID
     exitTokenType: uint256 = self.exits[exitID].tokenType
 
-    #check the deposit is real
-    assert self.deposits[exitTokenType][depositUntypedEnd].depositer != ZERO_ADDRESS
+    assert self.deposits[exitTokenType][_depositUntypedEnd].depositer != (
+        ZERO_ADDRESS
+    )
 
-    #check the response deposit addresses the right coinID
-    chalCoinID: uint256 = self.invalidHistoryChallenges[challengeID].coinID
-    depositUntypedStart: uint256 = self.deposits[exitTokenType][depositUntypedEnd].untypedStart
+    chalCoinID: uint256 = self.invalidHistoryChallenges[_challengeID].coinID
+    depositUntypedStart: uint256 = (
+        self.deposits[exitTokenType][_depositUntypedEnd].untypedStart
+    )
 
-    depositTypedStart: uint256 = Serializer(self.serializer).getTypedFromTokenAndUntyped(exitTokenType, depositUntypedStart)
-    depositTypedEnd: uint256 = Serializer(self.serializer).getTypedFromTokenAndUntyped(exitTokenType, depositUntypedEnd)
+    depositTypedStart: uint256 = (
+        Serializer(self.serializer)
+        .getTypedFromTokenAndUntyped(exitTokenType, depositUntypedStart)
+    )
+    depositTypedEnd: uint256 = (
+        Serializer(self.serializer)
+        .getTypedFromTokenAndUntyped(exitTokenType, _depositUntypedEnd)
+    )
     
     assert chalCoinID >= depositTypedStart
     assert chalCoinID <= depositTypedEnd
 
-    # check the response was between exit and challenge
-    chalBlockNumber: uint256 = self.invalidHistoryChallenges[challengeID].blockNumber
+    chalBlockNumber: uint256 = (
+        self.invalidHistoryChallenges[_challengeID].blockNumber
+    )
     exitPlasmaBlockNumber: uint256 = self.exits[exitID].plasmaBlockNumber
-    depositBlockNumber: uint256 = self.deposits[exitTokenType][depositUntypedEnd].precedingPlasmaBlockNumber
-    
+    depositBlockNumber: uint256 = (
+        self.deposits[exitTokenType][_depositUntypedEnd]
+        .precedingPlasmaBlockNumber
+    )
+
     assert depositBlockNumber > chalBlockNumber
     assert depositBlockNumber <= exitPlasmaBlockNumber
 
-    # response was successful
-    clear(self.invalidHistoryChallenges[challengeID])
+    clear(self.invalidHistoryChallenges[_challengeID])
     self.exits[exitID].challengeCount -= 1
