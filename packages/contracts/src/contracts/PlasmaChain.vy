@@ -78,14 +78,14 @@ contract Serializer:
         _transferProofEncoding: bytes[4821]
     ) -> (uint256,  uint256, uint256): constant
     def decodeNumInclusionProofNodesFromTRProof(
-        _transferProof: bytes[4821]
+        _transferProofEncoding: bytes[4821]
     ) -> int128: constant
     def decodeIthInclusionProofNode(
         _index: int128,
         _transferProofEncoding: bytes[4821]
     ) -> bytes[48]: constant
     def decodeNumInclusionProofNodesFromTXProof(
-        _transactionProof: bytes[4821]
+        _transactionProofEncoding: bytes[4821]
     ) -> int128: constant
     def decodeNumTransactionProofs(
         _transactionProofEncoding: bytes[4821]
