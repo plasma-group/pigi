@@ -164,7 +164,7 @@ challengeNonce: public(uint256)
 
 # Setup
 isSetup: public(bool)
-serializer: public(address)
+serializer: Serializer
 
 # Constants
 MESSAGE_PREFIX: public(bytes[28])
@@ -204,18 +204,14 @@ def checkTransferProofAndGetTypedBounds(
             implicitly proves are unspent.
 
     """
-    parsedSum: bytes[16] = (
-        Serializer(self.serializer).decodeParsedSumBytes(_transferProof)
-    )
+    parsedSum: bytes[16] = self.serializer.decodeParsedSumBytes(_transferProof)
     numProofNodes: int128 = (
-        Serializer(self.serializer)
+        self.serializer
         .decodeNumInclusionProofNodesFromTRProof(
             _transferProof
         )
     )
-    leafIndex: int128 = (
-        Serializer(self.serializer).decodeLeafIndex(_transferProof)
-    )
+    leafIndex: int128 = self.serializer.decodeLeafIndex(_transferProof)
 
     computedNode: bytes[48] = concat(_leafHash, parsedSum)
     totalSum: uint256 = convert(parsedSum, uint256)
@@ -227,7 +223,7 @@ def checkTransferProofAndGetTypedBounds(
         if nodeIndex == numProofNodes:
             break
         proofNode: bytes[48] = (
-            Serializer(self.serializer)
+            self.serializer
             .decodeIthInclusionProofNode(nodeIndex, _transferProof)
         )
         siblingSum: uint256 = convert(
@@ -276,19 +272,16 @@ def checkTransactionProofAndGetTypedTransfer(
             of the sent range, and the block in which the transfer occurred.
 
     """
-    leafHash: bytes32 = (
-        Serializer(self.serializer).getLeafHash(_transactionEncoding)
-    )
+    leafHash: bytes32 = self.serializer.getLeafHash(_transactionEncoding)
     plasmaBlockNumber: uint256 = (
-        Serializer(self.serializer).decodeBlockNumber(_transactionEncoding)
+        self.serializer.decodeBlockNumber(_transactionEncoding)
     )
 
     numTransfers: int128 = convert(
-        Serializer(self.serializer).decodeNumTransfers(_transactionEncoding),
-        int128
+        self.serializer.decodeNumTransfers(_transactionEncoding), int128
     )
     numInclusionProofNodes: int128 = (
-        Serializer(self.serializer)
+        self.serializer
         .decodeNumInclusionProofNodesFromTXProof(_transactionProofEncoding)
     )
 
@@ -301,12 +294,11 @@ def checkTransactionProofAndGetTypedTransfer(
             break
 
         transferEncoding: bytes[68] = (
-            Serializer(self.serializer)
-            .decodeIthTransfer(i, _transactionEncoding)
+            self.serializer.decodeIthTransfer(i, _transactionEncoding)
         )
         
         transferProof: bytes[4821] = (
-            Serializer(self.serializer)
+            self.serializer
             .decodeIthTransferProofWithNumNodes(
                 i,
                 numInclusionProofNodes,
@@ -329,8 +321,7 @@ def checkTransactionProofAndGetTypedTransfer(
         transferTypedEnd: uint256
 
         (transferTypedStart, transferTypedEnd) = (
-            Serializer(self.serializer)
-            .decodeTypedTransferRange(transferEncoding)
+            self.serializer.decodeTypedTransferRange(transferEncoding)
         )
 
         assert implicitTypedStart <= transferTypedStart
@@ -340,17 +331,15 @@ def checkTransactionProofAndGetTypedTransfer(
         v: uint256
         r: uint256
         s: uint256
-        (v, r, s) = Serializer(self.serializer).decodeSignature(transferProof)
-        sender: address = (
-            Serializer(self.serializer).decodeSender(transferEncoding)
-        )
+        (v, r, s) = self.serializer.decodeSignature(transferProof)
+        sender: address = self.serializer.decodeSender(transferEncoding)
 
         messageHash: bytes32 = sha3(concat(self.MESSAGE_PREFIX, leafHash))
         assert sender == ecrecover(messageHash, v, r, s)
 
         if i == _transferIndex:
             requestedTransferTo = (
-                Serializer(self.serializer).decodeRecipient(transferEncoding)
+                self.serializer.decodeRecipient(transferEncoding)
             )
             requestedTransferFrom = sender
             requestedTypedTransferStart = transferTypedStart
@@ -393,7 +382,7 @@ def setup(
 
     # Save those constructor variables.
     self.operator = _operator
-    self.serializer = _serializer
+    self.serializer = Serializer(_serializer)
     self.ethDecimalOffset = _ethDecimalOffset
 
     # Set up some constants.
@@ -744,11 +733,11 @@ def challengeBeforeDeposit(
 
     tokenType: uint256 = self.exits[_exitID].tokenType
     depositTypedStart: uint256 = (
-        Serializer(self.serializer)
+        self.serializer
         .getTypedFromTokenAndUntyped(tokenType, depositUntypedStart)
     )
     depositTypedEnd: uint256 = (
-        Serializer(self.serializer)
+        self.serializer
         .getTypedFromTokenAndUntyped(tokenType, _depositUntypedEnd)
     )
 
@@ -842,13 +831,13 @@ def respondTransactionInclusion(
 
     exitTokenType: uint256 = self.exits[exitID].tokenType
     exitTypedStart: uint256 = (
-        Serializer(self.serializer)
+        self.serializer
         .getTypedFromTokenAndUntyped(
             exitTokenType, self.exits[exitID].untypedStart
         )
     )
     exitTypedEnd: uint256 = (
-        Serializer(self.serializer)
+        self.serializer
         .getTypedFromTokenAndUntyped(
             exitTokenType,
             self.exits[exitID].untypedEnd
@@ -900,27 +889,27 @@ def respondDepositInclusion(
     assert exitPlasmaBlockNumber == depositBlockNumber
 
     exitTypedStart: uint256 = (
-        Serializer(self.serializer)
+        self.serializer
         .getTypedFromTokenAndUntyped(
             exitTokenType, self.exits[exitID].untypedStart
         )
     )
     exitTypedEnd: uint256 = (
-        Serializer(self.serializer)
+        self.serializer
         .getTypedFromTokenAndUntyped(
             exitTokenType, self.exits[exitID].untypedEnd
         )
     )
 
     depositTypedStart: uint256 = (
-        Serializer(self.serializer)
+        self.serializer
         .getTypedFromTokenAndUntyped(
             exitTokenType,
             self.deposits[exitTokenType][_depositUntypedEnd].untypedStart
         )
     )
     depositTypedEnd: uint256 = (
-        Serializer(self.serializer)
+        self.serializer
         .getTypedFromTokenAndUntyped(exitTokenType, _depositUntypedEnd)
     )
 
@@ -983,13 +972,13 @@ def challengeSpentCoin(
     exitPlasmaBlockNumber: uint256 = self.exits[_exitID].plasmaBlockNumber
     exitTokenType: uint256 = self.exits[_exitID].tokenType
     exitTypedStart: uint256 = (
-        Serializer(self.serializer)
+        self.serializer
         .getTypedFromTokenAndUntyped(
             exitTokenType, self.exits[_exitID].untypedStart
         )
     )
     exitTypedEnd: uint256 = (
-        Serializer(self.serializer)
+        self.serializer
         .getTypedFromTokenAndUntyped(
             exitTokenType, self.exits[_exitID].untypedEnd
         )
@@ -1044,13 +1033,13 @@ def challengeInvalidHistory(
 
     tokenType: uint256 = self.exits[_exitID].tokenType
     exitTypedStart: uint256 = (
-        Serializer(self.serializer)
+        self.serializer
         .getTypedFromTokenAndUntyped(
             tokenType, self.exits[_exitID].untypedStart
         )
     )
     exitTypedEnd: uint256 = (
-        Serializer(self.serializer)
+        self.serializer
         .getTypedFromTokenAndUntyped(
             tokenType, self.exits[_exitID].untypedEnd
         )
@@ -1157,13 +1146,13 @@ def challengeInvalidHistoryWithDeposit(
     )
 
     depositTypedStart: uint256 = (
-        Serializer(self.serializer)
+        self.serializer
         .getTypedFromTokenAndUntyped(
             tokenType, self.deposits[tokenType][_depositUntypedEnd].untypedStart
         )
     )
     depositTypedEnd: uint256 = (
-        Serializer(self.serializer)
+        self.serializer
         .getTypedFromTokenAndUntyped(tokenType, _depositUntypedEnd)
     )
 
@@ -1270,11 +1259,11 @@ def respondInvalidHistoryDeposit(
     )
 
     depositTypedStart: uint256 = (
-        Serializer(self.serializer)
+        self.serializer
         .getTypedFromTokenAndUntyped(exitTokenType, depositUntypedStart)
     )
     depositTypedEnd: uint256 = (
-        Serializer(self.serializer)
+        self.serializer
         .getTypedFromTokenAndUntyped(exitTokenType, _depositUntypedEnd)
     )
     
