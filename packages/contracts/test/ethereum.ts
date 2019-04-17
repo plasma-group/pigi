@@ -1,8 +1,9 @@
-//import * as ganache from 'ganache-cli'
 const ganache = require('ganache-cli')
 import Web3 from 'web3'
 import { Http2Server } from 'http2'
 import { Contract } from 'web3-eth-contract'
+import debug from 'debug'
+const log = debug('test:info:ethereum-setup')
 
 export interface EthereumOptions {
   port?: number
@@ -37,7 +38,6 @@ export class Ethereum {
     this.accounts = await this.web3.eth.getAccounts() // cannot be done in synchronous constructor
     await new Promise((resolve) => {
       this.ethereum.listen('8545', resolve)
-      //this.ethereum.close(resolve)
     })
   }
 
@@ -46,7 +46,6 @@ export class Ethereum {
    */
   public async stop(): Promise<void> {
     await new Promise((resolve) => {
-      //this.ethereum.listen('8545', resolve)
       this.ethereum.close(resolve)
     })
   }
@@ -56,13 +55,13 @@ export class Ethereum {
    */
   public async deployCompiledContract(compiledContract: any): Promise<any> {
     const addr: any = this.accounts[0]
-    //const undeployedContract = new Contract(this.web3.currentProvider, compiledContract.abi, addr, { from: addr, gas: 7000000, gasPrice: '3000', data: compiledContract.bytecode })
-    console.log('abi is:')
-    console.log(compiledContract.bytecode)
-    console.log(typeof(compiledContract.bytecode))
+    // const undeployedContract = new Contract(this.web3.currentProvider, compiledContract.abi, addr, { from: addr, gas: 7000000, gasPrice: '3000', data: compiledContract.bytecode })
+    log('abi is:')
+    log(compiledContract.bytecode)
+    log(typeof(compiledContract.bytecode))
     const plasmaCt = new this.web3.eth.Contract(compiledContract.abi, addr, { from: addr, gas: 7000000, gasPrice: '3000', data: compiledContract.bytecode })
     const plasma = await plasmaCt.deploy({ data: compiledContract.bytecode }).send({ from: addr })
-    console.log('together we made it')
+    log('together we made it')
     return plasmaCt
 
   //   const undeployedContract = new this.web3.eth.Contract(compiledContract.abi, addr, {data: compiledContract.bytecode, from: addr, gas: 8000000, gasPrice: '30000000000000'})
@@ -75,12 +74,12 @@ export class Ethereum {
   // })
 
     //const a = await undeployedContract.deploy({data: compiledContract.bytecode})
-    //console.log(a)
+    //log(a)
     // const depltx: any = await undeployedContract.deploy({data: compiledContract.bytecode})
-    // console.log('tx is:')
-    // console.log(depltx.encodeABI())
+    // log('tx is:')
+    // log(depltx.encodeABI())
     // //depltx.send({from: addr, gas: 8000000, gasPrice: '30'})
-    // console.log('and here')
+    // log('and here')
     // return undeployedContract
   }
 

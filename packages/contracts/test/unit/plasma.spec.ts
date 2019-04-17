@@ -2,39 +2,34 @@ import '../setup'
 
 /* External Imports */
 import { Contract } from 'web3-eth-contract'
+import debug from 'debug'
+const log = debug('test:info:contract')
 
 /* Internal Imports */
 import { Ethereum } from '../ethereum'
 import { compiledPlasmaChain, compiledNewPlasma } from '../../src/compiled'
 import { AssertionError } from 'assert';
 
-describe('PlasmaChain', () => {
-	let ethereum: Ethereum
-    let snapshot: any
-    let plasma: Contract
-    before(async () => {
-        console.log('ran')
-        ethereum = new Ethereum()
-        await ethereum.start()
-        //await ethereum.stop()
-        plasma = await ethereum.deployCompiledContract(compiledPlasmaChain)
-        console.log('oh')
-        //console.log(plasma)
-    })
+describe('PlasmaChainContract', () => {
+  let ethereum: Ethereum
+  let snapshot: any
+  let plasma: Contract
+  before(async () => {
+    ethereum = new Ethereum()
+    await ethereum.start()
+    plasma = await ethereum.deployCompiledContract(compiledPlasmaChain)
+    snapshot = await ethereum.snapshot()
+  })
 
-    beforeEach(async () => {
-        await ethereum.revert(snapshot)
-    })
+  beforeEach(async () => {
+    await ethereum.revert(snapshot)
+  })
 
-    after(async () => {
-        await ethereum.stop()
-    })
+  after(async () => {
+    await ethereum.stop()
+  })
 
-    it('lols', async() => {
-        console.log('take2')
-        console.log(plasma)
-        true.should.equal(true)
-    })
-  
-  // tests
+  it('should pass tests that dont test anything', async() => {
+    true.should.equal(true)
+  })
 })
