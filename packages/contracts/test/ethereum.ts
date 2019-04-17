@@ -54,21 +54,34 @@ export class Ethereum {
   /**
    * Deploys a compiled contract and returns the contract object.
    */
-  public async deployCompiledContract(compiledContract: any): Promise<Contract> {
+  public async deployCompiledContract(compiledContract: any): Promise<any> {
     const addr: any = this.accounts[0]
     //const undeployedContract = new Contract(this.web3.currentProvider, compiledContract.abi, addr, { from: addr, gas: 7000000, gasPrice: '3000', data: compiledContract.bytecode })
     console.log('abi is:')
-    console.log(compiledContract.abi)
+    console.log(compiledContract.bytecode)
+    console.log(typeof(compiledContract.bytecode))
+    const plasmaCt = new this.web3.eth.Contract(compiledContract.abi, addr, { from: addr, gas: 7000000, gasPrice: '3000', data: compiledContract.bytecode })
+    const plasma = await plasmaCt.deploy({ data: compiledContract.bytecode }).send({ from: addr })
+    console.log('together we made it')
+    return plasmaCt
+
+  //   const undeployedContract = new this.web3.eth.Contract(compiledContract.abi, addr, {data: compiledContract.bytecode, from: addr, gas: 8000000, gasPrice: '30000000000000'})
     
-    const undeployedContract = new this.web3.eth.Contract(compiledContract.abi, addr, {data: compiledContract.bytecode, from: addr, gas: 8000000, gasPrice: '30000000000000'})
+  //   const plasmaCt = new this.web3.eth.Contract(compiledContract.abi, addr, {data: compiledContract.bytecode, from: addr, gas: 7000000, gasPrice: '3000' })
+  //   await plasmaCt.deploy({data: compiledContract.bytecode}).send({
+  //     from: addr,
+  //     gas: 8000000,
+  //     gasPrice: '300000'
+  // })
+
     //const a = await undeployedContract.deploy({data: compiledContract.bytecode})
     //console.log(a)
-    const depltx: any = await undeployedContract.deploy({data: compiledContract.bytecode})
-    console.log('tx is:')
-    console.log(depltx.encodeABI())
-    depltx.send({from: addr, gas: 8000000, gasPrice: '30'})
-    console.log('and here')
-    return undeployedContract
+    // const depltx: any = await undeployedContract.deploy({data: compiledContract.bytecode})
+    // console.log('tx is:')
+    // console.log(depltx.encodeABI())
+    // //depltx.send({from: addr, gas: 8000000, gasPrice: '30'})
+    // console.log('and here')
+    // return undeployedContract
   }
 
   /**
