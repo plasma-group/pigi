@@ -5,7 +5,7 @@ import BigNum = require('bn.js')
 import { abi } from '../eth'
 import { StateObject } from './state-object'
 
-const STATE_OBJECT_ABI_TYPES = [
+const STATE_UPDATE_ABI_TYPES = [
   'uint256',
   'uint256',
   'uint256',
@@ -48,13 +48,31 @@ export class StateUpdate {
    * @returns the encoded state update.
    */
   get encoded(): string {
-    return abi.encode(STATE_OBJECT_ABI_TYPES, [
-      this.start,
-      this.end,
-      this.block,
+    return abi.encode(STATE_UPDATE_ABI_TYPES, [
+      this.start.toString(10),
+      this.end.toString(10),
+      this.block.toString(10),
       this.plasmaContract,
       this.newState.encoded,
     ])
+  }
+
+  /**
+   * Creates a StateObject from its encoded form.
+   * @param encoded The encoded StateObject.
+   * @returns the StateObject.
+   */
+  public static fromEncoded(encoded: string): any {
+    const decoded = abi.decode(STATE_UPDATE_ABI_TYPES, encoded)
+    const decodedStateObject = StateObject.fromEncoded(decoded[4])
+    const stateUpdate = new StateUpdate({
+      start: decoded[0].toString(),
+      end: decoded[1].toString(),
+      block: decoded[2].toString(),
+      plasmaContract: decoded[3],
+      newState: decodedStateObject
+    })
+    return stateUpdate
   }
 
   /**
