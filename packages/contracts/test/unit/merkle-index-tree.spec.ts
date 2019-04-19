@@ -2,8 +2,10 @@ import '../setup'
 
 /* External Imports */
 import { Contract } from 'web3-eth-contract'
+import { StateUpdate, StateUpdateArgs, StateObject, StateObjectData, abi }  from '@pigi/utils'
 import debug from 'debug'
 const log = debug('test:info:merkle-index-tree')
+// import BigNum = require('bn.js')
 
 /* Internal Imports */
 import { MerkleIndexTree, MerkleIndexTreeNode  } from '../../src/merkle-index-tree'
@@ -42,6 +44,16 @@ describe.only('merkle-index-tree', () => {
       const indexTree = new MerkleIndexTree(leaves)
       log(indexTree.levels)
       log(indexTree.root)
+    })
+  })
+  describe('MerkleIndexTree', () => {
+    it('should at least initialize', async() => {
+      const stateObject = new StateObject({predicate: '0xbdAd2846585129Fc98538ce21cfcED21dDDE0a63', parameters: '0x123456'})
+      const stateUpdate = new StateUpdate({start: 9, end: 100, block: 1, plasmaContract: '0xbdAd2846585129Fc98538ce21cfcED21dDDE0a63', newState: stateObject})
+      log(stateObject, stateUpdate)
+      log(stateUpdate.encoded)
+      const decoded = StateUpdate.fromEncoded(stateUpdate.encoded)
+      log(decoded)
     })
   })
 })

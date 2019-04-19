@@ -2,6 +2,7 @@
 const Web3 = require('web3') // tslint:disable-line
 import debug from 'debug'
 const log = debug('info:merkle-index-tree')
+import { StateUpdate }  from '@pigi/utils'
 
 /* Internal Imports */
 
@@ -69,5 +70,12 @@ export class MerkleIndexTree {
 
     this.levels.push(parents)
     this.generate(parents)
+  }
+}
+
+export class MerkleStateIndexTree extends MerkleIndexTree {
+  public static parseLeaves(leaves: StateUpdate[]): MerkleIndexTreeNode[] {
+    log(leaves)
+    return [new MerkleIndexTreeNode(Buffer.from([13]), Buffer.from([15]))]
   }
 }
