@@ -56,7 +56,6 @@ export class MerkleIndexTree {
   private generate(children: MerkleIndexTreeNode[]) {
     log('in generate with children', children)
     if(children.length === 1) {
-      this.levels.push(children)
       return
     }
     const parents = []
@@ -74,12 +73,33 @@ export class MerkleIndexTree {
 }
 
 export class MerkleStateIndexTree extends MerkleIndexTree {
-  public parseLeaves(stateUpdates: StateUpdate[]): MerkleIndexTreeNode[] {
-    const leaves = stateUpdates.map((stateUpdate) => {
+  public parseLeaves(leaves: StateUpdate[]): MerkleIndexTreeNode[] {
+    const bottom = leaves.map((stateUpdate) => {
       const hash = sha3(stateUpdate.encoded)
       const index = stateUpdate.start.toBuffer('be', STATE_ID_LENGTH)
       return new MerkleIndexTreeNode(hash, index)
     })
-    return leaves
+    return bottom
+  }
+}
+
+export interface SubtreeContents {
+  address: Buffer
+  stateUpdates: StateUpdate[]
+}
+
+export class PlasmaBlock extends MerkleIndexTree {
+  public subtrees: MerkleStateIndexTree[]
+
+  public parseLeaves(blockContents: SubtreeContents[]): MerkleIndexTreeNode[] {
+    const sortedBlockContents = blockContents.sort((subTreeContents1, subTreeContents2) => Buffer.compare(subTreeContents1.address, subTreeContents2.address))
+    this.subtrees = []
+    const bottom = []
+    for (const subtreeContents of sortedBlockContents) {
+      const merkleStateIndexTree = new MerkleStateIndexTree(subtreeContents.stateUpdates)
+      this.subtrees.push(merkleStateIndexTree)
+      bottom.push(new MerkleIndexTreeNode(merkleStateIndexTree.root().hash, subtreeContents.address))
+    }
+    return bottom
   }
 }
