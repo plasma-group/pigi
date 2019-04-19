@@ -8,7 +8,7 @@ const log = debug('test:info:merkle-index-tree')
 // import BigNum = require('bn.js')
 
 /* Internal Imports */
-import { MerkleIndexTree, MerkleIndexTreeNode  } from '../../src/merkle-index-tree'
+import { MerkleIndexTree, MerkleStateIndexTree, MerkleIndexTreeNode  } from '../../src/merkle-index-tree'
 import { AssertionError } from 'assert';
 
 describe.only('merkle-index-tree', () => {
@@ -46,14 +46,16 @@ describe.only('merkle-index-tree', () => {
       log(indexTree.root)
     })
   })
-  describe('MerkleIndexTree', () => {
-    it('should at least initialize', async() => {
-      const stateObject = new StateObject({predicate: '0xbdAd2846585129Fc98538ce21cfcED21dDDE0a63', parameters: '0x123456'})
-      const stateUpdate = new StateUpdate({start: 9, end: 100, block: 1, plasmaContract: '0xbdAd2846585129Fc98538ce21cfcED21dDDE0a63', newState: stateObject})
-      log(stateObject, stateUpdate)
-      log(stateUpdate.encoded)
-      const decoded = StateUpdate.fromEncoded(stateUpdate.encoded)
-      log(decoded)
+  describe.only('MerkleIndexTree', () => {
+    it('should generate a tree without throwing', async() => {
+      const stateUpdates = []
+      for (let i = 0; i < 4; i++) {
+        const stateObject = new StateObject({predicate: '0xbdAd2846585129Fc98538ce21cfcED21dDDE0a63', parameters: '0x123456'})
+        const stateUpdate = new StateUpdate({start: i, end: 100, block: 1, plasmaContract: '0xbdAd2846585129Fc98538ce21cfcED21dDDE0a63', newState: stateObject})
+        stateUpdates.push(stateUpdate)
+      }
+      const merkleStateIndexTree = new MerkleStateIndexTree(stateUpdates)
+      log('root', merkleStateIndexTree.root())
     })
   })
 })

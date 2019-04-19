@@ -2,7 +2,7 @@
 const Web3 = require('web3') // tslint:disable-line
 import debug from 'debug'
 const log = debug('info:merkle-index-tree')
-import { StateUpdate }  from '@pigi/utils'
+import { StateUpdate, STATE_ID_LENGTH }  from '@pigi/utils'
 
 /* Internal Imports */
 
@@ -25,14 +25,14 @@ export class MerkleIndexTree {
   public levels: MerkleIndexTreeNode[][]
 
   constructor (readonly leaves: any[]) {
-    const bottom = MerkleIndexTree.parseLeaves(leaves)
+    const bottom = this.parseLeaves(leaves)
     this.levels = [bottom]
     this.generate(bottom)
   }
 
   public static parent (left: MerkleIndexTreeNode, right: MerkleIndexTreeNode): MerkleIndexTreeNode {
-    if (Buffer.compare(left.index, right.index) > 0) {
-      throw new Error('Left index (0x' + left.index.toString('hex') + ') greater than right index (0x' + right.index.toString('hex') + ')')
+    if (Buffer.compare(left.index, right.index) >= 0) {
+      throw new Error('Left index (0x' + left.index.toString('hex') + ') not less than right index (0x' + right.index.toString('hex') + ')')
     }
     const concatenated = Buffer.concat([left.data, right.data])
     return new MerkleIndexTreeNode(sha3(concatenated), left.index)
@@ -45,7 +45,7 @@ export class MerkleIndexTree {
     return new MerkleIndexTreeNode(hash, index)
   }
 
-  public static parseLeaves(leaves: any): MerkleIndexTreeNode[] {
+  public parseLeaves(leaves: any): MerkleIndexTreeNode[] {
     return leaves
   }
 
@@ -74,8 +74,12 @@ export class MerkleIndexTree {
 }
 
 export class MerkleStateIndexTree extends MerkleIndexTree {
-  public static parseLeaves(leaves: StateUpdate[]): MerkleIndexTreeNode[] {
-    log(leaves)
-    return [new MerkleIndexTreeNode(Buffer.from([13]), Buffer.from([15]))]
+  public parseLeaves(stateUpdates: StateUpdate[]): MerkleIndexTreeNode[] {
+    const leaves = stateUpdates.map((stateUpdate) => {
+      const hash = sha3(stateUpdate.encoded)
+      const index = stateUpdate.start.toBuffer('be', STATE_ID_LENGTH)
+      return new MerkleIndexTreeNode(hash, index)
+    })
+    return leaves
   }
 }
