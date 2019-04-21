@@ -45,6 +45,15 @@ describe.only('merkle-index-tree', () => {
       log(indexTree.levels)
       log(indexTree.root)
     })
+    it('should generate inclusion proofs for generic tree', async() => {
+      const leaves = []
+      for (let i = 0; i < 8; i++) {
+        leaves.push(new MerkleIndexTreeNode(Buffer.from([Math.floor(Math.random()*100)]), Buffer.from([i])))
+      }
+      const indexTree = new MerkleIndexTree(leaves)
+      const inclusionProof = indexTree.getInclusionProof(3)
+      log(inclusionProof)
+    })
   })
   describe('MerkleStateIndexTree', () => {
     it('should generate a tree without throwing', async() => {
@@ -58,7 +67,7 @@ describe.only('merkle-index-tree', () => {
       log('root', merkleStateIndexTree.root())
     })
   })
-  describe.only('PlasmaBlock', () => {
+  describe('PlasmaBlock', () => {
     it('should generate a tree without throwing', async() => {
       const stateUpdates = []
       for (let i = 0; i < 4; i++) {

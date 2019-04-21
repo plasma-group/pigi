@@ -13,6 +13,24 @@ function sha3(value) {
   return Buffer.from(solidityHash.slice(2), 'hex') // Slice 2 to remove the dumb 0x
 }
 
+/**
+ * Computes the index of the sibling of a node.
+ * @param index Index of a node.
+ * @returns the index of the sibling of that node.
+ */
+const getSiblingIndex = (index: number): number => {
+  return index + (index % 2 === 0 ? 1 : -1)
+}
+
+/**
+ * Computes the index of the parent of a node
+ * @param index Index of a node.
+ * @returns the index of the parent of that node.
+ */
+const getParentIndex = (index: number): number => {
+  return index === 0 ? 0 : Math.floor(index / 2)
+}
+
 export class MerkleIndexTreeNode {
   public data: Buffer
 
@@ -38,7 +56,7 @@ export class MerkleIndexTree {
     return new MerkleIndexTreeNode(sha3(concatenated), left.index)
   }
 
-  public static emptyLeaf (length: number): MerkleIndexTreeNode {
+  public static emptyNode (length: number): MerkleIndexTreeNode {
     const hash = Buffer.from(new Array(32).fill(0))
     const filledArray = new Array(length).fill(255)
     const index = Buffer.from(filledArray)
@@ -62,13 +80,32 @@ export class MerkleIndexTree {
     for (let i = 0; i < children.length; i += 2) {
       const left = children[i]
       const right = 
-        i + 1 === children.length ? MerkleIndexTree.emptyLeaf(left.index.length) : children[i + 1]
+        i + 1 === children.length ? MerkleIndexTree.emptyNode(left.index.length) : children[i + 1]
       const parent = MerkleIndexTree.parent(left, right)
       parents.push(parent)
     }
 
     this.levels.push(parents)
     this.generate(parents)
+  }
+
+  public getInclusionProof(leafIndex: number): MerkleIndexTreeNode[] {
+    if (!(leafIndex in this.levels[0])) {
+      throw new Error('Leaf index ' + leafIndex + ' not in bottom level of tree')
+    }
+
+    const inclusionProof: MerkleIndexTreeNode[] = []
+    let parentIndex: number
+    let siblingIndex = getSiblingIndex(leafIndex)
+    for (const level of this.levels) {
+      const node = level[siblingIndex] || MerkleIndexTree.emptyNode(level[0].index.length)
+      inclusionProof.push(node)
+
+      // Figure out the parent and then figure out the parent's sibling.
+      parentIndex = getParentIndex(siblingIndex)
+      siblingIndex = getSiblingIndex(parentIndex)
+    }
+    return inclusionProof
   }
 }
 
