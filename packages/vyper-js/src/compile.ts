@@ -19,6 +19,7 @@ export const compile = async (
       (error, stdout) => {
         if (error) {
           reject(error)
+          return
         }
         const results = JSON.parse(stdout)
         const result: VyperRawCompilationResult = results[path]

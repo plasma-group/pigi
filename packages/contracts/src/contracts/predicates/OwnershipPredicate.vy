@@ -1,0 +1,2 @@
+# publics
+owner: public(address)

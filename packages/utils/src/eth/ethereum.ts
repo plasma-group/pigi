@@ -1,6 +1,6 @@
 /* External Imports */
+const Web3 = require('web3') // tslint:disable-line
 import * as ganache from 'ganache-cli'
-import Web3 from 'web3'
 import { Http2Server } from 'http2'
 
 export interface EthereumOptions {
@@ -14,7 +14,7 @@ export interface EthereumOptions {
 export class Ethereum {
   private port: number
   private server: Http2Server
-  private web3: Web3
+  private web3: any
 
   /**
    * Creates the wrapper.
@@ -33,7 +33,7 @@ export class Ethereum {
    */
   public async start(): Promise<void> {
     await new Promise((resolve) => {
-      this.server.close(resolve)
+      this.server.listen(this.port, resolve)
     })
   }
 
@@ -42,7 +42,7 @@ export class Ethereum {
    */
   public async stop(): Promise<void> {
     await new Promise((resolve) => {
-      this.server.listen(this.port, resolve)
+      this.server.close(resolve)
     })
   }
 
