@@ -57,6 +57,10 @@ DepositCreated
        _state: bytes
    })
 
+Description
+^^^^^^^^^^^
+Emitted when a new deposit has been created.
+
 Fields
 ^^^^^^
 1. ``_asset`` - ``indexed(uint256)``: ID of the deposited asset type.
