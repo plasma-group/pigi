@@ -1,6 +1,6 @@
-======================
+**********************
 Transaction Generation
-======================
+**********************
 
 Clients must be able to create transactions that predicates use to compute state transitions. We now describe the process for generating a plasma transaction.
 

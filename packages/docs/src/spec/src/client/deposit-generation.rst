@@ -1,6 +1,6 @@
-==================
+******************
 Deposit Generation
-==================
+******************
 
 Users can transfer assets from Ethereum to the plasma chain by **depositing** these assets into a `plasma deposit contract`_ on Ethereum. Once an asset has been deposited, it's effectively locked inside of the contract until someone attempts to `withdraw`_ it. We'll now go through the exact flow for a user who wants to deposit an asset into the plasma chain.
 
