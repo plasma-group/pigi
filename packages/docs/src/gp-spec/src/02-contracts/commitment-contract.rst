@@ -44,18 +44,17 @@ submitBlock
 .. code-block:: python
 
    @public
-   @payable
-   def submitBlock(header: bytes, witness: bytes)
+   def submitBlock(header: bytes)
 
 Description
 ^^^^^^^^^^^
-Allows a user to submit a new plasma block header.
+Allows a user to submit a new plasma block header. Interestingly, this method can support arbitrarily complex block submission because it can verify that ``msg.sender`` is a smart contract.
 
 Parameters
 ^^^^^^^^^^
 1. ``header`` - ``bytes``: Arbitrary block header to publish.
-2. ``witness`` - ``bytes``: Additional witness data that may be used to check whether the given block header is authorized.
 
 Requirements
 ^^^^^^^^^^^^
 - **MUST** emit a ``BlockCreated`` event.
+
