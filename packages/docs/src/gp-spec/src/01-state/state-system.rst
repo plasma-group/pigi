@@ -1,6 +1,6 @@
-############
-State Models
-############
+########################
+Generalized State System
+########################
 
 *************
 State Objects
@@ -8,7 +8,7 @@ State Objects
 
 State Object Model
 ==================
-State in the plasma chain is represented as a set of "state objects". Each state object is composed of:
+State within our model is represented as a set of "state objects". Each state object is composed of:
 
 1. A globally unique identifier.
 2. The address of a `predicate contract`_.
@@ -69,17 +69,6 @@ In TypeScript:
    
    const encoded = rlp.encode([id, address, data])
 
-In Python:
-
-.. code-block:: typescript
-
-   import rlp
-   
-   id = 123456789
-   address = '0x5a0b54d5dc17e0aadc383d2db43b0a0d3e029c4c'
-   data = 'some data'
-   
-   encoded = rlp.encode([id, address, data])
 
 Similarly, state objects **MUST** be `RLP decoded`_ as ``[id, address, data]``.
 
@@ -91,15 +80,6 @@ In TypeScript:
    
    const encoded = '0x.....'
    const [id, address, data] = rlp.decode(encoded)
-
-In Python:
-
-.. code-block:: python
-
-   import rlp
-   
-   encoded = b'0x.....'
-   id, address, data = rlp.decode(encoded)
 
 Rationale
 ---------
@@ -114,7 +94,7 @@ TODO
 **********
 Predicates
 **********
-**Predicates** are functions that define the ways in which state objects can be mutated.
+Predicates are functions that define the ways in which state objects can be mutated.
 
 Predicate Methods
 =================
@@ -306,8 +286,39 @@ A Vyper struct:
 
 Rationale
 ---------
-In line with our reasoning for a general-purpose state object, we wanted a general-purpose state transition system. 
+TODO
 
+Requirements
+------------
+TODO
+
+Encoding and Decoding
+=====================
+Transactions **MUST** be `RLP encoded`_ in the form ``[objectId, methodId, parameters, witness]``.
+
+In TypeScript:
+
+.. code-block:: typescript
+
+   import rlp from 'rlp'
+   
+   const objectId = 123456789
+   const methodId = '0x....'
+   const parameters = '0x....'
+   const witness = '0x....'
+   
+   const encoded = rlp.encode([objectId, methodId, parameters, witness])
+
+Similarly, transactions **MUST** be `RLP decoded`_ in the form ``[objectId, methodId, parameters, witness]``.
+
+In TypeScript:
+
+.. code-block:: typescript
+
+   import rlp from 'rlp'
+   
+   const encoded = '0x....'
+   const [objectId, methodId, parameters, witness] = rlp.decode(encoded)
 
 .. _`computed`: TODO
 .. _`RLP encoded`: https://github.com/ethereum/wiki/wiki/RLP
