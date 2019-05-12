@@ -1,5 +1,5 @@
 #################
-Merkle Index Tree
+Merkle Interval Tree
 #################
 
 **********
@@ -7,16 +7,16 @@ Background
 **********
 The `Plasma Cashflow`_ construction requires transactions that can efficiently reference `ranges of state objects`_ simultaneously. In order to preserve the properties of `Plasma Cash`_, we require a Merkle tree structure that will not allow for the existence of two transactions that reference the same state object.
 
-We provide a construction for such a tree, called a Merkle Index Tree. This tree effectively commits to values that refer to corresponding ranges given by a ``start`` and an ``end``. The tree provides the property that for any range, there can exist at most **one** leaf node that references the range and has a valid Merkle proof.
+We provide a construction for such a tree, called a Merkle Interval Tree. This tree effectively commits to values that refer to corresponding ranges given by a ``start`` and an ``end``. The tree provides the property that for any range, there can exist at most **one** leaf node that references the range and has a valid Merkle proof.
 
 **************
 Tree Structure
 **************
-The Merkle Index Tree is a `binary tree`_ with special structures for leaf nodes and internal nodes.
+The Merkle Interval Tree is a `binary tree`_ with special structures for leaf nodes and internal nodes.
 
 Leaf Node
 =========
-The leaf nodes in a Merkle Index Tree represent a **range** and a value for thar range. We describe leaf nodes as a tuple of ``(start, end, data)``.
+The leaf nodes in a Merkle Interval Tree represent a **range** and a value for thar range. We describe leaf nodes as a tuple of ``(start, end, data)``.
 
 In TypeScript:
 
@@ -44,7 +44,7 @@ In TypeScript:
 ***************
 Tree Generation
 ***************
-A Merkle Index tree is generated from a list of `leaf nodes`_. Merkle Index Tree generation also requires the use of a `hash function`_. Any hash function is suitable, but the security properties of the hash function will impact the properties of the tree.
+A Merkle Index tree is generated from a list of `leaf nodes`_. Merkle Interval Tree generation also requires the use of a `hash function`_. Any hash function is suitable, but the security properties of the hash function will impact the properties of the tree.
 
 An algorithm for generating the tree is described below. All lists used are zero-indexed.
 
@@ -124,7 +124,7 @@ A pseudocode version of the above algorithm is given below:
 *************
 Merkle Proofs
 *************
-Our tree generation process allows us to create an efficient **proof** that for a given leaf node and a given Merkle Index Tree root node:
+Our tree generation process allows us to create an efficient **proof** that for a given leaf node and a given Merkle Interval Tree root node:
 
 1. The leaf node was contained in the tree that generated the root.
 2. The range described by the leaf node intersects with no other ranges described by any other leaf node in the tree.
@@ -167,7 +167,7 @@ Pseudocode
 
 Proof Verification
 ==================
-Verification of Merkle Index Tree proofs is relatively straightforward. Given a leaf node, the index of that leaf node within the Merkle tree, a proof consisting of a list `internal nodes`_, and the root of the tree:
+Verification of Merkle Interval Tree proofs is relatively straightforward. Given a leaf node, the index of that leaf node within the Merkle tree, a proof consisting of a list `internal nodes`_, and the root of the tree:
 
 1. Compute the internal node that corresponds to the leaf node such that ``node.index = leaf.start`` and ``node.hash`` is the hash of the concatenation of ``leaf.start``, ``leaf.end``, and ``leaf.data``, in that order.
 2. For each element of the proof:
