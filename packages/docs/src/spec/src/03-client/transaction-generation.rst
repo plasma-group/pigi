@@ -1,11 +1,12 @@
-**********************
+######################
 Transaction Generation
-**********************
+######################
 
 Clients must be able to create transactions that predicates use to compute state transitions. We now describe the process for generating a plasma transaction.
 
+*************
 Predicate ABI
-=============
+*************
 
 For the sake of backwards compatibility, we've chosen to define a standard **Predicate ABI** based on the `Ethereum contract ABI`_ specification. This standard ABI format provides a list of function descriptors that a client can use to interact with the predicate. Clients are able to easily generate transactions for predicates that provide a Predicate ABI.
 
@@ -32,7 +33,7 @@ TypeScript interfaces for valid Predicate ABI objects are given below. Compare t
     }
 
 Example: SimpleOwnership Predicate
-----------------------------------
+==================================
 
 We'll demonstrate Predicate ABI by looking at the `SimpleOwnership`_ predicate. SimpleOwnership allows one valid state transition whereby the current owner of a coin may sign off a new owner:
 
@@ -82,8 +83,9 @@ Putting these together, the ABI for this predicate is therefore:
        }
    ]
 
+******************
 Transaction Format
-==================
+******************
 
 Each predicate is different and could, in theory, define its own transaction format. However, clients need to know how to correctly generate a transaction for any given predicate. For simplicity, therefore, we've developed a standard transaction format.
 
@@ -112,7 +114,7 @@ The interface for a ``Transaction`` object in TypeScript is therefore as follows
    }
 
 Transaction Encoding and Decoding
----------------------------------
+=================================
 
 Plasma transactions **must** be `ABI encoded or decoded`_ according to the following schema:
 
@@ -128,13 +130,15 @@ Plasma transactions **must** be `ABI encoded or decoded`_ according to the follo
        witness: bytes
    }
 
+********************
 Sending Transactions
-====================
+********************
 
 Transactions can be submitted to a node via the `sendTransaction RPC method`_. If the recipient node is not the operator, the node will forward the transaction to the operator. 
 
+**********************************
 Example: SimpleOwnership Predicate
-==================================
+**********************************
 
 We're going to look at the whole process for generating a valid transaction to interact with some coins locked by the `SimpleOwnership`_ predicate. This example will explain how a client can use the `Predicate ABI`_ to generate all of the values necessary to generate a valid state-changing transaction that assigns the coins a new owner. Then we'll look at the process of encoding the transaction before it's sent to the operator.
 
