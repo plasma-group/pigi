@@ -7,57 +7,60 @@ This website documents the entirety of the Plasma Group design, from the inner w
 
 .. toctree::
    :maxdepth: 2
-   :caption: Overview
+   :caption: #00: Introduction
 
-   src/overview/introduction
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Core Design Components
-
-   src/core/plasma-cashflow
-   src/core/index-tree
-   src/core/predicates
+   src/00-introduction/introduction
+   src/00-introduciton/plasma
+   src/00-introduction/plasma-cashflow
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contract Specification
+   :caption: #01: Core Design Components
 
-   src/contracts/deposit
-   src/contracts/commitment
-   src/contracts/predicate
+   src/01-core/coin-ranges
+   src/01-core/merkle-interval-tree
+   src/01-core/state-system
 
 .. toctree::
    :maxdepth: 2
-   :caption: Client Specification
+   :caption: #02: Contract Specification
 
-   src/client/architecture
-   src/client/deposit-generation
-   src/client/transaction-generation
-   src/client/query-generation
-   src/client/event-handling
-   src/client/predicate-plugins
-   src/client/range-db
-   src/client/state-db
-   src/client/history-db
-   src/client/account-db
-   src/client/sync-db
-   src/client/wallet
-   src/client/state-manager
-   src/client/history-manager
-   src/client/event-watcher
-   src/client/rpc-server
-   src/client/rpc-methods
+   src/02-contracts/deposit
+   src/02-contracts/commitment
+   src/02-contracts/predicate
+
+.. toctree::
+   :maxdepth: 2
+   :caption: #03: Client Specification
+
+   src/03-client/architecture
+   src/03-client/deposit-generation
+   src/03-client/transaction-generation
+   src/03-client/query-generation
+   src/03-client/event-handling
+   src/03-client/predicate-plugins
+   src/03-client/range-db
+   src/03-client/state-db
+   src/03-client/history-db
+   src/03-client/account-db
+   src/03-client/sync-db
+   src/03-client/wallet
+   src/03-client/state-manager
+   src/03-client/history-manager
+   src/03-client/event-watcher
+   src/03-client/rpc-server
+   src/03-client/rpc-methods
    
 .. toctree::
    :maxdepth: 2
-   :caption: Operator Specification
+   :caption: #04: Operator Specification
 
-   src/operator/architecture
-   src/operator/transaction-ingestion
-   src/operator/block-generation
-   src/operator/block-db
-   src/operator/operator-state-manager
-   src/operator/operator-block-manager
-   src/operator/rpc-methods
+   src/04-operator/introduction
+   src/04-operator/architecture
+   src/04-operator/transaction-ingestion
+   src/04-operator/block-generation
+   src/04-operator/block-db
+   src/04-operator/operator-state-manager
+   src/04-operator/operator-block-manager
+   src/04-operator/rpc-methods
 
