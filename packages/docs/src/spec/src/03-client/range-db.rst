@@ -1,14 +1,15 @@
-********
+########
 Range DB
-********
+########
 
 ``RangeDB`` is a standard database abstraction that makes it easy to interact with range-based keys.
 
+***************
 Data Structures
-===============
+***************
 
 RangeEntry
-----------
+==========
 
 .. code-block: typescript
 
@@ -22,8 +23,12 @@ Description
 ^^^^^^^^^^^
 Represents a value in the database. All values are constructed with respect to some range, defined by ``start`` and ``end``.
 
+***
 API
-===
+***
+
+Methods
+=======
 
 get
 ---

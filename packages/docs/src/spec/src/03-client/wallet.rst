@@ -1,11 +1,15 @@
-******
+######
 Wallet
-******
+######
 
 Clients often need to create signatures in order to authenticate transactions. The ``Wallet`` component provides a standard interface for creating new accounts, querying existing accounts, and signing arbitrar data.
 
+***
 API
-===
+***
+
+Methods
+=======
 
 getAccounts
 -----------

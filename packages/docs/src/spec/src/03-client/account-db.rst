@@ -1,11 +1,15 @@
-**********
-Account DB
-**********
+#########
+AccountDB
+#########
 
 ``AccountDB`` stores and manages access to `standard keystore`_ files.
 
+***
 API
-===
+***
+
+Methods
+=======
 
 setKeystore
 -----------
