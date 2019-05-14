@@ -82,6 +82,9 @@ tree can be cached!
 
 Source: Efficient smt:https://eprint.iacr.org/2016/683.pdf 
 
+
+**How this design is helpful**
+
 *Sharded client-side validation*
 
 Clients only need to watch the Plasma chain for their tokens. That means transaction 
@@ -94,12 +97,12 @@ each token they wish to steal. If a chain halts tokens are still safe; however, 
 
 *Simple support for all tokens*
 
-There is no additional complexity adding any number distinct tokens, including non-fungible assets.
-
-A downside is *Large token denominations* 
+There is no additional complexity adding any number distinct tokens, including non-fungible assets, a downside is *Large token denominations* 
 
 Because each token must be assigned a serial number, one cannot mint arbitrarily small tokens. 
 This is because at some point the gas cost of redeeming the token will be larger than the value of the token itself.
+
+*Transactions Format*
 
 For every block in the Plasma Cash chain, a merkle root must be published to the root chain. This root can either be a 
 merklized list, or a merkle patricia tree. In the merklized list, each index of the leaf nodes corresponds to the token ID. 
@@ -112,6 +115,7 @@ Transactions take the form of:
 A transaction spending a token with a given token_id is only valid if it is included in the Merkle tree at position 
 token_id; that is, for each token, there is only one "place" in the Merkle tree where transactions spending that token are 
 allowed to be.
+ 
 
 **Deposits**
 
@@ -128,39 +132,46 @@ transaction from A to B. The user also needs to submit Merkle proofs that show b
 blockchain.
 
 *Challenging exits*
+
 We need to support three types of challenges to ensure that only the true owner of a token can withdraw that token. 
-Withdrawals can be immediately blocked if someone proves that the withdrawing user actually spent the token later on. 
-Withdrawals can also be immediately blocked if someone shows that there’s a transaction between the parent and the child 
+
+#. Withdrawals can be immediately blocked if someone proves that the withdrawing user actually spent the token later on. 
+
+#. Withdrawals can also be immediately blocked if someone shows that there’s a transaction between the parent and the child 
 transactions, meaning the withdrawing user provided an invalid parent.
 
-Someone can also challenge the withdrawal by providing some other transaction in the token’s history. This type of 
+#. Someone can also challenge the withdrawal by providing some other transaction in the token’s history. This type of 
 challenge doesn’t immediately block a withdrawal. Instead, the withdrawing user is forced to respond with the transaction 
 that comes after the provided transaction.
 
-*Exits*
-Anyone can exit their coin by providing the last two transactions in the coin’s ownership history (ie. the coin they are 
-exiting C and its parent P( C )).
-
-An exit can be challenged in three ways: (i) provide a proof of a transaction spending C, (ii) provide a proof of a 
-transaction spending P( C ) that appears before C, (iii) provide a transaction C* in the coin’s history before P( C )
-
-A challenge of type (i) and (ii) blocks the exit immediately. A challenge of type (iii) can be responded to by providing 
-the direct child of C*, which must be either equal to or before P( C )
-
-Would coin ID => denomination be stored as a mapping on the root chain? 
-A non-inclusion proof is basically a proof that there exists an object at the given position in the Merkle tree, and this 
-object is empty data.
+*Exiting The Chain*
 
 .. figure:: ../../_static/images/blocks.png
     :align: center
     :target: ../../_static/images/blocks.png
 
+Anyone can exit their coin by providing the last two transactions in the coin’s ownership history (ie. the coin they are 
+exiting C and its parent P( C )).
+
+An exit can be challenged in three ways:
+
+#. Provide a proof of a transaction spending C, 
+
+#. Provide a proof of a transaction spending P( C ) that appears before C,
+
+#. Provide a transaction C* in the coin’s history before P( C )
+
+A challenge of type (i) and (ii) blocks the exit immediately. A challenge of type (iii) can be responded to by providing 
+the direct child of C*, which must be either equal to or before P( C )
+
 
 *Pros and cons*
+
 Plasma Cash is unsuitable for use cases where fractions of tokens are necessary, like exchanges.
 
 Additionally, the proofs that need to be sent along with each transaction can grow pretty quickly. These proofs need to go 
 all the way back to the block in which the token was deposited. Once the Plasma Chain has been running for a while, these 
 proofs might get prohibitively large.
+
 Plasma Cash is still great for certain things. Support for non-fungible tokens makes Plasma Cash perfect for things like 
 supply-chain logistics or even card games!.
