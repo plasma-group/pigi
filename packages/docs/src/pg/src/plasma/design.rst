@@ -135,14 +135,14 @@ blockchain.
 
 We need to support three types of challenges to ensure that only the true owner of a token can withdraw that token. 
 
-#. Withdrawals can be immediately blocked if someone proves that the withdrawing user actually spent the token later on. 
+1.  Withdrawals can be immediately blocked if someone proves that the withdrawing user actually spent the token later on. 
 
-#. Withdrawals can also be immediately blocked if someone shows that there’s a transaction between the parent and the child 
-transactions, meaning the withdrawing user provided an invalid parent.
+2.  Withdrawals can also be immediately blocked if someone shows that there’s a transaction between the parent and the child 
+    transactions, meaning the withdrawing user provided an invalid parent.
 
-#. Someone can also challenge the withdrawal by providing some other transaction in the token’s history. This type of 
-challenge doesn’t immediately block a withdrawal. Instead, the withdrawing user is forced to respond with the transaction 
-that comes after the provided transaction.
+3.  Someone can also challenge the withdrawal by providing some other transaction in the token’s history. This type of 
+    challenge doesn’t immediately block a withdrawal. Instead, the withdrawing user is forced to respond with the transaction 
+    that comes after the provided transaction.
 
 *Exiting The Chain*
 
