@@ -2,6 +2,11 @@
 StateManager
 ############
 
+***********
+Description
+***********
+``StateManager`` primarily handles incoming transactions that modify the current and historical state. ``StateManager`` effectively acts as a wrapper around `StateDB`_ but also makes some calls to `HistoryManager`_.
+
 ***
 API
 ***

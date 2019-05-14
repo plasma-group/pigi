@@ -2,7 +2,10 @@
 HistoryDB
 #########
 
-``HistoryDB`` provides a simple interface to the set of historical `StateUpdate`_ objects.
+***********
+Description
+***********
+``HistoryDB`` provides a simple interface to the set of historical `StateUpdate`_ objects. ``HistoryDB`` also stores all values necessary to prove the `history`_ of a given state object, including the `Merkle Interval Tree inclusion proofs`_ for each state update and the `transactions`_ that created those state updates.
 
 ***
 API

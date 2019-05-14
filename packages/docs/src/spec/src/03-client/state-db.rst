@@ -2,6 +2,9 @@
 StateDB
 #######
 
+***********
+Description
+***********
 ``StateDB`` handles storage and modification of the local verified state. ``StateDB`` is frequently used by `StateManager`_ to keep track of the known state and to verify incoming transactions.
 
 ***************

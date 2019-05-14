@@ -2,6 +2,9 @@
 Predicate Plugins
 #################
 
+***********
+Description
+***********
 Clients need a way to execute state transitions for a given predicate. However, it's too slow and complex to execute these state transitions in a virtual version of the EVM. As a result, Predicates **must** supply client-side code, called a *plugin*, that can compute state transitions. Predicate plugins **must** conform a standard interface as described in the API section below.
 
 *******************

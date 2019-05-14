@@ -2,6 +2,13 @@
 HistoryManager
 ##############
 
+***********
+Description
+***********
+``HistoryManager`` is a wrapper around `HistoryDB`_ that provides easy access to specific historical data. ``HistoryManager`` handles things like generating `history proofs`_, creating `inclusion proofs`_, and inserting historical `state updates`_. 
+
+We've separated ``HistoryManager`` from ``HistoryDB`` to avoid coupling the underlying data storage with more complex queries.
+
 ***
 API
 ***

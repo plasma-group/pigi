@@ -2,7 +2,10 @@
 AccountDB
 #########
 
-``AccountDB`` stores and manages access to `standard keystore`_ files.
+***********
+Description
+***********
+``AccountDB`` stores and manages access to `standard keystore`_ files. We require that keystore files **MUST** be encrypted for the safety of user funds.
 
 ***
 API

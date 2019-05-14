@@ -2,7 +2,10 @@
 Range DB
 ########
 
-``RangeDB`` is a standard database abstraction that makes it easy to interact with range-based keys.
+***********
+Description
+***********
+``RangeDB`` is a database abstraction that makes it easy to map ranges, defined by a ``start`` and an ``end``, to arbitrary values.
 
 ***************
 Data Structures

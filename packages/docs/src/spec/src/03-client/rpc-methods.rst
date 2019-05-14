@@ -2,58 +2,10 @@
 RPC Methods
 ###########
 
-********
-JSON RPC
-********
-We require that the client and operator communicate via `JSON RPC`_. 
-
-Data Structures
-===============
-
-JsonRpcRequest
---------------
-
-.. code-block:: typescript
-
-   interface JsonRpcRequest {
-     jsonrpc: '2.0'
-     method: string
-     params?: any
-     id: string | number
-   }
-
-JsonRpcSuccessResponse
-----------------------
-
-.. code-block:: typescript
-
-   interface JsonRpcSuccessResponse {
-     jsonrpc: '2.0'
-     result: any
-     id: string | number | null
-   }
-
-JsonRpcError
-------------
-
-.. code-block:: typescript
-
-   interface JsonRpcError {
-     code: number
-     message: string
-     data: any
-   }
-
-JsonRpcErrorResponse
---------------------
-
-.. code-block:: typescript
-
-   interface JsonRpcErrorResponse {
-     jsonrpc: '2.0'
-     error: JsonRpcError
-     id: string | number
-   }
+***********
+Description
+***********
+We require that the clients interact via `JSON RPC`_. Here we provide a list of available RPC methods that the client **MUST** implement.
 
 *******
 Methods
@@ -146,6 +98,30 @@ Returns
 
 pg_getProof
 ===========
+
+Description
+-----------
+
+Parameters
+----------
+
+Returns
+-------
+
+pg_getInstalledPredicatePlugins
+===============================
+
+Description
+-----------
+
+Parameters
+----------
+
+Returns
+-------
+
+pg_clientVersion
+================
 
 Description
 -----------
