@@ -52,6 +52,27 @@ Returns
 ^^^^^^^
 ``Promise<StateUpdate>``: Resulting `StateUpdate`_ created by the application of the transaction.
 
+queryState
+----------
+
+.. code-block:: typescript
+
+   async function queryState(stateUpdate: StateUpdate, method: string, parameters: string[]): Promise<string[]>
+
+Description
+^^^^^^^^^^^
+Performs a query on a given state update.
+
+Parameters
+^^^^^^^^^^
+1. ``stateUpdate`` - ``StateUpdate``: The `StateUpdate`_ object to perform a query on.
+2. ``method`` - ``string``: Name of the query method to call.
+3. ``parameters`` - ``string[]``: Additional parameters to the query.
+
+Returns
+^^^^^^^
+``string[]``: List of return values based on the predicate's `ABI`_.
+
 getAdditionalHistoryProof
 -------------------------
 

@@ -8,6 +8,7 @@ Description
 ``RangeDB`` is a database abstraction that makes it easy to map ranges, defined by a ``start`` and an ``end``, to arbitrary values.
 
 ***************
+
 Data Structures
 ***************
 
@@ -19,12 +20,18 @@ RangeEntry
    interface RangeEntry {
      start: number
      end: number
-     value: any
+     value: Buffer
    }
 
 Description
-^^^^^^^^^^^
+-----------
 Represents a value in the database. All values are constructed with respect to some range, defined by ``start`` and ``end``.
+
+Fields
+------
+1. ``start`` - ``number``: Start of the range described by this entry.
+2. ``end`` - ``number``: End of the range described by this entry.
+3. ``value`` - ``Buffer``: Value at this specific range.
 
 ***
 API
@@ -58,7 +65,7 @@ put
 
 .. code-block:: typescript
 
-   async function put(start: number, end: number, value: any): Promise<void>
+   async function put(start: number, end: number, value: Buffer): Promise<void>
 
 Description
 ^^^^^^^^^^^
@@ -68,8 +75,7 @@ Parameters
 ^^^^^^^^^^
 1. ``start`` - ``number``: Start of the range to insert into.
 2. ``end`` - ``number``: End of the range to insert into.
-3. ``value`` - ``any``: Value to insert into the range.
-
+3. ``value`` - ``Buffer``: Value to insert into the range as a `Buffer`_.
 
 Returns
 ^^^^^^^

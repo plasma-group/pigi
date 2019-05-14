@@ -60,3 +60,22 @@ Returns
 ^^^^^^^
 ``Promise<void>``: Promise that resolves once the proof has been applied or rejected.
 
+queryState
+----------
+
+.. code-block:: typescript
+
+   async function queryState(query: StateQuery): Promise<StateQueryResult[]>
+
+Description
+^^^^^^^^^^^
+Performs a `query on the local state`_.
+
+Parameters
+^^^^^^^^^^
+1. ``query`` - ``StateQuery``: A `StateQuery`_ object with information about what state to query.
+
+Returns
+^^^^^^^
+``Promise<StateQueryResult[]>``: A `StateQueryResult`_ object for each `state update`_ that passed the filter provided in the query.
+

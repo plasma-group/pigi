@@ -77,7 +77,7 @@ Parameters
 
 Returns
 -------
-``any``: Result of the state query.
+``any[]``: Result of the state query. Returns one query result for each `state object`_ that intersected with the range specified in the ``StateQuery``.
 
 pg_getTransactionByHash
 =======================
