@@ -7,6 +7,41 @@ Description
 ***********
 ``AccountDB`` stores and manages access to `standard keystore`_ files. We require that keystore files **MUST** be encrypted for the safety of user funds.
 
+***************
+Data Structures
+***************
+
+Keystore
+========
+
+.. code-block:: typescript
+
+   interface Keystore {
+     address: string
+     crypto: {
+       cipher: string
+       ciphertext: string
+       cipherparams: {
+         iv: string
+       }
+       kdf: string
+       kdfparams: {
+         dklen: number
+         n: number
+         p: number
+         r: number
+         salt: string
+       }
+       mac: string
+     }
+     id: string
+     version: number
+   }
+
+Description
+-----------
+Standard format for storing `keystore objects`_ in Ethereum.
+
 ***
 API
 ***
@@ -14,7 +49,7 @@ API
 Methods
 =======
 
-setKeystore
+putKeystore
 -----------
 
 .. code-block:: typescript
@@ -23,17 +58,14 @@ setKeystore
 
 Description
 ^^^^^^^^^^^
-
 Sets the keystore file for a given address.
 
 Parameters
 ^^^^^^^^^^
-
 1. ``address`` - ``string``: Address to set a keystore for.
 
 Returns
 ^^^^^^^
-
 ``Promise<void>``: Promise that resolves once the keystore has been inserted.
 
 getKeystore
@@ -45,17 +77,14 @@ getKeystore
 
 Description
 ^^^^^^^^^^^
-
 Pulls the keystore file for a given address.
 
 Parameters
 ^^^^^^^^^^
-
 1. ``address`` - ``string``: Address to query a keystore for.
 
 Returns
 ^^^^^^^
-
 ``Promise<Keystore>``: The `Keystore`_ object associated with that address.
 
 listAddresses
@@ -67,13 +96,13 @@ listAddresses
 
 Description
 ^^^^^^^^^^^
-
 Queries the list of all available account addresses with keystore files.
 
 Returns
 ^^^^^^^
 ``string[]``: List of account addresses where the DB has a keystore file.
 
-.. _`standard keystore`: TODO
-.. _`Keystore`: TODO
+
+.. _`keystore objects`:
+.. _`standard keystore`: https://theethereum.wiki/w/index.php/Accounts,_Addresses,_Public_And_Private_Keys,_And_Tokens#UTC_JSON_Keystore_File
 
