@@ -179,9 +179,10 @@ This is the standard way that checkpoints are made, by demonstrating inclusion i
 
 Pseudocode
 ^^^^^^^^^^^^
+
 .. code-block:: python
 
-def beginCheckpoint(stateUpdate: StateUpdate, inclusionProof: bytes[1024]):
+  def beginCheckpoint(stateUpdate: StateUpdate, inclusionProof: bytes[1024]):
        assert CommitmentContract(self.COMMITMENT_ADDRESS).verifyInclusion(stateUpdate, inclusionProof)
        assert isSubrange(subrange, stateUpdate.range)
        self.checkpoints[checkpoiontID].challengeableUntil = block.number + self.CHALLENGE_PERIOD
@@ -203,6 +204,7 @@ Limbo checkpointing is effectively a claim that "I'm not sure if this state upda
 
 Pseudocode
 ^^^^^^^^^^^
+
 .. code-block:: python
 
   def beginLimboCheckpoint(oldStateUpdate: StateUpdate, inclusionProof: bytes[1024], transaction: bytes[1024], subrange: Range):
@@ -220,6 +222,7 @@ Pseudocode
        self.checkpoints[checkpointID].challengeableUntil = block.number + self.CHALLENGE_PERIOD
        self.limboCheckpoins[checkpointID] = oldStateUpdate
 
+
 Cancelling a Limbo Exit
 ------------------------
 
@@ -236,8 +239,8 @@ A limbo checkpoint may be invaildated by demonstrating the inclusion of a confli
 
 Pseudocode
 ^^^^^^^^^^^
-.. code-block:: python
 
+.. code-block:: python
   def invalidateLimbo(limboCheckpoint: Checkpoint, transaction: bytes[1024], inclusionProof: bytes[1024]):
        checkpointID: bytes32 = sha3(limboCheckpoint)
        originatingStateUpdate: StateUpdate = self.limboCheckpointOrigins[checkpointID]
