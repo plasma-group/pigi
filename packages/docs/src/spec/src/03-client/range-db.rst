@@ -8,7 +8,6 @@ Description
 ``RangeDB`` is a database abstraction that makes it easy to map ranges, defined by a ``start`` and an ``end``, to arbitrary values.
 
 ***************
-
 Data Structures
 ***************
 
@@ -32,6 +31,7 @@ Fields
 1. ``start`` - ``number``: Start of the range described by this entry.
 2. ``end`` - ``number``: End of the range described by this entry.
 3. ``value`` - ``Buffer``: Value at this specific range.
+
 
 ***
 API
