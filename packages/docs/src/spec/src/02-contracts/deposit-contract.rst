@@ -222,6 +222,7 @@ Pseudocode
 
 Cancelling a Limbo Exit
 ------------------------
+
 Interface
 ^^^^^^^^^
 
@@ -252,6 +253,7 @@ Pseudocode
 
 Cancelling Checkpoints Predating Other Checkpoints
 ---------------------------------------
+
 Interface
 ^^^^^^^^^^
 .. code-block:: python
@@ -282,6 +284,7 @@ Exiting is the functionality which allows users to redeem money they have reciev
 
 Public Variables
 -----------------
+
 .. code-block:: python
   
   exitableRanges: public(map(uint256, Range))
@@ -293,6 +296,7 @@ Public Variables
 
 Beginning an Exit
 ---------------------
+
 Interface
 ^^^^^^^^^^^
 .. code-block:: python
@@ -320,6 +324,7 @@ Pseudocode
 
 Finalizing an Exit
 --------------------
+
 Interface
 ^^^^^^^^^^
 
@@ -407,6 +412,7 @@ The status of challenges (whether they are currently active) are stored on-chain
 
 Challenging a Checkpoint
 --------------------------
+
 Interface
 ^^^^^^^^^^
 .. code-block:: python
@@ -449,6 +455,7 @@ Pseudocode
 
 Removing a Challenge
 ---------------------
+
 Interface
 ^^^^^^^^^^^^
 .. code-block:: python
