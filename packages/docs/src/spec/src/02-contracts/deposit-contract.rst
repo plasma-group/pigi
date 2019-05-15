@@ -235,6 +235,7 @@ Interface
 
 Description
 ^^^^^^^^^^^^^
+
 A limbo checkpoint may be invaildated by demonstrating the inclusion of a conflicting spend of the limbo checkpoint's originating ``StateUpdate`` which has been included--because the limbo exit's claim that "this is the only possible thing which COULD have been included" is false.
 
 Pseudocode
@@ -264,6 +265,7 @@ Interface
 
 Description
 ^^^^^^^^^^^^^^
+
 Checkpoints can only overwrite other checkpoints if they have a higher plaasma blocknumber than the previous checkpoint.  If someone tries to checkpoint something older than an existing overlapping checkpoint, it may be cancellecd.
 
 Pseudocode
@@ -283,6 +285,7 @@ Pseudocode
 
 Exiting
 ==========
+
 Exiting is the functionality which allows users to redeem money they have recieved on the plasma chain.  This entails playing out a provably safe dispute game for an "exit period."  Exits point at checkpoints, so that playing an exit game also requires playing the checkpoint game--an exit is only finalizable if its checkpoint has no challenges.
 
 Public Variables
@@ -308,10 +311,12 @@ Interface
 
 Description
 ^^^^^^^^^^^^^
+
 Users may begin an exit on any checkpoint, pending or finalized, though the exit's dispute period starts then, distinct from the checkpoint game.  This is the method which begins an exit game.
 
 Pseudocode
 ^^^^^^^^^^^^
+
 .. code-block:: python
 
   def beginExit(checkpoint: Checkpoint, exitabilityWitness: bytes[1024]):
@@ -337,6 +342,7 @@ Interface
 
 Description
 ^^^^^^^^^^^^^
+
 Finalizing an exit is only possible if:
 - the exit game's dispute period has elapsed.
 - the exit has not been deleted.
@@ -345,6 +351,7 @@ Under these conditions, the exit is finalized, its money sent to the predicate, 
 
 Pseudocode
 ^^^^^^^^^^^^
+
 .. code-block:: python
 
   def finalizeExit(checkpoint: Checkpoint):
@@ -365,18 +372,22 @@ Pseudocode
 
 Cancelling Spent Exits
 -----------------------
+
 Interface
 ^^^^^^^^^^
+
 .. code-block:: python
 
   def cancelDeprecatedExit(checkpoint: Checkpoint, transaction: bytes[1024], inclusionProof: bytes[1024]):
 
 Description
 ^^^^^^^^^^^^
+
 If a state update has been included which has a valid transaction from a state being exited, that exit is invalid.  Thus, the ``cancelDeprecatedExit`` method checks this and deletes the exit if it sees that included state.
 
 Pseudocode
 ^^^^^^^^^^^
+
 .. code-block:: python
 
   def cancelDeprecatedExit(checkpoint: Checkpoint, transaction: bytes[1024], inclusionProof: bytes[1024]):
@@ -401,16 +412,19 @@ Structs
 
 Descriptions
 ^^^^^^^^^^^^^
+
 ``Challenge``: the details of a challenge.
 
 Public Variables
 -----------------
+
 .. code-block:: python
 
   challengeStatuses: public(map(bytes32, bool))
 
 Descriptions
 ^^^^^^^^^^^^^^
+
 The status of challenges (whether they are currently active) are stored on-chain.  They are referenced by a ``challengeID: bytes32`` which is calculated as ``hash(challengingExitID, challengedCheckpointID)``.
 
 Challenging a Checkpoint
@@ -418,6 +432,7 @@ Challenging a Checkpoint
 
 Interface
 ^^^^^^^^^^
+
 .. code-block:: python
   def challengeCheckpoint(desiredChallenge: Challenge)
        challengingCheckpointID: bytes32 = sh3(desiredChallenge.challengingExit) # note this is used to reference exit information since an exit ID is its checkpoint ID
@@ -437,10 +452,12 @@ Interface
 
 Description
 ^^^^^^^^^^^^
-To challenge a checkpoint, we provide 
+
+To challenge a checkpoint, we provide an exit from an earlier plasma block which we claim is unspent.
 
 Pseudocode
 ^^^^^^^^^^^^
+
 .. code-block:: python
 
   def challengeCheckpoint(desiredChallenge: Challenge)
@@ -461,16 +478,19 @@ Removing a Challenge
 
 Interface
 ^^^^^^^^^^^^
+
 .. code-block:: python
 
   def removeChallenge(challenge: Challenge):
 
 Description
 ^^^^^^^^^^^^^
+
 If an exit is successfully cancelled (deleted), then its checkpoint was invalid and this ``removeChallenge`` method may be called to decrement the challenged checkpoint's ``numChallenges``.
 
 Pseudocode
 ^^^^^^^^^^^
+
 .. code-block:: python
 
   def removeChallenge(challenge: Challenge):
