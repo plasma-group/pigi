@@ -1,11 +1,11 @@
-#########
-AccountDB
-#########
+########
+WalletDB
+########
 
 ***********
 Description
 ***********
-``AccountDB`` stores and manages access to `standard keystore`_ files. We require that keystore files **MUST** be encrypted for the safety of user funds.
+``WalletDB`` stores and manages access to `standard keystore`_ files. We require that keystore files **MUST** be encrypted for the safety of user funds.
 
 ***************
 Data Structures

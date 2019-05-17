@@ -1,6 +1,6 @@
-#################
-Predicate Plugins
-#################
+###############
+PredicatePlugin
+###############
 
 ***********
 Description

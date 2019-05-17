@@ -10,47 +10,54 @@ This website documents the entirety of the Plasma Group design, from the inner w
    :caption: #00: Introduction
 
    src/00-introduction/introduction
-   src/00-introduciton/plasma
-   src/00-introduction/plasma-cashflow
+   src/00-introduciton/operator
 
 .. toctree::
    :maxdepth: 2
    :caption: #01: Core Design Components
 
+   src/01-core/state-system
    src/01-core/coin-ranges
    src/01-core/merkle-interval-tree
-   src/01-core/state-system
+   src/01-core/double-layer-tree
+   src/01-core/json-rpc
 
 .. toctree::
    :maxdepth: 2
    :caption: #02: Contract Specification
 
-   src/02-contracts/deposit
-   src/02-contracts/commitment
-   src/02-contracts/predicate
+   src/02-contracts/deposit-contract
+   src/02-contracts/commitment-contract
+   src/02-contracts/predicate-contract
 
 .. toctree::
    :maxdepth: 2
    :caption: #03: Client Specification
 
+   src/03-client/introduction
    src/03-client/architecture
    src/03-client/deposit-generation
-   src/03-client/transaction-generation
-   src/03-client/query-generation
    src/03-client/event-handling
-   src/03-client/predicate-plugins
+   src/03-client/state-queries
+   src/03-client/transaction-generation
+   src/03-client/history-proof
+   src/03-client/history-generation
+   src/03-client/history-verification
+   src/03-client/exit-guarding
    src/03-client/range-db
-   src/03-client/state-db
-   src/03-client/history-db
-   src/03-client/account-db
-   src/03-client/sync-db
-   src/03-client/wallet
-   src/03-client/state-manager
-   src/03-client/history-manager
    src/03-client/event-watcher
+   src/03-client/wallet-db
+   src/03-client/wallet
+   src/03-client/predicate-plugin
+   src/03-client/history-db
+   src/03-client/history-manager
+   src/03-client/state-db
+   src/03-client/state-manager
+   src/03-client/query-expressions
+   src/03-client/rpc-client
    src/03-client/rpc-server
    src/03-client/rpc-methods
-   
+
 .. toctree::
    :maxdepth: 2
    :caption: #04: Operator Specification
@@ -60,7 +67,7 @@ This website documents the entirety of the Plasma Group design, from the inner w
    src/04-operator/transaction-ingestion
    src/04-operator/block-generation
    src/04-operator/block-db
+   src/04-operator/block-manager
    src/04-operator/operator-state-manager
-   src/04-operator/operator-block-manager
-   src/04-operator/rpc-methods
+   src/04-operator/operator-rpc-methods
 
