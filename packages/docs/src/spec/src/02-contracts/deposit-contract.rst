@@ -1,31 +1,39 @@
 ################
 Deposit Contract
 ################
-All implementations must provide a standard deposit contract that allows a user to deposit assets "into" the plasma chain by locking the assets on Ethereum, and unlocking via the evaluation of an exit game.  This document covers the functionality of that
 
-General Structs
-================
+***********
+Description
+***********
 
-Ranges
--------
+*********
+Interface
+*********
+
+Structs
+=======
+
+Range
+-----
 
 .. code-block:: python
 
    struct Range:
        start: uint256
-       end: bool
+       end: uint256
 
 Description
 ^^^^^^^^^^^
-Data structure representing a ranges of assets in Plasma Cashflow.
+Represents a range of `state objects`_.
 
 Fields
 ^^^^^^
-1. ``start`` - ``uint256``: the start of the range of state objects.
-2. ``end`` - ``uint256``: the end of the range of state objects.
+1. ``start`` - ``uint256``: Start of the range of objects.
+2. ``end`` - ``uint256``: End of the range of objects.
 
-State Objects
----------------
+StateObject
+-----------
+
 .. code-block:: python
 
    struct StateObject:
@@ -33,467 +41,597 @@ State Objects
        data: bytes[1024]
 
 Description
-^^^^^^^^^^^^^
-A state object contains the information associated with the spending conditions of a particular stateId.  This includes the predicate (e.g. ``ownershipPredicate``) and associated data (e.g. ``.owner = alice``).
+^^^^^^^^^^^
+Represents a `state object`_. Contains the address of the `predicate contract`_ and input data to that contract that control the conditions under which the object may be mutated.
 
 Fields
-^^^^^^^^
-1. ``predicateAddress`` - ``address``: the on-chain address of the predicate contract which controls the state object's transition conditions.
-2. ``data`` - ``bytes``: arbitrary bytes corresponding to the particular instantiation of that object, such as an owner for ownership, an exchange rate for an open trade, a multisig threshold, etc.
+^^^^^^
+1. ``predicateAddress`` - ``address``: Address of the `predicate contract`_ that dictates how the object can be mutated.
+2. ``data`` - ``bytes``: Arbitrary state data for the object.
 
-State Updates
----------------
+StateUpdate
+-----------
+
 .. code-block:: python
 
    struct StateUpdate:
-       state: StateObject
        range: Range
-       plasmaBlockNumber: uint256
+       stateObject: StateObject
        plasmaContract: address
+       plasmaBlockNumber: uint256
 
 Description
-^^^^^^^^^^^^^
-State updates consist of all the information associated with a particular inclusion proof, and are the things which are exited from.  This includes the state, start, and end of the range of state objects, the plasma block number they were committed to, and the plasma contract they were committed on behalf of.
+^^^^^^^^^^^
+Represents a `state update`_, which contains the contextual information for how a particular `state object`_ was mutated.
 
 Fields
-^^^^^^^^^^^
-1. ``state`` - ``stateObject``: the transition conditions for this range of coins.
-2. ``range`` - ``range``: the range of coins this update was on.
-3. ``plasmaBlockNumber`` - ``uint256``: the plasma block number in which this update occurred.
-4. ``plasmaContract`` - ``address``: the plasma contract which this update was meant for.
+^^^^^^
+1. ``range`` - ``Range``: Range of state objects that were mutated.
+2. ``stateObject`` - ``StateObject``: Resulting state object created by the mutation of the input objects.
+3. ``plasmaContract`` - ``address``: Address of the plasma contract in which the update was included.
+4. ``plasmaBlockNumber`` - ``uint256``: Plasma block number in which the update occurred.
 
-General Public Variables
-=========================
-.. code-block:: python
-  COMMITMENT_ADDRESS: public(address)
-  TOKEN_ADDRESS: public(address)
-  CHALLENGE_PERIOD: public(uint256)
-  EXIT_PERIOD: public(uint256)
-
-Descriptions
-^^^^^^^^^^^^^^^
-1. ``COMMITMENT_ADDRESS`` - ``address``: The address of the on-chain commitment contract where blocks for this plasma contract are published.
-2. ``TOKEN_ADDRESS`` - ``address``: The address of the ERC20 tokens which this plasma contract custodies.
-3. ``CHALLENGE_PERIOD`` - ``uint256``: The number of Ethereum blocks for which a checkpoint may be challenged after the checkpoint has begun.
-4. ``EXIT_PERIOD`` - ``uint256``: The number of Ethereum blocks before an exit can be finalized.
-
-Depositing
-=============
-To begin using plasma, users need to deposit some funds into this deposit contract.
-
-Public Variables
------------------
-.. code-block:: python
-
-   totalDeposited: public(uint256)
-
-The plasma contract stores the total amount which has been deposited into the chain thus far.
-
-Depositing
---------------
-Interface
-^^^^^^^^^^
-.. code-block:: python
-
-   def makeDeposit(amount: amount):
-
-Description
-^^^^^^^^^^^^^
-Depositing into a plasma contract creates a new range of exitable coins and records this fact with a new ``Checkpoint`` object (see below).
-
-Pseudocode
-^^^^^^^^^^^^
-.. code-block:: python
-
-  def makeDeposit(from: address, amount: amount, initialState: StateObject):
-       ERC20(self.TOKEN_ADDRESS).transferFrom(from, self.address, amount)
-       depositStart: uint256 = self.totalDeposited
-       self.totalDeposited += amount
-       depopsitEndL uint256 = self.totalDeposited
-
-       depositStateUpdate: StateUpdate
-
-       depositStateUpdate.range = {start: depositStart, end: depositEnd}
-       depositStateUpdate.plasmaBlockNumber = CommitmentContract(self.COMMITMENT_ADDRESS).lastPlasmaBlockNumber
-       depositStateUpdate.state = initialState
-       depositStateUpdate.plasmaContract = self.address
-
-       checkpointID: bytes32 = self.getCheckpointID(depositStateUpdate)
-       self.checkpoints[checkpointID].challengeableUntil = block.number - 1 # this checkpoint cannot be challenged, deposits are always valid
-
-
-
-Checkpointing
-==============
-
-Description
--------------
-
-Ckeckpoints represent a historic on-chain state which the plasma contract has determined is "canonical"--either because a checkpoint game was played on it, or because it was a deposit--so that all history before it may be ignored.  Checkpoints undergo a challenge period after which they are finalized.  If a user has only verified a subrange of the total State Update, they specify this subrange during the checkpointing process.  Exits point at checkpoints, and both an exit its checkpoint must be finzalized before a checkpoint is successful.
-
-Structs
--------
+Checkpoint
+----------
 
 .. code-block:: python
 
    struct Checkpoint:
        stateUpdate: StateUpdate
-       subrange: Range
+       checkpointedRange: Range
+
+Description
+^^^^^^^^^^^
+Represents a `checkpoint`_ of a particular state update.
+
+Fields
+^^^^^^
+1. ``stateUpdate`` - ``StateUpdate``: State update being checkpointed.
+2. ``checkpointedRange`` - ``Range``: Sub-range of the state update being checkpointed. We include this field because the update may be `partially spent`_.
+
+CheckpointStatus
+----------------
+
+.. code-block:: python
+
    struct CheckpointStatus:
        challengeableUntil: uint256
-       numChallenges: uint256
+       outstandingChallenges: uint256
 
-Descriptions
-^^^^^^^^^^^^^
-- ``Checkpoint``: the ``StateUpdate`` being checkpointed and the ``subrange`` which the checkointer has validated history for
+Description
+^^^^^^^^^^^
+Status of a particular checkpoint attempt.
 
-- ``CheckpointStatus``: the status of a current checkpoint.
+Fields
+^^^^^^
+1. ``challengeableUntil`` - ``uint256``: Ethereum block number until which the checkpoint can still be challenged.
+2. ``outstandingChallenges`` - ``uint256``: Number of outstanding challenges.
 
-- ``LimboCheckpoint``: the details of limbo checkpoint. The ``originatingStateUpdateHash`` is computed via ``hash(rlp.encode(originatingStateUpdate))``
+Challenge
+---------
+
+.. code-block:: python
+
+   struct Challenge:
+       challengedCheckpoint: Checkpoint
+       challengingCheckpoint: Checkpoint
+
+Description
+^^^^^^^^^^^
+Describes a challenge against a checkpoint.
+
+Fields
+^^^^^^
+1. ``challengedCheckpoint`` - ``Checkpoint``: Checkpoint being challenged.
+2. ``challengingCheckpoint`` - ``Checkpoint``: Checkpoint being used to challenge.
 
 Public Variables
------------------
+================
+
+COMMITMENT_ADDRESS
+------------------
 
 .. code-block:: python
 
-  checkpoints: public(map(bytes32, CheckpointStatus))
-  limboCheckpointOrigins: public(map(bytes32, StateUpdate))   
+   COMMITMENT_ADDRESS: public(address)
 
 Description
 ^^^^^^^^^^^
-Checkpoints and limbo checkpoints are stored in a mapping with keys as their unique ``checkpointID: bytes32``.  The ``checkpointID`` is calculated as ``hash(stateUpdate, subrange))``.
+Address of the `commitment contract`_ where block headers for the plasma chain are being published.
 
-If the checkpoint is limbo checkpoint, then its ``originatingStateUpdate: StateUpdte`` is recorded at the ``checkppointID`` in ``self.limboCheckpoints``
-
-Standard Checkpoint Method
---------------------------
-Interface
-^^^^^^^^^^
-.. code-block:: python
-
-  def beginCheckpoint(stateUpdate: StateUpdate, inclusionProof: bytes[1024], subrange: Range):
-
-Description
+Requirements
 ^^^^^^^^^^^^
-This is the standard way that checkpoints are made, by demonstrating inclusion in a plasma block.
+Deposit contracts **MUST** specify the address of a `commitment contract`_ where plasma chain block headers are being published.
 
-Pseudocode
-^^^^^^^^^^^^
-
-.. code-block:: python
-
-  def beginCheckpoint(stateUpdate: StateUpdate, inclusionProof: bytes[1024]):
-       assert CommitmentContract(self.COMMITMENT_ADDRESS).verifyInclusion(stateUpdate, inclusionProof)
-       assert isSubrange(subrange, stateUpdate.range)
-       self.checkpoints[checkpoiontID].challengeableUntil = block.number + self.CHALLENGE_PERIOD
-
-Limbo Checkpoint Method
-------------------------
-Interface
-^^^^^^^^^^
-
-.. code-block:: python
-
-  def beginLimboCheckpoint(oldStateUpdate: StateUpdate, inclusionProof: bytes[1024], transaction: bytes[1024], subrange: Range):
-
-Description
-^^^^^^^^^^^^^
-If a user sends the operator a transaction, but its inclusion is withheld, an inclusion proof may not be given.  However, if the withheld block does end up including the update, it could be used to cancel an exit.  So, the ``limboCheckpoint`` method may be called with an inclusion proof of the originating update, and a transaction generating the "limbo" state update.
-
-Limbo checkpointing is effectively a claim that "I'm not sure if this state update was included, but it is the only possible state update which COULD have been included, so let's checkpoint as if it was."  We implement a separate way to cancel a limbo checkpoint if that claim is invalid below.
-
-Pseudocode
-^^^^^^^^^^^
-
-.. code-block:: python
-
-  def beginLimboCheckpoint(oldStateUpdate: StateUpdate, inclusionProof: bytes[1024], transaction: bytes[1024], subrange: Range):
-       assert CommitmentContract(self.COMMITMENT_ADDRESS).verifyInclusion(oldStateUpdate, inclusionProof)
-       newStateUpdate: StateUpdate = Predicate(oldStateUpdate.state.predicateAddress).executeTransaction(oldStateUpdate, transaction)
-       
-       assert isSubrange(subrange, oldSateUpdate.range)
-       assert isSubrange(subrange, newSateUpdate.range)
-
-       limboCheckpoint: Checkpoint = {newSateUpdate, subrange)
-
-       checkpointID: bytes32 = getCheckpointID(limboCheckpoint) # this will be the has of SU and range
-       assert self.checkpoints[checkpointID].challengeableUntil == 0 #ensure the checkpoint is not already underway
-       
-       self.checkpoints[checkpointID].challengeableUntil = block.number + self.CHALLENGE_PERIOD
-       self.limboCheckpoins[checkpointID] = oldStateUpdate
-
-
-Cancelling a Limbo Exit
-------------------------
-
-Interface
+Rationale
 ^^^^^^^^^
+Deposit contracts handle deposits and exits from a specific plasma chain. Commitment contracts hold the plasma block headers for that plasma chain and therefore make it possible to verify `inclusion proofs`_.
+
+TOKEN_ADDRESS
+-------------
 
 .. code-block:: python
 
-  def invalidateLimbo(limboCheckpoint: Checkpoint, transaction: bytes[1024], inclusionProof: bytes[1024]):
+   TOKEN_ADDRESS: public(address)
 
 Description
-^^^^^^^^^^^^^
-
-A limbo checkpoint may be invaildated by demonstrating the inclusion of a conflicting spend of the limbo checkpoint's originating ``StateUpdate`` which has been included--because the limbo exit's claim that "this is the only possible thing which COULD have been included" is false.
-
-Pseudocode
 ^^^^^^^^^^^
+Address of the `ERC-20 token`_ which this deposit contract custodies.
 
-.. code-block:: python
-  def invalidateLimbo(limboCheckpoint: Checkpoint, transaction: bytes[1024], inclusionProof: bytes[1024]):
-       checkpointID: bytes32 = sha3(limboCheckpoint)
-       originatingStateUpdate: StateUpdate = self.limboCheckpointOrigins[checkpointID]
-
-       conflictingStateUpdate: StateUpdate = Predicate(originatingStateUpdate.state.predicateAddress).executeTransaction(originatingStateUpdate, transaction)
-       
-       assert CommitmentContract(self.COMMITMENT_ADDRESS).verifyInclusion(conflictingStateUpdate, inclusionProof) # make sure the conflict was included
-       assert limboCheckpoint.stateUpdate.state != conflictingStateUpdate.stateUpdate.state # ensure they actually conflict
-
-       clear(self.checkpoints[checkpointID]) # remove the checkpoint data
-       clear(self.limboCheckpointOrigins[checkpointID]) # remove the limbo data
-       clear(self.exitStatuses[checkpointID]) # remove any exit on the limbo checkpoint
-
-Cancelling Checkpoints Predating Other Checkpoints
----------------------------------------
-
-Interface
-^^^^^^^^^^
-.. code-block:: python
-  def cancelLessRecentCheckpoint(olderCheckpoint: Checkpoint, newerCheckpoint: Checkpoint):
-
-Description
-^^^^^^^^^^^^^^
-
-Checkpoints can only overwrite other checkpoints if they have a higher plaasma blocknumber than the previous checkpoint.  If someone tries to checkpoint something older than an existing overlapping checkpoint, it may be cancellecd.
-
-Pseudocode
-^^^^^^^^^^^
-.. code-block:: python
-  def cancelLessRecentCheckpoint(olderCheckpoint: Checkpoint, newerCheckpoint: Checkpoint):
-       assert rangesIntersect(olderCheckpoint.range, newerCheckpoint.range) # make sure they intersect
-       assert olderCheckpoint.stateUpdate.blocknumber < newerCheckpoint.stateUpdate.blocknumber # make sure the older one is older
-       
-       assert self.checkpointStatuses[newerCheckpointID].numChallenges == 0 # make sure the newer checkpoint is unchallenged
-       newerCheckpointChallengeableUntil: uint256 = self.checkpointStatuses[newerCheckpointID].challengeableUntil
-       assert challengeableUntil != 0 # make sure the newer checkpoint exitStatuses
-       assert challengeableUntil # make sure the newer checkppoint is finalized
-
-       clear(self.checkpointStatuses[olderCheckpointID]) # delete the checkpoint
-       clear(self.exitsRedeemableAfter[olderCheckpointID]) # delete the exit
-
-Exiting
-==========
-
-Exiting is the functionality which allows users to redeem money they have recieved on the plasma chain.  This entails playing out a provably safe dispute game for an "exit period."  Exits point at checkpoints, so that playing an exit game also requires playing the checkpoint game--an exit is only finalizable if its checkpoint has no challenges.
-
-Public Variables
------------------
-
-.. code-block:: python
-  
-  exitableRanges: public(map(uint256, Range))
-  exitsRedeemableAfter: public(map(bytes32, uint256))
-
-
-``exitableRanges`` - ``uint256 -> Range``: the deposited ranges which have not yet been exited.  An exit is not valid and will be automatically prevented from finalizing if it includes a previously exited range.
-``exitsRedeemableAfter`` - ``bytes32 -> uint256``: the contract's currently pending exit games, mapped from ``checkpointID: bytes32`` from the checkpoint being exited.  Maps to ``redeemableAfter: uint256``, the Ethereum block after which that exit is redeemable.
-
-Beginning an Exit
----------------------
-
-Interface
-^^^^^^^^^^^
-.. code-block:: python
-
-  def beginExit(checkpoint: Checkpoint, exitabilityWitness: bytes[1024]):
-
-Description
-^^^^^^^^^^^^^
-
-Users may begin an exit on any checkpoint, pending or finalized, though the exit's dispute period starts then, distinct from the checkpoint game.  This is the method which begins an exit game.
-
-Pseudocode
+Requirements
 ^^^^^^^^^^^^
+- The deposit contract:
+   - **MUST** only support deposits of a single `ERC-20 token`_.
+- ``TOKEN_ADDRESS``:
+   - **MUST** be the address of an ERC-20 token.
+
+Rationale
+---------
+Each asset type needs to be allocated its own large contiguous "sub-range" within the larger Plasma Cashflow chain. Without these sub-ranges, `defragmentation`_ becomes effectively impossible. Although it's possible to achieve this result within a single deposit contract, it's easier to simply require that each asset have its own deposit contract and to allocate a large sub-range to every deposit contract.
+
+
+CHALLENGE_PERIOD
+----------------
 
 .. code-block:: python
 
-  def beginExit(checkpoint: Checkpoint, exitabilityWitness: bytes[1024]):
-       checkpointID: bytes32 = getCheckpointID(checkpoint)
+   CHALLENGE_PERIOD: public(uint256)
 
-       assert self.checkpointStatuses[checkpointID] != 0 # check the checkpoint is at least pending
-       assert self.exits[exitID].redeemableAfter == 0 # check the exit is not already underway
+Description
+^^^^^^^^^^^
+Number of Ethereum blocks for which a checkpoint may be challenged.
 
-       exitStateUpdate: StateUpdate = Checkpoint.stateUpdate
-       assert Predicate(stateUpdate.state.predicateAddress).canBeginExit(checkpoint, exitabilityWitness)
-       
-       self.exits[exitID].redeemableAfter = block.number + self.EXIT_PERIOD
+EXIT_PERIOD
+-----------
 
-Finalizing an Exit
+.. code-block:: python
+
+   EXIT_PERIOD: public(uint256)
+
+Description
+^^^^^^^^^^^
+Number of Ethereum blocks before an exit can be finalized.
+
+totalDeposited
+--------------
+
+.. code-block:: python
+
+   totalDeposited: public(uint256)
+
+Description
+^^^^^^^^^^^
+Total amount deposited into this contract.
+
+checkpoints
+-----------
+
+.. code-block:: python
+
+   checkpoints: public(map(bytes32, CheckpointStatus))
+
+Description
+^^^^^^^^^^^
+Mapping from the `ID of a checkpoint`_ to the checkpoint's status.
+
+limboCheckpointOrigins
+----------------------
+
+.. code-block:: python
+
+   limboCheckpointOrigins: public(map(bytes32, StateUpdate))
+
+Description
+^^^^^^^^^^^
+Mapping from the `ID of a limbo checkpoint`_ to the `state update`_ from which the limbo checkpoint originated.
+
+exitableRanges
+--------------
+
+.. code-block:: python
+
+   exitableRanges: public(map(uint256, Range))
+
+Description
+^^^^^^^^^^^
+Stores the list of ranges that have not been exited as a mapping from the ``start`` of a range to the full range. Prevents multiple exits from the same range of objects.
+
+exitsRedeemableAfter
 --------------------
 
-Interface
-^^^^^^^^^^
-
 .. code-block:: python
 
-  def finalizeExit(exit: Exit):
+   exitsRedeemableAfter: public(map(bytes32, uint256))
 
 Description
-^^^^^^^^^^^^^
-
-Finalizing an exit is only possible if:
-- the exit game's dispute period has elapsed.
-- the exit has not been deleted.
-- the exit's checkpoint has no pending challenges.
-Under these conditions, the exit is finalized, its money sent to the predicate, and the predicate's finalization functionality is called.
-
-Pseudocode
-^^^^^^^^^^^^
-
-.. code-block:: python
-
-  def finalizeExit(checkpoint: Checkpoint):
-       checkpointID: bytes32 = getCheckpointID(checkpoint)
-
-       redeemableAfter: uint256 = self.exitsRedeemableAfter[checkpointID]
-       assert redeemableAfter != 0 # make sure the exit wasn't deleted
-       assert block.number > redeemableAfter # make sure the dispute period has elapsed
-
-       status: CheckpointStatus = self.checkpoints[checkpointID]
-       assert status.numChallenges == 0
-       assert block.number > status.challengeableUntil
-
-       assert self.checkpoints[checkpointID].numChallenges == 0
-       exitAmount: uint256 = checkpointedStateUpdate.end - checkpointedStateUpdate.start
-       ERC20(self.TOKEN_ADDRESS).approve(checkpointStateUpdate.state.predicateAddress, exitAmount)
-       Predicate(checkpointedStateUpdate.state.predicateAddress).onFinalizeExit(checkpoint)
-
-Cancelling Spent Exits
------------------------
-
-Interface
-^^^^^^^^^^
-
-.. code-block:: python
-
-  def cancelDeprecatedExit(checkpoint: Checkpoint, transaction: bytes[1024], inclusionProof: bytes[1024]):
-
-Description
-^^^^^^^^^^^^
-
-If a state update has been included which has a valid transaction from a state being exited, that exit is invalid.  Thus, the ``cancelDeprecatedExit`` method checks this and deletes the exit if it sees that included state.
-
-Pseudocode
 ^^^^^^^^^^^
+Mapping from the `ID of an exit`_ to the Ethereum block after which the exit can be finalized.
 
-.. code-block:: python
-
-  def cancelDeprecatedExit(checkpoint: Checkpoint, transaction: bytes[1024], inclusionProof: bytes[1024]):
-       newStateUpdate: StateUpdate = Predicate(checkpoint.stateUpdate.state.predicateAddress).executeTransaction(checkpoint.stateUpdate, transactiom)
-       assert CommitmentContract(self.COMMITMENT_ADDRESS).verifyInclusion(newStateUpdate, inclusionProof)
-       assert rangesIntersect(newStateUpdate.range, checkpoint.range)
-       clear(self.exitStatuses[checkpointID])
-
-Challenges
-===========
-
-A challenge claims that a pending checkpoint is invalid because a previously committed state update has not been deprecated (transacted from).  If this is indeed the case, then it is unsafe to further spend the coin and the operator is malicious, so the user will challenge with an exit.  If the challenging exit has indeed not been spent, it may not be deleted, and the checkpoint's ``numChallenges`` will permanently increase, making it and its exits invalid.
-
-Structs
---------
-
-.. code-block:: python
-
-  struct Challenge: 
-       challengingExit: Checkpoint
-       challengedCheckpont: Checkpoint
-
-Descriptions
-^^^^^^^^^^^^^
-
-``Challenge``: the details of a challenge.
-
-Public Variables
+challengeStatuses
 -----------------
 
 .. code-block:: python
 
-  challengeStatuses: public(map(bytes32, bool))
-
-Descriptions
-^^^^^^^^^^^^^^
-
-The status of challenges (whether they are currently active) are stored on-chain.  They are referenced by a ``challengeID: bytes32`` which is calculated as ``hash(challengingExitID, challengedCheckpointID)``.
-
-Challenging a Checkpoint
---------------------------
-
-Interface
-^^^^^^^^^^
-
-.. code-block:: python
-  def challengeCheckpoint(desiredChallenge: Challenge)
-       challengingCheckpointID: bytes32 = sh3(desiredChallenge.challengingExit) # note this is used to reference exit information since an exit ID is its checkpoint ID
-       challengedCheckpointID: bytes32 = sha3(desiredChallenge.challengedCheckpont)
-       challengeID: bytes32 = sha3(challengingExitID, challengedCheckpointID)
-       assert self.challengeStatuses[challengeID] == False # ensure chllenge not already underway
-
-       assert block.number <= self.desiredChallenge.challengingExit.challengeableUntil
-
-       challengedStateUpdate: StateUpdate = self.limboCheckpointOrigins[challengedCheckpointID]
-       if (challengedStateUpdate != EMPTY_STATEUPDATE): # if this is a limbo checkpoint being challenged
-              assert challengingExit.stateUpdate.blocknumber < challengedStateUpdate.blocknumber # then the challenge must come from before the limbo origin
-
-       self.challenges[challengingCheckpointID] = True # challenge is now active
-       self.checkpoints[challengedCheckpointID].numChallenges += 1 # the challenged checkpoint has one more challenge now
-
+   challengeStatuses: public(map(bytes32, bool))
 
 Description
-^^^^^^^^^^^^
-
-To challenge a checkpoint, we provide an exit from an earlier plasma block which we claim is unspent.
-
-Pseudocode
-^^^^^^^^^^^^
-
-.. code-block:: python
-
-  def challengeCheckpoint(desiredChallenge: Challenge)
-       challengeID: bytes32 = sha3(sha3(desiredChallenge.challengingExit), sha3(desiredChallenge.challengedCheckpont)
-       assert self.challenges[challengeID].isActive == False
-
-       challengingExitID: bytes32 = sh3(desiredChallenge.challengingExit)
-
-       assert block.number <= self.desiredChallenge.challengingExit.challengeableUntil
-
-       assert self.challenges[] is unactive
-
-       self.challenges[challengeID].isActive = True
-       self.checkpoints[checkpointID].numChallenges += 1
-
-Removing a Challenge
----------------------
-
-Interface
-^^^^^^^^^^^^
-
-.. code-block:: python
-
-  def removeChallenge(challenge: Challenge):
-
-Description
-^^^^^^^^^^^^^
-
-If an exit is successfully cancelled (deleted), then its checkpoint was invalid and this ``removeChallenge`` method may be called to decrement the challenged checkpoint's ``numChallenges``.
-
-Pseudocode
 ^^^^^^^^^^^
+Mapping from the `ID of a challenge`_ to whether or not the challenge is currently active.
+
+Events
+======
+
+CheckpointStarted
+-----------------
 
 .. code-block:: python
 
-  def removeChallenge(challenge: Challenge):
-       assert challenge is active
-       aassert exit has been deleted
-       decrement numChallenges for the checkpoint
+   CheckpointStarted: event({
+       checkpoint: bytes32,
+       challengePeriodStart: uint256
+   })
+
+Description
+^^^^^^^^^^^
+Emitted whenever a user attempts to checkpoint a state update.
+
+Fields
+^^^^^^
+1. ``checkpoint`` - ``bytes32``: `ID of the checkpoint`_ that was started.
+2. ``challengePeriodStart`` - ``uint256``: Ethereum block in which the checkpoint was started.
+
+CheckpointChallenged
+--------------------
+
+.. code-block:: python
+
+   CheckpointChallenged: event({
+       checkpoint: bytes32,
+       challenge: bytes32
+   })
+
+Description
+^^^^^^^^^^^
+Emitted whenever an `invalid history challenge`_ has been started on a checkpoint.
+
+Fields
+^^^^^^
+1. ``checkpoint`` - ``bytes32``: `ID of the checkpoint`_ that was challenged.
+2. ``challenge`` - ``bytes32``: `ID of the challenge`_ on the checkpoint.
+
+CheckpointFinalized
+-------------------
+
+.. code-block:: python
+
+   CheckpointFinalized: event({
+       checkpoint: bytes32
+   })
+
+Description
+^^^^^^^^^^^
+Emitted whenever a checkpoint is finalized.
+
+Fields
+^^^^^^
+1. ``checkpoint`` - ``bytes32``: `ID of the checkpoint`_ that was finalized.
+
+ExitStarted
+-----------
+
+.. code-block:: python
+
+   ExitStarted: event({
+       exit: bytes32,
+       exitPeriodStart: uint256
+   })
+
+Description
+^^^^^^^^^^^
+Emitted whenever an exit is started.
+
+Fields
+^^^^^^
+1. ``exit`` - ``bytes32``: `ID of the exit`_ that was started.
+2. ``exitPeriodStart`` - ``uint256``: Ethereum block in which the exit was started.
+
+ExitFinalized
+-------------
+
+.. code-block:: python
+
+   ExitFinalized: event({
+       exit: bytes32
+   })
+
+Description
+^^^^^^^^^^^
+Emitted whenever an exit is finalized.
+
+Fields
+^^^^^^
+1. ``exit`` - ``bytes32``: `ID of the exit`_ that was finalized.
+
+Methods
+=======
+
+deposit
+-------
+
+.. code-block:: python
+
+   @public
+   def deposit(amount: uint256, initialState: StateObject):
+
+Description
+^^^^^^^^^^^
+Allows a user to submit a deposit to the contract. Only allows users to submit deposits for the `asset represented by this contract`_.
+
+Parameters
+^^^^^^^^^^
+1. ``amount`` - ``uint256``: Amount of the asset to deposit. 
+2. ``initialState`` - ``StateObject``: Initial state to put the deposited assets into. Can be any valid `state object`_.
+
+Requirements
+^^^^^^^^^^^^
+- **MUST** keep track of the total deposited assets, ``totalDeposited``.
+- **MUST** create a `state update`_ with a `state object`_ equal to the provided ``initialState``.
+- **MUST** compute the range of the created state update as ``totalDeposited`` to ``totalDeposited + amount``.
+- **MUST** update the total amount deposited after the deposit is handled.
+- **MUST** insert the created state update into the ``checkpoints`` mapping.
+- **MUST** emit a ``CheckpointFinalized`` event for the inserted checkpoint.
+
+Rationale
+^^^^^^^^^
+
+
+startCheckpoint
+---------------
+
+.. code-block:: python
+
+   @public
+   def startCheckpoint(
+       stateUpdate: StateUpdate,
+       inclusionProof: bytes[1024],
+       checkpointedRange: Range
+   ):
+
+Description
+^^^^^^^^^^^
+Starts a checkpoint for a given state update.
+
+Parameters
+^^^^^^^^^^
+1. ``stateUpdate`` - ``StateUpdate``: State update to checkpoint.
+2. ``inclusionProof`` - ``bytes``: Proof that the state update was included in the block specified within the update.
+3. ``checkpointedRange`` - ``Range``: Sub-range of the full state update to checkpoint. Necessary because a `state update may be partially spent`_.
+
+Requirements
+^^^^^^^^^^^^
+- **MUST** verify the that ``stateUpdate`` was included in ``stateUpdate.block`` with ``inclusionProof``.
+- **MUST** verify that ``checkpointedRange`` is actually a sub-range of ``stateUpdate.range``. 
+- **MUST** add a new pending checkpoint to ``checkpoints``.
+- **MUST** emit a ``CheckpointStarted`` event.
+
+Rationale
+^^^^^^^^^
+
+startLimboCheckpoint
+--------------------
+
+.. code-block:: python
+
+   def startLimboCheckpoint(
+       stateUpdate: StateUpdate,
+       inclusionProof: bytes[1024],
+       transaction: bytes[1024],
+       checkpointedRange: Range
+   ):
+
+Description
+^^^^^^^^^^^
+Allows a user to start a `limbo checkpoint`_ from a given state update. Necessary in the case that the operator `withholds data`_ after a transaction has been sent.
+
+Parameters
+^^^^^^^^^^
+1. ``stateUpdate`` - ``StateUpdate``: State update from which the limbo checkpoint originates.
+2. ``inclusionProof`` - ``bytes``: Proof that the originating state update was included in the block specified in the update.
+3. ``transaction`` - ``bytes``: Transaction that spends the update and creates a new one.
+4. ``checkpointedRange`` - ``Range``: Sub-range of the new state update created by the transaction to checkpoint. Necessary because a `state update may be partially spent`_.
+
+Requirements
+^^^^^^^^^^^^
+- **MUST** verify that ``stateUpdate`` was included in ``stateUpdate.block`` via ``inclusionProof``.
+- **MUST** execute ``transaction`` against ``stateUpdate`` by calling the state update's predicate.
+- **MUST** verify that ``checkpointedRange`` is a sub-range of the state update created by executing ``transaction``.
+- **MUST** create a new pending checkpoint in ``checkpoints`` for the state update created by the transaction.
+- **MUST** insert the provided ``stateUpdate`` into ``limboCheckpointOrigins`` for the `ID of the checkpoint`_ that was created.
+- **MUST** emit a ``CheckpointStarted`` event.
+
+Rationale
+^^^^^^^^^
+
+
+challengeCheckpointOutdated
+---------------------------
+
+.. code-block:: python
+
+   def challengeCheckpointOutdated(
+       olderCheckpoint: bytes32,
+       newerCheckpoint: bytes32
+   ):
+
+Description
+^^^^^^^^^^^
+Challenges a checkpoint by showing that there exists a newer finalized checkpoint. Immediately cancels the checkpoint.
+
+Parameters
+^^^^^^^^^^
+1. ``olderCheckpoint`` - ``bytes32``: `ID of the checkpoint`_ to challenge.
+2. ``newerCheckpoint`` - ``bytes32``: `ID of the checkpoint`_ used to challenge.
+
+Requirements
+^^^^^^^^^^^^
+
+Rationale
+^^^^^^^^^
+
+
+challengeCheckpointInvalidHistory
+---------------------------------
+
+.. code-block:: python
+
+   def challengeCheckpointInvalid(
+       challenge: Challenge
+   ):
+
+Description
+^^^^^^^^^^^
+Starts a challenge for a checkpoint by pointing to an exit that occurred in an earlier plasma block. Does **not** immediately cancel the checkpoint. Challenge can be blocked if the exit is cancelled.
+
+Parameters
+^^^^^^^^^^
+1. ``challenge`` - ``Challenge``: Challenge to submit.
+
+Requirements
+^^^^^^^^^^^^
+
+Rationale
+^^^^^^^^^
+
+
+challengeLimboCheckpointAlternateSpend
+--------------------------------------
+
+.. code-block:: python
+
+   def challengeLimboCheckpointAlternateTransaction(
+      limboCheckpoint: bytes32,
+      alternateTransaction: bytes[1024],
+      inclusionProof: bytes[1024]
+   ):
+
+Description
+^^^^^^^^^^^
+Challenges a limbo checkpoint by demonstrating that there's an alternate spend of the originating state update. Immediately cancels the limbo checkpoint.
+
+Parameters
+^^^^^^^^^^
+1. ``limboCheckpoint`` - ``bytes32``: `ID of the checkpoint`_ to challenge.
+2. ``alternateTransaction`` - ``bytes``: Alternate transaction that spent from the same originating state update given by the limbo checkpoint.
+3. ``inclusionProof`` - ``bytes``: Proof that the state update created by the given transaction was included in a plasma block.
+
+Requirements
+^^^^^^^^^^^^
+
+Rationale
+^^^^^^^^^
+
+
+removeChallengeCheckpointInvalid
+--------------------------------
+
+.. code-block:: python
+
+   def removeChallengeCheckpointInvalidHistory(
+       challenge: bytes32
+   ):
+
+Description
+^^^^^^^^^^^
+Decrements the number of outstanding challenges on a checkpoint by showing that one of its challenges has been blocked.
+
+Parameters
+^^^^^^^^^^
+1. ``challenge`` - ``bytes32``: `ID of the challenge`_ that was blocked.
+
+Requirements
+^^^^^^^^^^^^
+
+Rationale
+^^^^^^^^^
+
+
+startExit
+---------
+
+.. code-block:: python
+
+   def startExit(checkpoint: bytes32, witness: bytes[1024]):
+
+Description
+^^^^^^^^^^^
+Starts an exit from a checkpoint. Checkpoint may be pending or finalized.
+
+Parameters
+^^^^^^^^^^
+1. ``checkpoint`` - ``bytes32``: `ID of the checkpoint`_ from which to exit.
+2. ``witness`` - ``bytes``: Extra witness data passed to the `predicate contract`_. Determines whether the sender of the transaction is allowed to start an exit from the checkpoint.
+
+Requirements
+^^^^^^^^^^^^
+
+Rationale
+^^^^^^^^^
+
+
+challengeExitDeprecated
+-----------------------
+
+.. code-block:: python
+
+   def challengeExitDeprecated(
+       checkpoint: bytes32,
+       transaction: bytes[1024],
+       inclusionProof: bytes[1024]
+   ):
+
+Description
+^^^^^^^^^^^
+Challenges an exit by showing that the checkpoint from which it spends has been `deprecated`_. Immediately cancels the exit.
+
+Requirements
+^^^^^^^^^^^^
+
+Rationale
+^^^^^^^^^
+
+
+Parameters
+^^^^^^^^^^
+1. ``checkpoint`` - ``bytes32``: `ID of the checkpoint`_ referenced by the exit.
+2. ``transaction`` - ``bytes``: Transaction that spent the checkpointed state update.
+3. ``inclusionProof`` - ``bytes``: Proof that the state updated created by the transaction was included in the plasma chain.
+
+Requirements
+^^^^^^^^^^^^
+
+Rationale
+^^^^^^^^^
+
+
+finalizeExit
+------------
+
+.. code-block:: python
+
+   def finalizeExit(exit: bytes32):
+
+Description
+^^^^^^^^^^^
+Finalizes an exit that has passed its exit period and has not been successfully challenged.
+
+Parameters
+^^^^^^^^^^
+1. ``exit`` - ``bytes32``: `ID of the exit`_ to finalize.
+
+Requirements
+^^^^^^^^^^^^
+
+Rationale
+^^^^^^^^^
+
+

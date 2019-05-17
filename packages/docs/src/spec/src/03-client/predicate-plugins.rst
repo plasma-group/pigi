@@ -10,7 +10,6 @@ Clients need a way to execute state transitions for a given predicate. However, 
 *******************
 Information Sources
 *******************
-
 Predicate plugins have access to various external sources of information. Plugins can use this information for various reasons, including the execution of state transitions.  All information available to a plugin **must** also be available to the corresponding predicate contract on Ethereum.
 
 Ethereum Contract Queries
