@@ -71,3 +71,6 @@ This website documents the entirety of the Plasma Group design, from the inner w
    src/04-operator/operator-state-manager
    src/04-operator/operator-rpc-methods
 
+.. _`Plasma Group`: https://plasma.group
+.. _`generalized plasma`: https://medium.com/plasma-group/plapps-and-predicates-understanding-the-generalized-plasma-architecture-fc171b25741
+

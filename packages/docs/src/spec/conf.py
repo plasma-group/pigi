@@ -19,7 +19,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = '@pigi/utils'
+project = '@pigi/spec'
 copyright = '2019, Plasma Group'
 author = 'Plasma Group'
 
