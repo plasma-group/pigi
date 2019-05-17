@@ -6,9 +6,9 @@ Deposit Contract
 Description
 ***********
 
-*********
-Interface
-*********
+****
+API
+***
 
 Structs
 =======
