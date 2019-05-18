@@ -6,9 +6,9 @@ export interface Range {
 }
 
 export interface EcdsaSignature {
-  v: Buffer
-  r: Buffer,
-  s: Buffer
+  v: string
+  r: string
+  s: string
 }
 
 export interface Transaction {
@@ -23,6 +23,12 @@ export interface Transaction {
 export interface StateObject {
   predicateAddress: string,
   data: any
+}
+
+export interface AbiStateObject {
+  predicateAddress: string,
+  data: any
+  encoded: string
 }
 
 export interface StateUpdate {

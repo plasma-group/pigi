@@ -3,7 +3,7 @@ import BigNum = require('bn.js')
 import { abi, keccak256 } from '@pigi/utils'
 
 /* Internal Imports */
-import { Transaction, Range, StateObject, EcdsaSignature } from '../../../interfaces/data-types'
+import { Transaction, Range, AbiStateObject, EcdsaSignature } from '../../../interfaces/data-types'
 
 /**
  * Creates a Transaction from an encoded Transaction.
@@ -33,7 +33,7 @@ export class OwnershipTransaction implements Transaction {
     readonly block: number,
     readonly range: Range,
     readonly methodId: string,
-    readonly parameters: { newStateObject: StateObject },
+    readonly parameters: { newStateObject: AbiStateObject },
     readonly witness: EcdsaSignature
   ) {}
 
@@ -44,10 +44,10 @@ export class OwnershipTransaction implements Transaction {
     return abi.encode(OwnershipTransaction.abiTypes, [
       this.plasmaContract,
       this.block,
-      this.range.start,
-      this.range.end,
+      '0x' + this.range.start.toString('hex'),
+      '0x' + this.range.end.toString('hex'),
       this.methodId,
-      this.parameters.newStateObject,
+      this.parameters.newStateObject.encoded,
       this.witness.v,
       this.witness.r,
       this.witness.s,
