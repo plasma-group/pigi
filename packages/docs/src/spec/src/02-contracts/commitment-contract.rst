@@ -5,6 +5,9 @@ Commitment Contract
 ***********
 Description
 ***********
+.. todo::
+
+   Add a description for the Commitment Contract.
 
 ***
 API
@@ -22,9 +25,15 @@ blocks
 
 Description
 ^^^^^^^^^^^
+.. todo::
+
+   Add description for blocks.
 
 Rationale
 ^^^^^^^^^
+.. todo::
+
+   Add rationale for blocks.
 
 Events
 ======
@@ -41,12 +50,21 @@ BlockSubmitted
 
 Description
 ^^^^^^^^^^^
+.. todo::
+
+   Add description for BlockSubmitted.
 
 Parameters
 ^^^^^^^^^^
+.. todo::
+   
+   Add parameters for BlockSubmitted.
 
 Rationale
 ^^^^^^^^^
+.. todo::
+
+   Add rationale for BlockSubmitted.
 
 Methods
 =======
@@ -61,16 +79,25 @@ submitBlock
 
 Description
 ^^^^^^^^^^^
+.. todo::
+
+   Add description for submitBlock.
 
 Parameters
 ^^^^^^^^^^
+.. todo::
 
-Returns
-^^^^^^^
+   Add parameters for submitBlock.
 
 Rationale
 ^^^^^^^^^
+.. todo::
+
+   Add rationale for submitBlock.
 
 Requirements
 ^^^^^^^^^^^^
+.. todo::
+
+   Add requirements for submitBlock.
 
