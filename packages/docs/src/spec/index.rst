@@ -10,7 +10,7 @@ This website documents the entirety of the Plasma Group design, from the inner w
    :caption: #00: Introduction
 
    src/00-introduction/introduction
-   src/00-introduciton/operator
+   src/00-introduction/operator
 
 .. toctree::
    :maxdepth: 2
