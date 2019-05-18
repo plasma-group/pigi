@@ -125,3 +125,14 @@ Such a filter is stating that the first output result of the query must be great
 
 Any results that have not been removed by the filter can then be returned to the requesting client.
 
+
+.. _`Predicate ABI`: TODO
+.. _`SimpleOwnership`: TODO
+.. _`state query RPC method`: TODO
+.. _`StateQuery`: TODO
+.. _`state updates`: TODO
+.. _`head state`: TODO
+.. _`queryState`: TODO
+.. _`predicate plugin`: TODO
+.. _`Expressions`: TODO
+

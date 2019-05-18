@@ -78,3 +78,19 @@ State updates are all associated with two ranges. A state update's *explicit ran
 Non-inclusion elements are **state updates** . For each non-inclusion element, the client **MUST** provide an `inclusion proof`_ that shows the element was included in a block. `The validity of a non-inclusion proof is not impacted by the validity of the state update`_. Therefore, the client **SHOULD NOT** provide any information that proves the validity of the state update beyond the inclusion proof.
 
 
+
+.. _`history`: TODO
+.. _`watch several plasma contracts simultaneously`: TODO
+.. _`range`: TODO
+.. _`history query RPC method`: TODO
+.. _`historical state`: TODO
+.. _`state update`: TODO
+.. _`implicit range`: TODO
+.. _`explicit range`: TODO
+.. _`deposit`: TODO
+.. _`deposit ID`: TODO
+.. _`transactions`: TODO
+.. _`inclusion proof`: TODO
+.. _`Merkle Interval Tree`: TODO
+.. _`The validity of a non-inclusion proof is not impacted by the validity of the state update`: TODO
+

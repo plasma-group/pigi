@@ -66,10 +66,13 @@ Returns
 ^^^^^^^
 ``InclusionProof``: An ``InclusionProof`` that contains `Merkle Interval Tree`_ inclusion proofs for both the address tree and the state tree.
 
+.. _`HistoryDB`: TODO
+.. _`history proofs`: TODO
 .. _`Merkle Interval Tree`: TODO
 .. _`state tree`: TODO
 .. _`address tree`: TODO
-.. _`inclusion proof`: TODO
+.. _`inclusion proof`:
+.. _`inclusion proofs`: TODO
 .. _`valid history`: TODO
 .. _`proof elements`: TODO
 .. _`HistoryProof`: TODO

@@ -26,3 +26,7 @@ Parameters
 Returns
 ^^^^^^^
 
+
+.. _`JSON RPC`: TODO
+.. _`RPC methods`: TODO
+

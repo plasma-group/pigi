@@ -21,7 +21,7 @@ Expression
    }
 
 Description
-^^^^^^^^^^^
+-----------
 Represents an expression. All expressions consist of an operator and a list of input values. Some expressions take other operators as input values.
 
 *********
@@ -209,4 +209,9 @@ Parameters
 Returns
 ^^^^^^^
 ``boolean``: ``true`` if input values are not equivalent, ``false`` otherwise.
+
+
+.. _`state queries`: TODO
+.. _`mongoDB`: https://docs.mongodb.com/manual/reference/operator/
+
 

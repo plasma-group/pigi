@@ -78,3 +78,9 @@ Description
 -----------
 A list of ``DepositElement``, ``StateUpdateElement``, and ``NonInclusionElement`` objects.
 
+
+.. _`deposits`: TODO
+.. _`ID`: TODO
+.. _`Transaction`: TODO
+.. _`InclusionProof`: TODO
+

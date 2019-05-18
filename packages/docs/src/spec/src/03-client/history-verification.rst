@@ -48,3 +48,15 @@ The client then **MUST** verify the inclusion proof provided as part of the proo
 
 Finally, the client **MUST** insert the resulting state update into the local state. This process **MUST** split or overwrite any existing state updates over the same range. For example, if the local state contains an update that covers ``(0, 100)`` and the computed update covers ``(50, 100)``, the client will modify the first update such that it only covers ``(0, 50)``.
 
+
+
+.. _`HistoryProof`: TODO
+.. _`deposit on Ethereum`: TODO
+.. _`state update`: TODO
+.. _`Merkle Interval Tree`: TODO
+.. _`explicit range`: TODO
+.. _`implicit range`: TODO
+.. _`inclusion proof`: TODO
+.. _`transactions`: TODO
+.. _`execute each transaction`: TODO
+

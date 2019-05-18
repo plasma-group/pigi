@@ -81,7 +81,7 @@ Executes a `transaction`_ against the current verified state and returns the res
 
 Transactions reference a `range`_ of `state objects`_ that they're attempting to modify. It's possible that we only have the full valid history for some of the referenced state objects but not others. `This behavior is allowed by construction`_. As a result, this method also returns the list of ranges over which the transaction can be considered "valid".
 
-For example, we may have a valid history for the ranges `(0, 50)` and a transaction that sends `(0, 100)`. We can assert that the transaction is valid for `(0, 50)` but cannot make the same assertion for `(50, 100)`.
+For example, we may have a valid history for the ranges ``(0, 50)`` and a transaction that sends ``(0, 100)``. We can assert that the transaction is valid for ``(0, 50)`` but cannot make the same assertion for ``(50, 100)``.
 
 Parameters
 ^^^^^^^^^^
@@ -130,4 +130,23 @@ Parameters
 Returns
 ^^^^^^^
 ``Promise<StateQueryResult[]>``: A `StateQueryResult`_ object for each `state update`_ that passed the filter provided in the query.
+
+
+
+.. _`StateDB`: TODO
+.. _`HistoryManager`: TODO
+.. _`Expression`: TODO
+.. _`Predicate ABI`: TODO
+.. _`transaction`: TODO
+.. _`transactions`: TODO
+.. _`deposits`: TODO
+.. _`state update`: TODO
+.. _`state updates`: TODO
+.. _`range`: TODO
+.. _`state object`: TODO
+.. _`This behavior is allowed by construction`: TODO
+.. _`Transaction`: TODO
+.. _`StateUpdate`: TODO
+.. _`query on the local state`: TODO
+.. _`StateQueryResult`: TODO
 

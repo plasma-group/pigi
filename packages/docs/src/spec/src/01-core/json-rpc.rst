@@ -91,3 +91,8 @@ JsonRpcResponse
 Description
 -----------
 
+.. _`JSON RPC`: https://www.jsonrpc.org/specification
+.. _`RPC methods`: TODO
+.. _`TypeScript`: https://www.typescriptlang.org/
+.. _`Ethereum also uses JSON RPC`: https://github.com/ethereum/wiki/wiki/JSON-RPC
+

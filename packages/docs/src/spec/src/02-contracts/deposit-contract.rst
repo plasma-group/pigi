@@ -635,3 +635,27 @@ Rationale
 ^^^^^^^^^
 
 
+.. _`state objects`:
+.. _`state object`: TODO
+.. _`predicate contract`: TODO
+.. _`state update`: TODO
+.. _`checkpoint`: TODO
+.. _`limbo checkpoint`: TODO
+.. _`withholds data`: TODO
+.. _`deprecated`: TODO
+.. _`partially spent`:
+.. _`state update may be partially spent`: TODO
+.. _`commitment contract`: TODO
+.. _`inclusion proofs`: TODO
+.. _`ERC-20 token`: TODO
+.. _`defragmentation`: TODO
+.. _`ID of a checkpoint`:
+.. _`ID of the checkpoint`:
+.. _`ID of a limbo checkpoint`: TODO
+.. _`ID of an exit`:
+.. _`ID of the exit`: TODO
+.. _`ID of a challenge`:
+.. _`ID of the challenge`: TODO
+.. _`invalid history challenge`: TODO
+.. _`asset represented by this contract`: TODO
+

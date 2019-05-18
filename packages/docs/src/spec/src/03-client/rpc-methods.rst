@@ -132,4 +132,14 @@ Returns
 ``string``: Version and name of the client in the form ``<name>/<version>/<os>``.
 
 .. _`JSON RPC`: https://www.jsonrpc.org/specification
+.. _`encoded transaction`: TODO
+.. _`state query`: TODO
+.. _`StateQuery`: TODO
+.. _`state object`: TODO
+.. _`transaction hash`: TODO
+.. _`Transaction`: TODO
+.. _`history proof`: TODO
+.. _`HistoryQuery`: TODO
+.. _`HistoryProof`: TODO
+.. _`proof elements`: TODO
 

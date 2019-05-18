@@ -73,6 +73,12 @@ Parameters
 4. ``callback`` - ``(eventName: string, eventData: any) => void``: Callback to be triggered whenever a matching event is detected in the smart contract.
 
 
+.. _`Ethereum contract events`: TODO
+.. _`deposits`: TODO
+.. _`exits`: TODO
+.. _`keccak256`: TODO
+.. _`hash of the transaction`: TODO
+.. _`index of the event`: TODO
 .. _`JSON ABI`: TODO
 .. _`event filter`: TODO
 
