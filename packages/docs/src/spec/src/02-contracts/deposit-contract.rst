@@ -6,7 +6,7 @@ Deposit Contract
 Description
 ***********
 
-****
+***
 API
 ***
 
@@ -383,7 +383,9 @@ Requirements
 
 Rationale
 ^^^^^^^^^
-
+.. todo::
+   
+   Add rationale for deposit.
 
 startCheckpoint
 ---------------
@@ -416,6 +418,9 @@ Requirements
 
 Rationale
 ^^^^^^^^^
+.. todo::
+
+   Add rationale for startCheckpoint.
 
 startLimboCheckpoint
 --------------------
@@ -451,7 +456,9 @@ Requirements
 
 Rationale
 ^^^^^^^^^
+.. todo::
 
+   Add rationale for startLimboCheckpoint.
 
 challengeCheckpointOutdated
 ---------------------------
@@ -474,10 +481,15 @@ Parameters
 
 Requirements
 ^^^^^^^^^^^^
+.. todo::
+
+   Add requirements for challengeCheckpointOutdated.
 
 Rationale
 ^^^^^^^^^
+.. todo::
 
+   Add rationale for challengeCheckpointOutdated.
 
 challengeCheckpointInvalidHistory
 ---------------------------------
@@ -498,10 +510,15 @@ Parameters
 
 Requirements
 ^^^^^^^^^^^^
+.. todo::
+
+   Add requirements for challengeCheckpointInvalidHistory.
 
 Rationale
 ^^^^^^^^^
+.. todo::
 
+   Add rationale for challengeCheckpointInvalidHistory.
 
 challengeLimboCheckpointAlternateSpend
 --------------------------------------
@@ -526,10 +543,15 @@ Parameters
 
 Requirements
 ^^^^^^^^^^^^
+.. todo::
+
+   Add requirements for challengeLimboCheckpointAlternateSpend
 
 Rationale
 ^^^^^^^^^
+.. todo::
 
+   Add rationale for challengeLimboCheckpointAlternateSpend
 
 removeChallengeCheckpointInvalid
 --------------------------------
@@ -550,10 +572,15 @@ Parameters
 
 Requirements
 ^^^^^^^^^^^^
+.. todo::
+
+   Add requirements for removeChallengeCheckpointInvalid.
 
 Rationale
 ^^^^^^^^^
+.. todo::
 
+   Add rationale for removeChallengeCheckpointInvalid.
 
 startExit
 ---------
@@ -573,10 +600,15 @@ Parameters
 
 Requirements
 ^^^^^^^^^^^^
+.. todo::
+
+   Add requirements for startExit.
 
 Rationale
 ^^^^^^^^^
+.. todo::
 
+   Add rationale for startExit.
 
 challengeExitDeprecated
 -----------------------
@@ -593,13 +625,6 @@ Description
 ^^^^^^^^^^^
 Challenges an exit by showing that the checkpoint from which it spends has been `deprecated`_. Immediately cancels the exit.
 
-Requirements
-^^^^^^^^^^^^
-
-Rationale
-^^^^^^^^^
-
-
 Parameters
 ^^^^^^^^^^
 1. ``checkpoint`` - ``bytes32``: `ID of the checkpoint`_ referenced by the exit.
@@ -608,10 +633,15 @@ Parameters
 
 Requirements
 ^^^^^^^^^^^^
+.. todo::
+
+   Add requirements for challengeExitDeprecated.
 
 Rationale
 ^^^^^^^^^
+.. todo::
 
+   Add rationale for challengeExitDeprecated.
 
 finalizeExit
 ------------
@@ -630,12 +660,17 @@ Parameters
 
 Requirements
 ^^^^^^^^^^^^
+.. todo::
+
+   Add requirements for finalizeExit.
 
 Rationale
 ^^^^^^^^^
+.. todo::
 
+   Add rationale for finalizeExit.
 
-.. _`state objects`:
+.. _`state objects`: TODO
 .. _`state object`: TODO
 .. _`predicate contract`: TODO
 .. _`state update`: TODO
