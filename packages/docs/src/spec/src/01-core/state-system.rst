@@ -89,7 +89,10 @@ Solidity provides `native support for ABI decoding`_ but not for RLP encoding. V
 
 Test Vectors
 ------------
-TODO
+
+.. todo::
+
+   Add test vectors for encoding and decoding.
 
 **********
 Predicates
@@ -168,7 +171,10 @@ Requirements
 
 Test Vectors
 ------------
-TODO
+
+.. todo::
+   
+   Add test vectors for method identifiers.
 
 Predicate ABI
 =============
@@ -245,8 +251,16 @@ Putting these together, the ABI for this predicate is therefore:
 Rationale
 ---------
 
+.. todo::
+
+   Add rationale for Predicate ABI.
+
 Requirements
 ------------
+
+.. todo::
+
+   Add requirements for Predicate ABI.
 
 ************
 Transactions
@@ -286,11 +300,17 @@ A Vyper struct:
 
 Rationale
 ---------
-TODO
+
+.. todo::
+
+   Add rationale for transaction model.
 
 Requirements
 ------------
-TODO
+
+.. todo::
+
+   Add requirements for transaction model.
 
 Encoding and Decoding
 =====================
@@ -319,6 +339,28 @@ In TypeScript:
    
    const encoded = '0x....'
    const [objectId, methodId, parameters, witness] = rlp.decode(encoded)
+
+Rationale
+---------
+
+.. todo::
+
+   Add rationale for transaction encoding and decoding.
+
+Requirements
+------------
+
+.. todo::
+
+   Add requirements for transaction encoding and decoding.
+
+Test Vectors
+------------
+
+.. todo::
+
+   Add test vectors for transaction encoding and decoding.
+
 
 .. _`computed`: TODO
 .. _`RLP encoded`: https://github.com/ethereum/wiki/wiki/RLP
