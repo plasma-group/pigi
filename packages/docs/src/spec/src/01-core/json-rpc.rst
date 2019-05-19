@@ -9,6 +9,9 @@ We require that the clients via `JSON RPC`_. A list of available `RPC methods`_ 
 
 We chose JSON RPC because the protocol is relatively simple and because it interacts well with `TypeScript`_. `Ethereum also uses JSON RPC`_ for its client communication. The structure of our RPC methods are based heavily on the structure of Ethereum's RPC methods to reduce cognitive overhead for client developers.
 
+-------------------------------------------------------------------------------
+
+
 ***************
 Data Structures
 ***************
@@ -36,6 +39,9 @@ Fields
 3. ``params?`` - ``any``: Formatted request parameter object.
 4. ``id`` - ``string | number``: Request identifier.
 
+-------------------------------------------------------------------------------
+
+
 JsonRpcSuccessResponse
 ======================
 
@@ -56,6 +62,9 @@ Fields
 1. ``jsonrpc`` - ``string``: **MUST** be exactly '2.0'.
 2. ``result`` - ``any``: Formatted response to the request.
 3. ``id`` - ``string | number``: Same identifier as the one given during the request.
+
+-------------------------------------------------------------------------------
+
 
 JsonRpcError
 ============
@@ -78,6 +87,9 @@ Fields
 2. ``message`` - ``string``: Additional short error message.
 3. ``data`` - ``any``: Additional error information.
 
+-------------------------------------------------------------------------------
+
+
 JsonRpcErrorResponse
 ====================
 
@@ -96,6 +108,9 @@ Fields
 ------
 1. ``jsonrpc`` - ``string``: **MUST** be exactly '2.0'.
 2. ``error`` - ``JsonRpcError``: RPC error object.
+
+-------------------------------------------------------------------------------
+
 
 JsonRpcResponse
 ===============

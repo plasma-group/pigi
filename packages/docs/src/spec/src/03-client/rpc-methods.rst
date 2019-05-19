@@ -7,6 +7,9 @@ Description
 ***********
 We require that the clients interact via `JSON RPC`_. Here we provide a list of available RPC methods that the client **MUST** implement.
 
+-------------------------------------------------------------------------------
+
+
 *******
 Methods
 *******
@@ -22,6 +25,9 @@ Returns
 -------
 ``string[]``: List of addresses owned by the client.
 
+-------------------------------------------------------------------------------
+
+
 pg_blockNumber
 ==============
 
@@ -32,6 +38,9 @@ Returns the current plasma block number.
 Returns
 -------
 ``number``: Current plasma block number.
+
+-------------------------------------------------------------------------------
+
 
 pg_sign
 =======
@@ -49,6 +58,9 @@ Returns
 -------
 ``string``: Signature over the given message.
 
+-------------------------------------------------------------------------------
+
+
 pg_sendRawTransaction
 =====================
 
@@ -63,6 +75,9 @@ Parameters
 Returns
 -------
 ``string``: Receipt for the transaction.
+
+-------------------------------------------------------------------------------
+
 
 pg_sendQuery
 ============
@@ -79,6 +94,9 @@ Returns
 -------
 ``any[]``: Result of the state query. Returns one query result for each `state object`_ that intersected with the range specified in the ``StateQuery``.
 
+-------------------------------------------------------------------------------
+
+
 pg_getTransactionByHash
 =======================
 
@@ -93,6 +111,9 @@ Parameters
 Returns
 -------
 ``Transaction``: The `Transaction`_ object with the given hash.
+
+-------------------------------------------------------------------------------
+
 
 pg_getProof
 ===========
@@ -109,6 +130,9 @@ Returns
 -------
 ``HistoryProof``: A `HistoryProof`_ composed of a list of `proof elements`_ that can be ingested.
 
+-------------------------------------------------------------------------------
+
+
 pg_getInstalledPredicatePlugins
 ===============================
 
@@ -119,6 +143,9 @@ Returns the list of predicates installed by the client.
 Returns
 -------
 ``string[]``: Address of each predicate for which the client has an installed plugin.
+
+-------------------------------------------------------------------------------
+
 
 pg_clientVersion
 ================

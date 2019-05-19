@@ -7,6 +7,9 @@ Description
 ***********
 ``RpcClient`` is simple client wrapper for any `JSON RPC`_ server. ``RpcClient`` can be used to make requests to the operator or to any other client. A list of available `RPC methods`_ are specified separately.
 
+-------------------------------------------------------------------------------
+
+
 ***
 API
 ***
