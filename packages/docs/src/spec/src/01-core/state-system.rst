@@ -361,6 +361,65 @@ Test Vectors
 
    Add test vectors for transaction encoding and decoding.
 
+Transaction Hash
+================
+
+Test Vectors
+------------
+
+.. todo::
+
+   Add test vectors for the transaction hash.
+
+*************
+State Updates
+*************
+
+.. todo::
+
+   Explain state updates at a high level.
+
+State Update Model
+==================
+
+.. todo::
+
+   Specify the model for a state update.
+
+Encoding and Decoding
+=====================
+
+.. todo::
+
+   Specify how to encode and decode state updates.
+
+Rationale
+---------
+
+.. todo::
+
+   Add rationale for state update model.
+
+Requirements
+------------
+
+.. todo::
+
+   Add requirements for state update model.
+
+State Update Hash
+=================
+
+.. todo::
+
+   Explain how to compute state update hash.
+
+Test Vectors
+------------
+
+.. todo::
+   
+   Add test vectors for computing state update hash.
 
 .. _`computed`: TODO
 .. _`RLP encoded`: https://github.com/ethereum/wiki/wiki/RLP

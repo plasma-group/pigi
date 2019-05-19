@@ -46,6 +46,7 @@ This website documents the entirety of the Plasma Group design, from the inner w
    src/03-client/history-generation
    src/03-client/history-verification
    src/03-client/exit-guarding
+   src/03-client/merkle-interval-tree
    src/03-client/range-db
    src/03-client/event-watcher
    src/03-client/wallet-db
