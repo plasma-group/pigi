@@ -6,7 +6,7 @@ Generalized plasma chains are complex objects of study.
 This website documents the entirety of the Plasma Group design, from the inner workings of the client to the specifics of the plasma smart contract.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: #00: Introduction
 
    src/00-introduction/introduction
