@@ -20,15 +20,35 @@ Methods
 serve
 -----
 
+.. code-block:: typescript
+
+   async function serve(): Promise<void>
+
 Description
 ^^^^^^^^^^^
-
-Parameters
-^^^^^^^^^^
+Starts the server.
 
 Returns
 ^^^^^^^
+``Promise<void>``: Promise that resolves once the server has started.
 
+-------------------------------------------------------------------------------
+
+
+close
+-----
+
+.. code-block:: typescript
+
+   async function close(): Promise<void>
+
+Description
+^^^^^^^^^^^
+Shuts down the server.
+
+Returns
+^^^^^^^
+``Promise<void>``: Promise that resolves once the server has been shut down.
 
 .. _`JSON RPC`: TODO
 .. _`RPC methods`: TODO

@@ -32,9 +32,10 @@ Represents a `StateUpdate`_ that has been `correctly verified`_ up to a specific
 
 Fields
 ------
-.. todo::
-
-   Add fields for VerifiedStateUpdate
+1. ``start`` - ``number``: Start of the range for which this state update is still valid.
+2. ``end`` - ``number``: End of the range for which this state update is still valid.
+3. ``verifiedBlockNumber`` - ``number``: Plasma block number up to which this state update has been verified.
+4. ``stateUpdate`` - ``StateUpdate``: Full original state update.
 
 -------------------------------------------------------------------------------
 
