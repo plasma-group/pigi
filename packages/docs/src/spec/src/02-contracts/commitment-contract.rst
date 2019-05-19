@@ -5,9 +5,10 @@ Commitment Contract
 ***********
 Description
 ***********
-.. todo::
+Each plasma chain **MUST** have at least one **commitment contract**. Commitment contracts hold the block headers for the plasma chain. Whenever the `operator`_ creates a new plasma block, they **MUST** publish this block to the commitment contract.
 
-   Add a description for the Commitment Contract.
+-------------------------------------------------------------------------------
+
 
 ***
 API
@@ -15,6 +16,24 @@ API
 
 Public Variables
 ================
+
+currentBlock
+------------
+
+.. code-block:: python
+
+   currentBlock: public(uint256)
+
+Description
+^^^^^^^^^^^
+Block number of the most recently published plasma block.
+
+Rationale
+^^^^^^^^^
+Users need to know the current plasma block for various operations. Contract also needs to keep track of this so it knows what block is being published when ``submitBlock`` is called.
+
+-------------------------------------------------------------------------------
+
 
 blocks
 ------
@@ -25,15 +44,16 @@ blocks
 
 Description
 ^^^^^^^^^^^
-.. todo::
-
-   Add description for blocks.
+Mapping from block number to block header.
 
 Rationale
 ^^^^^^^^^
-.. todo::
+It's often important to be able to pull a specific block header given a block number. This is necessary, for example, when verifying `inclusion proofs`_.
 
-   Add rationale for blocks.
+Other implementations often represent this mapping as ``uint256 -> bytes32`` under the assumption that the block header will always be a ``bytes32`` Merkle tree root. We instead represent the mapping as ``uint256 -> bytes`` for more flexibility in the structure of the block root.
+
+-------------------------------------------------------------------------------
+
 
 Events
 ======
@@ -50,21 +70,19 @@ BlockSubmitted
 
 Description
 ^^^^^^^^^^^
-.. todo::
-
-   Add description for BlockSubmitted.
+Emitted whenever a new block root has been published.
 
 Parameters
 ^^^^^^^^^^
-.. todo::
-   
-   Add parameters for BlockSubmitted.
+1. ``_number`` - ``uint256``: Block number that was published.
+2. ``_header`` - ``bytes``: Header for that block.
 
 Rationale
 ^^^^^^^^^
-.. todo::
+Users need to know whenever a new block has been published so that they can stay in sync with the operator.
 
-   Add rationale for BlockSubmitted.
+-------------------------------------------------------------------------------
+
 
 Methods
 =======
@@ -79,25 +97,28 @@ submitBlock
 
 Description
 ^^^^^^^^^^^
-.. todo::
-
-   Add description for submitBlock.
+Allows a user to submit a block with the given header.
 
 Parameters
 ^^^^^^^^^^
-.. todo::
-
-   Add parameters for submitBlock.
+1. ``header`` - ``bytes``: Block header to publish.
 
 Rationale
 ^^^^^^^^^
-.. todo::
+It's obviously necessary to expose some functionality that allows a user to submit a block header. However, the rationale around authentication logic is more interesting here. 
 
-   Add rationale for submitBlock.
+Authentication in our original construction was handled by checking that `msg.sender`_ was the operator. This works well in a single-operator construction, but it doesn't work if we wanted some more complex system. In order to solve this problem, we initinally wanted to add a ``witness: bytes`` parameter to the method which could then be used to authenticate the submitted header. Fortunately, we stumbled on an even better solution.
+
+Conveniently, if a contract calls another contract, then `msg.sender`_ within that second contract will be the address of the first contract. We can therefore outsource verification of a given block to some external contract and simply check that ``msg.sender`` is that contract.
 
 Requirements
 ^^^^^^^^^^^^
-.. todo::
+- **SHOULD** authenticate the block header in some manner.
+- **MUST** increment ``currentBlock`` by one.
+- **MUST** store the block header in ``blocks`` at ``currentBlock``.
+- **MUST** emit a ``BlockSubmitted`` event.
 
-   Add requirements for submitBlock.
+
+.. _`msg.sender`: TODO
+
 
