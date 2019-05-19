@@ -60,6 +60,8 @@ Returns
 ^^^^^^^
 ``Promise<RangeEntry[]>``: All ``RangeEntry`` objects in the database such that ``entry.start`` and ``entry.end`` intersect with the given ``start`` and ``end``.
 
+-------------------------------------------------------------------------------
+
 put
 ---
 
@@ -80,6 +82,8 @@ Parameters
 Returns
 ^^^^^^^
 ``Promise<void>``: Promise that resolves once the range has been inserted.
+
+-------------------------------------------------------------------------------
 
 del
 ---

@@ -45,7 +45,7 @@ Parameters
 2. ``contractAbi`` - ``any``: `JSON ABI`_ of the contract to watch.
 3. ``eventName`` - ``string``: Name of the event to watch.
 4. ``eventFilter`` - ``any``: An `event filter`_ for the event.
-4. ``callback`` - ``(eventName: string, eventData: any) => void``: Callback to be triggered whenever a matching event is detected in the smart contract.
+5. ``callback`` - ``(eventName: string, eventData: any) => void``: Callback to be triggered whenever a matching event is detected in the smart contract.
 
 off
 ---
@@ -70,7 +70,7 @@ Parameters
 2. ``contractAbi`` - ``any``: `JSON ABI`_ of the contract to watch.
 3. ``eventName`` - ``string``: Name of the event to watch.
 4. ``eventFilter`` - ``any``: An `event filter`_ for the event.
-4. ``callback`` - ``(eventName: string, eventData: any) => void``: Callback to be triggered whenever a matching event is detected in the smart contract.
+5. ``callback`` - ``(eventName: string, eventData: any) => void``: Callback to be triggered whenever a matching event is detected in the smart contract.
 
 
 .. _`Ethereum contract events`: TODO
