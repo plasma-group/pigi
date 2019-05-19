@@ -13,7 +13,7 @@ This website documents the entirety of the Plasma Group design, from the inner w
    src/00-introduction/operator
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: #01: Core Design Components
 
    src/01-core/state-system
@@ -23,7 +23,7 @@ This website documents the entirety of the Plasma Group design, from the inner w
    src/01-core/json-rpc
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: #02: Contract Specification
 
    src/02-contracts/deposit-contract
@@ -31,7 +31,7 @@ This website documents the entirety of the Plasma Group design, from the inner w
    src/02-contracts/predicate-contract
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: #03: Client Specification
 
    src/03-client/introduction
@@ -59,7 +59,7 @@ This website documents the entirety of the Plasma Group design, from the inner w
    src/03-client/rpc-methods
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: #04: Operator Specification
 
    src/04-operator/introduction
