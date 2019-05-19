@@ -466,8 +466,8 @@ challengeCheckpointOutdated
 .. code-block:: python
 
    def challengeCheckpointOutdated(
-       olderCheckpoint: bytes32,
-       newerCheckpoint: bytes32
+       olderCheckpoint: Checkpoint,
+       newerCheckpoint: Checkpoint
    ):
 
 Description
@@ -476,14 +476,18 @@ Challenges a checkpoint by showing that there exists a newer finalized checkpoin
 
 Parameters
 ^^^^^^^^^^
-1. ``olderCheckpoint`` - ``bytes32``: `ID of the checkpoint`_ to challenge.
-2. ``newerCheckpoint`` - ``bytes32``: `ID of the checkpoint`_ used to challenge.
+1. ``olderCheckpoint`` - ``Checkpoint``: `The checkpoint`_ to challenge.
+2. ``newerCheckpoint`` - ``Checkpoint``: `The checkpoint`_ used to challenge.
 
 Requirements
 ^^^^^^^^^^^^
 .. todo::
 
-   Add requirements for challengeCheckpointOutdated.
+- **MUST** ensure the checkpoint ranges intersect.
+- **MUST** ensure that the plasma blocknumber of the ``olderCheckpoint`` is less than that of ``newerCheckpoint``.
+- **MUST** ensure that the ``newerCheckpoint`` has no challenges.
+- **MUST** ensure that the ``newerCheckpoint`` is no longer challengeable.
+- **MUST** delete the entries in ``exits`` and ``checkpoints`` at the ``olderCheckpointId``.
 
 Rationale
 ^^^^^^^^^
