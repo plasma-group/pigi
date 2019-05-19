@@ -7,6 +7,9 @@ Description
 ***********
 Clients need a way to execute state transitions for a given predicate. However, it's too slow and complex to execute these state transitions in a virtual version of the EVM. As a result, Predicates **must** supply client-side code, called a *plugin*, that can compute state transitions. Predicate plugins **must** conform a standard interface as described in the API section below.
 
+-------------------------------------------------------------------------------
+
+
 *******************
 Information Sources
 *******************
@@ -19,6 +22,8 @@ A `web3`_ object is passed into every predicate plugin and may be used to make q
 Plasma State Queries
 ====================
 Predicate contracts on Ethereum can be fed information about the state of the plasma chain. Predicate plugins are therefore given a reference to `StateManager`_ and `HistoryManager`_ that permit the plugin to make queries about the existence (or non-existence) of a given `StateUpdate`_ in the plasma chain. 
+
+-------------------------------------------------------------------------------
 
 
 ***
@@ -51,6 +56,9 @@ Returns
 ^^^^^^^
 ``Promise<StateUpdate>``: Resulting `StateUpdate`_ created by the application of the transaction.
 
+-------------------------------------------------------------------------------
+
+
 queryState
 ----------
 
@@ -71,6 +79,9 @@ Parameters
 Returns
 ^^^^^^^
 ``string[]``: List of return values based on the predicate's `ABI`_.
+
+-------------------------------------------------------------------------------
+
 
 getAdditionalHistoryProof
 -------------------------
@@ -93,6 +104,9 @@ Parameters
 Returns
 ^^^^^^^
 ``Promise<HistoryProof>``: The `HistoryProof`_ object that contains the extra proof data. May be an empty array if the transaction requires no additional history proof data.
+
+-------------------------------------------------------------------------------
+
 
 canReplaceTransaction
 ---------------------
@@ -118,6 +132,9 @@ Parameters
 Returns
 ^^^^^^^
 ``boolean``: ``true`` if the newer transaction should replace the older one, ``false`` otherwise.
+
+-------------------------------------------------------------------------------
+
 
 onTransitionFrom
 ----------------
@@ -145,6 +162,9 @@ Parameters
 Returns
 ^^^^^^^
 ``Promise<void>``: Promise that resolves once the predicate has executed some logic for the hook.
+
+-------------------------------------------------------------------------------
+
 
 onTransitionTo
 --------------

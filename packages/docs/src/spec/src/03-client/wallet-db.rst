@@ -7,6 +7,8 @@ Description
 ***********
 ``WalletDB`` stores and manages access to `standard keystore`_ files. We require that keystore files **MUST** be encrypted for the safety of user funds.
 
+-------------------------------------------------------------------------------
+
 ***************
 Data Structures
 ***************
@@ -42,6 +44,8 @@ Description
 -----------
 Standard format for storing `keystore objects`_ in Ethereum.
 
+-------------------------------------------------------------------------------
+
 ***
 API
 ***
@@ -68,6 +72,8 @@ Returns
 ^^^^^^^
 ``Promise<void>``: Promise that resolves once the keystore has been inserted.
 
+-------------------------------------------------------------------------------
+
 getKeystore
 -----------
 
@@ -86,6 +92,8 @@ Parameters
 Returns
 ^^^^^^^
 ``Promise<Keystore>``: The `Keystore`_ object associated with that address.
+
+-------------------------------------------------------------------------------
 
 listAddresses
 -------------

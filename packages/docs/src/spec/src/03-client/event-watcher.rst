@@ -15,6 +15,8 @@ It's often important that an event only be handled **once**. We might otherwise 
 
 ``EventWatcher`` will also store the current block up to which it has checked for a given event on a given contract. ``EventWatcher`` **MUST** store a different block for each tuple of ``(contract, event name, event filter)``.
 
+-------------------------------------------------------------------------------
+
 ***
 API
 ***
@@ -46,6 +48,8 @@ Parameters
 3. ``eventName`` - ``string``: Name of the event to watch.
 4. ``eventFilter`` - ``any``: An `event filter`_ for the event.
 5. ``callback`` - ``(eventName: string, eventData: any) => void``: Callback to be triggered whenever a matching event is detected in the smart contract.
+
+-------------------------------------------------------------------------------
 
 off
 ---

@@ -7,6 +7,8 @@ Description
 ***********
 Clients often need to create signatures in order to authenticate transactions. The ``Wallet`` component provides a standard interface for creating new accounts, querying existing accounts, and signing arbitrar data.
 
+-------------------------------------------------------------------------------
+
 ***
 API
 ***
@@ -28,6 +30,8 @@ Queries the addresses of all accounts stored in the wallet.
 Returns
 ^^^^^^^
 ``Promise<string[]>``: List of all account addresses in the wallet.
+
+-------------------------------------------------------------------------------
 
 createAccount
 -------------
