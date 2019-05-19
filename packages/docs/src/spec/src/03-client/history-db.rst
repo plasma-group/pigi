@@ -7,6 +7,9 @@ Description
 ***********
 ``HistoryDB`` provides a simple interface to the set of historical `StateUpdate`_ objects. ``HistoryDB`` also stores all values necessary to prove the `history`_ of a given state object, including the `Merkle Interval Tree inclusion proofs`_ for each state update and the `transactions`_ that created those state updates.
 
+-------------------------------------------------------------------------------
+
+
 ***
 API
 ***
@@ -26,6 +29,9 @@ Parameters
 Returns
 ^^^^^^^
 
+-------------------------------------------------------------------------------
+
+
 putStateUpdate
 --------------
 
@@ -37,6 +43,9 @@ Parameters
 
 Returns
 ^^^^^^^
+
+-------------------------------------------------------------------------------
+
 
 getStateUpdateTransactions
 --------------------------
@@ -50,6 +59,9 @@ Parameters
 Returns
 ^^^^^^^
 
+-------------------------------------------------------------------------------
+
+
 putStateUpdateTransactions
 --------------------------
 
@@ -61,6 +73,9 @@ Parameters
 
 Returns
 ^^^^^^^
+
+-------------------------------------------------------------------------------
+
 
 getStateUpdateLeafPosition
 --------------------------
@@ -74,6 +89,9 @@ Parameters
 Returns
 ^^^^^^^
 
+-------------------------------------------------------------------------------
+
+
 putStateUpdateLeafPosition
 --------------------------
 
@@ -85,6 +103,9 @@ Parameters
 
 Returns
 ^^^^^^^
+
+-------------------------------------------------------------------------------
+
 
 getBlockStateUpdateCount
 ------------------------
@@ -98,6 +119,9 @@ Parameters
 Returns
 ^^^^^^^
 
+-------------------------------------------------------------------------------
+
+
 putBlockStateUpdateCount
 ------------------------
 
@@ -109,6 +133,9 @@ Parameters
 
 Returns
 ^^^^^^^
+
+-------------------------------------------------------------------------------
+
 
 getStateTreeNode
 ----------------
@@ -122,6 +149,9 @@ Parameters
 Returns
 ^^^^^^^
 
+-------------------------------------------------------------------------------
+
+
 putStateTreeNode
 ----------------
 
@@ -134,6 +164,9 @@ Parameters
 Returns
 ^^^^^^^
 
+-------------------------------------------------------------------------------
+
+
 getAddressTreeNode
 ------------------
 
@@ -145,6 +178,9 @@ Parameters
 
 Returns
 ^^^^^^^
+
+-------------------------------------------------------------------------------
+
 
 putAddressTreeNode
 ------------------

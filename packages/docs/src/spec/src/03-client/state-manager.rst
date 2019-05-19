@@ -7,6 +7,9 @@ Description
 ***********
 ``StateManager`` primarily handles incoming transactions that modify the current and historical state. ``StateManager`` effectively acts as a wrapper around `StateDB`_ but also makes some calls to `HistoryManager`_.
 
+-------------------------------------------------------------------------------
+
+
 ***************
 Data Structures
 ***************
@@ -40,6 +43,9 @@ Fields
 6. ``params`` - ``string[]``: List of parameters to the call.
 7. ``filter?`` - ``Expression``: An `Expression`_ to use to filter results. May be omitted to return all results.
 
+-------------------------------------------------------------------------------
+
+
 StateQueryResult
 ================
 
@@ -58,6 +64,9 @@ Fields
 ------
 1. ``stateUpdate`` - ``StateUpdate``: ``StateUpdate`` object to which the result pertains.
 2. ``result`` - ``string[]``: Result values of the query corresponding to the output values described in the `Predicate ABI`_.
+
+-------------------------------------------------------------------------------
+
 
 ***
 API
@@ -91,6 +100,9 @@ Returns
 ^^^^^^^
 ``Promise<{ stateUpdate: StateUpdate, validRanges: Range[] }>``: The `StateUpdate`_ created as a result of the transaction and the list of ranges over which the state update has been validated.
 
+-------------------------------------------------------------------------------
+
+
 ingestHistoryProof
 ------------------
 
@@ -111,6 +123,9 @@ Parameters
 Returns
 ^^^^^^^
 ``Promise<void>``: Promise that resolves once the proof has been applied or rejected.
+
+-------------------------------------------------------------------------------
+
 
 queryState
 ----------

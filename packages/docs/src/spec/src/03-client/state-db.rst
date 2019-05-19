@@ -7,6 +7,9 @@ Description
 ***********
 ``StateDB`` handles storage and modification of the local verified state. ``StateDB`` is frequently used by `StateManager`_ to keep track of the known state and to verify incoming transactions.
 
+-------------------------------------------------------------------------------
+
+
 ***************
 Data Structures
 ***************
@@ -26,6 +29,15 @@ VerifiedStateUpdate
 Description
 -----------
 Represents a `StateUpdate`_ that has been `correctly verified`_ up to a specific block. ``verifiedBlockNumber`` is updated whenever a `non-inclusion proof`_ implicitly demonstrates that the given state update is valid for ``verifiedBlockNumber + 1``.
+
+Fields
+------
+.. todo::
+
+   Add fields for VerifiedStateUpdate
+
+-------------------------------------------------------------------------------
+
 
 ***
 API
@@ -53,6 +65,9 @@ Parameters
 Returns
 ^^^^^^^
 ``Promise<VerifiedStateUpdate[]>``: List of ``VerifiedStateUpdate`` objects that intersect with the given range.
+
+-------------------------------------------------------------------------------
+
 
 putVerifiedStateUpdate
 ----------------------

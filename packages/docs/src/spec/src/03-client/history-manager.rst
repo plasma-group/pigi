@@ -9,6 +9,9 @@ Description
 
 We've separated ``HistoryManager`` from ``HistoryDB`` to avoid coupling the underlying data storage with more complex queries.
 
+-------------------------------------------------------------------------------
+
+
 ***
 API
 ***
@@ -44,6 +47,9 @@ Parameters
 Returns
 ^^^^^^^
 ``HistoryProof``: A `HistoryProof`_ composed of `proof elements`_ that, when applied sequentially, build a `valid history`_ for the given range.
+
+-------------------------------------------------------------------------------
+
 
 getInclusionProof
 -----------------

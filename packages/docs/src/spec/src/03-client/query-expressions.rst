@@ -7,6 +7,9 @@ Description
 ***********
 We provide a system for filtering `state queries`_ via expressions similar to those used by `mongoDB`_.
 
+-------------------------------------------------------------------------------
+
+
 ***************
 Data Structures
 ***************
@@ -23,6 +26,9 @@ Expression
 Description
 -----------
 Represents an expression. All expressions consist of an operator and a list of input values. Some expressions take other operators as input values.
+
+-------------------------------------------------------------------------------
+
 
 *********
 Operators
@@ -50,6 +56,9 @@ Returns
 ^^^^^^^
 ``boolean``: ``true`` if **all** arguments resolve to ``true``, ``false`` otherwise.
 
+-------------------------------------------------------------------------------
+
+
 $not
 ----
 
@@ -69,6 +78,9 @@ Returns
 ^^^^^^^
 ``boolean``: ``true`` if the expression resolves to ``false``, ``false`` otherwise.
 
+-------------------------------------------------------------------------------
+
+
 $or
 ---
 
@@ -87,6 +99,9 @@ Parameters
 Returns
 ^^^^^^^
 ``boolean``: ``true`` if **any** argument resolves to ``true``, ``false`` otherwise.
+
+-------------------------------------------------------------------------------
+
 
 Comparison Operators
 ====================
@@ -110,6 +125,9 @@ Returns
 ^^^^^^^
 ``boolean``: ``true`` if **all** arguments are equal, ``false`` otherwise.
 
+-------------------------------------------------------------------------------
+
+
 $gt
 ---
 
@@ -129,6 +147,9 @@ Parameters
 Returns
 ^^^^^^^
 ``boolean``: ``true`` if the first argument is greater than the second, ``false`` otherwise.
+
+-------------------------------------------------------------------------------
+
 
 $gte
 ----
@@ -150,6 +171,9 @@ Returns
 ^^^^^^^
 ``boolean``: ``true`` if the first value is greater than or equal to the second, ``false`` otherwise.
 
+-------------------------------------------------------------------------------
+
+
 $lt
 ---
 
@@ -170,6 +194,9 @@ Returns
 ^^^^^^^
 ``boolean``: ``true`` if the first value is less than the second, ``false`` otherwise.
 
+-------------------------------------------------------------------------------
+
+
 $lte
 ----
 
@@ -189,6 +216,8 @@ Parameters
 Returns
 ^^^^^^^
 ``boolean``: ``true`` if the first value is less than or equal to the second, ``false`` otherwise.
+
+-------------------------------------------------------------------------------
 
 
 $ne
