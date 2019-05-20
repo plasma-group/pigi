@@ -428,7 +428,7 @@ startLimboCheckpoint
 .. code-block:: python
 
    def startLimboCheckpoint(
-       stateUpdate: StateUpdate,
+       originatingStateUpdate: StateUpdate,
        inclusionProof: bytes[1024],
        transaction: bytes[1024],
        checkpointedRange: Range
@@ -440,14 +440,14 @@ Allows a user to start a `limbo checkpoint`_ from a given state update. Necessar
 
 Parameters
 ^^^^^^^^^^
-1. ``stateUpdate`` - ``StateUpdate``: State update from which the limbo checkpoint originates.
+1. ``originatingStateUpdate`` - ``StateUpdate``: State update from which the limbo checkpoint originates.
 2. ``inclusionProof`` - ``bytes``: Proof that the originating state update was included in the block specified in the update.
 3. ``transaction`` - ``bytes``: Transaction that spends the update and creates a new one.
 4. ``checkpointedRange`` - ``Range``: Sub-range of the new state update created by the transaction to checkpoint. Necessary because a `state update may be partially spent`_.
 
 Requirements
 ^^^^^^^^^^^^
-- **MUST** verify that ``stateUpdate`` was included in ``stateUpdate.block`` via ``inclusionProof``.
+- **MUST** verify that ``originatingStateUpdate`` was included in ``originatingStateUpdate.block`` via ``inclusionProof``.
 - **MUST** execute ``transaction`` against ``stateUpdate`` by calling the state update's predicate.
 - **MUST** verify that ``checkpointedRange`` is a sub-range of the state update created by executing ``transaction``.
 - **MUST** create a new pending checkpoint in ``checkpoints`` for the state update created by the transaction.
@@ -456,9 +456,7 @@ Requirements
 
 Rationale
 ^^^^^^^^^
-.. todo::
-
-   Add rationale for startLimboCheckpoint.
+Limbo checkpoints are safe to make as long as it is impossible that the operator included a conflicting (containing a different ``StateObject`` ) ``StateUpdate`` which can be output by the ``originatingStateUpdate`` predicate's ``executeTransaction`` method.  Further, if the operator may have included a ``StateUpdate`` which does have this output, a limbo checkpoint is necessary to guarantee safety.
 
 challengeCheckpointOutdated
 ---------------------------
