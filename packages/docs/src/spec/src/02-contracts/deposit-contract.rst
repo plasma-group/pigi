@@ -652,7 +652,7 @@ finalizeExit
 
 .. code-block:: python
 
-   def finalizeExit(exit: bytes32):
+   def finalizeExit(exit: Checkpoint, exitableRangeId: uint256):
 
 Description
 ^^^^^^^^^^^
@@ -660,19 +660,27 @@ Finalizes an exit that has passed its exit period and has not been successfully 
 
 Parameters
 ^^^^^^^^^^
-1. ``exit`` - ``bytes32``: `ID of the exit`_ to finalize.
+1. ``exit`` - ``Checkpoint``: `The checkpoint`_ on which the exit is not finalizable.
+2. ``exitableRangeId`` - ``uint256``: the entry in ``exitableRanges`` demonstrating the range is not yet exited.
 
 Requirements
 ^^^^^^^^^^^^
-.. todo::
 
-   Add requirements for finalizeExit.
+- **MUST** ensure that the checkpoint is finalized (current Ethereum block exceeds ``checkpoint.challengeableUntil``).
+- **MUST** ensure that the checkpoint's ``numChallenges`` is 0.
+- **MUST** ensure that the exit is finalized (current Ethereum block exceeds ``redeemablAfter`` ).
+- **MUST** ensure that the checkpoint is on a subrange of the currently exitable ranges via ``exitableRangeId``.
+- **MUST** approve an ERC20 transfer of the ``end - start`` amount to the predicate address.
+- **MUST** call the predicate's ``onExitFinalized`` method to finalize the exit.
+- **MUST** delete the exit.
+- **MUST** remove the exited range by updating the ``exitableRanges`` mapping.
+- **MUST** delete the checkpoint.
+- **MUST** emit an ``exitFinalized`` event.
 
 Rationale
 ^^^^^^^^^
-.. todo::
 
-   Add rationale for finalizeExit.
+Exit finalization is the step which actually allows the assets locked in plasma to be used on the main chain again.  Finalization requires that the exit and checkpoint games have completed successfully.
 
 .. _`state objects`: TODO
 .. _`state object`: TODO
