@@ -564,7 +564,7 @@ removeChallengeCheckpointInvalid
 .. code-block:: python
 
    def removeChallengeCheckpointInvalidHistory(
-       challenge: bytes32
+       challenge: Challenge
    ):
 
 Description
@@ -573,19 +573,20 @@ Decrements the number of outstanding challenges on a checkpoint by showing that 
 
 Parameters
 ^^^^^^^^^^
-1. ``challenge`` - ``bytes32``: `ID of the challenge`_ that was blocked.
+1. ``challenge`` - ``Challenge``: `The challenge`_ that was blocked.
 
 Requirements
 ^^^^^^^^^^^^
-.. todo::
 
-   Add requirements for removeChallengeCheckpointInvalid.
+- **MUST** check that the challenge was not already removed.
+- **MUST** check that the challenging exit has since been removed.
+- **MUST** remove the challenge if above conditions are met.
+- **MUST** decrement the challenged checkpoint's ``numChallenges`` if the above conditions are met.
 
 Rationale
 ^^^^^^^^^
-.. todo::
 
-   Add rationale for removeChallengeCheckpointInvalid.
+Anyone can exit a prior state which was since spent and use it to challenge despite it being deprecated.  To remove this invalid challenge, the challenged checkpointer may demonstrate the exit is deprecated, deleting it, and then call this method to remove the challenge.
 
 startExit
 ---------
