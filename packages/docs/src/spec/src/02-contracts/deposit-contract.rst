@@ -485,13 +485,12 @@ Requirements
 - **MUST** ensure that the plasma blocknumber of the ``olderCheckpoint`` is less than that of ``newerCheckpoint``.
 - **MUST** ensure that the ``newerCheckpoint`` has no challenges.
 - **MUST** ensure that the ``newerCheckpoint`` is no longer challengeable.
-- **MUST** delete the entries in ``exits`` and ``checkpoints`` at the ``olderCheckpointId``.
+- **MUST** delete the entries in ``exits`` and ``checkpoints`` at the ``[olderCheckpointId]``.
 
 Rationale
 ^^^^^^^^^
-.. todo::
 
-   Add rationale for challengeCheckpointOutdated.
+If a checkpoint game has finalized, the safety property should be that nothing is valid in that range's previous blocks--"the history has been erased."  However, since there still might be some ``StateUpdates`` included in the blocks prior, invalid checkpoints can be initiated.  This method allows the rightful owner to demonstrate that the initiated ``olderCheckpoint`` is invalid and must be deleted.
 
 challengeCheckpointInvalidHistory
 ---------------------------------
