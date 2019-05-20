@@ -528,7 +528,8 @@ challengeLimboCheckpointAlternateSpend
 .. code-block:: python
 
    def challengeLimboCheckpointAlternateTransaction(
-      limboCheckpoint: bytes32,
+      limboCheckpoint: Checkpoint,
+      originatingStateUpdate: StateUpdate,
       alternateTransaction: bytes[1024],
       inclusionProof: bytes[1024]
    ):
@@ -539,21 +540,23 @@ Challenges a limbo checkpoint by demonstrating that there's an alternate spend o
 
 Parameters
 ^^^^^^^^^^
-1. ``limboCheckpoint`` - ``bytes32``: `ID of the checkpoint`_ to challenge.
-2. ``alternateTransaction`` - ``bytes``: Alternate transaction that spent from the same originating state update given by the limbo checkpoint.
-3. ``inclusionProof`` - ``bytes``: Proof that the state update created by the given transaction was included in a plasma block.
+1. ``limboCheckpoint`` - ``Checkpoint``: `The checkpoint`_ to challenge.
+2. ``origintingStateUpdate`` - ``StateUpdate``: the original state update whose inclusion was proven at the time the limbo checkpoint was originated.
+3. ``alternateTransaction`` - ``bytes``: Alternate transaction that spent from the same originating state update given by the limbo checkpoint.
+4. ``inclusionProof`` - ``bytes``: Proof that the state update created by the given transaction was included in a plasma block.
 
 Requirements
 ^^^^^^^^^^^^
-.. todo::
-
-   Add requirements for challengeLimboCheckpointAlternateSpend
+- **MUST** ensure the limbo checkpoint exists and was created with the ``originatingStateUpdate`` .
+- **MUST** calculate the ``alternateStateUpdate`` from the limbo checkpoint's ``originatingStateUpdate`` and the ``alternateTransaction`` .
+- **MUST** ensure the ``alternateStateUpdate.range`` intersects the ``limboCheckpoint.checkpointedRange`` .
+- **MUST** ensure the ``alternateStateUpdate.state`` conflict's the ``limboCheckpoint.StateUpdate.state`` .
+- **MUST** ensure the ``alternteStateUpdate`` was included with ``inclusionProof``.
+- **MUST** delete the entries in ``limboCheckpoints`` , ``checkpoints`` , and ``exits`` at the ``limboCheckpointId`` if the above conditions are met.
 
 Rationale
 ^^^^^^^^^
-.. todo::
-
-   Add rationale for challengeLimboCheckpointAlternateSpend
+Limbo checkpoints are invalid if an alternate spend was included from the originating state update.  For example, if Alice spent to Bob, but limbo exits her original ownership state with a limbo transaction to herself, Bob may cancel it by demonstrating the conflicting transaction which spends to her.  This prevents the attacks which limbo exits would otherwise introduce.
 
 removeChallengeCheckpointInvalid
 --------------------------------
