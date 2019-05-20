@@ -500,6 +500,7 @@ challengeCheckpointInvalidHistory
 
    def challengeCheckpointInvalid(
        challenge: Challenge
+       limboOrigin: StateUpdate
    ):
 
 Description
@@ -509,14 +510,18 @@ Starts a challenge for a checkpoint by pointing to an exit that occurred in an e
 Parameters
 ^^^^^^^^^^
 1. ``challenge`` - ``Challenge``: Challenge to submit.
+2. ``limboOrigin`` - ``StateUpdate``: The originating state update if the ``olderCheckpoint`` is a limbo checkpoint (unneeded if it isn't)
 
 Requirements
 ^^^^^^^^^^^^
 - **MUST** ensure that the checkpoint being used to challenge exists.
-- **MUST** ensure that an identical challenge is not already underway.
 - **MUST** ensure that the challenge ranges intersect.
-- **MUST** ensure that the current ethereum block is not greater than the ``challengeableUntil`` block for the checkpoint being challenged.
 - **MUST** ensure that the checkpoint being used to challenge has an older ``plasmaBlockNumber``.
+- **MUST** ensure that an identical challenge is not already underway.
+- **MUST** ensure that the current ethereum block is not greater than the ``challengeableUntil`` block for the checkpoint being challenged.
+- **MUST** check whether the checkpoint being challenged is a limbo checkpoint.  If it is:
+   - **MUST** check that the provided ``limboOrigin`` was the correct originating state update for the limbo exit.
+   - **MUST** ensure that the challenging checkpoint has an earlier ``plasmaBlocknumber`` than that of the ``limboOrigin``.
 - **MUST** increment the ``numChallenges`` for the challenged checkpoint.
 - **MUST** set the ``challenges`` mapping for the ``challengeId`` to true.
 
