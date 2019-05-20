@@ -395,9 +395,9 @@ startCheckpoint
 
    @public
    def startCheckpoint(
-       stateUpdate: StateUpdate,
+       checkpoint: Checkpoint,
        inclusionProof: bytes[1024],
-       checkpointedRange: Range
+       exitableRangeId: uint256
    ):
 
 Description
@@ -408,13 +408,15 @@ Parameters
 ^^^^^^^^^^
 1. ``stateUpdate`` - ``StateUpdate``: State update to checkpoint.
 2. ``inclusionProof`` - ``bytes``: Proof that the state update was included in the block specified within the update.
-3. ``checkpointedRange`` - ``Range``: Sub-range of the full state update to checkpoint. Necessary because a `state update may be partially spent`_.
+3. ``exitableRangeId`` - ``uint256``: The key in the ``exitableRanges`` mapping which includes the ``checkpointedRange`` as a subrange.
 
 Requirements
 ^^^^^^^^^^^^
-- **MUST** verify the that ``stateUpdate`` was included in ``stateUpdate.block`` with ``inclusionProof``.
-- **MUST** verify that ``checkpointedRange`` is actually a sub-range of ``stateUpdate.range``. 
-- **MUST** add the new pending checkpoint to ``checkpoints``.
+- **MUST** verify the that ``checkpoint.stateUpdate`` was included with ``inclusionProof``.
+- **MUST** verify that ``checkpointedRange`` is actually a sub-range of ``stateUpdate.range``.
+- **MUST** verify that the ``checkpointedRange`` is still exitable with the ``exitableRangeId`` .
+- **MUST** verify that an indentical checkpoint has not already been started.
+- **MUST** add the new pending checkpoint to ``checkpoints`` with ``chllengeableUntil`` equalling the current ethereum ``block.number + CHALLENGE_PERIOD`` .
 - **MUST** emit a ``CheckpointStarted`` event.
 
 Rationale
