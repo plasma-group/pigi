@@ -361,7 +361,7 @@ deposit
 .. code-block:: python
 
    @public
-   def deposit(amount: uint256, initialState: StateObject):
+   def deposit(depositer: address, amount: uint256, initialState: StateObject):
 
 Description
 ^^^^^^^^^^^
@@ -369,23 +369,24 @@ Allows a user to submit a deposit to the contract. Only allows users to submit d
 
 Parameters
 ^^^^^^^^^^
-1. ``amount`` - ``uint256``: Amount of the asset to deposit. 
-2. ``initialState`` - ``StateObject``: Initial state to put the deposited assets into. Can be any valid `state object`_.
+1. ``depositer`` - ``address``: the account which has approved the ERC20 deposit.
+2. ``amount`` - ``uint256``: Amount of the asset to deposit. 
+3. ``initialState`` - ``StateObject``: Initial state to put the deposited assets into. Can be any valid `state object`_.
 
 Requirements
 ^^^^^^^^^^^^
 - **MUST** keep track of the total deposited assets, ``totalDeposited``.
+- **MUST** transfer the deposited ``amount`` from the ``depositer`` to the deposit contract's address.
 - **MUST** create a `state update`_ with a `state object`_ equal to the provided ``initialState``.
 - **MUST** compute the range of the created state update as ``totalDeposited`` to ``totalDeposited + amount``.
 - **MUST** update the total amount deposited after the deposit is handled.
-- **MUST** insert the created state update into the ``checkpoints`` mapping.
+- **MUST** insert the created state update into the ``checkpoints`` mapping with ``challengeableUntil`` being the current block number - 1.
 - **MUST** emit a ``CheckpointFinalized`` event for the inserted checkpoint.
 
 Rationale
 ^^^^^^^^^
-.. todo::
-   
-   Add rationale for deposit.
+
+Depositing is the mechanism which locks an asset into the plasma escrow agreement, allowing it to be transacted off-chain.  The ``initialState`` defines its spending conditions, in the same way that a ``StateUpdate`` does once further transactions are made.  Because deposits are verified on-chain transactions, they can be treated as checkpoints which are unchallengeable.
 
 startCheckpoint
 ---------------
