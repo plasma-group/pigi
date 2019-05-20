@@ -623,9 +623,8 @@ challengeExitDeprecated
 .. code-block:: python
 
    def challengeExitDeprecated(
-       checkpoint: bytes32,
-       transaction: bytes[1024],
-       inclusionProof: bytes[1024]
+       checkpoint: Checkpoint,
+       transaction: bytes[1024]
    ):
 
 Description
@@ -634,21 +633,19 @@ Challenges an exit by showing that the checkpoint from which it spends has been 
 
 Parameters
 ^^^^^^^^^^
-1. ``checkpoint`` - ``bytes32``: `ID of the checkpoint`_ referenced by the exit.
+1. ``checkpoint`` - ``Checkpoint``: `The checkpoint`_ referenced by the exit.
 2. ``transaction`` - ``bytes``: Transaction that spent the checkpointed state update.
-3. ``inclusionProof`` - ``bytes``: Proof that the state updated created by the transaction was included in the plasma chain.
 
 Requirements
 ^^^^^^^^^^^^
-.. todo::
-
-   Add requirements for challengeExitDeprecated.
+- **MUST** ensure the ``transaction`` results in a valid ``StateUpdate`` by calling the ``executeTransaction(checkpoint.StateUpdate, transaction)`` for the ``checkpoint.stateUpdate.predicateAddress`` .
+- **MUST** ensure the ``StateUpdate`` resulting from the transaction intersects the ``checkpoint.subRange``.
+- **MUST* delete the ``exit`` from ``exits`` at the ``checkpointId`` .
 
 Rationale
 ^^^^^^^^^
-.. todo::
 
-   Add rationale for challengeExitDeprecated.
+If a transaction exists spending from a checkpoint, the checkpoint may still be valid, but an exit on it is not.  This challenge deletes the exit by demonstrating such a transaction.
 
 finalizeExit
 ------------
