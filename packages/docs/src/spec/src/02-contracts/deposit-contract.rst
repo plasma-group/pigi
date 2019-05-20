@@ -414,14 +414,13 @@ Requirements
 ^^^^^^^^^^^^
 - **MUST** verify the that ``stateUpdate`` was included in ``stateUpdate.block`` with ``inclusionProof``.
 - **MUST** verify that ``checkpointedRange`` is actually a sub-range of ``stateUpdate.range``. 
-- **MUST** add a new pending checkpoint to ``checkpoints``.
+- **MUST** add the new pending checkpoint to ``checkpoints``.
 - **MUST** emit a ``CheckpointStarted`` event.
 
 Rationale
 ^^^^^^^^^
-.. todo::
 
-   Add rationale for startCheckpoint.
+Checkpoints are assertions that a certain state update occured/was included, and that it has no intersecting unspent ``StateUpdate`` s in its history.  Because the operator may publish an invalid block, it must undergo a challenge period in which the parties who care about the unspent ``StateUpdate`` in the history exit it, and use it to challenge the checkpoint.
 
 startLimboCheckpoint
 --------------------
