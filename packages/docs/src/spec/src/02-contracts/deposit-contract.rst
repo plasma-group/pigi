@@ -479,7 +479,6 @@ Parameters
 
 Requirements
 ^^^^^^^^^^^^
-.. todo::
 
 - **MUST** ensure the checkpoint ranges intersect.
 - **MUST** ensure that the plasma blocknumber of the ``olderCheckpoint`` is less than that of ``newerCheckpoint``.
@@ -511,15 +510,17 @@ Parameters
 
 Requirements
 ^^^^^^^^^^^^
-.. todo::
-
-   Add requirements for challengeCheckpointInvalidHistory.
+- **MUST** ensure that the checkpoint being used to challenge exists.
+- **MUST** ensure that an identical challenge is not already underway.
+- **MUST** ensure that the challenge ranges intersect.
+- **MUST** ensure that the current ethereum block is not greater than the ``challengeableUntil`` block for the checkpoint being challenged.
+- **MUST** ensure that the checkpoint being used to challenge has an older ``plasmaBlockNumber``.
+- **MUST** increment the ``numChallenges`` for the challenged checkpoint.
+- **MUST** set the ``challenges`` mapping for the ``challengeId`` to true.
 
 Rationale
 ^^^^^^^^^
-.. todo::
-
-   Add rationale for challengeCheckpointInvalidHistory.
+If the operator includes an invalid ``StateUpdate`` (i.e. there is no transaction from the last valid ``StateUpdate`` on an intersecting range), they may checkpoint it and attempt a malicious exit.  To prevent this, the valid owner must checkpoint their unspent state, exit it, and create a challenge on the invalid checkpoint.
 
 challengeLimboCheckpointAlternateSpend
 --------------------------------------
