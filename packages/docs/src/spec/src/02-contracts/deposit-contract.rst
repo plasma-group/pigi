@@ -450,10 +450,12 @@ Parameters
 Requirements
 ^^^^^^^^^^^^
 - **MUST** verify that ``originatingStateUpdate`` was included in ``originatingStateUpdate.block`` via ``inclusionProof``.
-- **MUST** execute ``transaction`` against ``stateUpdate`` by calling the state update's predicate.
-- **MUST** verify that ``checkpointedRange`` is a sub-range of the state update created by executing ``transaction``.
-- **MUST** create a new pending checkpoint in ``checkpoints`` for the state update created by the transaction.
-- **MUST** insert the provided ``stateUpdate`` into ``limboCheckpointOrigins`` for the `ID of the checkpoint`_ that was created.
+- **MUST** execute ``transaction`` against ``stateUpdate`` by calling the state update's predicate to calculate a ``limboStateUpdate``.
+- **MUST** verify that the ``limboStateUpdate.plasmaBlocknumber`` exceeds that of the ``originatingStateUpdate``
+- **MUST** verify that ``checkpointedRange`` is a sub-range of ``limboStateUpdate``.
+- **MUST** verify that ``checkpointedRange`` is a sub-range of ``originatingStateUpdate``.
+- **MUST** create a new pending checkpoint in ``checkpoints`` with the ``limboStateUpdate`` and given ``checkpointedRange``.
+- **MUST** insert the hash of the provided ``stateUpdate`` into ``limboCheckpointOrigins`` for the `ID of the checkpoint`_ that was created.
 - **MUST** emit a ``CheckpointStarted`` event.
 
 Rationale
@@ -538,7 +540,6 @@ challengeLimboCheckpointAlternateSpend
       limboCheckpoint: Checkpoint,
       originatingStateUpdate: StateUpdate,
       alternateTransaction: bytes[1024],
-      inclusionProof: bytes[1024]
    ):
 
 Description
@@ -550,7 +551,6 @@ Parameters
 1. ``limboCheckpoint`` - ``Checkpoint``: `The checkpoint`_ to challenge.
 2. ``origintingStateUpdate`` - ``StateUpdate``: the original state update whose inclusion was proven at the time the limbo checkpoint was originated.
 3. ``alternateTransaction`` - ``bytes``: Alternate transaction that spent from the same originating state update given by the limbo checkpoint.
-4. ``inclusionProof`` - ``bytes``: Proof that the state update created by the given transaction was included in a plasma block.
 
 Requirements
 ^^^^^^^^^^^^
@@ -558,7 +558,6 @@ Requirements
 - **MUST** calculate the ``alternateStateUpdate`` from the limbo checkpoint's ``originatingStateUpdate`` and the ``alternateTransaction`` .
 - **MUST** ensure the ``alternateStateUpdate.range`` intersects the ``limboCheckpoint.checkpointedRange`` .
 - **MUST** ensure the ``alternateStateUpdate.state`` conflict's the ``limboCheckpoint.StateUpdate.state`` .
-- **MUST** ensure the ``alternteStateUpdate`` was included with ``inclusionProof``.
 - **MUST** delete the entries in ``limboCheckpoints`` , ``checkpoints`` , and ``exits`` at the ``limboCheckpointId`` if the above conditions are met.
 
 Rationale
