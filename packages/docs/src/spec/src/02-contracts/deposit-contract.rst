@@ -593,7 +593,7 @@ startExit
 
 .. code-block:: python
 
-   def startExit(checkpoint: bytes32, witness: bytes[1024]):
+   def startExit(checkpoint: Checkpoint, witness: bytes[1024]):
 
 Description
 ^^^^^^^^^^^
@@ -601,20 +601,21 @@ Starts an exit from a checkpoint. Checkpoint may be pending or finalized.
 
 Parameters
 ^^^^^^^^^^
-1. ``checkpoint`` - ``bytes32``: `ID of the checkpoint`_ from which to exit.
+1. ``checkpoint`` - ``Checkpoint``: `The checkpoint`_ from which to exit.
 2. ``witness`` - ``bytes``: Extra witness data passed to the `predicate contract`_. Determines whether the sender of the transaction is allowed to start an exit from the checkpoint.
 
 Requirements
 ^^^^^^^^^^^^
-.. todo::
 
-   Add requirements for startExit.
+- **MUST** ensure the checkpoint exists.
+- **MUST** ensure an exit on the checkpoint is not already underway.
+- **MUST** ensure the party exiting is allowed to via ``Checkpoint.StateUpdate.state.predicateAddress.canExitCheckpoint(checkpoint, witness)``
+- **MUST** set the exit's ``redeemableAfter`` status to the current Ethereum ``block.number + LOCKUP_PERIOD``.
+- **MUST** emit an ``exitStarted`` event.
 
 Rationale
 ^^^^^^^^^
-.. todo::
-
-   Add rationale for startExit.
+For a user to redeem state from the plasma chain onto the main chain, they must checkpoint it and respond to all challenges on the checkpoint, and await a ``LOCKUP_PERIOD`` to demonstrate that the checkpointed subrange has not been deprecated by any transactions.  This is the method which starts the latter process on a given checkpoint.
 
 challengeExitDeprecated
 -----------------------
