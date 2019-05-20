@@ -6,6 +6,12 @@ Deposit Contract
 Description
 ***********
 
+.. todo::
+
+   Add description for Deposit Contract.
+
+-------------------------------------------------------------------------------
+
 ***
 API
 ***
@@ -31,6 +37,9 @@ Fields
 1. ``start`` - ``uint256``: Start of the range of objects.
 2. ``end`` - ``uint256``: End of the range of objects.
 
+-------------------------------------------------------------------------------
+
+
 StateObject
 -----------
 
@@ -48,6 +57,9 @@ Fields
 ^^^^^^
 1. ``predicateAddress`` - ``address``: Address of the `predicate contract`_ that dictates how the object can be mutated.
 2. ``data`` - ``bytes``: Arbitrary state data for the object.
+
+-------------------------------------------------------------------------------
+
 
 StateUpdate
 -----------
@@ -71,6 +83,9 @@ Fields
 3. ``plasmaContract`` - ``address``: Address of the plasma contract in which the update was included.
 4. ``plasmaBlockNumber`` - ``uint256``: Plasma block number in which the update occurred.
 
+-------------------------------------------------------------------------------
+
+
 Checkpoint
 ----------
 
@@ -88,6 +103,9 @@ Fields
 ^^^^^^
 1. ``stateUpdate`` - ``StateUpdate``: State update being checkpointed.
 2. ``checkpointedRange`` - ``Range``: Sub-range of the state update being checkpointed. We include this field because the update may be `partially spent`_.
+
+-------------------------------------------------------------------------------
+
 
 CheckpointStatus
 ----------------
@@ -107,6 +125,9 @@ Fields
 1. ``challengeableUntil`` - ``uint256``: Ethereum block number until which the checkpoint can still be challenged.
 2. ``outstandingChallenges`` - ``uint256``: Number of outstanding challenges.
 
+-------------------------------------------------------------------------------
+
+
 Challenge
 ---------
 
@@ -124,6 +145,9 @@ Fields
 ^^^^^^
 1. ``challengedCheckpoint`` - ``Checkpoint``: Checkpoint being challenged.
 2. ``challengingCheckpoint`` - ``Checkpoint``: Checkpoint being used to challenge.
+
+-------------------------------------------------------------------------------
+
 
 Public Variables
 ================
@@ -147,6 +171,9 @@ Rationale
 ^^^^^^^^^
 Deposit contracts handle deposits and exits from a specific plasma chain. Commitment contracts hold the plasma block headers for that plasma chain and therefore make it possible to verify `inclusion proofs`_.
 
+-------------------------------------------------------------------------------
+
+
 TOKEN_ADDRESS
 -------------
 
@@ -169,6 +196,8 @@ Rationale
 ---------
 Each asset type needs to be allocated its own large contiguous "sub-range" within the larger Plasma Cashflow chain. Without these sub-ranges, `defragmentation`_ becomes effectively impossible. Although it's possible to achieve this result within a single deposit contract, it's easier to simply require that each asset have its own deposit contract and to allocate a large sub-range to every deposit contract.
 
+-------------------------------------------------------------------------------
+
 
 CHALLENGE_PERIOD
 ----------------
@@ -181,6 +210,9 @@ Description
 ^^^^^^^^^^^
 Number of Ethereum blocks for which a checkpoint may be challenged.
 
+-------------------------------------------------------------------------------
+
+
 EXIT_PERIOD
 -----------
 
@@ -191,6 +223,9 @@ EXIT_PERIOD
 Description
 ^^^^^^^^^^^
 Number of Ethereum blocks before an exit can be finalized.
+
+-------------------------------------------------------------------------------
+
 
 totalDeposited
 --------------
@@ -203,6 +238,9 @@ Description
 ^^^^^^^^^^^
 Total amount deposited into this contract.
 
+-------------------------------------------------------------------------------
+
+
 checkpoints
 -----------
 
@@ -213,6 +251,9 @@ checkpoints
 Description
 ^^^^^^^^^^^
 Mapping from the `ID of a checkpoint`_ to the checkpoint's status.
+
+-------------------------------------------------------------------------------
+
 
 limboCheckpointOrigins
 ----------------------
@@ -225,6 +266,9 @@ Description
 ^^^^^^^^^^^
 Mapping from the `ID of a limbo checkpoint`_ to the hash of the `state update`_ from which the limbo checkpoint originated.
 
+-------------------------------------------------------------------------------
+
+
 exitableRanges
 --------------
 
@@ -236,8 +280,11 @@ Description
 ^^^^^^^^^^^
 Stores the list of ranges that have not been exited as a mapping from the ``start`` of a range to the full range. Prevents multiple exits from the same range of objects.
 
+-------------------------------------------------------------------------------
+
+
 exits
---------------------
+-----
 
 .. code-block:: python
 
@@ -246,6 +293,9 @@ exits
 Description
 ^^^^^^^^^^^
 Mapping from the `ID of an exit`_ to the Ethereum block after which the exit can be finalized.
+
+-------------------------------------------------------------------------------
+
 
 challengeStatuses
 -----------------
@@ -257,6 +307,9 @@ challengeStatuses
 Description
 ^^^^^^^^^^^
 Mapping from the `ID of a challenge`_ to whether or not the challenge is currently active.
+
+-------------------------------------------------------------------------------
+
 
 Events
 ======
@@ -280,6 +333,9 @@ Fields
 1. ``checkpoint`` - ``bytes32``: `ID of the checkpoint`_ that was started.
 2. ``challengeableUntil`` - ``uint256``: Ethereum block in which the checkpoint was started.
 
+-------------------------------------------------------------------------------
+
+
 CheckpointChallenged
 --------------------
 
@@ -297,6 +353,9 @@ Fields
 ^^^^^^
 1. ``challenge`` - ``Challenge``: The details of the `challenge`_ .
 
+-------------------------------------------------------------------------------
+
+
 CheckpointFinalized
 -------------------
 
@@ -313,6 +372,9 @@ Emitted whenever a checkpoint is finalized.
 Fields
 ^^^^^^
 1. ``checkpoint`` - ``bytes32``: `ID of the checkpoint`_ that was finalized.
+
+-------------------------------------------------------------------------------
+
 
 ExitStarted
 -----------
@@ -333,6 +395,9 @@ Fields
 1. ``exit`` - ``bytes32``: `ID of the exit`_ that was started.
 2. ``exitPeriodStart`` - ``uint256``: Ethereum block in which the exit was started.
 
+-------------------------------------------------------------------------------
+
+
 ExitFinalized
 -------------
 
@@ -349,6 +414,9 @@ Emitted whenever an exit is finalized.
 Fields
 ^^^^^^
 1. ``exit`` - ``Checkpoint``: `The checkpoint`_ that had its exit finalized.
+
+-------------------------------------------------------------------------------
+
 
 Methods
 =======
@@ -383,8 +451,10 @@ Requirements
 
 Rationale
 ^^^^^^^^^
-
 Depositing is the mechanism which locks an asset into the plasma escrow agreement, allowing it to be transacted off-chain.  The ``initialState`` defines its spending conditions, in the same way that a ``StateUpdate`` does once further transactions are made.  Because deposits are verified on-chain transactions, they can be treated as checkpoints which are unchallengeable.
+
+-------------------------------------------------------------------------------
+
 
 startCheckpoint
 ---------------
@@ -419,8 +489,10 @@ Requirements
 
 Rationale
 ^^^^^^^^^
+Checkpoints are assertions that a certain state update occured/was included, and that it has no intersecting unspent state updates in its history.  Because the operator may publish an invalid block, it must undergo a challenge period in which the parties who care about the unspent state update in the history exit it, and use it to challenge the checkpoint.
 
-Checkpoints are assertions that a certain state update occured/was included, and that it has no intersecting unspent ``StateUpdate`` s in its history.  Because the operator may publish an invalid block, it must undergo a challenge period in which the parties who care about the unspent ``StateUpdate`` in the history exit it, and use it to challenge the checkpoint.
+-------------------------------------------------------------------------------
+
 
 startLimboCheckpoint
 --------------------
@@ -460,6 +532,9 @@ Rationale
 ^^^^^^^^^
 Limbo checkpoints are safe to make as long as it is impossible that the operator included a conflicting (containing a different ``StateObject`` ) ``StateUpdate`` which can be output by the ``originatingStateUpdate`` predicate's ``executeTransaction`` method.  Further, if the operator may have included a ``StateUpdate`` which does have this output, a limbo checkpoint is necessary to guarantee safety.
 
+-------------------------------------------------------------------------------
+
+
 challengeCheckpointOutdated
 ---------------------------
 
@@ -481,7 +556,6 @@ Parameters
 
 Requirements
 ^^^^^^^^^^^^
-
 - **MUST** ensure the checkpoint ranges intersect.
 - **MUST** ensure that the plasma blocknumber of the ``olderCheckpoint`` is less than that of ``newerCheckpoint``.
 - **MUST** ensure that the ``newerCheckpoint`` has no challenges.
@@ -490,8 +564,10 @@ Requirements
 
 Rationale
 ^^^^^^^^^
-
 If a checkpoint game has finalized, the safety property should be that nothing is valid in that range's previous blocks--"the history has been erased."  However, since there still might be some ``StateUpdates`` included in the blocks prior, invalid checkpoints can be initiated.  This method allows the rightful owner to demonstrate that the initiated ``olderCheckpoint`` is invalid and must be deleted.
+
+-------------------------------------------------------------------------------
+
 
 challengeCheckpointInvalidHistory
 ---------------------------------
@@ -529,6 +605,9 @@ Rationale
 ^^^^^^^^^
 If the operator includes an invalid ``StateUpdate`` (i.e. there is no transaction from the last valid ``StateUpdate`` on an intersecting range), they may checkpoint it and attempt a malicious exit.  To prevent this, the valid owner must checkpoint their unspent state, exit it, and create a challenge on the invalid checkpoint.
 
+-------------------------------------------------------------------------------
+
+
 challengeLimboCheckpointAlternateSpend
 --------------------------------------
 
@@ -562,6 +641,9 @@ Rationale
 ^^^^^^^^^
 Limbo checkpoints are invalid if an alternate spend was included from the originating state update.  For example, if Alice spent to Bob, but limbo exits her original ownership state with a limbo transaction to herself, Bob may cancel it by demonstrating the conflicting transaction which spends to her.  This prevents the attacks which limbo exits would otherwise introduce.
 
+-------------------------------------------------------------------------------
+
+
 removeChallengeCheckpointInvalid
 --------------------------------
 
@@ -581,7 +663,6 @@ Parameters
 
 Requirements
 ^^^^^^^^^^^^
-
 - **MUST** check that the challenge was not already removed.
 - **MUST** check that the challenging exit has since been removed.
 - **MUST** remove the challenge if above conditions are met.
@@ -589,8 +670,10 @@ Requirements
 
 Rationale
 ^^^^^^^^^
-
 Anyone can exit a prior state which was since spent and use it to challenge despite it being deprecated.  To remove this invalid challenge, the challenged checkpointer may demonstrate the exit is deprecated, deleting it, and then call this method to remove the challenge.
+
+-------------------------------------------------------------------------------
+
 
 startExit
 ---------
@@ -610,7 +693,6 @@ Parameters
 
 Requirements
 ^^^^^^^^^^^^
-
 - **MUST** ensure the checkpoint exists.
 - **MUST** ensure an exit on the checkpoint is not already underway.
 - **MUST** ensure the party exiting is allowed to via ``Checkpoint.StateUpdate.state.predicateAddress.canExitCheckpoint(checkpoint, witness)``
@@ -620,6 +702,9 @@ Requirements
 Rationale
 ^^^^^^^^^
 For a user to redeem state from the plasma chain onto the main chain, they must checkpoint it and respond to all challenges on the checkpoint, and await a ``LOCKUP_PERIOD`` to demonstrate that the checkpointed subrange has not been deprecated by any transactions.  This is the method which starts the latter process on a given checkpoint.
+
+-------------------------------------------------------------------------------
+
 
 challengeExitDeprecated
 -----------------------
@@ -644,12 +729,14 @@ Requirements
 ^^^^^^^^^^^^
 - **MUST** ensure the ``transaction`` results in a valid ``StateUpdate`` by calling the ``executeTransaction(checkpoint.StateUpdate, transaction)`` for the ``checkpoint.stateUpdate.predicateAddress`` .
 - **MUST** ensure the ``StateUpdate`` resulting from the transaction intersects the ``checkpoint.subRange``.
-- **MUST* delete the ``exit`` from ``exits`` at the ``checkpointId`` .
+- **MUST** delete the ``exit`` from ``exits`` at the ``checkpointId`` .
 
 Rationale
 ^^^^^^^^^
-
 If a transaction exists spending from a checkpoint, the checkpoint may still be valid, but an exit on it is not.  This challenge deletes the exit by demonstrating such a transaction.
+
+-------------------------------------------------------------------------------
+
 
 finalizeExit
 ------------
@@ -669,7 +756,6 @@ Parameters
 
 Requirements
 ^^^^^^^^^^^^
-
 - **MUST** ensure that the checkpoint is finalized (current Ethereum block exceeds ``checkpoint.challengeableUntil``).
 - **MUST** ensure that the checkpoint's ``outstandingChallenges`` is 0.
 - **MUST** ensure that the exit is finalized (current Ethereum block exceeds ``redeemablAfter`` ).
@@ -683,8 +769,8 @@ Requirements
 
 Rationale
 ^^^^^^^^^
-
 Exit finalization is the step which actually allows the assets locked in plasma to be used on the main chain again.  Finalization requires that the exit and checkpoint games have completed successfully.
+
 
 .. _`state objects`: TODO
 .. _`state object`: TODO
