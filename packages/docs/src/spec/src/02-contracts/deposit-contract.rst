@@ -219,11 +219,11 @@ limboCheckpointOrigins
 
 .. code-block:: python
 
-   limboCheckpointOrigins: public(map(bytes32, StateUpdate))
+   limboCheckpointOrigins: public(map(bytes32, bytes32))
 
 Description
 ^^^^^^^^^^^
-Mapping from the `ID of a limbo checkpoint`_ to the `state update`_ from which the limbo checkpoint originated.
+Mapping from the `ID of a limbo checkpoint`_ to the hash of the `state update`_ from which the limbo checkpoint originated.
 
 exitableRanges
 --------------
@@ -236,12 +236,12 @@ Description
 ^^^^^^^^^^^
 Stores the list of ranges that have not been exited as a mapping from the ``start`` of a range to the full range. Prevents multiple exits from the same range of objects.
 
-exitsRedeemableAfter
+exits
 --------------------
 
 .. code-block:: python
 
-   exitsRedeemableAfter: public(map(bytes32, uint256))
+   exits: public(map(bytes32, uint256))
 
 Description
 ^^^^^^^^^^^
@@ -267,8 +267,8 @@ CheckpointStarted
 .. code-block:: python
 
    CheckpointStarted: event({
-       checkpoint: bytes32,
-       challengePeriodStart: uint256
+       checkpoint: Checkpoint,
+       challengeableUntil: uint256
    })
 
 Description
@@ -278,7 +278,7 @@ Emitted whenever a user attempts to checkpoint a state update.
 Fields
 ^^^^^^
 1. ``checkpoint`` - ``bytes32``: `ID of the checkpoint`_ that was started.
-2. ``challengePeriodStart`` - ``uint256``: Ethereum block in which the checkpoint was started.
+2. ``challengeableUntil`` - ``uint256``: Ethereum block in which the checkpoint was started.
 
 CheckpointChallenged
 --------------------
@@ -286,8 +286,7 @@ CheckpointChallenged
 .. code-block:: python
 
    CheckpointChallenged: event({
-       checkpoint: bytes32,
-       challenge: bytes32
+       challenge: Challenge
    })
 
 Description
@@ -296,8 +295,7 @@ Emitted whenever an `invalid history challenge`_ has been started on a checkpoin
 
 Fields
 ^^^^^^
-1. ``checkpoint`` - ``bytes32``: `ID of the checkpoint`_ that was challenged.
-2. ``challenge`` - ``bytes32``: `ID of the challenge`_ on the checkpoint.
+1. ``challenge`` - ``Challenge``: The details of the `challenge`_ .
 
 CheckpointFinalized
 -------------------
@@ -341,7 +339,7 @@ ExitFinalized
 .. code-block:: python
 
    ExitFinalized: event({
-       exit: bytes32
+       exit: Checkpoint
    })
 
 Description
@@ -350,7 +348,7 @@ Emitted whenever an exit is finalized.
 
 Fields
 ^^^^^^
-1. ``exit`` - ``bytes32``: `ID of the exit`_ that was finalized.
+1. ``exit`` - ``Checkpoint``: `The checkpoint`_ that had its exit finalized.
 
 Methods
 =======
@@ -524,7 +522,7 @@ Requirements
 - **MUST** check whether the checkpoint being challenged is a limbo checkpoint.  If it is:
    - **MUST** check that the provided ``limboOrigin`` was the correct originating state update for the limbo exit.
    - **MUST** ensure that the challenging checkpoint has an earlier ``plasmaBlocknumber`` than that of the ``limboOrigin``.
-- **MUST** increment the ``numChallenges`` for the challenged checkpoint.
+- **MUST** increment the ``outstandingChallenges`` for the challenged checkpoint.
 - **MUST** set the ``challenges`` mapping for the ``challengeId`` to true.
 
 Rationale
@@ -587,7 +585,7 @@ Requirements
 - **MUST** check that the challenge was not already removed.
 - **MUST** check that the challenging exit has since been removed.
 - **MUST** remove the challenge if above conditions are met.
-- **MUST** decrement the challenged checkpoint's ``numChallenges`` if the above conditions are met.
+- **MUST** decrement the challenged checkpoint's ``outstandingChallenges`` if the above conditions are met.
 
 Rationale
 ^^^^^^^^^
@@ -673,7 +671,7 @@ Requirements
 ^^^^^^^^^^^^
 
 - **MUST** ensure that the checkpoint is finalized (current Ethereum block exceeds ``checkpoint.challengeableUntil``).
-- **MUST** ensure that the checkpoint's ``numChallenges`` is 0.
+- **MUST** ensure that the checkpoint's ``outstandingChallenges`` is 0.
 - **MUST** ensure that the exit is finalized (current Ethereum block exceeds ``redeemablAfter`` ).
 - **MUST** ensure that the checkpoint is on a subrange of the currently exitable ranges via ``exitableRangeId``.
 - **MUST** approve an ERC20 transfer of the ``end - start`` amount to the predicate address.
