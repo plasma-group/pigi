@@ -14,4 +14,4 @@ Architecture Diagram
 
 .. raw:: html
    
-   <object data="./_static/images/client-architecture.xml" type="image/svg+xml"></object>
+   <object data="../../_static/images/client-architecture.xml" type="image/svg+xml"></object>
