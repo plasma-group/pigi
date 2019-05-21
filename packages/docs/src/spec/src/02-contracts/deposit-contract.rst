@@ -137,7 +137,7 @@ Challenge
 
 Description
 ^^^^^^^^^^^
-Describes a challenge against a checkpoint.
+Describes a challenge against a checkpoint.  A challenge is a claom that the ``challengingCheckpoint`` has no valid transactions, meaning that the state update in the ``challengedCheckpoint`` could never have been reached and thus is invalid.
 
 Fields
 ^^^^^^
