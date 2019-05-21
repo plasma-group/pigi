@@ -6,9 +6,7 @@ Deposit Contract
 Description
 ***********
 
-.. todo::
-
-   Add description for Deposit Contract.
+Deposit contracts are the ethereum smart contracts into which assets are deposited--custodying the money as it is transacted on plasma and playing out the exit games to resolve the rightful owners of previously deposited assets.  As such, it contains the bulk of the logic for the plasma exit games.  The things it does not cover are 1) block commitments, and 2), state transitions, which are handled by calls to the commitment contract and predicate contracts specifically.
 
 -------------------------------------------------------------------------------
 
