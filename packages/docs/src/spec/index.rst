@@ -52,6 +52,7 @@ This website documents the entirety of the Plasma Group design, from the inner w
    src/03-client/wallet-db
    src/03-client/wallet
    src/03-client/predicate-plugin
+   src/03-client/plugin-manager
    src/03-client/history-db
    src/03-client/history-manager
    src/03-client/state-db
