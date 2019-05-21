@@ -95,7 +95,7 @@ Checkpoint
 
 Description
 ^^^^^^^^^^^
-Represents a `checkpoint`_ of a particular state update.
+Represents a `checkpoint`_ of a particular state update on which a "checkpoint game" is being or has been played out.  Checkpoints wich have successfully passed the checkpoint game are considered "finalized", meaning the plasma contract should ignore all state updates on that range with an older plasma block number.
 
 Fields
 ^^^^^^
