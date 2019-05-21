@@ -2,7 +2,13 @@
 Architecture
 ############
 
-.. todo::
+********************
+Architecture Diagram
+********************
 
-   Describe architecture for client.
+.. figure:: ./_static/images/client-architecture.png
+    :align: center
+    :target: ./_static/images/client-architeture.png
+
+    Client Architecture Diagram
 
