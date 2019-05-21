@@ -42,9 +42,9 @@ This website documents the entirety of the Plasma Group design, from the inner w
    src/03-client/event-handling
    src/03-client/state-queries
    src/03-client/transaction-generation
-   src/03-client/history-proof
    src/03-client/history-generation
    src/03-client/history-verification
+   src/03-client/history-proof-structure
    src/03-client/exit-guarding
    src/03-client/query-expressions
    src/03-client/merkle-interval-tree
