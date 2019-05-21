@@ -67,11 +67,11 @@ Our semantic versioning strategy is pretty simple. Changes to this specification
 .. _`issue on GitHub`: TODO
 .. _`pull request`: TODO
 .. _`semantic versioning`: https://semver.org/
-.. _`#00: Introduction`: :doc:`./introduction`
-.. _`#01: Core Components`: :doc:`../01-core/state-system`
-.. _`#02: Contracts`: :doc:`../02-contracts/deposit-contract`
-.. _`#03: Client`: :doc:`../03-client/introduction`
-.. _`#04: Operator`: :doc:`../04-client/introduction`
+.. _`#00: Introduction`: ./introduction
+.. _`#01: Core Components`: ../01-core/state-system
+.. _`#02: Contracts`: ../02-contracts/deposit-contract
+.. _`#03: Client`: ../03-client/introduction
+.. _`#04: Operator`: ../04-client/introduction
 .. _`operator`: TODO
 .. _`minor version`: https://semver.org/#spec-item-7
 .. _`patch version`: https://semver.org/#spec-item-6
