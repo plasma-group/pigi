@@ -6,9 +6,7 @@ Deposit Contract
 Description
 ***********
 
-.. todo::
-
-   Add description for Deposit Contract.
+Deposit contracts are the ethereum smart contracts into which assets are deposited--custodying the money as it is transacted on plasma and playing out the exit games to resolve the rightful owners of previously deposited assets.  As such, it contains the bulk of the logic for the plasma exit games.  The things it does not cover are 1) block commitments, and 2), state transitions, which are handled by calls to the commitment contract and predicate contracts specifically.
 
 -------------------------------------------------------------------------------
 
@@ -74,7 +72,7 @@ StateUpdate
 
 Description
 ^^^^^^^^^^^
-Represents a `state update`_, which contains the contextual information for how a particular `state object`_ was mutated.
+Represents a `state update`_, which contains the contextual information for how a particular range of `state objects`_ was mutated.
 
 Fields
 ^^^^^^
@@ -97,7 +95,7 @@ Checkpoint
 
 Description
 ^^^^^^^^^^^
-Represents a `checkpoint`_ of a particular state update.
+Represents a `checkpoint`_ of a particular state update on which a "checkpoint game" is being or has been played out.  Checkpoints wich have successfully passed the checkpoint game are considered "finalized", meaning the plasma contract should ignore all state updates on that range with an older plasma block number.
 
 Fields
 ^^^^^^
@@ -139,7 +137,7 @@ Challenge
 
 Description
 ^^^^^^^^^^^
-Describes a challenge against a checkpoint.
+Describes a challenge against a checkpoint.  A challenge is a claom that the ``challengingCheckpoint`` has no valid transactions, meaning that the state update in the ``challengedCheckpoint`` could never have been reached and thus is invalid.
 
 Fields
 ^^^^^^
