@@ -46,8 +46,10 @@ This website documents the entirety of the Plasma Group design, from the inner w
    src/03-client/history-generation
    src/03-client/history-verification
    src/03-client/exit-guarding
+   src/03-client/query-expressions
    src/03-client/merkle-interval-tree
    src/03-client/range-db
+   src/03-client/contract-wrapper
    src/03-client/event-watcher
    src/03-client/wallet-db
    src/03-client/wallet
@@ -57,7 +59,6 @@ This website documents the entirety of the Plasma Group design, from the inner w
    src/03-client/history-manager
    src/03-client/state-db
    src/03-client/state-manager
-   src/03-client/query-expressions
    src/03-client/rpc-client
    src/03-client/rpc-server
    src/03-client/rpc-methods
