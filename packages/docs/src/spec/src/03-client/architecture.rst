@@ -8,4 +8,5 @@ Architecture Diagram
 
 .. raw:: html
    
-   <object data="../../_static/images/architecture/client-architecture.xml" type="image/svg+xml"></object>
+   <img src="../../_static/images/architecture/client-architecture.xml" alt="Client Architecture">
+
