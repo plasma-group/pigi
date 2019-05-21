@@ -30,7 +30,7 @@ This section covers an introduction to the concepts of generalized plasma and th
 
 #01: Core Components
 ====================
-The generalized plasma construction relies on various core components that are shared between the contracts, client, and operator. We specify these components to provide the fundamental basis for the rest of the specifiation.
+The generalized plasma construction relies on various core components that are shared between the contracts, client, and operator. We specify these components to provide the fundamental basis for the rest of the specification.
 
 #02: Contracts
 ==============
@@ -67,10 +67,12 @@ Our semantic versioning strategy is pretty simple. Changes to this specification
 .. _`issue on GitHub`: TODO
 .. _`pull request`: TODO
 .. _`semantic versioning`: https://semver.org/
-.. _`#00: Introduction`: TODO
-.. _`#01: Core Components`: TODO
-.. _`#02: Contracts`: TODO
-.. _`#03: Client`: TODO
-.. _`#04: Operator`: TODO
+.. _`#00: Introduction`: :doc:`./introduction`
+.. _`#01: Core Components`: :doc:`../01-core/state-system`
+.. _`#02: Contracts`: :doc:`../02-contracts/deposit-contract`
+.. _`#03: Client`: :doc:`../03-client/introduction`
+.. _`#04: Operator`: :doc:`../04-client/introduction`
 .. _`operator`: TODO
+.. _`minor version`: https://semver.org/#spec-item-7
+.. _`patch version`: https://semver.org/#spec-item-6
 
