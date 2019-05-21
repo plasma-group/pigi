@@ -6,12 +6,9 @@ Architecture
 Architecture Diagram
 ********************
 
-.. figure:: ./_static/images/client-architecture.png
+.. figure:: ../../_static/images/client-architecture.png
     :align: center
-    :target: ./_static/images/client-architeture.png
+    :target: ../../_static/images/client-architeture.png
 
     Client Architecture Diagram
 
-.. raw:: html
-   
-   <object data="../../_static/images/client-architecture.xml" type="image/svg+xml"></object>
