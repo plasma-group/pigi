@@ -71,7 +71,7 @@ Our semantic versioning strategy is pretty simple. Changes to this specification
 .. _`#01: Core Components`: ../01-core/state-system
 .. _`#02: Contracts`: ../02-contracts/deposit-contract
 .. _`#03: Client`: ../03-client/introduction
-.. _`#04: Operator`: ../04-client/introduction
+.. _`#04: Operator`: <../04-client/introduction>
 .. _`operator`: TODO
 .. _`minor version`: https://semver.org/#spec-item-7
 .. _`patch version`: https://semver.org/#spec-item-6
