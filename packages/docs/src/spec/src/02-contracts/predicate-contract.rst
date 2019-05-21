@@ -5,9 +5,8 @@ Predicate Contract
 ***********
 Description
 ***********
-.. todo::
 
-   Add description for predicate contract.
+Predicate contracts define the rules for particular state objects' exit game.  The most fundamental thing they define is the state transition logic, which accepts a transaction and an initial state update and outputs a new state update.  Because the predicate contract is a stateful main-chain contract, more advanced predicates can also define custom exit logic which must be evaluated before any state transitions are approved by the predicate.  Thus, predicates can be used as fully customized extensions to the base plasma cash exit game.
 
 ***
 API
