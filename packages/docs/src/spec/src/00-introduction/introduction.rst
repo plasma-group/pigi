@@ -60,19 +60,20 @@ Most pages within this specification will continue to evolve as we develop `our 
 
 Our semantic versioning strategy is pretty simple. Changes to this specification that would make an implementation incompatible with implementations of previous versions are split into different `major versions`_. Changes that simply add functionality but don't break backwards compatibility bump the `minor version`_. Finally, fixes that don't add or remove functionality (layout edits, grammatical fixes, typo fixes) bump the `patch version`_.
 
-.. _`Lightning BOLT specifications`: TODO
-.. _`Plasma Group monorepo`: TODO
-.. _`our implementation`: TODO
-.. _`major versions`: TODO
-.. _`issue on GitHub`: TODO
-.. _`pull request`: TODO
-.. _`semantic versioning`: https://semver.org/
-.. _`#00: Introduction`: ./introduction
-.. _`#01: Core Components`: ../01-core/state-system
-.. _`#02: Contracts`: ../02-contracts/deposit-contract
-.. _`#03: Client`: ../03-client/introduction
-.. _`#04: Operator`: <../04-client/introduction>
+
+.. _`Lightning BOLT specifications`: https://github.com/lightningnetwork/lightning-rfc
+.. _`Plasma Group monorepo`: https://github.com/plasma-group/pigi/tree/master/packages/docs/src/spec
+.. _`our implementation`: https://github.com/plasma-group/pigi/tree/master/packages/core
+.. _`issue on GitHub`: https://github.com/plasma-group/pigi/issues
+.. _`pull request`: https://github.com/plasma-group/pigi/pulls
+.. _`#00: Introduction`: ./introduction.html
+.. _`#01: Core Components`: ../01-core/state-system.html
+.. _`#02: Contracts`: ../02-contracts/deposit-contract.html
+.. _`#03: Client`: ../03-client/introduction.html
+.. _`#04: Operator`: ../04-client/introduction.html
 .. _`operator`: TODO
+.. _`semantic versioning`: https://semver.org/
 .. _`minor version`: https://semver.org/#spec-item-7
 .. _`patch version`: https://semver.org/#spec-item-6
+.. _`major versions`: https://semver.org/#spec-item8
 
