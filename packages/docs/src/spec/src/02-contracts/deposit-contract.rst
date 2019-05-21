@@ -72,7 +72,7 @@ StateUpdate
 
 Description
 ^^^^^^^^^^^
-Represents a `state update`_, which contains the contextual information for how a particular `state object`_ was mutated.
+Represents a `state update`_, which contains the contextual information for how a particular range of `state objects`_ was mutated.
 
 Fields
 ^^^^^^
