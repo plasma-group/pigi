@@ -472,7 +472,7 @@ Starts a checkpoint for a given state update.
 
 Parameters
 ^^^^^^^^^^
-1. ``stateUpdate`` - ``StateUpdate``: State update to checkpoint.
+1. ``checkpoint`` - ``Checkpoint``: Checkpoint to be initiated.
 2. ``inclusionProof`` - ``bytes``: Proof that the state update was included in the block specified within the update.
 3. ``exitableRangeId`` - ``uint256``: The key in the ``exitableRanges`` mapping which includes the ``checkpointedRange`` as a subrange.
 
