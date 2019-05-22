@@ -40,7 +40,7 @@ We've provided a diagram of the double-layer Merkle Interval Tree below. The dia
 
 .. raw:: html
 
-   <img src="../../_static/images/merkle-interval-tree/merkle-interval-tree.svg" alt="Double-Layer Merkle Interval Tree">
+   <img src="../../_static/images/double-layer-tree/double-layer-tree.svg" alt="Double-Layer Merkle Interval Tree">
 
 
 .. _`Plasma Cashflow`: TODO
