@@ -33,6 +33,15 @@ Address Tree
 
    Explain the purpose and structure of the address tree.
 
+************
+Tree Diagram
+************
+We've provided a diagram of the double-layer Merkle Interval Tree below. The diagram explains the relationship the state updates that form the tree and the tree itself.
+
+.. raw:: html
+
+   <img src="../../_static/images/merkle-interval-tree/merkle-interval-tree.svg" alt="Double-Layer Merkle Interval Tree">
+
 
 .. _`Plasma Cashflow`: TODO
 .. _`ranges`: TODO
