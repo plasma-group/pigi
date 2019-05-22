@@ -642,8 +642,8 @@ Limbo checkpoints are invalid if an alternate spend was included from the origin
 -------------------------------------------------------------------------------
 
 
-removeChallengeCheckpointInvalid
---------------------------------
+removeChallengeCheckpointInvalidHistory
+---------------------------------------
 
 .. code-block:: python
 
@@ -728,6 +728,7 @@ Requirements
 - **MUST** ensure the ``transaction`` results in a valid ``StateUpdate`` by calling the ``executeTransaction(checkpoint.StateUpdate, transaction)`` for the ``checkpoint.stateUpdate.predicateAddress`` .
 - **MUST** ensure the ``StateUpdate`` resulting from the transaction intersects the ``checkpoint.subRange``.
 - **MUST** delete the ``exit`` from ``exits`` at the ``checkpointId`` .
+- **MUST** 
 
 Rationale
 ^^^^^^^^^
