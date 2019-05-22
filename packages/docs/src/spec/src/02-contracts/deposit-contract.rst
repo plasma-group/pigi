@@ -381,7 +381,7 @@ ExitStarted
 
    ExitStarted: event({
        exit: bytes32,
-       exitPeriodStart: uint256
+       redeembleAfter: uint256
    })
 
 Description
@@ -391,7 +391,7 @@ Emitted whenever an exit is started.
 Fields
 ^^^^^^
 1. ``exit`` - ``bytes32``: `ID of the exit`_ that was started.
-2. ``exitPeriodStart`` - ``uint256``: Ethereum block in which the exit was started.
+2. ``redeembleAfter`` - ``uint256``: Ethereum block in which the exit will be redeemable.
 
 -------------------------------------------------------------------------------
 
