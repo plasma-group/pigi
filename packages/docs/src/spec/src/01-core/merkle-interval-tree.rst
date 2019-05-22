@@ -196,6 +196,16 @@ Pseudocode
       
        return current_node == root_node
 
+************
+Tree Diagram
+************
+A diagram of the Merkle Interval Tree is provided below. We've highlighted the nodes that one would need to provide to prove inclusion of a given state update.
+
+.. raw:: html
+
+   <img src="../../_static/images/merkle-interval-tree/merkle-interval-tree.svg" alt="Merkle Interval Tree">
+
+
 .. _`internal nodes`: TODO
 .. _`described above`: TODO
 .. _`hash function`: TODO
