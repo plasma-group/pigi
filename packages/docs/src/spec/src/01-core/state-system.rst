@@ -42,8 +42,8 @@ Requirements
    - **MUST** have a globally unique identifier.
    - **MUST** specify the 20-byte address of a predicate contract.
    - **MUST** specify some additional arbitrary stored data.
-   - **MAY** specify the empty string in place of arbitrary stored data.
-   - **SHOULD** specify the zero address to represent a "burned" state.
+      - **MAY** specify the empty string in place of arbitrary stored data.
+      - **SHOULD** specify the zero address to represent a "burned" state.
 
 Rationale
 ---------
@@ -127,8 +127,6 @@ For any given method:
    
    def method_name(arg1: arg1_type, arg2: arg2_type, ...) -> return_type
 
-The signature of that method is:
-
 .. code-block::
    
    method_name(arg1_type, arg2_type, ...)
@@ -144,7 +142,7 @@ We'll use the `SimpleOwnership`_ predicate as an example. State objects locked w
 
 The signature of this method is:
 
-.. code-block::
+.. code-block:: python
 
    send(address)
 
