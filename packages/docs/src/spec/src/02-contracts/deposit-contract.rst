@@ -295,12 +295,12 @@ Mapping from the `ID of an exit`_ to the Ethereum block after which the exit can
 -------------------------------------------------------------------------------
 
 
-challengeStatuses
+challenges
 -----------------
 
 .. code-block:: python
 
-   challengeStatuses: public(map(bytes32, bool))
+   challenges: public(map(bytes32, bool))
 
 Description
 ^^^^^^^^^^^
