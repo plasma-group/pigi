@@ -31,6 +31,7 @@ Returns
 ^^^^^^^
 ``Promise<string[]>``: List of all account addresses in the wallet.
 
+
 -------------------------------------------------------------------------------
 
 createAccount

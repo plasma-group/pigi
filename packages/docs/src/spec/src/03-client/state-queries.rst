@@ -6,9 +6,9 @@ State Queries
 Query Generation
 ****************
 
-Parsing Predicate ABI
+Parsing Predicate API
 =====================
-The `Predicate ABI`_ provided by each predicate specifies a list of queries that can be made to a specific predicate. For example, the ABI of the `SimpleOwnership`_ predicatespecifies the following function:
+The `Predicate API`_ provided by each predicate specifies a list of queries that can be made to a specific predicate. For example, the API of the `SimpleOwnership`_ predicatespecifies the following function:
 
 .. code-block:: json
 
@@ -24,7 +24,7 @@ The `Predicate ABI`_ provided by each predicate specifies a list of queries that
      ]
    }
 
-Clients generate a ``StateQuery`` object by providing the ``name`` from the Predicate ABI and any necessary ``inputs``.
+Clients generate a ``StateQuery`` object by providing the ``name`` from the Predicate API and any necessary ``inputs``.
 
 Sending Query Requests
 ======================
@@ -34,11 +34,11 @@ Parsing Query Results
 =====================
 The result of a state query is a list of ``StateQueryResult`` objects. If a filter was provided as part of the ``StateQuery``, ``StateQueryResult`` objects will only be returned if the result passed the filter. 
 
-The contents of the ``result`` field of each ``StateQueryResult`` depends on the ``output`` of the queried function in the Predicate ABI.
+The contents of the ``result`` field of each ``StateQueryResult`` depends on the ``output`` of the queried function in the Predicate API.
 
 Example: SimpleOwnership
 ========================
-We'll now provide an example state query for the ``getOwner`` method of the ``SimpleOwnership`` predicate. The Predicate ABI for ``SimpleOwnership`` describes this function as:
+We'll now provide an example state query for the ``getOwner`` method of the ``SimpleOwnership`` predicate. The Predicate API for ``SimpleOwnership`` describes this function as:
 
 .. code-block:: json
 
@@ -126,7 +126,7 @@ Such a filter is stating that the first output result of the query must be great
 Any results that have not been removed by the filter can then be returned to the requesting client.
 
 
-.. _`Predicate ABI`: TODO
+.. _`Predicate API`: TODO
 .. _`SimpleOwnership`: TODO
 .. _`state query RPC method`: TODO
 .. _`StateQuery`: TODO

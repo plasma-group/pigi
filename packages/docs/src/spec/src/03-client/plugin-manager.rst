@@ -7,6 +7,7 @@ Description
 ***********
 The ``PluginManager`` handles loading and accessing `PredicatePlugins`_. Other components are expected to go through the ``PluginManager`` whenever they intend to access a specific ``PredicatePlugin``.
 
+
 -------------------------------------------------------------------------------
 
 ***
@@ -38,6 +39,7 @@ Parameters
 Returns
 ^^^^^^^
 ``Promise<PredicatePlugin>``: The loaded `PredicatePlugin`_.
+
 
 -------------------------------------------------------------------------------
 

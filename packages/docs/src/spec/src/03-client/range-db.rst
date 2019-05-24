@@ -9,14 +9,17 @@ Description
 
 -------------------------------------------------------------------------------
 
-***************
-Data Structures
-***************
+***
+API
+***
+
+Structs
+=======
 
 RangeEntry
-==========
+----------
 
-.. code-block: typescript
+.. code-block:: typescript
 
    interface RangeEntry {
      start: number
@@ -25,20 +28,17 @@ RangeEntry
    }
 
 Description
------------
+^^^^^^^^^^^
 Represents a value in the database. All values are constructed with respect to some range, defined by ``start`` and ``end``.
 
 Fields
-------
+^^^^^^
 1. ``start`` - ``number``: Start of the range described by this entry.
 2. ``end`` - ``number``: End of the range described by this entry.
 3. ``value`` - ``Buffer``: Value at this specific range.
 
--------------------------------------------------------------------------------
 
-***
-API
-***
+-------------------------------------------------------------------------------
 
 Methods
 =======
@@ -63,6 +63,7 @@ Returns
 ^^^^^^^
 ``Promise<RangeEntry[]>``: All ``RangeEntry`` objects in the database such that ``entry.start`` and ``entry.end`` intersect with the given ``start`` and ``end``.
 
+
 -------------------------------------------------------------------------------
 
 put
@@ -85,6 +86,7 @@ Parameters
 Returns
 ^^^^^^^
 ``Promise<void>``: Promise that resolves once the range has been inserted.
+
 
 -------------------------------------------------------------------------------
 

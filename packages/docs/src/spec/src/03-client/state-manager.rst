@@ -10,12 +10,15 @@ Description
 -------------------------------------------------------------------------------
 
 
-***************
+***
+API
+***
+
 Data Structures
-***************
+===============
 
 StateQuery
-==========
+----------
 
 .. code-block:: typescript
 
@@ -30,11 +33,11 @@ StateQuery
    }
 
 Description
------------
+^^^^^^^^^^^
 Represents a query for some information about the current state.
 
 Fields
-------
+^^^^^^
 1. ``plasmaContract`` - ``string``: Address of the plasma contract to query. Clients may track multiple plasma contracts, so this parameter is necessary to resolve the correct data.
 2. ``predicateAddress`` - ``string``: Address of the predicate to query.
 3. ``start`` - ``number``: Start of the range to query. If not provided, will default to the 0.
@@ -43,11 +46,11 @@ Fields
 6. ``params`` - ``string[]``: List of parameters to the call.
 7. ``filter?`` - ``Expression``: An `Expression`_ to use to filter results. May be omitted to return all results.
 
+
 -------------------------------------------------------------------------------
 
-
 StateQueryResult
-================
+----------------
 
 .. code-block:: typescript
 
@@ -57,20 +60,16 @@ StateQueryResult
    }
 
 Description
------------
+^^^^^^^^^^^
 Element of the list of results returned when a client makes a state query.
 
 Fields
-------
+^^^^^^
 1. ``stateUpdate`` - ``StateUpdate``: ``StateUpdate`` object to which the result pertains.
-2. ``result`` - ``string[]``: Result values of the query corresponding to the output values described in the `Predicate ABI`_.
+2. ``result`` - ``string[]``: Result values of the query corresponding to the output values described in the `Predicate API`_.
+
 
 -------------------------------------------------------------------------------
-
-
-***
-API
-***
 
 Methods
 =======
@@ -151,7 +150,7 @@ Returns
 .. _`StateDB`: TODO
 .. _`HistoryManager`: TODO
 .. _`Expression`: TODO
-.. _`Predicate ABI`: TODO
+.. _`Predicate API`: TODO
 .. _`transaction`: TODO
 .. _`transactions`: TODO
 .. _`deposits`: TODO

@@ -10,12 +10,15 @@ Description
 -------------------------------------------------------------------------------
 
 
-***************
-Data Structures
-***************
+***
+API
+***
+
+Structs
+=======
 
 VerifiedStateUpdate
-===================
+-------------------
 
 .. code-block:: typescript
 
@@ -27,22 +30,18 @@ VerifiedStateUpdate
    }
 
 Description
------------
+^^^^^^^^^^^
 Represents a `StateUpdate`_ that has been `correctly verified`_ up to a specific block. ``verifiedBlockNumber`` is updated whenever a `non-inclusion proof`_ implicitly demonstrates that the given state update is valid for ``verifiedBlockNumber + 1``.
 
 Fields
-------
+^^^^^^
 1. ``start`` - ``number``: Start of the range for which this state update is still valid.
 2. ``end`` - ``number``: End of the range for which this state update is still valid.
 3. ``verifiedBlockNumber`` - ``number``: Plasma block number up to which this state update has been verified.
 4. ``stateUpdate`` - ``StateUpdate``: Full original state update.
 
+
 -------------------------------------------------------------------------------
-
-
-***
-API
-***
 
 Methods
 =======

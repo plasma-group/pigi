@@ -9,8 +9,8 @@ Description
 
 We've separated ``HistoryManager`` from ``HistoryDB`` to avoid coupling the underlying data storage with more complex queries.
 
--------------------------------------------------------------------------------
 
+-------------------------------------------------------------------------------
 
 ***
 API

@@ -5,37 +5,38 @@ Transaction Generation
 Clients must be able to create transactions that predicates use to compute state transitions. We now describe the process for generating a plasma transaction.
 
 *************
-Predicate ABI
+Predicate API
 *************
+For the sake of backwards compatibility, we've chosen to define a standard **Predicate API** based on the `Ethereum contract ABI`_ specification. We're using calling this an "API" instead of an "ABI" since it doesn't really correspond to exactly what's happening under the hood, but instead acts as an interface that explains how the user can talk to the predicate.
 
-For the sake of backwards compatibility, we've chosen to define a standard **Predicate ABI** based on the `Ethereum contract ABI`_ specification. This standard ABI format provides a list of function descriptors that a client can use to interact with the predicate. Clients are able to easily generate transactions for predicates that provide a Predicate ABI.
+This standard format provides a list of function descriptors that a client can use to interact with the predicate. Clients are able to easily generate transactions for predicates that provide a Predicate API.
 
-Predicate ABI objects are an array of *ABI elements*. Each ABI element describes a single function, including the function's inputs and outputs. Certain elements of the Ethereum contract ABI specification have been removed for simplicity. Otherwise, the structure of a Predicate ABI element is identical to the structure of an Ethereum contract ABI element.
+Predicate API objects are an array of *API elements*. Each API element describes a single function, including the function's inputs and outputs. Certain elements of the Ethereum contract ABI specification have been removed for simplicity. Otherwise, the structure of a Predicate API element is identical to the structure of an Ethereum contract ABI element.
 
-TypeScript interfaces for valid Predicate ABI objects are given below. Compare to the `Ethereum ABI JSON format`_ to understand similarities and differences. 
+TypeScript interfaces for valid Predicate API objects are given below. Compare to the `Ethereum ABI JSON format`_ to understand similarities and differences. 
 
 .. code-block:: typescript
 
-   interface PredicateAbiInput {
+   interface PredicateApiInput {
      name: string
      type: string
    }
    
-   interface PredicateAbiOutput {
+   interface PredicateApiOutput {
      type: string
    }
    
-   interface PredicateAbiItem {
+   interface PredicateApiItem {
      name: string
-     inputs: PredicateAbiInput[]
-     outputs: PredicateAbiOutput[]
+     inputs: PredicateApiInput[]
+     outputs: PredicateApiOutput[]
      constant: boolean
     }
 
 Example: SimpleOwnership Predicate
 ==================================
 
-We'll demonstrate Predicate ABI by looking at the `SimpleOwnership`_ predicate. SimpleOwnership allows one valid state transition whereby the current owner of a coin may sign off a new owner:
+We'll demonstrate Predicate API by looking at the `SimpleOwnership`_ predicate. SimpleOwnership allows one valid state transition whereby the current owner of a coin may sign off a new owner:
 
 .. code-block:: python
 
@@ -55,7 +56,7 @@ SimpleOwnership also gives us a single getter method which returns the current o
 
 This function *is* a ``constant`` method because it's only reading information, not writing it.
 
-Putting these together, the ABI for this predicate is therefore:
+Putting these together, the API for this predicate is therefore:
 
 .. code-block:: json
 
@@ -95,8 +96,8 @@ A plasma transaction **must** contain all of the following components:
 - ``block`` - ``number``: The block number in which this transaction will be included. We currently require that users sign off on the specific block in which their transaction will be included in order to prevent `certain attacks`_. 
 - ``start`` - ``number``: Start of the `range`_ being transacted.
 - ``end`` - ``number``: End of the range being transacted.
-- ``methodId`` - ``string``: A unique method identifier that tells a given predicate what type of state transition a user is trying to execute. This is necessary because a predicate may define multiple ways in which a state object can be mutated. ``methodId`` **should** be computed as the `keccak256`_ hash of the method's signature, as given by the `Predicate ABI`_.
-- ``parameters`` - ``string``: Input parameters to be sent to the predicate along with ``method`` to compute the state transiton. Must be `ABI encoded`_ according to the `Predicate ABI`_. This is similar to the transaction `input value encoding in Ethereum`_.
+- ``methodId`` - ``string``: A unique method identifier that tells a given predicate what type of state transition a user is trying to execute. This is necessary because a predicate may define multiple ways in which a state object can be mutated. ``methodId`` **should** be computed as the `keccak256`_ hash of the method's signature, as given by the `Predicate API`_.
+- ``parameters`` - ``string``: Input parameters to be sent to the predicate along with ``method`` to compute the state transiton. Must be `ABI encoded`_ according to the `Predicate API`_. This is similar to the transaction `input value encoding in Ethereum`_.
 - ``witness`` - ``string``: Additional `ABI encoded`_ data used to authenticate the transaction. This will often be a single signature, but could theoretically be anything. Clients that interact with a predicate need to know in advance what the predicate requires as a witness.
 
 The interface for a ``Transaction`` object in TypeScript is therefore as follows:
@@ -140,11 +141,11 @@ Transactions can be submitted to a node via the `sendTransaction RPC method`_. I
 Example: SimpleOwnership Predicate
 **********************************
 
-We're going to look at the whole process for generating a valid transaction to interact with some coins locked by the `SimpleOwnership`_ predicate. This example will explain how a client can use the `Predicate ABI`_ to generate all of the values necessary to generate a valid state-changing transaction that assigns the coins a new owner. Then we'll look at the process of encoding the transaction before it's sent to the operator.
+We're going to look at the whole process for generating a valid transaction to interact with some coins locked by the `SimpleOwnership`_ predicate. This example will explain how a client can use the `Predicate API`_ to generate all of the values necessary to generate a valid state-changing transaction that assigns the coins a new owner. Then we'll look at the process of encoding the transaction before it's sent to the operator.
 
 First, let's pick some arbitary values for ``predicateAddress``, ``block``, ``start``, and ``end``. Users will know these values in advance, so we don't really need to explain the process of getting them in the first place. Let's say that the ``predicateAddress`` of the SimpleOwnership predicate is ``0x5a0b54d5dc17e0aadc383d2db43b0a0d3e029c4c`` and we want to send the range ``(0, 100)`` in plasma block ``123``.
 
-Now we just need to figure out our values for ``methodId``, ``parameters``, and ``witness``. We're going to use the `Predicate ABI`_ for SimpleOwnership in order to generate these values. Users can get this ABI from a variety of places, but it's likely that most wallet software will come with a hard-coded ABI. Once we have the ABI, we know that ``send`` looks like this:
+Now we just need to figure out our values for ``methodId``, ``parameters``, and ``witness``. We're going to use the `Predicate API`_ for SimpleOwnership in order to generate these values. Users can get this API from a variety of places, but it's likely that most wallet software will come with a hard-coded API. Once we have the API, we know that ``send`` looks like this:
 
 .. code-block:: json
 
@@ -220,4 +221,5 @@ We now have a correctly formed transaction that can be sent to the operator for 
 .. _`input value encoding in Ethereum`: TODO
 .. _`ABI encoded or decoded`: TODO
 .. _`sendTransaction RPC method`: TODO
+.. _`Predicate API`: TODO
 

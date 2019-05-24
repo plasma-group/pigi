@@ -49,6 +49,7 @@ Parameters
 4. ``eventFilter`` - ``any``: An `event filter`_ for the event.
 5. ``callback`` - ``(eventName: string, eventData: any) => void``: Callback to be triggered whenever a matching event is detected in the smart contract.
 
+
 -------------------------------------------------------------------------------
 
 off

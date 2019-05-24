@@ -174,33 +174,33 @@ Test Vectors
    
    Add test vectors for method identifiers.
 
-Predicate ABI
+Predicate API
 =============
-Predicates **MUST** provide a **Predicate ABI** that allows a client to interact with the predicate. A Predicate ABI is composed of an array of **ABI elements**. each ABI element describes a single function, including the function's inputs and outputs. The structure of the ABI element has been based off of the `Ethereum contract ABI`_ specification.
+Predicates **MUST** provide a **Predicate API** that allows a client to interact with the predicate. A Predicate API is composed of an array of **API elements**. each API element describes a single function, including the function's inputs and outputs. The structure of the API element has been based off of the `Ethereum contract ABI`_ specification.
 
-TypeScript interfaces for valid Predicate ABI objects are provided below. Compare to the `Ethereum ABI JSON format`_ to understand similarities and differences.
+TypeScript interfaces for valid Predicate API objects are provided below. Compare to the `Ethereum ABI JSON format`_ to understand similarities and differences.
 
 .. code-block:: typescript
 
-   interface PredicateAbiInput {
+   interface PredicateApiInput {
      name: string
      type: string
    }
    
-   interface PredicateAbiOutput {
+   interface PredicateApiOutput {
      type: string
    }
    
-   interface PredicateAbiItem {
+   interface PredicateApiItem {
      name: string
-     inputs: PredicateAbiInput[]
-     outputs: PredicateAbiOutput[]
+     inputs: PredicateApiInput[]
+     outputs: PredicateApiOutput[]
      constant: boolean
    }
 
 Example
 -------
-We're going to describe a valid Predicate ABI by looking at the `SimpleOwnership`_ predicate. ``SimpleOwnership`` allows one valid state transition whereby the current owner of a state object may sign off on a new owner:
+We're going to describe a valid Predicate API by looking at the `SimpleOwnership`_ predicate. ``SimpleOwnership`` allows one valid state transition whereby the current owner of a state object may sign off on a new owner:
 
 .. code-block:: python
 
@@ -218,7 +218,7 @@ Note that this is **not** a ``constant`` method because it will update the state
 
 This function **is** a ``constant`` method because it only reads information and does not change the state of the object.
 
-Putting these together, the ABI for this predicate is therefore:
+Putting these together, the API for this predicate is therefore:
 
 .. code-block:: json
 
@@ -251,14 +251,14 @@ Rationale
 
 .. todo::
 
-   Add rationale for Predicate ABI.
+   Add rationale for Predicate API.
 
 Requirements
 ------------
 
 .. todo::
 
-   Add requirements for Predicate ABI.
+   Add requirements for Predicate API.
 
 ************
 Transactions
@@ -294,7 +294,7 @@ A Vyper struct:
        parameters: bytes
        witness: bytes
 
-``methodId`` corresponds to the identifier `computed`_ from the `Predicate ABI`_ of the referenced object's predicate contract.
+``methodId`` corresponds to the identifier `computed`_ from the `Predicate API`_ of the referenced object's predicate contract.
 
 Rationale
 ---------
@@ -430,7 +430,7 @@ Test Vectors
 .. _`native support for ABI decoding`: https://solidity.readthedocs.io/en/v0.5.8/units-and-global-variables.html?highlight=abi.encode#abi-encoding-and-decoding-functions
 .. _`native support for RLP decoding`: https://vyper.readthedocs.io/en/v0.1.0-beta.8/built-in-functions.html#rlplist
 .. _`audited RLP decoding libraries`: https://github.com/hamdiallam/Solidity-RLP
-.. _`Predicate ABI`: TODO
+.. _`Predicate API`: TODO
 .. _`primitive types in Solidity`: TODO
 .. _`keccak256`: TODO
 .. _`SimpleOwnership`: TODO

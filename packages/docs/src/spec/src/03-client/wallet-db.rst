@@ -9,12 +9,15 @@ Description
 
 -------------------------------------------------------------------------------
 
-***************
-Data Structures
-***************
+***
+API
+***
+
+Structs
+=======
 
 Keystore
-========
+--------
 
 .. code-block:: typescript
 
@@ -41,14 +44,11 @@ Keystore
    }
 
 Description
------------
+^^^^^^^^^^^
 Standard format for storing `keystore objects`_ in Ethereum.
 
--------------------------------------------------------------------------------
 
-***
-API
-***
+-------------------------------------------------------------------------------
 
 Methods
 =======
@@ -72,6 +72,7 @@ Returns
 ^^^^^^^
 ``Promise<void>``: Promise that resolves once the keystore has been inserted.
 
+
 -------------------------------------------------------------------------------
 
 getKeystore
@@ -92,6 +93,7 @@ Parameters
 Returns
 ^^^^^^^
 ``Promise<Keystore>``: The `Keystore`_ object associated with that address.
+
 
 -------------------------------------------------------------------------------
 

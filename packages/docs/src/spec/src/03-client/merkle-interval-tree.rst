@@ -9,9 +9,12 @@ Our plasma implementation uses a special Merkle tree called a `Merkle Interval T
 
 -------------------------------------------------------------------------------
 
-***************
-Data Structures
-***************
+***
+API
+***
+
+Structs
+=======
 
 MerkleIntervalTreeLeafNode
 --------------------------
@@ -34,6 +37,7 @@ Fields
 2. ``end`` - ``number``: End of the range this leaf node covers.
 3. ``data`` - ``string``: Arbitrary data held by the leaf node.
 
+
 -------------------------------------------------------------------------------
 
 MerkleIntervalTreeInternalNode
@@ -55,9 +59,8 @@ Fields
 1. ``index`` - ``number``: Index value of the node's left child.
 2. ``hash`` - ``string``: Hash of the node's children.
 
-***
-API
-***
+
+-------------------------------------------------------------------------------
 
 Methods
 =======
@@ -83,6 +86,7 @@ Parameters
 Returns
 ^^^^^^^
 ``MerkleIntervalTreeInternalNode[]``: List of internal nodes that form the inclusion proof.
+
 
 -------------------------------------------------------------------------------
 
@@ -112,6 +116,7 @@ Parameters
 Returns
 ^^^^^^^
 ``boolean``: ``true`` if the proof is valid, ``false`` otherwise.
+
 
 .. _`Merkle Interval Tree`: TODO
 
