@@ -5,8 +5,8 @@ Deposit Contract
 ***********
 Description
 ***********
-
 Deposit contracts are the ethereum smart contracts into which assets are deposited--custodying the money as it is transacted on plasma and playing out the exit games to resolve the rightful owners of previously deposited assets.  As such, it contains the bulk of the logic for the plasma exit games.  The things it does not cover are 1) block commitments, and 2), state transitions, which are handled by calls to the commitment contract and predicate contracts specifically.
+
 
 -------------------------------------------------------------------------------
 
@@ -20,11 +20,12 @@ Structs
 Range
 -----
 
-.. code-block:: python
+.. code-block:: solidity
 
-   struct Range:
-       start: uint256
-       end: uint256
+   struct Range {
+       uint256 start;
+       uint256 end;
+   }
 
 Description
 ^^^^^^^^^^^
@@ -41,11 +42,12 @@ Fields
 StateObject
 -----------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   struct StateObject:
-       predicateAddress: address
-       data: bytes[1024]
+   struct StateObject {
+       address predicate;
+       bytes data;
+   }
 
 Description
 ^^^^^^^^^^^
@@ -62,13 +64,14 @@ Fields
 StateUpdate
 -----------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   struct StateUpdate:
-       range: Range
-       stateObject: StateObject
-       plasmaContract: address
-       plasmaBlockNumber: uint256
+   struct StateUpdate {
+       Range range;
+       StateObject stateObject;
+       address plasmaContract;
+       uint256 plasmaBlockNumber;
+   }
 
 Description
 ^^^^^^^^^^^
@@ -87,11 +90,12 @@ Fields
 Checkpoint
 ----------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   struct Checkpoint:
-       stateUpdate: StateUpdate
-       checkpointedRange: Range
+   struct Checkpoint {
+       StateUpdate stateUpdate;
+       Range checkpointedRange;
+   }
 
 Description
 ^^^^^^^^^^^
@@ -108,11 +112,12 @@ Fields
 CheckpointStatus
 ----------------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   struct CheckpointStatus:
-       challengeableUntil: uint256
-       outstandingChallenges: uint256
+   struct CheckpointStatus {
+       uint256 challengeableUntil;
+       uint256 outstandingChallenges;
+   }
 
 Description
 ^^^^^^^^^^^
@@ -129,11 +134,12 @@ Fields
 Challenge
 ---------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   struct Challenge:
-       challengedCheckpoint: Checkpoint
-       challengingCheckpoint: Checkpoint
+   struct Challenge {
+       Checkpoint challengedCheckpoint;
+       Checkpoint challengingCheckpoint;
+   }
 
 Description
 ^^^^^^^^^^^
@@ -153,9 +159,9 @@ Public Variables
 COMMITMENT_ADDRESS
 ------------------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   COMMITMENT_ADDRESS: public(address)
+   address constant COMMITMENT_ADDRESS;
 
 Description
 ^^^^^^^^^^^
@@ -175,9 +181,9 @@ Deposit contracts handle deposits and exits from a specific plasma chain. Commit
 TOKEN_ADDRESS
 -------------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   TOKEN_ADDRESS: public(address)
+   address constant TOKEN_ADDRESS;
 
 Description
 ^^^^^^^^^^^
@@ -200,9 +206,9 @@ Each asset type needs to be allocated its own large contiguous "sub-range" withi
 CHALLENGE_PERIOD
 ----------------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   CHALLENGE_PERIOD: public(uint256)
+   uint256 constant CHALLENGE_PERIOD;
 
 Description
 ^^^^^^^^^^^
@@ -214,9 +220,9 @@ Number of Ethereum blocks for which a checkpoint may be challenged.
 EXIT_PERIOD
 -----------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   EXIT_PERIOD: public(uint256)
+   uint256 constant EXIT_PERIOD;
 
 Description
 ^^^^^^^^^^^
@@ -228,9 +234,9 @@ Number of Ethereum blocks before an exit can be finalized.
 totalDeposited
 --------------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   totalDeposited: public(uint256)
+   uint256 public totalDeposited;
 
 Description
 ^^^^^^^^^^^
@@ -242,9 +248,9 @@ Total amount deposited into this contract.
 checkpoints
 -----------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   checkpoints: public(map(bytes32, CheckpointStatus))
+   mapping (bytes32 => CheckpointStatus) public checkpoints;
 
 Description
 ^^^^^^^^^^^
@@ -256,9 +262,9 @@ Mapping from the `ID of a checkpoint`_ to the checkpoint's status.
 limboCheckpointOrigins
 ----------------------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   limboCheckpointOrigins: public(map(bytes32, bytes32))
+   mapping (bytes32 => bytes32) limboCheckpointOrigins;
 
 Description
 ^^^^^^^^^^^
@@ -270,9 +276,9 @@ Mapping from the `ID of a limbo checkpoint`_ to the hash of the `state update`_ 
 exitableRanges
 --------------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   exitableRanges: public(map(uint256, Range))
+   mapping (uint256 => Range) public exitableRanges;
 
 Description
 ^^^^^^^^^^^
@@ -284,9 +290,9 @@ Stores the list of ranges that have not been exited as a mapping from the ``star
 exits
 -----
 
-.. code-block:: python
+.. code-block:: solidity
 
-   exits: public(map(bytes32, uint256))
+   mapping (bytes32 => uint256) public exits;
 
 Description
 ^^^^^^^^^^^
@@ -298,9 +304,9 @@ Mapping from the `ID of an exit`_ to the Ethereum block after which the exit can
 challenges
 -----------------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   challenges: public(map(bytes32, bool))
+   mapping (bytes32 => bool) public challenges;
 
 Description
 ^^^^^^^^^^^
@@ -315,12 +321,12 @@ Events
 CheckpointStarted
 -----------------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   CheckpointStarted: event({
-       checkpoint: Checkpoint,
-       challengeableUntil: uint256
-   })
+   event CheckpointStarted(
+       Checkpoint checkpoint,
+       uint256 challengeableUntil
+   );
 
 Description
 ^^^^^^^^^^^
@@ -337,11 +343,11 @@ Fields
 CheckpointChallenged
 --------------------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   CheckpointChallenged: event({
-       challenge: Challenge
-   })
+   event CheckpointChallenged(
+       Challenge challenge
+   );
 
 Description
 ^^^^^^^^^^^
@@ -357,11 +363,11 @@ Fields
 CheckpointFinalized
 -------------------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   CheckpointFinalized: event({
-       checkpoint: bytes32
-   })
+   event CheckpointFinalized(
+       bytes32 checkpoint
+   );
 
 Description
 ^^^^^^^^^^^
@@ -377,12 +383,12 @@ Fields
 ExitStarted
 -----------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   ExitStarted: event({
-       exit: bytes32,
-       redeembleAfter: uint256
-   })
+   event ExitStarted(
+       bytes32 exit,
+       uint256 redeemableAfter
+   );
 
 Description
 ^^^^^^^^^^^
@@ -399,11 +405,11 @@ Fields
 ExitFinalized
 -------------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   ExitFinalized: event({
-       exit: Checkpoint
-   })
+   event ExitFinalized(
+       Checkpoint exit
+   );
 
 Description
 ^^^^^^^^^^^
@@ -422,10 +428,13 @@ Methods
 deposit
 -------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   @public
-   def deposit(depositer: address, amount: uint256, initialState: StateObject):
+   function deposit(
+       address _depositer,
+       uint256 _amount,
+       StateObject _initialState
+   ) public
 
 Description
 ^^^^^^^^^^^
@@ -433,9 +442,9 @@ Allows a user to submit a deposit to the contract. Only allows users to submit d
 
 Parameters
 ^^^^^^^^^^
-1. ``depositer`` - ``address``: the account which has approved the ERC20 deposit.
-2. ``amount`` - ``uint256``: Amount of the asset to deposit. 
-3. ``initialState`` - ``StateObject``: Initial state to put the deposited assets into. Can be any valid `state object`_.
+1. ``_depositer`` - ``address``: the account which has approved the ERC20 deposit.
+2. ``_amount`` - ``uint256``: Amount of the asset to deposit. 
+3. ``_initialState`` - ``StateObject``: Initial state to put the deposited assets into. Can be any valid `state object`_.
 
 Requirements
 ^^^^^^^^^^^^
@@ -451,20 +460,20 @@ Rationale
 ^^^^^^^^^
 Depositing is the mechanism which locks an asset into the plasma escrow agreement, allowing it to be transacted off-chain.  The ``initialState`` defines its spending conditions, in the same way that a ``StateUpdate`` does once further transactions are made.  Because deposits are verified on-chain transactions, they can be treated as checkpoints which are unchallengeable.
 
+
 -------------------------------------------------------------------------------
 
 
 startCheckpoint
 ---------------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   @public
-   def startCheckpoint(
-       checkpoint: Checkpoint,
-       inclusionProof: bytes[1024],
-       exitableRangeId: uint256
-   ):
+   function startCheckpoint(
+       Checkpoint _checkpoint,
+       bytes _inclusionProof,
+       uint256 _exitableRangeId
+   ) public
 
 Description
 ^^^^^^^^^^^
@@ -472,9 +481,9 @@ Starts a checkpoint for a given state update.
 
 Parameters
 ^^^^^^^^^^
-1. ``checkpoint`` - ``Checkpoint``: Checkpoint to be initiated.
-2. ``inclusionProof`` - ``bytes``: Proof that the state update was included in the block specified within the update.
-3. ``exitableRangeId`` - ``uint256``: The key in the ``exitableRanges`` mapping which includes the ``checkpointedRange`` as a subrange.
+1. ``_checkpoint`` - ``Checkpoint``: Checkpoint to be initiated.
+2. ``_inclusionProof`` - ``bytes``: Proof that the state update was included in the block specified within the update.
+3. ``_exitableRangeId`` - ``uint256``: The key in the ``exitableRanges`` mapping which includes the ``checkpointedRange`` as a subrange.
 
 Requirements
 ^^^^^^^^^^^^
@@ -489,20 +498,21 @@ Rationale
 ^^^^^^^^^
 Checkpoints are assertions that a certain state update occured/was included, and that it has no intersecting unspent state updates in its history.  Because the operator may publish an invalid block, it must undergo a challenge period in which the parties who care about the unspent state update in the history exit it, and use it to challenge the checkpoint.
 
+
 -------------------------------------------------------------------------------
 
 
 startLimboCheckpoint
 --------------------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   def startLimboCheckpoint(
-       originatingStateUpdate: StateUpdate,
-       inclusionProof: bytes[1024],
-       transaction: bytes[1024],
-       checkpointedRange: Range
-   ):
+   function startLimboCheckpoint(
+       StateUpdate _originatingStateUpdate,
+       bytes _inclusionProof,
+       bytes _transaction,
+       Range _checkpointedRange
+   ) public
 
 Description
 ^^^^^^^^^^^
@@ -510,10 +520,10 @@ Allows a user to start a `limbo checkpoint`_ from a given state update. Necessar
 
 Parameters
 ^^^^^^^^^^
-1. ``originatingStateUpdate`` - ``StateUpdate``: State update from which the limbo checkpoint originates.
-2. ``inclusionProof`` - ``bytes``: Proof that the originating state update was included in the block specified in the update.
-3. ``transaction`` - ``bytes``: Transaction that spends the update and creates a new one.
-4. ``checkpointedRange`` - ``Range``: Sub-range of the new state update created by the transaction to checkpoint. Necessary because a `state update may be partially spent`_.
+1. ``_originatingStateUpdate`` - ``StateUpdate``: State update from which the limbo checkpoint originates.
+2. ``_inclusionProof`` - ``bytes``: Proof that the originating state update was included in the block specified in the update.
+3. ``_transaction`` - ``bytes``: Transaction that spends the update and creates a new one.
+4. ``_checkpointedRange`` - ``Range``: Sub-range of the new state update created by the transaction to checkpoint. Necessary because a `state update may be partially spent`_.
 
 Requirements
 ^^^^^^^^^^^^
@@ -530,18 +540,19 @@ Rationale
 ^^^^^^^^^
 Limbo checkpoints are safe to make as long as it is impossible that the operator included a conflicting (containing a different ``StateObject`` ) ``StateUpdate`` which can be output by the ``originatingStateUpdate`` predicate's ``executeTransaction`` method.  Further, if the operator may have included a ``StateUpdate`` which does have this output, a limbo checkpoint is necessary to guarantee safety.
 
+
 -------------------------------------------------------------------------------
 
 
 challengeCheckpointOutdated
 ---------------------------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   def challengeCheckpointOutdated(
-       olderCheckpoint: Checkpoint,
-       newerCheckpoint: Checkpoint
-   ):
+   function challengeCheckpointOutdated(
+       Checkpoint _olderCheckpoint,
+       Checkpoint _newerCheckpoint
+   ) public
 
 Description
 ^^^^^^^^^^^
@@ -549,8 +560,8 @@ Challenges a checkpoint by showing that there exists a newer finalized checkpoin
 
 Parameters
 ^^^^^^^^^^
-1. ``olderCheckpoint`` - ``Checkpoint``: `The checkpoint`_ to challenge.
-2. ``newerCheckpoint`` - ``Checkpoint``: `The checkpoint`_ used to challenge.
+1. ``_olderCheckpoint`` - ``Checkpoint``: `The checkpoint`_ to challenge.
+2. ``_newerCheckpoint`` - ``Checkpoint``: `The checkpoint`_ used to challenge.
 
 Requirements
 ^^^^^^^^^^^^
@@ -564,18 +575,19 @@ Rationale
 ^^^^^^^^^
 If a checkpoint game has finalized, the safety property should be that nothing is valid in that range's previous blocks--"the history has been erased."  However, since there still might be some ``StateUpdates`` included in the blocks prior, invalid checkpoints can be initiated.  This method allows the rightful owner to demonstrate that the initiated ``olderCheckpoint`` is invalid and must be deleted.
 
+
 -------------------------------------------------------------------------------
 
 
 challengeCheckpointInvalidHistory
 ---------------------------------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   def challengeCheckpointInvalid(
-       challenge: Challenge
-       limboOrigin: StateUpdate
-   ):
+   function challengeCheckpointInvalid(
+       Challenge _challenge,
+       StateUpdate _limboOrigin
+   ) public
 
 Description
 ^^^^^^^^^^^
@@ -583,8 +595,8 @@ Starts a challenge for a checkpoint by pointing to an exit that occurred in an e
 
 Parameters
 ^^^^^^^^^^
-1. ``challenge`` - ``Challenge``: Challenge to submit.
-2. ``limboOrigin`` - ``StateUpdate``: The originating state update if the ``olderCheckpoint`` is a limbo checkpoint (unneeded if it isn't)
+1. ``_challenge`` - ``Challenge``: Challenge to submit.
+2. ``_limboOrigin`` - ``StateUpdate``: The originating state update if the ``olderCheckpoint`` is a limbo checkpoint (unneeded if it isn't)
 
 Requirements
 ^^^^^^^^^^^^
@@ -603,19 +615,20 @@ Rationale
 ^^^^^^^^^
 If the operator includes an invalid ``StateUpdate`` (i.e. there is no transaction from the last valid ``StateUpdate`` on an intersecting range), they may checkpoint it and attempt a malicious exit.  To prevent this, the valid owner must checkpoint their unspent state, exit it, and create a challenge on the invalid checkpoint.
 
+
 -------------------------------------------------------------------------------
 
 
 challengeLimboCheckpointAlternateSpend
 --------------------------------------
 
-.. code-block:: python
+.. code-block:: function
 
-   def challengeLimboCheckpointAlternateTransaction(
-      limboCheckpoint: Checkpoint,
-      originatingStateUpdate: StateUpdate,
-      alternateTransaction: bytes[1024],
-   ):
+   function challengeLimboCheckpointAlternateTransaction(
+       Checkpoint _limboCheckpoint,
+       StateUpdate _originatingStateUpdate,
+       bytes _alternateTransaction
+   ) public
 
 Description
 ^^^^^^^^^^^
@@ -623,9 +636,9 @@ Challenges a limbo checkpoint by demonstrating that there's an alternate spend o
 
 Parameters
 ^^^^^^^^^^
-1. ``limboCheckpoint`` - ``Checkpoint``: `The checkpoint`_ to challenge.
-2. ``origintingStateUpdate`` - ``StateUpdate``: the original state update whose inclusion was proven at the time the limbo checkpoint was originated.
-3. ``alternateTransaction`` - ``bytes``: Alternate transaction that spent from the same originating state update given by the limbo checkpoint.
+1. ``_limboCheckpoint`` - ``Checkpoint``: `The checkpoint`_ to challenge.
+2. ``_origintingStateUpdate`` - ``StateUpdate``: the original state update whose inclusion was proven at the time the limbo checkpoint was originated.
+3. ``_alternateTransaction`` - ``bytes``: Alternate transaction that spent from the same originating state update given by the limbo checkpoint.
 
 Requirements
 ^^^^^^^^^^^^
@@ -639,17 +652,18 @@ Rationale
 ^^^^^^^^^
 Limbo checkpoints are invalid if an alternate spend was included from the originating state update.  For example, if Alice spent to Bob, but limbo exits her original ownership state with a limbo transaction to herself, Bob may cancel it by demonstrating the conflicting transaction which spends to her.  This prevents the attacks which limbo exits would otherwise introduce.
 
+
 -------------------------------------------------------------------------------
 
 
 removeChallengeCheckpointInvalidHistory
 ---------------------------------------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   def removeChallengeCheckpointInvalidHistory(
-       challenge: Challenge
-   ):
+   function removeChallengeCheckpointInvalidHistory(
+       Challenge _challenge
+   ) public
 
 Description
 ^^^^^^^^^^^
@@ -657,7 +671,7 @@ Decrements the number of outstanding challenges on a checkpoint by showing that 
 
 Parameters
 ^^^^^^^^^^
-1. ``challenge`` - ``Challenge``: `The challenge`_ that was blocked.
+1. ``_challenge`` - ``Challenge``: `The challenge`_ that was blocked.
 
 Requirements
 ^^^^^^^^^^^^
@@ -670,15 +684,16 @@ Rationale
 ^^^^^^^^^
 Anyone can exit a prior state which was since spent and use it to challenge despite it being deprecated.  To remove this invalid challenge, the challenged checkpointer may demonstrate the exit is deprecated, deleting it, and then call this method to remove the challenge.
 
+
 -------------------------------------------------------------------------------
 
 
 startExit
 ---------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   def startExit(checkpoint: Checkpoint, witness: bytes[1024]):
+   function startExit(Checkpoint _checkpoint, bytes _witness) public
 
 Description
 ^^^^^^^^^^^
@@ -686,8 +701,8 @@ Starts an exit from a checkpoint. Checkpoint may be pending or finalized.
 
 Parameters
 ^^^^^^^^^^
-1. ``checkpoint`` - ``Checkpoint``: `The checkpoint`_ from which to exit.
-2. ``witness`` - ``bytes``: Extra witness data passed to the `predicate contract`_. Determines whether the sender of the transaction is allowed to start an exit from the checkpoint.
+1. ``_checkpoint`` - ``Checkpoint``: `The checkpoint`_ from which to exit.
+2. ``_witness`` - ``bytes``: Extra witness data passed to the `predicate contract`_. Determines whether the sender of the transaction is allowed to start an exit from the checkpoint.
 
 Requirements
 ^^^^^^^^^^^^
@@ -702,18 +717,19 @@ Rationale
 ^^^^^^^^^
 For a user to redeem state from the plasma chain onto the main chain, they must checkpoint it and respond to all challenges on the checkpoint, and await a ``LOCKUP_PERIOD`` to demonstrate that the checkpointed subrange has not been deprecated by any transactions.  This is the method which starts the latter process on a given checkpoint.
 
+
 -------------------------------------------------------------------------------
 
 
 challengeExitDeprecated
 -----------------------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   def challengeExitDeprecated(
-       checkpoint: Checkpoint,
-       transaction: bytes[1024]
-   ):
+   function challengeExitDeprecated(
+       Checkpoint _checkpoint,
+       bytes _transaction
+   ) public
 
 Description
 ^^^^^^^^^^^
@@ -721,8 +737,8 @@ Challenges an exit by showing that the checkpoint from which it spends has been 
 
 Parameters
 ^^^^^^^^^^
-1. ``checkpoint`` - ``Checkpoint``: `The checkpoint`_ referenced by the exit.
-2. ``transaction`` - ``bytes``: Transaction that spent the checkpointed state update.
+1. ``_checkpoint`` - ``Checkpoint``: `The checkpoint`_ referenced by the exit.
+2. ``_transaction`` - ``bytes``: Transaction that spent the checkpointed state update.
 
 Requirements
 ^^^^^^^^^^^^
@@ -735,15 +751,16 @@ Rationale
 ^^^^^^^^^
 If a transaction exists spending from a checkpoint, the checkpoint may still be valid, but an exit on it is not.  This challenge deletes the exit by demonstrating such a transaction.
 
+
 -------------------------------------------------------------------------------
 
 
 finalizeExit
 ------------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   def finalizeExit(exit: Checkpoint, exitableRangeId: uint256):
+   function finalizeExit(Checkpoint _exit, uint256 _exitableRangeId) public
 
 Description
 ^^^^^^^^^^^
@@ -751,8 +768,8 @@ Finalizes an exit that has passed its exit period and has not been successfully 
 
 Parameters
 ^^^^^^^^^^
-1. ``exit`` - ``Checkpoint``: `The checkpoint`_ on which the exit is not finalizable.
-2. ``exitableRangeId`` - ``uint256``: the entry in ``exitableRanges`` demonstrating the range is not yet exited.
+1. ``_exit`` - ``Checkpoint``: `The checkpoint`_ on which the exit is not finalizable.
+2. ``_exitableRangeId`` - ``uint256``: the entry in ``exitableRanges`` demonstrating the range is not yet exited.
 
 Requirements
 ^^^^^^^^^^^^

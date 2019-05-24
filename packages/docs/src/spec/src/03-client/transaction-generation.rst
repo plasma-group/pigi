@@ -38,20 +38,17 @@ Example: SimpleOwnership Predicate
 
 We'll demonstrate Predicate API by looking at the `SimpleOwnership`_ predicate. SimpleOwnership allows one valid state transition whereby the current owner of a coin may sign off a new owner:
 
-.. code-block:: python
+.. code-block:: solidity
 
-   @public
-   def send(newOwner: address):
-
+   function send(address _newOwner) public
 
 Note that this is *not* a ``constant`` method because it will update the state of the predicate.
 
 SimpleOwnership also gives us a single getter method which returns the current owner:
 
-.. code-block:: python
+.. code-block:: solidity
 
-   @constant
-   def getOwner() -> address:
+   function getOwner() public view returns (address)
 
 
 This function *is* a ``constant`` method because it's only reading information, not writing it.

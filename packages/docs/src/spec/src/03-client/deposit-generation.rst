@@ -17,21 +17,20 @@ For simplicity and consistency, we treat deposits as a special case of these sta
 
 Users submit deposit transactions to a `plasma deposit contract`_. Deposit contracts are defined on a **per-asset basis** to reduce overall complexity. Each deposit contract exposes a method ``deposit`` users call when submitting a deposit. The signature of ``deposit`` is:
 
-.. code-block:: python
+.. code-block:: solidity
 
-   @public
-   @payable
-   def deposit(amount: uint256, state: bytes):
+   function deposit(uint256 _amount, bytes _state) public payable
 
-Users must specify the ``amount`` the asset being deposited. Deposit contracts for non-fungible assets will likely require that this value equals ``1``. 
+Users must specify the ``_amount`` the asset being deposited. Deposit contracts for non-fungible assets will likely require that this value equals ``1``. 
 
-Users must also specify an **initial state object**, ``state``, that controls ownership of the asset. For example, users might use the `SimpleOwnership`_ predicate to control their asset and specify their own address as the ``owner`` input to the predicate. State objects have the following structure:
+Users must also specify an **initial state object**, ``_state``, that controls ownership of the asset. For example, users might use the `SimpleOwnership`_ predicate to control their asset and specify their own address as the ``owner`` input to the predicate. State objects have the following structure:
 
-.. code-block:: python
-   
-   struct StateObject:
-        predicate: address
-        data: bytes
+.. code-block:: solidity
+
+   struct StateObject {
+       address predicate;
+       bytes data;
+   }
 
 ``state`` **must** be `ABI encoded`_ as follows:
 

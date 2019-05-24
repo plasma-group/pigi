@@ -24,14 +24,15 @@ The TypeScript interface for the state object is:
      data: string
    }
 
-The Vyper struct for a state object is:
+The Solidity struct for a state object is:
 
-.. code-block:: python
+.. code-block:: solidity
 
-   struct StateObject:
-       id: bytes
-       address: address
-       data: bytes
+   struct StateObject {
+       bytes id;
+       address predicate;
+       bytes data;
+   }
 
 State objects may be **created**, **destroyed**, or **mutated**. The conditions under which a state object may undergo one of these changes, as well as the effects of such a change, are defined by the `predicate contract`_ located at the address specified in the object.
 
@@ -123,26 +124,27 @@ Methods within each predicate are given a unique identifier computed as the `kec
 
 For any given method:
 
-.. code-block:: python
-   
-   def method_name(arg1: arg1_type, arg2: arg2_type, ...) -> return_type
+.. code-block:: solidity
+
+   function methodName(Param1Type param1, Param2Type param2) public returns (ReturnType)
+
+We get a corresponding signature:
 
 .. code-block::
    
-   method_name(arg1_type, arg2_type, ...)
+   methodName(Param1Type, Param2Type, ...)
 
 Example
 -------
 We'll use the `SimpleOwnership`_ predicate as an example. State objects locked with the ``SimpleOwnership`` have an "owner" field stored in ``object.data``. ``SimpleOwnership`` defines a method that allows the current "owner" of a state object to specify a new owner:
 
-.. code-block:: python
+.. code-block:: solidity
 
-   @public
-   def send(newOwner: address):
+   function send(address _newOwner) public
 
 The signature of this method is:
 
-.. code-block:: python
+.. code-block:: solidity
 
    send(address)
 
@@ -202,19 +204,17 @@ Example
 -------
 We're going to describe a valid Predicate API by looking at the `SimpleOwnership`_ predicate. ``SimpleOwnership`` allows one valid state transition whereby the current owner of a state object may sign off on a new owner:
 
-.. code-block:: python
+.. code-block:: solidity
 
-   @public
-   def send(newOwner: address):
+   function send(address _newOwner) public
 
 Note that this is **not** a ``constant`` method because it will update the state of the predicate.
 
 ``SimpleOwnership`` also provides a method which returns  the current owner:
 
-.. code-block:: python
+.. code-block:: solidity
 
-   @constant
-   def getOwner() -> address:
+   funtion getOwner() public view returns (address)
 
 This function **is** a ``constant`` method because it only reads information and does not change the state of the object.
 
@@ -284,15 +284,16 @@ A TypeScript interface for a transaction:
      witness: string
    }
 
-A Vyper struct:
+A Solidity struct:
 
-.. code-block:: python
+.. code-block:: solidity
 
-   struct Transaction:
-       objectId: bytes
-       methodId: bytes32
-       parameters: bytes
-       witness: bytes
+   struct Transaction {
+       bytes objectId;
+       bytes32 methodId;
+       bytes parameters;
+       bytes witness;
+   }
 
 ``methodId`` corresponds to the identifier `computed`_ from the `Predicate API`_ of the referenced object's predicate contract.
 
@@ -426,7 +427,6 @@ Test Vectors
 .. _`rlp encoding`: https://github.com/ethereum/wiki/wiki/RLP
 .. _`rlp decoded`: https://github.com/ethereum/wiki/wiki/RLP#rlp-decoding
 .. _`Solidity`: https://solidity.readthedocs.io/en/v0.5.8/
-.. _`Vyper`: https://vyper.readthedocs.io/en/v0.1.0-beta.8/
 .. _`native support for ABI decoding`: https://solidity.readthedocs.io/en/v0.5.8/units-and-global-variables.html?highlight=abi.encode#abi-encoding-and-decoding-functions
 .. _`native support for RLP decoding`: https://vyper.readthedocs.io/en/v0.1.0-beta.8/built-in-functions.html#rlplist
 .. _`audited RLP decoding libraries`: https://github.com/hamdiallam/Solidity-RLP
