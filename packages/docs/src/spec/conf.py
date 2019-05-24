@@ -195,3 +195,9 @@ todo_include_todos = True
 import sphinx_rtd_theme
 html_theme = 'sphinx_rtd_theme'
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+
+# Custom Pygment highlights
+from sphinx.highlighting import lexers
+from pygments_lexer_solidity import SolidityLexer
+lexers['solidity'] = SolidityLexer()
+

@@ -5,12 +5,50 @@ Predicate Contract
 ***********
 Description
 ***********
-
 Predicate contracts define the rules for particular state objects' exit game.  The most fundamental thing they define is the state transition logic, which accepts a transaction and an initial state update and outputs a new state update.  Because the predicate contract is a stateful main-chain contract, more advanced predicates can also define custom exit logic which must be evaluated before any state transitions are approved by the predicate.  Thus, predicates can be used as fully customized extensions to the base plasma cash exit game.
+
+-------------------------------------------------------------------------------
 
 ***
 API
 ***
+
+Structs
+=======
+
+StateUpdate
+-----------
+
+.. code-block:: solidity
+
+   struct StateUpdate {  
+   }
+
+Description
+^^^^^^^^^^^
+
+Fields
+^^^^^^
+
+
+-------------------------------------------------------------------------------
+
+Transaction
+-----------
+
+.. code-block:: solidity
+
+   struct Transaction {
+   }
+
+Description
+^^^^^^^^^^^
+
+Fields
+^^^^^^
+
+
+-------------------------------------------------------------------------------
 
 Methods
 =======
@@ -18,13 +56,12 @@ Methods
 executeStateTransition
 ----------------------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   @public
-   def executeStateTransition(
-       stateUpdate: StateUpdate,
-       transaction: Transaction
-   ) -> StateUpdate:
+   function executeStateTransition(
+       StateUpdate memory _stateUpdate,
+       Transaction memory _transaction
+   ) public returns (StateUpdate)
 
 Description
 ^^^^^^^^^^^
@@ -43,16 +80,15 @@ Rationale
 ^^^^^^^^^
 Predicates are responsible for defining the logic that controls how a specific `state object`_ can be manipulated. Each predicate contract needs to implement this method so that other contracts can check whether a specific spend of a state object was actually valid. We use this method most prominently when users are trying to `exit assets`_ from the plasma chain.
 
--------------------------------------------------------------------------------
 
+-------------------------------------------------------------------------------
 
 getAdditionalExitPeriod
 -----------------------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   @public
-   def getAdditionalExitPeriod() -> uint256:
+   function getAdditionalExitPeriod() public returns (uint256)
 
 Description
 ^^^^^^^^^^^
@@ -68,19 +104,18 @@ We need this method for relatively subtle reasons. It's possible for the spendin
 
 We basically had two choices here. We could, of course, force predicates not to rely on any logic that would take longer than the standard exit period to verify. We could also allow predicates to specify some additional period of time before an exit could be processed. The additional time would allow predicates to carry out more complex logic. Both options are pretty good, but we decided on the second mainly for the purpose of future-proofing.
 
--------------------------------------------------------------------------------
 
+-------------------------------------------------------------------------------
 
 canStartExitGame
 ----------------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   @public
-   def canStartExitGame(
-       stateUpdate: StateUpdate,
-       witness: bytes[1024]
-   ) -> boolean:
+   function canStartExitGame(
+       _stateUpdate: StateUpdate,
+       _witness: bytes
+   ) public returns (boolean)
 
 Description
 ^^^^^^^^^^^
@@ -99,19 +134,17 @@ Rationale
 ^^^^^^^^^
 It's important that only certain users are actually permitted to exit a specific state object. For example, if you "own" an asset via the `SimpleOwnership`_ predicate, then it doesn't make sense for anyone but you to exit the asset. Furthermore, ownership is relatively clear under certain prediate models but less clear under others. We therefore need some arbitrary function that allows the predicate to determine who's allowed to exit funds locked with that predicate.
 
--------------------------------------------------------------------------------
 
+-------------------------------------------------------------------------------
 
 onExitGameFinalized
 -------------------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   @public
-   @payable
-   def onExitGameFinalized(
-       stateUpdate: StateUpdate
-   ):
+   function onExitGameFinalized(
+       _stateUpdate: StateUpdate
+   ) public
 
 Description
 ^^^^^^^^^^^

@@ -7,12 +7,41 @@ Description
 ***********
 Each plasma chain **MUST** have at least one **commitment contract**. Commitment contracts hold the block headers for the plasma chain. Whenever the `operator`_ creates a new plasma block, they **MUST** publish this block to the commitment contract.
 
--------------------------------------------------------------------------------
 
+-------------------------------------------------------------------------------
 
 ***
 API
 ***
+
+Events
+======
+
+BlockSubmitted
+--------------
+
+.. code-block:: solidity
+
+   event BlockSubmitted(
+       uint256 _number,
+       bytes _header
+   );
+
+Description
+^^^^^^^^^^^
+Emitted whenever a new block root has been published.
+
+Fields
+^^^^^^
+1. ``_number`` - ``uint256``: Block number that was published.
+2. ``_header`` - ``bytes``: Header for that block.
+
+Rationale
+^^^^^^^^^
+Users need to know whenever a new block has been published so that they can stay in sync with the operator.
+
+
+-------------------------------------------------------------------------------
 
 Public Variables
 ================
@@ -20,9 +49,9 @@ Public Variables
 currentBlock
 ------------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   currentBlock: public(uint256)
+   uint256 public currentBlock;
 
 Description
 ^^^^^^^^^^^
@@ -32,15 +61,15 @@ Rationale
 ^^^^^^^^^
 Users need to know the current plasma block for various operations. Contract also needs to keep track of this so it knows what block is being published when ``submitBlock`` is called.
 
--------------------------------------------------------------------------------
 
+-------------------------------------------------------------------------------
 
 blocks
 ------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   blocks: public(map(uint256, bytes))
+   mapping (uint256 => bytes) public blocksl
 
 Description
 ^^^^^^^^^^^
@@ -52,37 +81,8 @@ It's often important to be able to pull a specific block header given a block nu
 
 Other implementations often represent this mapping as ``uint256 -> bytes32`` under the assumption that the block header will always be a ``bytes32`` Merkle tree root. We instead represent the mapping as ``uint256 -> bytes`` for more flexibility in the structure of the block root.
 
--------------------------------------------------------------------------------
-
-
-Events
-======
-
-BlockSubmitted
---------------
-
-.. code-block:: python
-
-   BlockSubmitted: event({
-       _number: uint256,
-       _header: bytes
-   })
-
-Description
-^^^^^^^^^^^
-Emitted whenever a new block root has been published.
-
-Parameters
-^^^^^^^^^^
-1. ``_number`` - ``uint256``: Block number that was published.
-2. ``_header`` - ``bytes``: Header for that block.
-
-Rationale
-^^^^^^^^^
-Users need to know whenever a new block has been published so that they can stay in sync with the operator.
 
 -------------------------------------------------------------------------------
-
 
 Methods
 =======
@@ -90,10 +90,9 @@ Methods
 submitBlock
 -----------
 
-.. code-block:: python
+.. code-block:: solidity
 
-   @public
-   def submitBlock(header: bytes):
+   function submitBlock(bytes _header) public
 
 Description
 ^^^^^^^^^^^
@@ -101,7 +100,7 @@ Allows a user to submit a block with the given header.
 
 Parameters
 ^^^^^^^^^^
-1. ``header`` - ``bytes``: Block header to publish.
+1. ``_header`` - ``bytes``: Block header to publish.
 
 Rationale
 ^^^^^^^^^
