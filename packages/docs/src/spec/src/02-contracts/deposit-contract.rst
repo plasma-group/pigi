@@ -694,7 +694,8 @@ Requirements
 - **MUST** ensure the checkpoint exists.
 - **MUST** ensure an exit on the checkpoint is not already underway.
 - **MUST** ensure the party exiting is allowed to via ``Checkpoint.StateUpdate.state.predicateAddress.canExitCheckpoint(checkpoint, witness)``
-- **MUST** set the exit's ``redeemableAfter`` status to the current Ethereum ``block.number + LOCKUP_PERIOD``.
+- **MUST** call the predicate's ``getAdditionalLockupPeriod`` to get an ``additionalLockupPeriod`` in Ethereum blocks
+- **MUST** set the exit's ``redeemableAfter`` status to the current Ethereum ``block.number + LOCKUP_PERIOD + additionalLockupPeriod``.
 - **MUST** emit an ``exitStarted`` event.
 
 Rationale
