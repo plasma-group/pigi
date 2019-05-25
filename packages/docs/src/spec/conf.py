@@ -204,4 +204,5 @@ lexers['solidity'] = SolidityLexer()
 # Custom CSS/JS
 def setup(app):
     app.add_stylesheet('css/main.css')
+    app.add_javascript('js/svg-hover.js')
 

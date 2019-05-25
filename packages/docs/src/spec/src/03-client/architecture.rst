@@ -50,7 +50,7 @@ We've provided a diagram of the interactions between the various client componen
 
 .. raw:: html
    
-   <object type="image/svg+xml" data="../../_static/images/architecture/client-architecture-v2.svg" style="max-width:100%">Client Architecture Diagram</object>
+   <object type="image/svg+xml" data="../../_static/images/architecture/client-architecture-v2.svg" style="max-width:100%" class="svg-hoverable">Client Architecture Diagram</object>
 
 .. _`predicate plugins`: ./predicate-plugin.html
 .. _`history proofs`:
