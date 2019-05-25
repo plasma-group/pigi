@@ -201,3 +201,7 @@ from sphinx.highlighting import lexers
 from pygments_lexer_solidity import SolidityLexer
 lexers['solidity'] = SolidityLexer()
 
+# Custom CSS/JS
+def setup(app):
+    app.add_stylesheet('css/main.css')
+
