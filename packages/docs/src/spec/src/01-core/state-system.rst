@@ -56,37 +56,19 @@ The state object therefore allows us to simultaneously represent systems like Pl
 
 Encoding and Decoding
 =====================
-State objects **MUST** be `RLP encoded`_ in the form ``[id, address, data]``.
+State objects **MUST** be `ABI encoded and decoded`_ according to the following structure:
 
-In TypeScript:
+.. code-block:: json
 
-.. code-block:: typescript
-
-   import rlp from 'rlp'
-   
-   const id = 123456789
-   const address = '0x5a0b54d5dc17e0aadc383d2db43b0a0d3e029c4c'
-   const data = 'some data'
-   
-   const encoded = rlp.encode([id, address, data])
-
-
-Similarly, state objects **MUST** be `RLP decoded`_ as ``[id, address, data]``.
-
-In TypeScript:
-
-.. code-block:: typescript
-
-   import rlp from 'rlp'
-   
-   const encoded = '0x.....'
-   const [id, address, data] = rlp.decode(encoded)
+   [
+       id: bytes,
+       predicate: address,
+       data: bytes
+   ]
 
 Rationale
 ---------
-We needed a standard encoding scheme for state objects that would be portable between `Solidity`_ and `Vyper`_. However, due to the complexity of general-purpose encoding schemes, we wanted to use something that was either already audited or provided as native functionality. This effectively left us with a choice between `ABI encoding`_ and `RLP encoding`_.
-
-Solidity provides `native support for ABI decoding`_ but not for RLP encoding. Vyper provides `native support for RLP decoding`_, but not for ABI encoding. Most of the Plasma Group contract code has been written in Vyper. We are also aware of `audited RLP decoding libraries`_ for Solidity. Therefore, we've decided to use RLP for overall simplicity.
+Plasma Group has decided to write its contracts in `Solidity`_ instead of in `Vyper`_. We therefore needed an encoding scheme that would be easy to decode within a Solidity contract. Other teams have invested significant resources into developing smart contract libraries for encoding schemes. However, Solidity provides `native support for ABI`_ encoding and decoding. In order to minimize effort spent on encoding libraries, we've decided to simply use the native ABI encoding mechanisms.
 
 Test Vectors
 ------------
@@ -313,31 +295,11 @@ Requirements
 
 Encoding and Decoding
 =====================
-Transactions **MUST** be `RLP encoded`_ in the form ``[objectId, methodId, parameters, witness]``.
+Similarly, transactions **MUST** be `ABI encoded and decoded`_ in the form:
 
-In TypeScript:
-
-.. code-block:: typescript
-
-   import rlp from 'rlp'
+.. code-block:: json
    
-   const objectId = 123456789
-   const methodId = '0x....'
-   const parameters = '0x....'
-   const witness = '0x....'
-   
-   const encoded = rlp.encode([objectId, methodId, parameters, witness])
-
-Similarly, transactions **MUST** be `RLP decoded`_ in the form ``[objectId, methodId, parameters, witness]``.
-
-In TypeScript:
-
-.. code-block:: typescript
-
-   import rlp from 'rlp'
-   
-   const encoded = '0x....'
-   const [objectId, methodId, parameters, witness] = rlp.decode(encoded)
+   [ objectId: bytes,  methodId: bytes, parameters: bytes, witness: bytes ]``
 
 Rationale
 ---------
