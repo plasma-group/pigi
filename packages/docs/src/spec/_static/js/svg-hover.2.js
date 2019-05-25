@@ -1,3 +1,13 @@
+const fixLinkCss = (svg) => {
+  const css = 'svg-hover:hover { background-color: rgba(0,0,0,0.1); }'
+  const doc = svg.ownerDocument
+  const style = doc.createElement('style')
+  
+  doc.head.appendChild(style)
+  style.type = 'text/css'
+  style.innerHTML = css
+}
+
 const fixLinkTargets = (svg) => {
   const links = svg.getElementsByTagName('a')
   for (const link of links) {
@@ -11,6 +21,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
   for (const svg of svgs) {
     svg.addEventListener('load', () => {
       fixLinkTargets(svg.contentDocument)
+      fixLinkCss(svg.contentDocument)
     })
   }
 })
