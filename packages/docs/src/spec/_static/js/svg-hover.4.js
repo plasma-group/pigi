@@ -1,10 +1,9 @@
 const fixLinkCss = (svg) => {
   const css = 'svg-hover:hover { background-color: rgba(0,0,0,0.1); }'
-  const style = svg.createElement('style')
-  
-  svg.appendChild(style)
-  style.type = 'text/css'
-  style.innerHTML = css
+  const style = svg.createElementNS('http://www.w3.org/2000/svg', 'style')
+
+  style.textContent = css
+  svg.getElementsByTagName('svg')[0].appendChild(style)
 }
 
 const fixLinkTargets = (svg) => {
