@@ -9,7 +9,23 @@ Our `generalized state system`_ introduces the idea of `state objects`, which ca
 
 Arbitrary value payments become difficult to make within Plasma Cash. This is primarily because coins in Plasma cash may not be split apart or combined. A user may only make payments of a given amount if they are in possession of a set of coins such that the value of these coins is *exactly* the payment amount. Compare this, for example, to the simplicity of making payments in Bitcoin-like systems where a UTXO can be arbitrarily broken apart into outputs with different values.
 
-One method of simplifying payments within such a system is to require that each coin to have an identical small value. Payments of any amount can then be made by sending many coins simultaneously. In order to support simultaneous transfer of coins, we introduce mechanisms that allow users to reference **ranges** of coins within transactions.
+The following diagram shows the basic idea behind transactions in Plasma Cash:
+
+.. raw:: html
+
+   <object type="image/svg+xml" data="../../_static/images/coin-ranges/cash-transactions.1.svg" style="max-width:100%" class="svg-hoverable">Plasma Cash Transaction Diagram</object>
+
+Each of the eight shown transactions can only operate on one of the eight state objects. As a result, they have to be treated as separate objects that a user might have to keep track of.
+
+One method of simplifying payments within such a system is to require that each coin to have an identical small value. Payments of any amount can then be made by sending many coins simultaneously. In order to support simultaneous transfer of coins, we introduce mechanisms that allow users to reference **ranges** of coins within transactions. This was the primary advancement of `Plasma Cashflow`_.
+
+Here's a diagram of what this looks like in practice:
+
+.. raw:: html
+
+   <object type="image/svg+xml" data="../../_static/images/coin-ranges/cashflow-transactions.1.svg" style="max-width:100%" class="svg-hoverable">Plasma Cashflow Transaction Diagram</object>
+
+As you can see, we can manipulate all eight of the state objects with a single transaction. This means we can imagine the state objects as a single larger object, which reduces total storage requirements.
 
 ************
 Transactions
