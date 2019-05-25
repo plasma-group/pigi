@@ -10,9 +10,6 @@ This website documents the entirety of the Plasma Group design, from the inner w
    :caption: #00: Introduction
 
    src/00-introduction/introduction
-   src/00-introduction/plasma
-   src/00-introduction/plasma-cashflow
-   src/00-introduction/generalized-plasma
 
 .. toctree::
    :maxdepth: 1
