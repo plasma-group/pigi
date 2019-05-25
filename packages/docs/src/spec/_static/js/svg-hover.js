@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
   const svgs = document.getElementsByClassName('svg-hoverable')
   for (const svg of svgs) {
     svg.addEventListener('load', () => {
-      fixLinkTargets(svg)
+      fixLinkTargets(svg.contentDocument)
     })
   }
 })
