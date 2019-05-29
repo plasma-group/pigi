@@ -63,7 +63,7 @@ send
                 type: "uint"
             },
             {
-                name: "targetBlock",
+                name: "maxBlock",
                 type: "uint"
             }
         ],
@@ -79,7 +79,7 @@ Inputs
 
 1. ``newState`` - ``StateObject`` : the state object that the owner desires to mutate to.
 2. ``originBlock`` - ``uint`` : the maximum plasma blocknumber of the ownership ``StateUpdate`` s from which you are spending.
-3. ``targetBlock`` - ``uint`` : the maximum plasma block number for which the send is valid.
+3. ``maxBlock`` - ``uint`` : the maximum plasma block number for which the send is valid.
 
 Outputs
 -------
