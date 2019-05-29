@@ -15,7 +15,6 @@ Each predicate is different and could, in theory, define its own transaction for
 A plasma transaction **must** contain all of the following components:
 
 - ``plasmaContract`` - ``string``: The address of the specific `plasma deposit contract`_ which identifies the asset being transferred. This is somewhat equivalent to Ethereum's `chain ID`_ transaction parameter.
-- ``block`` - ``number``: The block number in which this transaction will be included. We currently require that users sign off on the specific block in which their transaction will be included in order to prevent `certain attacks`_. 
 - ``start`` - ``number``: Start of the `range`_ being transacted.
 - ``end`` - ``number``: End of the range being transacted.
 - ``methodId`` - ``string``: A unique method identifier that tells a given predicate what type of state transition a user is trying to execute. This is necessary because a predicate may define multiple ways in which a state object can be mutated. ``methodId`` **should** be computed as the `keccak256`_ hash of the method's signature, as given by the `Predicate API`_.
@@ -27,8 +26,7 @@ The interface for a ``Transaction`` object in TypeScript is therefore as follows
 .. code-block:: typescript
 
    interface Transaction {
-     predicateAddress: string
-     block: number
+     plasmaContract: string
      start: number
      end: number
      methodId: string
@@ -44,8 +42,7 @@ Plasma transactions **must** be `ABI encoded or decoded`_ according to the follo
 .. code-block:: json
 
    {
-       predicateAddress: address,
-       block: uint256,
+       plasmaContract: address,
        start: uint256,
        end: uint256,
        methodId: bytes32,
@@ -63,7 +60,7 @@ Example: SimpleOwnership Predicate
 **********************************
 We're going to look at the whole process for generating a valid transaction to interact with some coins locked by the `SimpleOwnership`_ predicate. This example will explain how a client can use the `Predicate API`_ to generate all of the values necessary to generate a valid state-changing transaction that assigns the coins a new owner. Then we'll look at the process of encoding the transaction before it's sent to the operator.
 
-First, let's pick some arbitary values for ``predicateAddress``, ``block``, ``start``, and ``end``. Users will know these values in advance, so we don't really need to explain the process of getting them in the first place. Let's say that the ``predicateAddress`` of the SimpleOwnership predicate is ``0x5a0b54d5dc17e0aadc383d2db43b0a0d3e029c4c`` and we want to send the range ``(0, 100)`` in plasma block ``123``.
+First, let's pick some arbitary values for ``plasmaContract``, ``start``, and ``end``. Users will know these values in advance, so we don't really need to explain the process of getting them in the first place. Let's say that the ``plasmaContract`` of the SimpleOwnership predicate is ``0x5a0b54d5dc17e0aadc383d2db43b0a0d3e029c4c`` and we want to send the range ``(0, 100)``.
 
 Now we just need to figure out our values for ``methodId``, ``parameters``, and ``witness``. We're going to use the `Predicate API`_ for SimpleOwnership in order to generate these values. Users can get this API from a variety of places, but it's likely that most wallet software will come with a hard-coded API. Once we have the API, we know that ``send`` looks like this:
 
@@ -102,12 +99,10 @@ Next, we need to generate a valid witness for this transaction. SimpleOwnership 
      'address',
      'uint256',
      'uint256',
-     'uint256',
      'bytes32',
      'bytes'
    ], [
-     predicateAddress,
-     block,
+     plasmaContract,
      start,
      end,
      methodId,
@@ -124,7 +119,7 @@ Finally, we can combine everything to create the full transaction:
    const witness = abi.encode(['bytes'], [signature])
    const signedTransaction = unsignedTransaction + witness
 
-We now have a correctly formed transaction that can be sent to the operator for inclusion in block 123.
+We now have a correctly formed transaction that can be sent to the operator for inclusion.
 
 
 .. _`Ethereum contract ABI`: TODO
