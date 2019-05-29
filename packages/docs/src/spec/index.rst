@@ -72,6 +72,12 @@ This website documents the entirety of the Plasma Group design, from the inner w
    src/04-operator/block-manager
    src/04-operator/operator-state-manager
    src/04-operator/operator-rpc-methods
+   
+.. toctree::
+   :maxdepth: 1
+   :caption: #05: Predicate Specifications
+
+   src/05-predicates/ownership-predicate
 
 .. _`Plasma Group`: https://plasma.group
 .. _`generalized plasma`: https://medium.com/plasma-group/plapps-and-predicates-understanding-the-generalized-plasma-architecture-fc171b25741
