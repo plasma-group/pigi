@@ -645,6 +645,7 @@ Parameters
 Requirements
 ^^^^^^^^^^^^
 - **MUST** ensure the limbo checkpoint exists and was created with the ``_originatingCheckpoint`` .
+- **MUST** ensure the limbo checkpoint is still challengeable.
 - **MUST** verify the ``_conflictingPostState`` from the limbo checkpoint's ``_originatingCheckpoint`` with ``_alternateInput`` via a call to the ``_originatingCheckpoint.stateUpdate.verifyTransition()``.
 - **MUST** ensure the ``_conflictingPostState.range`` intersects the ``limboCheckpoint.checkpointedRange`` .
 - **MUST** ensure that the output is conflicting in one of two ways:
