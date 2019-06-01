@@ -154,7 +154,7 @@ Parameters
 1. ``transaction`` - ``Transaction``: The `Transaction`_ which executed a state transition.
 2. ``from`` - ``StateUpdate``: The old `StateUpdate`_ transitioned away from by the transaction.
 3. ``to`` - ``StateUpdate``: The new `StateUpdate`_ created by the transaction.
-4. ``verifiedRanges`` - ``Range[]``: Parts of the range described by ``to`` with a `fully verified history`_. It's possible that a transaction creates a `StateUpdate`_ with only a partially verified history. For example, we may have a transaction that sends coins ``(0, 100)`` but have only verified ``(0, 50)``. This is considered `valid behavior`_ as we simply ignore ``(50, 100)`` until we have its full history.
+4. ``verifiedRanges`` - ``Range[]``: Parts of the range described by ``to`` with a `fully verified history`_. It's possible that a transaction creates a `StateUpdate`_ with only a partially verified history. For example, we may have a transaction that sends state objects ``(0, 100)`` but have only verified ``(0, 50)``. This is considered `valid behavior`_ as we simply ignore ``(50, 100)`` until we have its full history.
 
 Returns
 ^^^^^^^
@@ -184,7 +184,7 @@ Parameters
 1. ``transaction`` - ``Transaction``: The `Transaction`_ which executed a state transition.
 2. ``from`` - ``StateUpdate``: The old `StateUpdate`_ transitioned away from by the transaction.
 3. ``to`` - ``StateUpdate``: The new `StateUpdate`_ created by the transaction.
-4. ``verifiedRanges`` - ``Range[]``: Parts of the range described by ``to`` with a `fully verified history`_. It's possible that a transaction creates a `StateUpdate`_ with only a partially verified history. For example, we may have a transaction that sends coins ``(0, 100)`` but have only verified ``(0, 50)``. This is considered `valid behavior`_ as we simply ignore ``(50, 100)`` until we have its full history.
+4. ``verifiedRanges`` - ``Range[]``: Parts of the range described by ``to`` with a `fully verified history`_. It's possible that a transaction creates a `StateUpdate`_ with only a partially verified history. For example, we may have a transaction that sends state objects ``(0, 100)`` but have only verified ``(0, 50)``. This is considered `valid behavior`_ as we simply ignore ``(50, 100)`` until we have its full history.
 
 Returns
 ^^^^^^^

@@ -16,7 +16,7 @@ This website documents the entirety of the Plasma Group design, from the inner w
    :caption: #01: Core Design Components
 
    src/01-core/state-system
-   src/01-core/coin-ranges
+   src/01-core/state-object-ranges
    src/01-core/merkle-interval-tree
    src/01-core/double-layer-tree
    src/01-core/json-rpc
