@@ -397,4 +397,5 @@ Test Vectors
 .. _`ABI encoded and decoded`: TODO
 .. _`Vyper`: TODO
 .. _`native support for ABI encoding and decoding`: TODO
+.. _`predicate`: TODO
 

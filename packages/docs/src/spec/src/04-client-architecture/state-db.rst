@@ -31,7 +31,7 @@ VerifiedStateUpdate
 
 Description
 ^^^^^^^^^^^
-Represents a `StateUpdate`_ that has been `correctly verified`_ up to a specific block. ``verifiedBlockNumber`` is updated whenever a `non-inclusion proof`_ implicitly demonstrates that the given state update is valid for ``verifiedBlockNumber + 1``.
+Represents a `StateUpdate`_ that has been `correctly verified`_ up to a specific block. ``verifiedBlockNumber`` is updated whenever a `exclusion proof`_ implicitly demonstrates that the given state update is valid for ``verifiedBlockNumber + 1``.
 
 Fields
 ^^^^^^
@@ -94,5 +94,5 @@ Returns
 .. _`StateManager`: TODO
 .. _`StateUpdate`: TODO
 .. _`correctly verified`: TODO
-.. _`non-inclusion proof`: TODO
+.. _`exclusion proof`: TODO
 

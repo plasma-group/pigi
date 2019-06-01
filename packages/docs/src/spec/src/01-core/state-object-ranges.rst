@@ -36,7 +36,7 @@ The specification for a transaction over a range is very simple. Remember that e
 
 Rationale
 =========
-As described in the `Background`_ section above, we need to be able to efficiently transact many state objects simultaneously. By allowing transactions to refer to a set of state objects with a range, it's no longer necessary to submit a transaction for each individual state object.
+As described in the `background`_ section above, we need to be able to efficiently transact many state objects simultaneously. By allowing transactions to refer to a set of state objects with a range, it's no longer necessary to submit a transaction for each individual state object.
 
 Requirements
 ============
@@ -50,4 +50,5 @@ Requirements
 .. _`generalized state system`: TODO
 .. _`transaction format`: TODO
 .. _`unique 32 byte identifier`: TODO
+.. _`Plasma Cashflow`: TODO
 

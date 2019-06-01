@@ -113,7 +113,7 @@ ingestHistoryProof
 
 Description
 ^^^^^^^^^^^
-Validates a given ``HistoryProof``, which consists of elements that are either `deposits`_ ("deposit elements"), `transactions`_ ("transaction elements"), or `state updates`_ that prove a given range was *not* included in a specific block ("non-inclusion elements").
+Validates a given ``HistoryProof``, which consists of elements that are either `deposits`_ ("Deposit Proof Elements"), `transactions`_ ("State Update Proof Elements"), or `state updates`_ that prove a given range was *not* included in a specific block ("Exclusion Proof Elements").
 
 Parameters
 ^^^^^^^^^^
