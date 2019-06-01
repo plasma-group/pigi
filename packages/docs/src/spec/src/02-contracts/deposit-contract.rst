@@ -5,7 +5,7 @@ Deposit Contract
 ***********
 Description
 ***********
-Deposit contracts are the ethereum smart contracts into which assets are deposited--custodying the money as it is transacted on plasma and playing out the exit games to resolve the rightful owners of previously deposited assets.  As such, it contains the bulk of the logic for the plasma exit games.  The things it does not cover are 1) block commitments, and 2), state transitions, which are handled by calls to the commitment contract and predicate contracts specifically.
+Deposit contracts are the ethereum smart contracts into which assets are deposited--custodying the money as it is transacted on plasma and playing out the exit games to resolve the rightful owners of previously deposited assets.  As such, it contains the bulk of the logic for the plasma exit games.  The things it does not cover are 1) block commitments, and 2), state deprecation, which are handled by calls to the commitment contract and predicate contracts specifically.
 
 
 -------------------------------------------------------------------------------
@@ -95,7 +95,6 @@ Checkpoint
    struct Checkpoint {
        StateUpdate stateUpdate;
        Range checkpointedRange;
-       bool isLimbo;
    }
 
 Description
@@ -106,7 +105,6 @@ Fields
 ^^^^^^
 1. ``stateUpdate`` - ``StateUpdate``: State update being checkpointed.
 2. ``checkpointedRange`` - ``Range``: Sub-range of the state update being checkpointed. We include this field because the update may be `partially spent`_.
-3. ``isLimbo`` - ``bool``: whether or not the checkpoint is a limbo checkpoint.
 
 -------------------------------------------------------------------------------
 
@@ -257,20 +255,6 @@ checkpoints
 Description
 ^^^^^^^^^^^
 Mapping from the `ID of a checkpoint`_ to the checkpoint's status.
-
--------------------------------------------------------------------------------
-
-
-limboCheckpointOrigins
-----------------------
-
-.. code-block:: solidity
-
-   mapping (bytes32 => bytes32) limboCheckpointOrigins;
-
-Description
-^^^^^^^^^^^
-Mapping from the `ID of a limbo checkpoint`_ to the `ID of the checkpoint`_ from which the limbo checkpoint originated.
 
 -------------------------------------------------------------------------------
 
@@ -504,46 +488,6 @@ Checkpoints are assertions that a certain state update occured/was included, and
 -------------------------------------------------------------------------------
 
 
-startLimboCheckpoint
---------------------
-
-.. code-block:: solidity
-
-   function startLimboCheckpoint(
-       Checkpoint _originatingCheckpoint,
-       bytes _input,
-       Checkpoint _desiredLimboCheckpoint
-   ) public
-
-Description
-^^^^^^^^^^^
-Allows a user to start a `limbo checkpoint`_ from a given state update. Necessary in the case that the operator `withholds data`_ after a transaction has been sent.
-
-Parameters
-^^^^^^^^^^
-1. ``_originatingCheckpoint`` - ``Checkpoint``: State update from which the limbo checkpoint originates.
-2. ``_input`` - ``bytes``: the input that spends the checkpoint state update and creates a new one.
-3. ``_desiredLimboCheckpoint`` - ``Checkpoint``: Sub-range of the new state update created by the transaction to checkpoint. Necessary because a `state update may be partially spent`_.
-
-Requirements
-^^^^^^^^^^^^
-- **MUST** verify that the ``_desiredLimboCheckpoint.isLimbo`` is set to true.
-- **MUST** verify that ``_originatingCheckpoint`` is not itself a limbo checkpoint.
-- **MUST** ``verifyTransition`` against ``_originatingCheckpoint.stateUpdate`` to ``_desiredLimboCheckpoint.stateUpdate`` to ensure the transition is permitted.
-- **MUST** verify that the ``limboStateUpdate.plasmaBlocknumber`` exceeds that of the ``_originatingCheckpoint``
-- **MUST** verify that ``_desiredLimboCheckpoint`` is a sub-range of the ``_originatingCheckpoint``.
-- **MUST** create add the ``_desiredLimboCheckpoint`` to the ``checkpoints`` mapping.
-- **MUST** insert the hash of the provided ``_originatingCheckpoint`` into ``limboCheckpointOrigins`` for the `ID of the limbo checkpoint`_ that was created.
-- **MUST** emit a ``CheckpointStarted`` event.
-
-Rationale
-^^^^^^^^^
-Limbo checkpoints are safe to make as long as it is impossible that the operator included a conflicting (containing a different ``StateObject`` ) ``StateUpdate`` which can be output by the ``originatingStateUpdate`` predicate's ``executeTransaction`` method.  Further, if the operator may have included a ``StateUpdate`` which does have this output, a limbo checkpoint is necessary to guarantee safety.
-
-
--------------------------------------------------------------------------------
-
-
 challengeCheckpointOutdated
 ---------------------------
 
@@ -585,8 +529,7 @@ challengeCheckpointInvalidHistory
 .. code-block:: solidity
 
    function challengeCheckpointInvalid(
-       Challenge _challenge,
-       StateUpdate _limboOrigin
+       Challenge _challenge
    ) public
 
 Description
@@ -596,7 +539,7 @@ Starts a challenge for a checkpoint by pointing to an exit that occurred in an e
 Parameters
 ^^^^^^^^^^
 1. ``_challenge`` - ``Challenge``: Challenge to submit.
-2. ``_limboOrigin`` - ``StateUpdate``: The originating state update if the ``olderCheckpoint`` is a limbo checkpoint (unneeded if it isn't)
+
 
 Requirements
 ^^^^^^^^^^^^
@@ -605,60 +548,16 @@ Requirements
 - **MUST** ensure that the checkpoint being used to challenge has an older ``plasmaBlockNumber``.
 - **MUST** ensure that an identical challenge is not already underway.
 - **MUST** ensure that the current ethereum block is not greater than the ``challengeableUntil`` block for the checkpoint being challenged.
-- **MUST** check whether the checkpoint being challenged is a limbo checkpoint.  If it is:
-   - **MUST** check that the provided ``limboOrigin`` was the correct originating state update for the limbo exit.
-   - **MUST** ensure that the challenging checkpoint has an earlier ``plasmaBlocknumber`` than that of the ``limboOrigin``.
 - **MUST** increment the ``outstandingChallenges`` for the challenged checkpoint.
 - **MUST** set the ``challenges`` mapping for the ``challengeId`` to true.
 
 Rationale
 ^^^^^^^^^
-If the operator includes an invalid ``StateUpdate`` (i.e. there is no transaction from the last valid ``StateUpdate`` on an intersecting range), they may checkpoint it and attempt a malicious exit.  To prevent this, the valid owner must checkpoint their unspent state, exit it, and create a challenge on the invalid checkpoint.
+If the operator includes an invalid ``StateUpdate`` (i.e. there is not a deprecation for the last valid ``StateUpdate`` on an intersecting range), they may checkpoint it and attempt a malicious exit.  To prevent this, the valid owner must checkpoint their unspent state, exit it, and create a challenge on the invalid checkpoint.
 
 
 -------------------------------------------------------------------------------
 
-
-challengeLimboCheckpointAlternateSpend
---------------------------------------
-
-.. code-block:: function
-
-   function challengeLimboCheckpointAlternateTransaction(
-       Checkpoint _limboCheckpoint,
-       Checkpoint _originatingCheckpoint,
-       bytes _alternateInput,
-       StateUpdate _conflictingPostState
-   ) public
-
-Description
-^^^^^^^^^^^
-Challenges a limbo checkpoint by demonstrating that there's an alternate spend of the originating state update. Immediately cancels the limbo checkpoint.
-
-Parameters
-^^^^^^^^^^
-1. ``_limboCheckpoint`` - ``Checkpoint``: `The checkpoint`_ to challenge.
-2. ``_originatingCheckpoint`` - ``Checkpoint``: the original checkpoint from which the limbo checkpoint was created.
-3. ``_alternateTransaction`` - ``bytes``: Alternate transaction that spent from the same originating state update given by the limbo checkpoint.
-4. ``_conflictingPostState`` - ``StateUpdate``: the conflicting state update which the origin will produce.
-
-Requirements
-^^^^^^^^^^^^
-- **MUST** ensure the limbo checkpoint exists and was created with the ``_originatingCheckpoint`` .
-- **MUST** ensure the limbo checkpoint is still challengeable.
-- **MUST** verify the ``_conflictingPostState`` from the limbo checkpoint's ``_originatingCheckpoint`` with ``_alternateInput`` via a call to the ``_originatingCheckpoint.stateUpdate.verifyTransition()``.
-- **MUST** ensure the ``_conflictingPostState.range`` intersects the ``limboCheckpoint.checkpointedRange`` .
-- **MUST** ensure that the output is conflicting in one of two ways:
-   - the ``_conflictingPostState.state`` conflict's the ``_limboCheckpoint.StateUpdate.state`` .
-   - the ``_conflictingPostState.plasmaBlockNumber`` is less than the . ``_limboCheckpoint.StateUpdate.plasmaBlockNumber``.
-- **MUST** delete the entries in ``limboCheckpoints`` , ``checkpoints`` , and ``exits`` at the ``limboCheckpointId`` if the above conditions are met.
-
-Rationale
-^^^^^^^^^
-Limbo checkpoints are invalid if an alternate spend was included from the originating state update.  For example, if Alice spent to Bob, but limbo exits her original ownership state with a limbo transaction to herself, Bob may cancel it by demonstrating the conflicting transaction which spends to her.  This prevents the attacks which limbo exits would otherwise introduce.
-
-
--------------------------------------------------------------------------------
 
 
 removeChallengeCheckpointInvalidHistory
@@ -707,7 +606,7 @@ Starts an exit from a checkpoint. Checkpoint may be pending or finalized.
 Parameters
 ^^^^^^^^^^
 1. ``_checkpoint`` - ``Checkpoint``: `The checkpoint`_ from which to exit.
-2. ``_witness`` - ``bytes``: Extra witness data passed to the `predicate contract`_. Determines whether the sender of the transaction is allowed to start an exit from the checkpoint.
+2. ``_witness`` - ``bytes``: Extra witness data passed to the `predicate contract`_. Determines whether this Ethereum transaction is allowed to start an exit from the checkpoint.
 
 Requirements
 ^^^^^^^^^^^^
@@ -720,7 +619,7 @@ Requirements
 
 Rationale
 ^^^^^^^^^
-For a user to redeem state from the plasma chain onto the main chain, they must checkpoint it and respond to all challenges on the checkpoint, and await a ``LOCKUP_PERIOD`` to demonstrate that the checkpointed subrange has not been deprecated by any transactions.  This is the method which starts the latter process on a given checkpoint.
+For a user to redeem state from the plasma chain onto the main chain, they must checkpoint it and respond to all challenges on the checkpoint, and await a ``LOCKUP_PERIOD`` to demonstrate that the checkpointed subrange has not been deprecated.  This is the method which starts the latter process on a given checkpoint.
 
 
 -------------------------------------------------------------------------------
@@ -733,7 +632,7 @@ challengeExitDeprecated
 
    function challengeExitDeprecated(
        Checkpoint _checkpoint,
-       bytes _transaction
+       bytes _deprecationWitness
    ) public
 
 Description
@@ -743,14 +642,12 @@ Challenges an exit by showing that the checkpoint from which it spends has been 
 Parameters
 ^^^^^^^^^^
 1. ``_checkpoint`` - ``Checkpoint``: `The checkpoint`_ referenced by the exit.
-2. ``_transaction`` - ``bytes``: Transaction that spent the checkpointed state update.
+2. ``_deprecationWitness`` - ``bytes``: Witness data provided to the predicate contract to prove the state update is deprecated.
 
 Requirements
 ^^^^^^^^^^^^
-- **MUST** ensure the ``transaction`` results in a valid ``StateUpdate`` by calling the ``executeTransaction(checkpoint.StateUpdate, transaction)`` for the ``checkpoint.stateUpdate.predicateAddress`` .
-- **MUST** ensure the ``StateUpdate`` resulting from the transaction intersects the ``checkpoint.subRange``.
+- **MUST** ensure the ``Checkpoint`` is indeed deprecated by calling the ``verifyDeprecation(_checkpoint, _deprecationwitness)`` on the ``checkpoint.stateUpdate.predicateAddress`` .
 - **MUST** delete the ``exit`` from ``exits`` at the ``checkpointId`` .
-- **MUST** 
 
 Rationale
 ^^^^^^^^^
@@ -799,7 +696,6 @@ Exit finalization is the step which actually allows the assets locked in plasma 
 .. _`predicate contract`: TODO
 .. _`state update`: TODO
 .. _`checkpoint`: TODO
-.. _`limbo checkpoint`: TODO
 .. _`withholds data`: TODO
 .. _`deprecated`: TODO
 .. _`partially spent`:
@@ -810,7 +706,6 @@ Exit finalization is the step which actually allows the assets locked in plasma 
 .. _`defragmentation`: TODO
 .. _`ID of a checkpoint`:
 .. _`ID of the checkpoint`:
-.. _`ID of a limbo checkpoint`: TODO
 .. _`ID of an exit`:
 .. _`ID of the exit`: TODO
 .. _`ID of a challenge`:
