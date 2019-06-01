@@ -597,20 +597,20 @@ startExit
 
 .. code-block:: solidity
 
-   function startExit(Checkpoint _checkpoint, bytes _witness) public
+   function startExit(Checkpoint _checkpoint) public
 
 Description
 ^^^^^^^^^^^
-Starts an exit from a checkpoint. Checkpoint may be pending or finalized.
+Allows the predicate contract to start an exit from a checkpoint. Checkpoint may be pending or finalized.
 
 Parameters
 ^^^^^^^^^^
 1. ``_checkpoint`` - ``Checkpoint``: `The checkpoint`_ from which to exit.
-2. ``_witness`` - ``bytes``: Extra witness data passed to the `predicate contract`_. Determines whether this Ethereum transaction is allowed to start an exit from the checkpoint.
 
 Requirements
 ^^^^^^^^^^^^
 - **MUST** ensure the checkpoint exists.
+- **MUST** ensure that the ``msg.sender`` is the ``_checkpoint.stateUpdate.predicateAddress`` to authenticate the exit beginning.
 - **MUST** ensure an exit on the checkpoint is not already underway.
 - **MUST** ensure the party exiting is allowed to via ``Checkpoint.StateUpdate.state.predicateAddress.canExitCheckpoint(checkpoint, witness)``
 - **MUST** call the predicate's ``getAdditionalLockupPeriod`` to get an ``additionalLockupPeriod`` in Ethereum blocks
@@ -630,28 +630,26 @@ challengeExitDeprecated
 
 .. code-block:: solidity
 
-   function challengeExitDeprecated(
-       Checkpoint _checkpoint,
-       bytes _deprecationWitness
+   function deprecateExit(
+       Checkpoint _checkpoint
    ) public
 
 Description
 ^^^^^^^^^^^
-Challenges an exit by showing that the checkpoint from which it spends has been `deprecated`_. Immediately cancels the exit.
+Allows the predicate address to cancel an exit which is deprecated.
 
 Parameters
 ^^^^^^^^^^
 1. ``_checkpoint`` - ``Checkpoint``: `The checkpoint`_ referenced by the exit.
-2. ``_deprecationWitness`` - ``bytes``: Witness data provided to the predicate contract to prove the state update is deprecated.
 
 Requirements
 ^^^^^^^^^^^^
-- **MUST** ensure the ``Checkpoint`` is indeed deprecated by calling the ``verifyDeprecation(_checkpoint, _deprecationwitness)`` on the ``checkpoint.stateUpdate.predicateAddress`` .
+- **MUST** ensure the ``msg.sender`` is the ``_checkpoint.stateUpdate.predicateAddress`` to ensure the deprecation is authenticated.
 - **MUST** delete the ``exit`` from ``exits`` at the ``checkpointId`` .
 
 Rationale
 ^^^^^^^^^
-If a transaction exists spending from a checkpoint, the checkpoint may still be valid, but an exit on it is not.  This challenge deletes the exit by demonstrating such a transaction.
+If a transaction exists spending from a checkpoint, the checkpoint may still be valid, but an exit on it is not.  This method allows the predicate to remove the exit if it has determined it to be outdated.
 
 
 -------------------------------------------------------------------------------
@@ -675,12 +673,12 @@ Parameters
 
 Requirements
 ^^^^^^^^^^^^
+- **MUST** ensure that the exit finalization is authenticated from the predicate by ``msg.sender == _exit.stateUpdate.state.predicateAddress``.
 - **MUST** ensure that the checkpoint is finalized (current Ethereum block exceeds ``checkpoint.challengeableUntil``).
 - **MUST** ensure that the checkpoint's ``outstandingChallenges`` is 0.
 - **MUST** ensure that the exit is finalized (current Ethereum block exceeds ``redeemablAfter`` ).
 - **MUST** ensure that the checkpoint is on a subrange of the currently exitable ranges via ``exitableRangeId``.
 - **MUST** approve an ERC20 transfer of the ``end - start`` amount to the predicate address.
-- **MUST** call the predicate's ``onExitFinalized`` method to finalize the exit.
 - **MUST** delete the exit.
 - **MUST** remove the exited range by updating the ``exitableRanges`` mapping.
 - **MUST** delete the checkpoint.
