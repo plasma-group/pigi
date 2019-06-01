@@ -11,7 +11,7 @@ Users submit deposit transactions to a `plasma deposit contract`_. Each deposit 
 
    function deposit(uint256 _amount, StateObject _state) public payable
 
-Where `StateObject` is the following struct:
+Where ``StateObject`` is the following struct:
 
 .. code-block:: solidity
 

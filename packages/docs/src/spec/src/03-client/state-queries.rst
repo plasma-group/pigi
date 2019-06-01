@@ -2,13 +2,15 @@
 State Queries
 #############
 
+Clients need to be able to query the local state to build effective front-ends. For example, a wallet might be interested in querying all state objects that a specific user owns. We've designed a querying system to make this process as easy as possible.
+
 ****************
 Query Generation
 ****************
 
 Parsing Predicate API
 =====================
-The `Predicate API`_ provided by each predicate specifies a list of queries that can be made to a specific predicate. For example, the API of the `SimpleOwnership`_ predicatespecifies the following function:
+The `Predicate API`_ provided by each predicate specifies a list of queries that can be made on state objects locked with that predicate. For example, the API of the `SimpleOwnership`_ predicate specifies the following function:
 
 .. code-block:: json
 
@@ -24,21 +26,15 @@ The `Predicate API`_ provided by each predicate specifies a list of queries that
      ]
    }
 
-Clients generate a ``StateQuery`` object by providing the ``name`` from the Predicate API and any necessary ``inputs``.
-
-Sending Query Requests
-======================
-``StateQuery`` objects **do not** need to be encoded. Stqte queries can be sent to a client via the `state query RPC method`_.
+Users first need to parse this API to figure out what methods are available for the predicate they're attempting to query. Once the user has determined the name and required parameters for the method they want to query, they can generate a `StateQuery`_. The user can then send this query to a client via the `state query RPC method`_.
 
 Parsing Query Results
 =====================
-The result of a state query is a list of ``StateQueryResult`` objects. If a filter was provided as part of the ``StateQuery``, ``StateQueryResult`` objects will only be returned if the result passed the filter. 
-
-The contents of the ``result`` field of each ``StateQueryResult`` depends on the ``output`` of the queried function in the Predicate API.
+The result of a state query is a list of `StateQueryResult`_ objects. If a filter was provided as part of the ``StateQuery``, only ``StateQueryResult`` objects that passed the provided filter will be returned.
 
 Example: SimpleOwnership
 ========================
-We'll now provide an example state query for the ``getOwner`` method of the ``SimpleOwnership`` predicate. The Predicate API for ``SimpleOwnership`` describes this function as:
+We'll now provide an example state query for the ``getOwner`` method of the ``SimpleOwnership`` predicate. The Predicate API for ``SimpleOwnership`` describes ``getOwner`` as:
 
 .. code-block:: json
 
@@ -67,7 +63,7 @@ To query all state updates where ``0x5a0b54d5dc17e0aadc383d2db43b0a0d3e029c4c`` 
      method: 'getOwner',
      params: [],
      filter: {
-       $eq: [ '$1', '0x5a0b54d5dc17e0aadc383d2db43b0a0d3e029c4c' ]
+       $eq: [ '$0', '0x5a0b54d5dc17e0aadc383d2db43b0a0d3e029c4c' ]
      }
    }
 
@@ -99,7 +95,6 @@ Query Handling
 
 Range Intersection
 ==================
-
 Clients will receive a `StateQuery`_ object when receiving a state query. Clients first **MUST** use the range provided by the ``StateQuery`` to find all `state updates`_ in the current `head state`_ that match the provided ``predicateAddress``.
 
 Passing Queries to Predicate Plugins
@@ -108,20 +103,20 @@ Once the client has found all relevant state updates, they **MUST** call the `qu
 
 Filtering Queries
 =================
-If a ``filter`` was given in the ``StateQuery``, then the client **MUST** filter these results. More information about the type of available filters is explained in the section about `Expressions`_. Clients will provide strings in the form of ``"$x"`` to identify the index of the output they wish to use as part of their filter.
+Users filter their results by providing an `Expression`_ that performs some operation on the provided result. If a ``filter`` was given in the ``StateQuery``, then the client **MUST** correctly remove results according to the filter. More information about filters is given in the page about `Expressions`_.
 
-An example filter may look as follows:
+Users can filter based on the outputs of the query method by inserting strings in the form of ``\$[0-9]+`` (starting at ``$0``).
+
+For example, a user could filter results where the first output is greater than ``0`` and the second result is less than ``100`` like this:
 
 .. code-block:: typescript
 
    {
      $and: [
-       { $gt: [ '$1', 0 ] },
-       { $lt: [ '$2', 100 ] }
+       { $gt: [ '$0', 0 ] },
+       { $lt: [ '$1', 100 ] }
      ]
    }
-
-Such a filter is stating that the first output result of the query must be greater than 0 and the second output must be less than 100.
 
 Any results that have not been removed by the filter can then be returned to the requesting client.
 
@@ -130,6 +125,7 @@ Any results that have not been removed by the filter can then be returned to the
 .. _`SimpleOwnership`: TODO
 .. _`state query RPC method`: TODO
 .. _`StateQuery`: TODO
+.. _`StateQueryResult``: TODO
 .. _`state updates`: TODO
 .. _`head state`: TODO
 .. _`queryState`: TODO
