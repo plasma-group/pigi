@@ -95,6 +95,7 @@ Checkpoint
    struct Checkpoint {
        StateUpdate stateUpdate;
        Range checkpointedRange;
+       bool isLimbo;
    }
 
 Description
@@ -105,6 +106,7 @@ Fields
 ^^^^^^
 1. ``stateUpdate`` - ``StateUpdate``: State update being checkpointed.
 2. ``checkpointedRange`` - ``Range``: Sub-range of the state update being checkpointed. We include this field because the update may be `partially spent`_.
+3. ``isLimbo`` - ``bool``: whether or not the checkpoint is a limbo checkpoint.
 
 -------------------------------------------------------------------------------
 
@@ -268,7 +270,7 @@ limboCheckpointOrigins
 
 Description
 ^^^^^^^^^^^
-Mapping from the `ID of a limbo checkpoint`_ to the hash of the `state update`_ from which the limbo checkpoint originated.
+Mapping from the `ID of a limbo checkpoint`_ to the `ID of the checkpoint`_ from which the limbo checkpoint originated.
 
 -------------------------------------------------------------------------------
 
@@ -508,10 +510,9 @@ startLimboCheckpoint
 .. code-block:: solidity
 
    function startLimboCheckpoint(
-       StateUpdate _originatingStateUpdate,
-       bytes _inclusionProof,
-       bytes _transaction,
-       Range _checkpointedRange
+       Checkpoint _originatingCheckpoint,
+       bytes _input,
+       Checkpoint _desiredLimboCheckpoint
    ) public
 
 Description
@@ -520,20 +521,19 @@ Allows a user to start a `limbo checkpoint`_ from a given state update. Necessar
 
 Parameters
 ^^^^^^^^^^
-1. ``_originatingStateUpdate`` - ``StateUpdate``: State update from which the limbo checkpoint originates.
-2. ``_inclusionProof`` - ``bytes``: Proof that the originating state update was included in the block specified in the update.
-3. ``_transaction`` - ``bytes``: Transaction that spends the update and creates a new one.
-4. ``_checkpointedRange`` - ``Range``: Sub-range of the new state update created by the transaction to checkpoint. Necessary because a `state update may be partially spent`_.
+1. ``_originatingCheckpoint`` - ``Checkpoint``: State update from which the limbo checkpoint originates.
+2. ``_input`` - ``bytes``: the input that spends the checkpoint state update and creates a new one.
+3. ``_desiredLimboCheckpoint`` - ``Checkpoint``: Sub-range of the new state update created by the transaction to checkpoint. Necessary because a `state update may be partially spent`_.
 
 Requirements
 ^^^^^^^^^^^^
-- **MUST** verify that ``originatingStateUpdate`` was included in ``originatingStateUpdate.block`` via ``inclusionProof``.
-- **MUST** execute ``transaction`` against ``stateUpdate`` by calling the state update's predicate to calculate a ``limboStateUpdate``.
-- **MUST** verify that the ``limboStateUpdate.plasmaBlocknumber`` exceeds that of the ``originatingStateUpdate``
-- **MUST** verify that ``checkpointedRange`` is a sub-range of ``limboStateUpdate``.
-- **MUST** verify that ``checkpointedRange`` is a sub-range of ``originatingStateUpdate``.
-- **MUST** create a new pending checkpoint in ``checkpoints`` with the ``limboStateUpdate`` and given ``checkpointedRange``.
-- **MUST** insert the hash of the provided ``stateUpdate`` into ``limboCheckpointOrigins`` for the `ID of the checkpoint`_ that was created.
+- **MUST** verify that the ``_desiredLimboCheckpoint.isLimbo`` is set to true.
+- **MUST** verify that ``_originatingCheckpoint`` is not itself a limbo checkpoint.
+- **MUST** ``verifyTransition`` against ``_originatingCheckpoint.stateUpdate`` to ``_desiredLimboCheckpoint.stateUpdate`` to ensure the transition is permitted.
+- **MUST** verify that the ``limboStateUpdate.plasmaBlocknumber`` exceeds that of the ``_originatingCheckpoint``
+- **MUST** verify that ``_desiredLimboCheckpoint`` is a sub-range of the ``_originatingCheckpoint``.
+- **MUST** create add the ``_desiredLimboCheckpoint`` to the ``checkpoints`` mapping.
+- **MUST** insert the hash of the provided ``_originatingCheckpoint`` into ``limboCheckpointOrigins`` for the `ID of the limbo checkpoint`_ that was created.
 - **MUST** emit a ``CheckpointStarted`` event.
 
 Rationale
@@ -626,8 +626,9 @@ challengeLimboCheckpointAlternateSpend
 
    function challengeLimboCheckpointAlternateTransaction(
        Checkpoint _limboCheckpoint,
-       StateUpdate _originatingStateUpdate,
-       bytes _alternateTransaction
+       Checkpoint _originatingCheckpoint,
+       bytes _alternateInput,
+       StateUpdate _conflictingPostState
    ) public
 
 Description
@@ -637,15 +638,19 @@ Challenges a limbo checkpoint by demonstrating that there's an alternate spend o
 Parameters
 ^^^^^^^^^^
 1. ``_limboCheckpoint`` - ``Checkpoint``: `The checkpoint`_ to challenge.
-2. ``_origintingStateUpdate`` - ``StateUpdate``: the original state update whose inclusion was proven at the time the limbo checkpoint was originated.
+2. ``_originatingCheckpoint`` - ``Checkpoint``: the original checkpoint from which the limbo checkpoint was created.
 3. ``_alternateTransaction`` - ``bytes``: Alternate transaction that spent from the same originating state update given by the limbo checkpoint.
+4. ``_conflictingPostState`` - ``StateUpdate``: the conflicting state update which the origin will produce.
 
 Requirements
 ^^^^^^^^^^^^
-- **MUST** ensure the limbo checkpoint exists and was created with the ``originatingStateUpdate`` .
-- **MUST** calculate the ``alternateStateUpdate`` from the limbo checkpoint's ``originatingStateUpdate`` and the ``alternateTransaction`` .
-- **MUST** ensure the ``alternateStateUpdate.range`` intersects the ``limboCheckpoint.checkpointedRange`` .
-- **MUST** ensure the ``alternateStateUpdate.state`` conflict's the ``limboCheckpoint.StateUpdate.state`` .
+- **MUST** ensure the limbo checkpoint exists and was created with the ``_originatingCheckpoint`` .
+- **MUST** ensure the limbo checkpoint is still challengeable.
+- **MUST** verify the ``_conflictingPostState`` from the limbo checkpoint's ``_originatingCheckpoint`` with ``_alternateInput`` via a call to the ``_originatingCheckpoint.stateUpdate.verifyTransition()``.
+- **MUST** ensure the ``_conflictingPostState.range`` intersects the ``limboCheckpoint.checkpointedRange`` .
+- **MUST** ensure that the output is conflicting in one of two ways:
+   - the ``_conflictingPostState.state`` conflict's the ``_limboCheckpoint.StateUpdate.state`` .
+   - the ``_conflictingPostState.plasmaBlockNumber`` is less than the . ``_limboCheckpoint.StateUpdate.plasmaBlockNumber``.
 - **MUST** delete the entries in ``limboCheckpoints`` , ``checkpoints`` , and ``exits`` at the ``limboCheckpointId`` if the above conditions are met.
 
 Rationale
