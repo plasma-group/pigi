@@ -23,12 +23,13 @@ The interface for a ``Transaction`` object looks like this:
    }
 
 Where the components of this interface are:
-- ``plasmaContract`` - ``string``: The address of the specific `plasma deposit contract`_ which identifies the asset being transferred. This is somewhat equivalent to Ethereum's `chain ID`_ transaction parameter.
-- ``start`` - ``number``: Start of the `range`_ being transacted.
-- ``end`` - ``number``: End of the range being transacted.
-- ``methodId`` - ``string``: A unique method identifier that tells a given predicate what type of state transition a user is trying to execute. This is necessary because a predicate may define multiple ways in which a state object can be mutated. ``methodId`` **should** be computed as the `keccak256`_ hash of the method's signature, as given by the `Predicate API`_.
-- ``parameters`` - ``string``: Input parameters to be sent to the predicate along with ``method`` to compute the state transiton. Must be `ABI encoded`_ according to the `Predicate API`_. This is similar to the transaction `input value encoding in Ethereum`_.
-- ``witness`` - ``string``: Additional `ABI encoded`_ data used to authenticate the transaction. This will often be a single signature but could theoretically be anything.
+
+1. ``plasmaContract`` - ``string``: The address of the specific `plasma deposit contract`_ which identifies the asset being transferred. This is somewhat equivalent to Ethereum's `chain ID`_ transaction parameter.
+2. ``start`` - ``number``: Start of the `range`_ being transacted.
+3. ``end`` - ``number``: End of the range being transacted.
+4. ``methodId`` - ``string``: A unique method identifier that tells a given predicate what type of state transition a user is trying to execute. This is necessary because a predicate may define multiple ways in which a state object can be mutated. ``methodId`` **should** be computed as the `keccak256`_ hash of the method's signature, as given by the `Predicate API`_.
+5. ``parameters`` - ``string``: Input parameters to be sent to the predicate along with ``method`` to compute the state transiton. Must be `ABI encoded`_ according to the `Predicate API`_. This is similar to the transaction `input value encoding in Ethereum`_.
+6. ``witness`` - ``string``: Additional `ABI encoded`_ data used to authenticate the transaction. This will often be a single signature but could theoretically be anything.
 
 Transaction Encoding and Decoding
 =================================
