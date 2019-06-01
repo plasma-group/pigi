@@ -53,15 +53,15 @@ Fields
 Methods
 =======
 
-executeStateTransition
+verifyDeprecation
 ----------------------
 
 .. code-block:: solidity
 
-   function executeStateTransition(
-       StateUpdate memory _stateUpdate,
-       Transaction memory _transaction
-   ) public returns (StateUpdate)
+   function verifyDeprecation(
+       Checkpoint memory _checkpoint,
+       bytes memory _deprecationWitness
+   ) public returns (bool)
 
 Description
 ^^^^^^^^^^^
@@ -74,57 +74,32 @@ Parameters
 
 Returns
 ^^^^^^^
-``StateUpdate``: The `StateUpdate`_ created as a result of executing the transaction.
+``bool``: Whether the predicate can confirm deprecation of the given checkpoint
 
 Rationale
 ^^^^^^^^^
-Predicates are responsible for defining the logic that controls how a specific `state object`_ can be manipulated. Each predicate contract needs to implement this method so that other contracts can check whether a specific spend of a state object was actually valid. We use this method most prominently when users are trying to `exit assets`_ from the plasma chain.
-
-
--------------------------------------------------------------------------------
-
-getAdditionalExitPeriod
------------------------
-
-.. code-block:: solidity
-
-   function getAdditionalExitPeriod() public returns (uint256)
-
-Description
-^^^^^^^^^^^
-Defines an additional number of blocks that exits of state objects locked by this predicate must wait. Will likely just return zero in most cases, but predicates can return more than zero if additioanl time is necessary to establish the validity of a spend.
-
-Returns
-^^^^^^^
-``uint256``: Number of Ethereum blocks to add to the exit period of a state object locked with this predicate.
-
-Rationale
-^^^^^^^^^
-We need this method for relatively subtle reasons. It's possible for the spending conditions for a predicate to be very easy to check off-chain but very hard to check on-chain. For example, the validity of a transaction might depend on the existence of a large amount of data. In such cases, it may take longer than the `standard exit period`_ to prove that a given transaction (that would be used to cancel the exit) was valid.
-
-We basically had two choices here. We could, of course, force predicates not to rely on any logic that would take longer than the standard exit period to verify. We could also allow predicates to specify some additional period of time before an exit could be processed. The additional time would allow predicates to carry out more complex logic. Both options are pretty good, but we decided on the second mainly for the purpose of future-proofing.
-
+Predicates are responsible for defining the logic that controls how a specific `state object`_ can be deprecated, making the next state object in the chain valid. Each predicate contract needs to implement this method so that other contracts can check whether a specific update on a state object was actually valid. We use this method most prominently when users are trying to `exit assets`_ from the plasma chain.
 
 -------------------------------------------------------------------------------
 
-canStartExitGame
+onStartExitGame
 ----------------
 
 .. code-block:: solidity
 
    function canStartExitGame(
-       _stateUpdate: StateUpdate,
-       _witness: bytes
+       Checkpoint memory _checkpoint,
+       bytes memory _parameters,
    ) public returns (boolean)
 
 Description
 ^^^^^^^^^^^
-Determines whether a user is permitted to start an exit for a given state update.
+Function called by the deposit contract when a user attempts to begin an exit on a given checkpoint.  The predicate can disallow the exit here by throwing a revert, or implement other custom logic if its exit subgame is stateful
 
 Parameters
 ^^^^^^^^^^
-1. ``stateUpdate`` - ``StateUpdate``: ``StateUpdate`` the user is attempting to exit.
-2. ``witness`` - ``bytes``: Arbitrary witness data the user can provide to show that they're permitted to exit the state update.
+1. ``_checkpoint`` - ``Checkpoint``: ``Checkpoint`` a user is attempting to exit.
+2. ``_parameters`` - ``bytes``: Arbitrary data the user can provide as a witness to show that they're permitted to exit the state update, and setup any custom logic the predicate needs if it is a stateful predicate.
 
 Returns
 ^^^^^^^
@@ -137,13 +112,13 @@ It's important that only certain users are actually permitted to exit a specific
 
 -------------------------------------------------------------------------------
 
-onExitGameFinalized
+onFinalizeExitGame
 -------------------
 
 .. code-block:: solidity
 
-   function onExitGameFinalized(
-       _stateUpdate: StateUpdate
+   function onFinalizeExitGame(
+       Checkpoint memory _checkpoint
    ) public
 
 Description
@@ -154,7 +129,7 @@ Assets that correspond to the exited state object will be sent to the predicate 
 
 Parameters
 ^^^^^^^^^^
-1. ``stateUpdate`` - ``StateUpdate``: The `StateUpdate`_ that was successfully exited.
+1. ``_checkpoint`` - ``Checkpoint``: The `Checkpoint`_ that was successfully exited.
 
 Rationale
 ^^^^^^^^^
