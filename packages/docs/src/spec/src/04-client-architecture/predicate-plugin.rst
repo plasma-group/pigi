@@ -20,6 +20,9 @@ Plasma State Queries
 ====================
 Predicate contracts on Ethereum can be fed information about the state of the plasma chain. Predicate plugins are therefore given a reference to `StateManager`_ and `HistoryManager`_ that permit the plugin to make queries about the existence (or non-existence) of a given `StateUpdate`_ in the plasma chain. 
 
+Plasma State Updates
+====================
+Predicates **MUST** be able to insert state updates into the local plasma chain. Most predicates **SHOULD NOT** use this behavior, but certain predicates may require to function correctly.
 
 -------------------------------------------------------------------------------
 

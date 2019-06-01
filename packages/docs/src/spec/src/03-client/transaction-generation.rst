@@ -49,6 +49,8 @@ Plasma transactions **must** be `ABI encoded or decoded`_ according to the follo
 ********************
 Sending Transactions
 ********************
+The client **SHOULD** verify the `history`_ of the range being transacted before sending the transaction to the operator. Doing so will confirm that no `invalid transactions`_ have been maliciously inserted into the blockchain by the operator between the block in which the user received a state update and the latest block. Otherwise the client may have to start `limbo exit`_, which is more costly than a standard exit.
+
 Transactions can be submitted to a node via the `sendTransaction RPC method`_. If the node that receives this request is not the operator, then it will forward the transaction to the operator on the requester's behalf.
 
 **********************************

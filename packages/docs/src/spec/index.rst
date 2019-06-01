@@ -64,6 +64,8 @@ This website documents the entirety of the Plasma Group design, from the inner w
    src/04-client-architecture/history-manager
    src/04-client-architecture/state-db
    src/04-client-architecture/state-manager
+   src/04-client-architecutre/sync-db
+   src/04-client-architecture/sync-manager
    src/04-client-architecture/rpc-client
    src/04-client-architecture/rpc-server
 
