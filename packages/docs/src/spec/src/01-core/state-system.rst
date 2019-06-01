@@ -2,13 +2,19 @@
 Generalized State System
 ########################
 
+The concept of state and state transitions is relatively universal. However, Layer 2 systems are unusual because they often require that state transitions be efficiciently representable on the Layer 1 playform. As a result, existing models of state transitions on plasma are usually quite restrictive.
+
+In order to develop a plasma system that could allow for more general state transitions, we found it important to develop a new system for representing state and state transitions. Our system was particularly designed to make state transitions easily executable on Ethereum.
+
+This page describes our state model and the various terms we use in the rest of this specification. It's important to understand this model in detail before continuing.
+
 *************
 State Objects
 *************
 
 State Object Model
 ==================
-State within our model is represented as a set of "state objects". Each state object is composed of:
+The core building block of our model is the "state object". Each state object represents a particular piece of state within the system and is composed of:
 
 1. A globally unique identifier.
 2. The address of a `predicate contract`_.
@@ -19,22 +25,12 @@ The TypeScript interface for the state object is:
 .. code-block:: typescript
 
    interface StateObject {
-     id: string,
-     address: string,
+     id: string
+     predicate: string
      data: string
    }
 
-The Solidity struct for a state object is:
-
-.. code-block:: solidity
-
-   struct StateObject {
-       bytes id;
-       address predicate;
-       bytes data;
-   }
-
-State objects may be **created**, **destroyed**, or **mutated**. The conditions under which a state object may undergo one of these changes, as well as the effects of such a change, are defined by the `predicate contract`_ located at the address specified in the object.
+State objects are unique objects (hence the ``id``) that may be **created**, **destroyed**, or **mutated**. The conditions under which a state object may undergo one of these changes, as well as the effects of such a change, are defined a `predicate`_. Each state object specifies a prediciate identifier (``predicate``) that points to the specific predicate that controls ("locks") the state object. 
 
 Requirements
 ------------
@@ -68,7 +64,7 @@ State objects **MUST** be `ABI encoded and decoded`_ according to the following 
 
 Rationale
 ---------
-Plasma Group has decided to write its contracts in `Solidity`_ instead of in `Vyper`_. We therefore needed an encoding scheme that would be easy to decode within a Solidity contract. Other teams have invested significant resources into developing smart contract libraries for encoding schemes. However, Solidity provides `native support for ABI`_ encoding and decoding. In order to minimize effort spent on encoding libraries, we've decided to simply use the native ABI encoding mechanisms.
+Plasma Group has decided to write its contracts in `Solidity`_ instead of in `Vyper`_. We therefore needed an encoding scheme that would be easy to decode within a Solidity contract. Other teams have invested significant resources into developing smart contract libraries for encoding schemes. However, Solidity provides `native support for ABI encoding and decoding`_. In order to minimize effort spent on encoding libraries, we've decided to simply use the native ABI encoding mechanisms.
 
 Test Vectors
 ------------
@@ -80,7 +76,7 @@ Test Vectors
 **********
 Predicates
 **********
-Predicates are functions that define the ways in which state objects can be mutated.
+Predicates are functions that define the ways in which state objects can be mutated. We require that the ``id`` of a specific state object never change (since it would then be a different state object). However, the ``predicate`` and ``data`` can be changed arbitrarily according to the rules defined in the predicate.
 
 Predicate Methods
 =================
@@ -398,4 +394,7 @@ Test Vectors
 .. _`SimpleOwnership`: TODO
 .. _`Ethereum contract ABI`: TODO
 .. _`Ethereum ABI JSON format`: TODO
+.. _`ABI encoded and decoded`: TODO
+.. _`Vyper`: TODO
+.. _`native support for ABI encoding and decoding`: TODO
 
