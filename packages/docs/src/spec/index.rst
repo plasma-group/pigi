@@ -10,6 +10,8 @@ This website documents the entirety of the Plasma Group design, from the inner w
    :caption: #00: Introduction
 
    src/00-introduction/introduction
+   src/00-introduction/glossary
+   src/00-introduction/contributors
 
 .. toctree::
    :maxdepth: 1
