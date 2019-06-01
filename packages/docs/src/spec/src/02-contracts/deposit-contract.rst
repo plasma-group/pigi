@@ -94,7 +94,7 @@ Checkpoint
 
    struct Checkpoint {
        StateUpdate stateUpdate;
-       Range checkpointedRange;
+       Range subRange;
    }
 
 Description
@@ -104,7 +104,7 @@ Represents a `checkpoint`_ of a particular state update on which a "checkpoint g
 Fields
 ^^^^^^
 1. ``stateUpdate`` - ``StateUpdate``: State update being checkpointed.
-2. ``checkpointedRange`` - ``Range``: Sub-range of the state update being checkpointed. We include this field because the update may be `partially spent`_.
+2. ``subRange`` - ``Range``: Sub-range of the state update being checkpointed. We include this field because the update may be `partially spent`_.
 
 -------------------------------------------------------------------------------
 
@@ -469,13 +469,13 @@ Parameters
 ^^^^^^^^^^
 1. ``_checkpoint`` - ``Checkpoint``: Checkpoint to be initiated.
 2. ``_inclusionProof`` - ``bytes``: Proof that the state update was included in the block specified within the update.
-3. ``_exitableRangeId`` - ``uint256``: The key in the ``exitableRanges`` mapping which includes the ``checkpointedRange`` as a subrange.
+3. ``_exitableRangeId`` - ``uint256``: The key in the ``exitableRanges`` mapping which includes the ``subRange`` as a subrange.
 
 Requirements
 ^^^^^^^^^^^^
 - **MUST** verify the that ``checkpoint.stateUpdate`` was included with ``inclusionProof``.
-- **MUST** verify that ``checkpointedRange`` is actually a sub-range of ``stateUpdate.range``.
-- **MUST** verify that the ``checkpointedRange`` is still exitable with the ``exitableRangeId`` .
+- **MUST** verify that ``subRange`` is actually a sub-range of ``stateUpdate.range``.
+- **MUST** verify that the ``subRange`` is still exitable with the ``exitableRangeId`` .
 - **MUST** verify that an indentical checkpoint has not already been started.
 - **MUST** add the new pending checkpoint to ``checkpoints`` with ``chllengeableUntil`` equalling the current ethereum ``block.number + CHALLENGE_PERIOD`` .
 - **MUST** emit a ``CheckpointStarted`` event.
