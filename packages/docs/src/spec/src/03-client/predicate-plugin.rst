@@ -5,18 +5,19 @@ PredicatePlugin
 ***********
 Description
 ***********
-Clients need a way to execute state transitions for a given predicate. However, it's too slow and complex to execute these state transitions in a virtual version of the EVM. As a result, Predicates **must** supply client-side code, called a *plugin*, that can compute state transitions. Predicate plugins **must** conform a standard interface as described in the API section below.
+Clients need a way to execute state transitions for a given predicate. However, it's too slow and complex to execute these state transitions in a virtual version of the EVM. As a result, Predicates **MUST** supply client-side code, called a *predicate plugin*, that can compute state transitions. Predicate plugins **MUST** conform a standard interface as described below.
 
+*******************
 Information Sources
-===================
-Predicate plugins have access to various external sources of information. Plugins can use this information for various reasons, including the execution of state transitions.  All information available to a plugin **must** also be available to the corresponding predicate contract on Ethereum.
+*******************
+Predicate plugins have access to various external sources of information. Plugins can use this information for various reasons, including the execution of state transitions.  All information available to a plugin **MUST** also be available to the corresponding predicate contract on Ethereum.
 
 Ethereum Contract Queries
--------------------------
-A `web3`_ object is passed into every predicate plugin and may be used to make queries to contracts on Ethereum. Some information, like event logs, can be provided by the ``web3`` object that would not be readily accessible to contracts on Ethereum. As plugins are effectively native implementations of their contract counter-parts, plugins should be careful not to rely on information not available to the contract.
+=========================
+Predicate plugins have access to any information available on Ethereum. As plugins are effectively native implementations of their contract counter-parts, plugins should be careful not to rely on information not available to the contract (like event logs).
 
 Plasma State Queries
---------------------
+====================
 Predicate contracts on Ethereum can be fed information about the state of the plasma chain. Predicate plugins are therefore given a reference to `StateManager`_ and `HistoryManager`_ that permit the plugin to make queries about the existence (or non-existence) of a given `StateUpdate`_ in the plasma chain. 
 
 

@@ -5,7 +5,7 @@ PluginManager
 ***********
 Description
 ***********
-The ``PluginManager`` handles loading and accessing `PredicatePlugins`_. Other components are expected to go through the ``PluginManager`` whenever they intend to access a specific ``PredicatePlugin``.
+The ``PluginManager`` handles loading and accessing `PredicatePlugin`_ objects. Other components are expected to go through the ``PluginManager`` whenever they intend to access a specific ``PredicatePlugin``.
 
 
 -------------------------------------------------------------------------------

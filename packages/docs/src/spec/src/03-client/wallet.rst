@@ -5,7 +5,7 @@ Wallet
 ***********
 Description
 ***********
-Clients often need to create signatures in order to authenticate transactions. The ``Wallet`` component provides a standard interface for creating new accounts, querying existing accounts, and signing arbitrar data.
+Clients often need to create signatures in order to authenticate transactions. The ``Wallet`` component provides a standard interface for creating new accounts, querying existing accounts, and signing arbitrary data.
 
 -------------------------------------------------------------------------------
 
@@ -16,12 +16,12 @@ API
 Methods
 =======
 
-getAccounts
------------
+listAccounts
+------------
 
 .. code-block:: typescript
 
-   async function getAccounts(): Promise<string[]>
+   async function listAccounts(): Promise<string[]>
 
 Description
 ^^^^^^^^^^^
@@ -50,5 +50,5 @@ Parameters
 
 Returns
 ^^^^^^^
-``string``: Address of the newly created account.
+``Promise<string>``: Address of the newly created account.
 

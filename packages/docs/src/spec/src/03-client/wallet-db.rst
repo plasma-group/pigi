@@ -110,7 +110,7 @@ Queries the list of all available account addresses with keystore files.
 
 Returns
 ^^^^^^^
-``string[]``: List of account addresses where the DB has a keystore file.
+``Promise<string[]>``: List of account addresses where the DB has a keystore file.
 
 
 .. _`keystore objects`:

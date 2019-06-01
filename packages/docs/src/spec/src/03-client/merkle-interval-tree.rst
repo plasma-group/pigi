@@ -111,7 +111,7 @@ Parameters
 1. ``leaf`` - ``MerkleIntervalTreeLeafNode``: Leaf node to check inclusion for.
 2. ``leafIndex`` - ``number``: Index of the leaf node in the list of leaf nodes.
 3. ``root`` - ``MerkleIntervalTreeInternalNode``: Root of the Merkle Interval Tree.
-4. ``inclusionProof`` - ``MerkleIntervalTreeInternalNode[]``: List of internal nods that form the inclusion proof.
+4. ``inclusionProof`` - ``MerkleIntervalTreeInternalNode[]``: List of internal nodes that form the inclusion proof.
 
 Returns
 ^^^^^^^
@@ -119,4 +119,6 @@ Returns
 
 
 .. _`Merkle Interval Tree`: TODO
+.. _`inclusion proof`: TODO
+
 

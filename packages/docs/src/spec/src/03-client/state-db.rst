@@ -55,7 +55,7 @@ getVerifiedStateUpdates
 
 Description
 ^^^^^^^^^^^
-Pulls all ``VerifiedStateUpdate`` objects such that the range described by ``start`` and ``end`` intersects with the ``VerifiedStateUpdate``. Intersection **must** be computed as start-inclusive and end-exclusive, i.e. ``(start, end]``.
+Pulls all ``VerifiedStateUpdate`` objects such that the range described by ``start`` and ``end`` intersects with the ``VerifiedStateUpdate``. Intersection **MUST** be computed as start-inclusive and end-exclusive, i.e. ``(start, end]``.
 
 Parameters
 ^^^^^^^^^^

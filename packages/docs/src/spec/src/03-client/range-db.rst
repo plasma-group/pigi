@@ -75,7 +75,7 @@ put
 
 Description
 ^^^^^^^^^^^
-Adds a value to the database at a given range. Overwrites all existing ``RangeEntry`` objects that overlap with the range. ``put`` **must** modify or break apart existing ``RangeEntry`` objects if the given range only partially overlaps with the object. For example, if we currently have a ``RangeEntry`` over the range ``(0, 100)`` and call ``put(25, 75, "some value")``, this function must break the existing ``RangeEntry`` into new entries for ``(0, 25)`` and ``(75, 100)``.
+Adds a value to the database at a given range. Overwrites all existing ``RangeEntry`` objects that overlap with the range. ``put`` **MUST** modify or break apart existing ``RangeEntry`` objects if the given range only partially overlaps with the object. For example, if we currently have a ``RangeEntry`` over the range ``(0, 100)`` and call ``put(25, 75, "some value")``, this function must break the existing ``RangeEntry`` into new entries for ``(0, 25)`` and ``(75, 100)``.
 
 Parameters
 ^^^^^^^^^^
@@ -99,7 +99,7 @@ del
 
 Description
 ^^^^^^^^^^^
-Deletes the values for the given range. Will insert new ``RangeEntry`` objects or modify existing ones when the given range only partially overlaps with those already in the database. This method **must** delete objects under the same scheme described above for ``put``.
+Deletes the values for the given range. Will insert new ``RangeEntry`` objects or modify existing ones when the given range only partially overlaps with those already in the database. This method **MUST** delete objects under the same scheme described above for ``put``.
 
 Parameters
 ^^^^^^^^^^
