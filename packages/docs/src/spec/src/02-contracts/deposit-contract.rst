@@ -5,7 +5,7 @@ Deposit Contract
 ***********
 Description
 ***********
-Deposit contracts are the ethereum smart contracts into which assets are deposited--custodying the money as it is transacted on plasma and playing out the exit games to resolve the rightful owners of previously deposited assets.  As such, it contains the bulk of the logic for the plasma exit games.  The things it does not cover are 1) block commitments, and 2), state transitions, which are handled by calls to the commitment contract and predicate contracts specifically.
+Deposit contracts are the ethereum smart contracts into which assets are deposited--custodying the money as it is transacted on plasma and playing out the exit games to resolve the rightful owners of previously deposited assets.  As such, it contains the bulk of the logic for the plasma exit games.  The things it does not cover are 1) block commitments, and 2), state deprecation, which are handled by calls to the commitment contract and predicate contracts specifically.
 
 
 -------------------------------------------------------------------------------
@@ -553,7 +553,7 @@ Requirements
 
 Rationale
 ^^^^^^^^^
-If the operator includes an invalid ``StateUpdate`` (i.e. there is no transaction from the last valid ``StateUpdate`` on an intersecting range), they may checkpoint it and attempt a malicious exit.  To prevent this, the valid owner must checkpoint their unspent state, exit it, and create a challenge on the invalid checkpoint.
+If the operator includes an invalid ``StateUpdate`` (i.e. there is not a deprecation for the last valid ``StateUpdate`` on an intersecting range), they may checkpoint it and attempt a malicious exit.  To prevent this, the valid owner must checkpoint their unspent state, exit it, and create a challenge on the invalid checkpoint.
 
 
 -------------------------------------------------------------------------------
@@ -606,7 +606,7 @@ Starts an exit from a checkpoint. Checkpoint may be pending or finalized.
 Parameters
 ^^^^^^^^^^
 1. ``_checkpoint`` - ``Checkpoint``: `The checkpoint`_ from which to exit.
-2. ``_witness`` - ``bytes``: Extra witness data passed to the `predicate contract`_. Determines whether the sender of the transaction is allowed to start an exit from the checkpoint.
+2. ``_witness`` - ``bytes``: Extra witness data passed to the `predicate contract`_. Determines whether this Ethereum transaction is allowed to start an exit from the checkpoint.
 
 Requirements
 ^^^^^^^^^^^^
@@ -619,7 +619,7 @@ Requirements
 
 Rationale
 ^^^^^^^^^
-For a user to redeem state from the plasma chain onto the main chain, they must checkpoint it and respond to all challenges on the checkpoint, and await a ``LOCKUP_PERIOD`` to demonstrate that the checkpointed subrange has not been deprecated by any transactions.  This is the method which starts the latter process on a given checkpoint.
+For a user to redeem state from the plasma chain onto the main chain, they must checkpoint it and respond to all challenges on the checkpoint, and await a ``LOCKUP_PERIOD`` to demonstrate that the checkpointed subrange has not been deprecated.  This is the method which starts the latter process on a given checkpoint.
 
 
 -------------------------------------------------------------------------------
@@ -632,7 +632,7 @@ challengeExitDeprecated
 
    function challengeExitDeprecated(
        Checkpoint _checkpoint,
-       bytes _transaction
+       bytes _deprecationWitness
    ) public
 
 Description
@@ -642,14 +642,12 @@ Challenges an exit by showing that the checkpoint from which it spends has been 
 Parameters
 ^^^^^^^^^^
 1. ``_checkpoint`` - ``Checkpoint``: `The checkpoint`_ referenced by the exit.
-2. ``_transaction`` - ``bytes``: Transaction that spent the checkpointed state update.
+2. ``_deprecationWitness`` - ``bytes``: Witness data provided to the predicate contract to prove the state update is deprecated.
 
 Requirements
 ^^^^^^^^^^^^
-- **MUST** ensure the ``transaction`` results in a valid ``StateUpdate`` by calling the ``executeTransaction(checkpoint.StateUpdate, transaction)`` for the ``checkpoint.stateUpdate.predicateAddress`` .
-- **MUST** ensure the ``StateUpdate`` resulting from the transaction intersects the ``checkpoint.subRange``.
+- **MUST** ensure the ``Checkpoint`` is indeed deprecated by calling the ``verifyDeprecation(_checkpoint, _deprecationwitness)`` on the ``checkpoint.stateUpdate.predicateAddress`` .
 - **MUST** delete the ``exit`` from ``exits`` at the ``checkpointId`` .
-- **MUST** 
 
 Rationale
 ^^^^^^^^^
