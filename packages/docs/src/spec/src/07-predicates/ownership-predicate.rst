@@ -103,81 +103,152 @@ Fields
 ======
 1. `owner` - `address`: The Ethereum public address of the person who may mutate the state.
 
-***********************************
-Additional Predicate Contract Logic
-***********************************
+**************************
+Additional Exit Game Logic
+**************************
 
 N/A
 
-*******************
-Predicate Interface
-*******************
+************************
+Predicate Contract Logic
+************************
 
 Transition Execution
 ====================
 
 .. code-block:: python
   
-  def verifyStateTransition(preState: StateUpdate, input: StandardTransaction, witness: bytes postState: StateUpdate)
+  def verifyTransaction(preState: StateUpdate, transaction: Transaction, witness: bytes postState: StateUpdate)
 
 Requirements
 ------------
 
-1. **MUST** ensure that the ``input.witness`` is a signature by the ``preState.stateObject.owner`` .
-2. **MUST** ensure that the ``preState.plasmaBlockNumber`` is less thana the ``input.parameters.originBlock`` .
-3. **MUST** ensure that the ``postState.range`` is the same as ``input.start`` and ``input.end`` .
-4. **MUST** ensure that the ``input.parameters.newState`` is the same as the ``postState.state`` .
+1. **MUST** ensure that the ``witness`` is a signature by the ``preState.stateObject.owner`` on the ``transaction``.
+2. **MUST** ensure that the ``preState.plasmaBlockNumber`` is less than the ``input.parameters.originBlock`` .
+3. **MUST** ensure that the ``postState.range`` is the same as ``transaction.start`` and ``transaction.end`` .
+4. **MUST** ensure that the ``transaction.parameters.newState`` is the same as the ``postState.state`` .
 5. **MUST** ensure that the ``input.parameters.targetBlock`` is greater than or equal to the ``postState.plasmaBlockNumber`` .
 
 Rationale
 ---------
+These conditions allow a signature by the sender to approve only a single output state.
 
-The addition of limbo exits has removed the need to always specify a target block number which is one more than the client's currently verified block.  Thus, we can allow transactions to be in flight for multiple blocks with this predicate.
+Exit Finalization Logic
+-----------------------
 
-Exit Finalization
+.. code-block:: python
+
+  def onFinalizeExit(owner: address, ERC20Contract: address, amount: uint256)
+  
+Parameters
+^^^^^^^^^^
+1. ``owner`` - ``address``: the owner of the exit.
+2. ``ERC20Contract`` - ``address``: The ERC20 contract the ownership is of.
+3. ``amount`` - ``uint256``: the amount of the ERC20 token being redeemed.
+
+  
+Description
+^^^^^^^^^^^
+This function is called internally by the predicate when it needs to handle an exit, whether as a limbo target or as a regular exit.
+
+Requirements
+^^^^^^^^^^^^
+
+1. **MUST** only allow this method to be called internally.
+2. **MUST** Send the total ``amount`` to the ``owner`` .
+
+Rationale
+^^^^^^^^^
+The owner of a range gets all of the assets it corresponds to.
+
+****************
+Limbo Exit Logic
+****************
+As with all predicates in this spec, the ownership predicate supports limbo exit functionality.  As such, it **MUST** fulfill all the methods and requirements outlined in the limbo standard outlined in the contracts section of this spec.  Additional requirements for some of the methods in this predicate are shown below.  They are quite simple as the ownership predicate is mostly pure functions.
+
+
+onTargetedForLimboExit
+----------------------
+
+.. code-block:: solidity
+
+   function onTargetedForLimboExit(
+       Checkpoint _sourceExit,
+       StateUpdate _limboTarget
+   ) public
+
+
+Additonal Requirements
+^^^^^^^^^^^^^^^^^^^^^^
+N/A--just return!
+
+Justification
+^^^^^^^^^^^^^
+There's no custom exit logic for the ownership predicate if it's a limbo exit, so no additional functionality needed.
+
+canReturnLimboExit
 ------------------
 
-.. code-block:: python
+.. code-block:: solidity
 
-  def onExitGameFinalized(exit: Checkpoint, witness: myExitabilityWitness)
+   function canReturnLimboExit(
+       Checkpoint _limboSource,
+       StateUpdate _limboTarget
+       bytes _witness
+   ) public returns (bool)
 
-Requirements
-^^^^^^^^^^^^
+Returnability Witness Specification
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The ``_witness`` is be unused for this predicate.
 
-1. **MUST** Send the total balance of the subrange to the ``exit.stateUpdate.state.owner`` .
+Additonal Requirements
+^^^^^^^^^^^^^^^^^^^^^^
+- **MUST** ensure that the tx.origin is the ``state.data.owner`` of the ``limboTarget``
 
-Rationale
-^^^^^^^^^
+Justification
+^^^^^^^^^^^^^
+We require the target owner's permission to return a limbo exit.
 
-Exit Permission
----------------
+finalizeExit
+------------
 
-.. code-block:: python
-  
-  def canStartExitGame(exit: Checkpoint, witness: myExitabilityWitness)
+.. code-block:: solidity
 
-Requirements
-^^^^^^^^^^^^
+   function finalizeExit(
+       Checkpoint _exit
+   ) public
 
-1. **MUST** require via the ``witness`` or ``tx.sender`` that the person exiting is the same as ``exit.stateUpdate.state.data.owner`` .
+Additional Requirements
+^^^^^^^^^^^^^^^^^^^^^^^
+- **MUST** fulfill the generic requirements for ``finalizeExit``.
+- **MUST** make an internal call to ``onFinalizeExit`` to send the total amount to the ``_exit.stateUpdate.owner``.
 
-Rationale
-^^^^^^^^^
+Justification
+^^^^^^^^^^^^^
+The finalization logic for limbo and non-limbo exits remains the same.
 
-Exit Lockup
------------
 
-.. code-block:: python
+onFinalizeTargetedExit
+----------------------
 
-  def getAdditionalExitPeriod(exit: Checkpoint, witness: myExitabilityWitness) -> uint256
+.. code-block:: solidity
 
-Requirements
-^^^^^^^^^^^^
-1. Return 0.
+   function onFinalizeTargetedExit(
+       Checkpoint _exit,
+       StateUpdte _target
+   ) public
 
-Rationale
-^^^^^^^^^
-No additonal lockup is required for safety.
+Description
+^^^^^^^^^^^
+Logic for the target of a limbo exit to handle the exit's finalization.
+
+Additional Requirements
+^^^^^^^^^^^^^^^^^^^^^^^
+- **MUST** make an internal call to ``onFinalizeExit`` to send the total amount to the ``_target.stateUpdate.owner``.
+
+Justification
+^^^^^^^^^^^^^
+The finalization logic for limbo and non-limbo exits remains the same.
 
 *******************
 Verification Plugin
