@@ -125,3 +125,4 @@ Returns
 ^^^^^^^
 ``Promise<StateQuery[]>``: List of queries to execute for a given contract.
 .. _`StateQuery`: TODO
+.. _`SyncManager`: TODO

@@ -27,3 +27,4 @@ State Update Proof Elements
 ===========================
 State Update Proof Elements prove that a given `state update`_ was correctly created from the previous state update. Despite the name, State Update Proof Elements actually include **transactions** and not state updates. The provided transactions are used to compute the newer state update. These elements also include a **block number** in which the computed state update was included and an **inclusion proof** that the update was actually included.
 .. _`transaction`: TODO
+.. _`range`: TODO
