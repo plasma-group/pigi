@@ -30,6 +30,8 @@ This website documents the entirety of the Plasma Group design, from the inner w
    src/02-contracts/deposit-contract
    src/02-contracts/commitment-contract
    src/02-contracts/predicate-contract
+   src/02-contracts/transaction-based-predicate
+   src/02-contracts/limbo-exit-predicate
 
 .. toctree::
    :maxdepth: 1
