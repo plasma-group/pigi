@@ -16,6 +16,52 @@ API
 Methods
 =======
 
+addDepositContract
+------------------
+
+.. code-block:: typescript
+
+   async function addDepositContract(
+     commitmentContract: string,
+     depositContract: string
+   ): Promise<void>
+
+Description
+^^^^^^^^^^^
+Connects a deposit contract to a commitment contract.
+
+Parameters
+^^^^^^^^^^
+1. ``commitmentContract`` - ``string``: Address of the commitment contract to connect to.
+2. ``depositContract`` - ``string``: Address of the deposit contract to connect.
+
+Returns
+^^^^^^^
+``Promise<void>``: Promise that resolves once the contracts have been connected.
+
+removeDepositContract
+---------------------
+
+.. code-block:: typescript
+
+   async function removeDepositContract(
+     commitmentContract: string,
+     depositContract: string
+   ): Promise<void>
+
+Description
+^^^^^^^^^^^
+Removes a connection between a deposit contract and a commitment contract.
+
+Parameters
+^^^^^^^^^^
+1. ``commitmentContract`` - ``string``: Commitment contract to remove the connection from.
+2. ``depositContract`` - ``string``: Deposit contract to remove.
+
+Returns
+^^^^^^^
+``Promise<void>``: Promise that resolves once the contracts have been disconnected.
+
 getLastSyncedBlock
 ------------------
 

@@ -46,6 +46,7 @@ This website documents the entirety of the Plasma Group design, from the inner w
    src/03-client/history-verification
    src/03-client/exit-guarding
    src/03-client/state-queries
+   src/03-client/synchronization
    src/03-client/query-expressions
    src/03-client/rpc-methods
 
