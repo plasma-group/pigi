@@ -34,5 +34,14 @@ State Update Proof Elements prove that a given `state update`_ was correctly cre
 
 .. References
 
+.. _`state objects`: ../01-core/state-system.html#state-objects
+.. _`state update`: ../01-core/state-system.html#state-updates
 .. _`transaction`: ../01-core/state-system.html#transactions
+.. _`Merkle Interval Tree`: ../01-core/merkle-interval-tree.html
 .. _`range`: ../01-core/state-object-ranges.html
+.. _`deposit on Ethereum`: ./deposit-generation.html
+.. _`generating a history proof`: ./history-generation.html
+.. _`verifying a history proof`: ./history-verification.html
+.. _`deposit ID`: TODO
+.. _`explicit range`: TODO
+.. _`implicit range`: TODO

@@ -58,6 +58,7 @@ Finally, the client **MUST** insert the resulting state update into the local st
 .. References
 
 .. _`deposit on Ethereum`: ./deposit-generation.html
+.. _`history proof`: ./history-proofs.html
 .. _`state update`: ../01-core/state-system.html#state-update
 .. _`Merkle Interval Tree`: ../01-core/merkle-interval-tree.html
 .. _`inclusion proof`: ../01-core/merkle-interval-tree.html#merkle-proofs
