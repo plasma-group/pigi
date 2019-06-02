@@ -676,7 +676,7 @@ Requirements
 - **MUST** ensure that the checkpoint's ``outstandingChallenges`` is 0.
 - **MUST** ensure that the exit is finalized (current Ethereum block exceeds ``redeemablAfter`` ).
 - **MUST** ensure that the checkpoint is on a subrange of the currently exitable ranges via ``exitableRangeId``.
-- **MUST** approve an ERC20 transfer of the ``end - start`` amount to the predicate address.
+- **MUST** make an ERC20 transfer of the ``end - start`` amount to the predicate address.
 - **MUST** delete the exit.
 - **MUST** remove the exited range by updating the ``exitableRanges`` mapping.
 - **MUST** delete the checkpoint.
