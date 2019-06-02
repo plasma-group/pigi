@@ -206,5 +206,9 @@ Parameters
 Returns
 ^^^^^^^
 ``Promise<StateQuery[]>``: List of queries to execute for a given contract.
-.. _`StateQuery`: TODO
-.. _`SyncManager`: TODO
+
+
+.. References
+
+.. _`StateQuery`: ./state-manager.html#StateQuery
+.. _`SyncManager`: ./sync-manager.html

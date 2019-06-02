@@ -147,4 +147,8 @@ Parameters
 Returns
 ^^^^^^^
 ``Promise<StateQuery[]>``: A list of `StateQuery`_ objects the manager is using.
-.. _`StateQuery`: TODO
+
+
+.. References
+
+.. _`StateQuery`: ../03-client/state-manager.html#statequery

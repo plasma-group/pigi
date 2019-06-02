@@ -72,16 +72,19 @@ Returns
 ^^^^^^^
 ``InclusionProof``: An ``InclusionProof`` that contains `Merkle Interval Tree`_ inclusion proofs for both the address tree and the state tree.
 
-.. _`HistoryDB`: TODO
-.. _`history proofs`: TODO
-.. _`Merkle Interval Tree`: TODO
-.. _`state tree`: TODO
-.. _`address tree`: TODO
+
+.. References
+
+.. _`Merkle Interval Tree`: ../01-core/merkle-interval-tree.html
+.. _`state tree`: ../01-core/double-layer-tree.html#state-tree
+.. _`address tree`: ../01-core/double-layer-tree.html#address-tree
 .. _`inclusion proof`:
-.. _`inclusion proofs`: TODO
-.. _`valid history`: TODO
-.. _`proof elements`: TODO
-.. _`HistoryProof`: TODO
-.. _`state objects`: TODO
-.. _`history`: TODO
-.. _`state updates`: TODO
+.. _`inclusion proofs`: ../01-core/merkle-interval-tree.html#merkle-proofs
+.. _`state objects`: ../01-core/state-system.html#state-objects
+.. _`state updates`: ../01-core/state-system.html#state-updates
+.. _`history`:
+.. _`history proofs`:
+.. _`valid history`: ../03-client/history-proofs.html
+.. _`proof elements`: ../03-client/history-proofs.html#proof-elements
+.. _`HistoryDB`: ./history-db.html
+.. _`HistoryProof`: ./history-proof-structure.html#historyproof

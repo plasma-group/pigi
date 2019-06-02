@@ -2,6 +2,10 @@
 History Proofs
 ##############
 
+************
+Introduction
+************
+
 In every plasma block, a `range`_ of `state objects`_ can either be deposited, transacted, or not transacted. Whenever clients want to verify a `transaction`_ on a specific range, they need to verify the entire "history" of what happened to the range between the block in which it was first deposited and the block in which the transaction occurred.
 
 For example, let’s imagine that a range ``(0, 100)`` was deposited in block 1, not transacted in block 2, and then transacted in block 3. The history proof for a transaction in block 4 would contain the deposit, a proof that the range wasn't transacted in block 2, and a proof that the range was transacted in block 3.
@@ -26,5 +30,9 @@ These proof elements take advantage of the fact that items of our `Merkle Interv
 State Update Proof Elements
 ===========================
 State Update Proof Elements prove that a given `state update`_ was correctly created from the previous state update. Despite the name, State Update Proof Elements actually include **transactions** and not state updates. The provided transactions are used to compute the newer state update. These elements also include a **block number** in which the computed state update was included and an **inclusion proof** that the update was actually included.
-.. _`transaction`: TODO
-.. _`range`: TODO
+
+
+.. References
+
+.. _`transaction`: ../01-core/state-system.html#transactions
+.. _`range`: ../01-core/state-object-ranges.html

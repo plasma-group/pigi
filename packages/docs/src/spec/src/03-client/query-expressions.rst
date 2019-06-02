@@ -240,5 +240,7 @@ Returns
 ``boolean``: ``true`` if input values are not equivalent, ``false`` otherwise.
 
 
-.. _`state queries`: TODO
+.. References
+
+.. _`state queries`: ./state-queries.html
 .. _`mongoDB`: https://docs.mongodb.com/manual/reference/operator/

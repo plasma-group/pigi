@@ -22,10 +22,13 @@ Where ``StateObject`` is the following struct:
 
 ``deposit`` requires that users specify the ``_amount`` the asset being deposited and an **initial state object**, ``_state``, that controls ownership of the asset. For example, users might use the `SimpleOwnership`_ predicate to control their asset.
 
-.. _`plasma deposit contract`: TODO
-.. _`plasma chain transactions`: TODO
-.. _`range`: TODO
-.. _`state object`: TODO
-.. _`predicate contract`: TODO
-.. _`SimpleOwnership`: TODO
+
+.. References
+
+.. _`plasma chain transactions`: ../01-core/state-system.html#transactions
+.. _`range`: ../01-core/state-object-ranges.html
+.. _`state object`: ../01-core/state-system.html#state-objects
+.. _`predicate contract`: ../02-contracts/predicate-contract.html
+.. _`plasma deposit contract`: ../02-contracts/deposit-contract.html
+.. _`SimpleOwnership`: ../07-predicates/simple-ownership.html
 .. _`ABI encoded`: https://solidity.readthedocs.io/en/v0.5.8/abi-spec.html

@@ -111,4 +111,6 @@ Returns
 ``Promise<void>``: Promise which resolves once the range has been deleted.
 
 
+.. References
+
 .. _`Buffer`: https://nodejs.org/api/buffer.html

@@ -51,3 +51,6 @@ Parameters
 Returns
 ^^^^^^^
 ``Promise<string>``: Address of the newly created account.
+
+
+.. References

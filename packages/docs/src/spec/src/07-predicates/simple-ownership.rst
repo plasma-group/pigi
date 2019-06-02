@@ -1,11 +1,13 @@
-#################################
-Ownership Predicate Specification
-#################################
+#########################
+SimpleOwnership Predicate
+#########################
 
-***********
+********
 Overview
-***********
+********
 The ownership predicate is the one of the simplest useful predicates.  It gives an address, specified as the ``state.data.owner`` , the ability to execute a state transition which changes any part of the owned subrange to a new ``StateObject`` by signing an approval transaction.
+
+-------------------------------------------------------------------------------
 
 *************
 Predicate API
@@ -278,3 +280,5 @@ Guarding Plugin
 ***************
 
 TODO
+
+.. References

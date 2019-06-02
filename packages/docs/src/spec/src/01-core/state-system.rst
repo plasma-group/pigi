@@ -242,6 +242,8 @@ Requirements
 Transactions
 ************
 
+.. _`Transaction`:
+
 Transaction Model
 =================
 Mutations to state objects are carried out by **transactions**. Transactions specify:
@@ -336,6 +338,8 @@ State Updates
 
    Explain state updates at a high level.
 
+.. _`StateUpdate`:
+
 State Update Model
 ==================
 
@@ -378,9 +382,14 @@ Test Vectors
    
    Add test vectors for computing state update hash.
 
-.. _`computed`: TODO
+
+.. References
+
+.. _`computed`: #method-identifiers
+.. _`predicate`: #predicates
+.. _`predicate contract`: ../02-contracts/predicate-contract.html
+.. _`SimpleOwnership`: ../07-predicates/simple-ownership.html
 .. _`RLP encoded`: https://github.com/ethereum/wiki/wiki/RLP
-.. _`predicate contract`: TODO
 .. _`abi encoding`: https://solidity.readthedocs.io/en/v0.5.8/abi-spec.html
 .. _`rlp encoding`: https://github.com/ethereum/wiki/wiki/RLP
 .. _`rlp decoded`: https://github.com/ethereum/wiki/wiki/RLP#rlp-decoding
@@ -388,13 +397,10 @@ Test Vectors
 .. _`native support for ABI decoding`: https://solidity.readthedocs.io/en/v0.5.8/units-and-global-variables.html?highlight=abi.encode#abi-encoding-and-decoding-functions
 .. _`native support for RLP decoding`: https://vyper.readthedocs.io/en/v0.1.0-beta.8/built-in-functions.html#rlplist
 .. _`audited RLP decoding libraries`: https://github.com/hamdiallam/Solidity-RLP
-.. _`Predicate API`: TODO
-.. _`primitive types in Solidity`: TODO
-.. _`keccak256`: TODO
-.. _`SimpleOwnership`: TODO
-.. _`Ethereum contract ABI`: TODO
-.. _`Ethereum ABI JSON format`: TODO
-.. _`ABI encoded and decoded`: TODO
-.. _`Vyper`: TODO
-.. _`native support for ABI encoding and decoding`: TODO
-.. _`predicate`: TODO
+.. _`primitive types in Solidity`: https://solidity.readthedocs.io/en/latest/types.html
+.. _`keccak256`: https://ethereum.stackexchange.com/questions/550/which-cryptographic-hash-function-does-ethereum-use
+.. _`Ethereum contract ABI`: 
+.. _`Ethereum ABI JSON format`: https://solidity.readthedocs.io/en/latest/abi-spec.html
+.. _`ABI encoded and decoded`: https://solidity.readthedocs.io/en/latest/abi-spec.html
+.. _`Vyper`: https://github.com/ethereum/vyper
+.. _`native support for ABI encoding and decoding`: https://solidity.readthedocs.io/en/latest/units-and-global-variables.html#abi-encoding-and-decoding-functions

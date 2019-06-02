@@ -131,7 +131,7 @@ Our tree generation process allows us to create an efficient **proof** that for 
 
 Proof Generation
 ================
-Proofs can be generated after the full Merkle tree has been generated as per thealgorithm `described above`_. Proofs consist of a list of `internal nodes`_ within the Merkle tree.
+Proofs can be generated after the full Merkle tree has been generated as per the algorithm `described above`_. Proofs consist of a list of `internal nodes`_ within the Merkle tree.
 
 The proof for a given leaf node is computed as follows:
 
@@ -206,11 +206,13 @@ A diagram of the Merkle Interval Tree is provided below. We've highlighted the n
    <img src="../../_static/images/merkle-interval-tree/merkle-interval-tree.svg" alt="Merkle Interval Tree">
 
 
-.. _`internal nodes`: TODO
-.. _`described above`: TODO
-.. _`hash function`: TODO
-.. _`leaf nodes`: TODO
-.. _`binary tree`: TODO
-.. _`Plasma Cash`: TODO
-.. _`ranges of state objects`: TODO
-.. _`Plasma Cashflow`: TODO
+.. References
+
+.. _`described above`: #tree-generation
+.. _`ranges of state objects`: ./state-object-ranges.html
+.. _`internal nodes`: https://en.wikipedia.org/wiki/Tree_(data_structure)#external_node_(not_common)
+.. _`hash function`: https://en.wikipedia.org/wiki/Hash_function
+.. _`leaf nodes`: https://en.wikipedia.org/wiki/Tree_(data_structure)#leaf
+.. _`binary tree`: https://en.wikipedia.org/wiki/Binary_tree
+.. _`Plasma Cash`: https://www.learnplasma.org/en/learn/cash.html
+.. _`Plasma Cashflow`: https://hackmd.io/DgzmJIRjSzCYvl4lUjZXNQ?view#

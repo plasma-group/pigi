@@ -118,5 +118,7 @@ Returns
 ``boolean``: ``true`` if the proof is valid, ``false`` otherwise.
 
 
-.. _`Merkle Interval Tree`: TODO
-.. _`inclusion proof`: TODO
+.. References
+
+.. _`Merkle Interval Tree`: ../01-core/merkle-interval-tree.html
+.. _`inclusion proof`: ../01-core/merkle-interval-tree.html#merkle-proofs

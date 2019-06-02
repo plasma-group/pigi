@@ -33,12 +33,12 @@ API
 Methods
 =======
 
-transitionStateUpdate
----------------------
+executeStateTransition
+----------------------
 
 .. code-block:: typescript
 
-   async function transitionStateUpdate(
+   async function executeStateTransition(
      input: StateUpdate,
      transaction: Transaction
    ): Promise<StateUpdate>
@@ -194,14 +194,15 @@ Returns
 ``Promise<void>``: Promise that resolves once the predicate has executed some logic for the hook.
 
 
-.. _`API`: TODO
-.. _`web3`: TODO
-.. _`StateUpdate`: TODO
-.. _`Transaction`: TODO
-.. _`StateManager`: TODO
-.. _`HistoryManager`: TODO
-.. _`HistoryProof`: TODO
-.. _`history proof`:
+.. References
+
+.. _`API`: ../01-core/state-system.html#predicate-api
+.. _`StateUpdate`: ../01-core/state-system.html#StateUpdate
+.. _`Transaction`: ../01-core/state-system.html#Transaction
+.. _`history proof`: ../03-client/history-proof.html
 .. _`verify the history proof`:
-.. _`fully verified history`: TODO
+.. _`fully verified history`: ../03-client/history-verification.html
+.. _`StateManager`: ./state-manager.html
+.. _`HistoryManager`: ./history-manager.html
+.. _`HistoryProof`: ./history-proof-structure.html#historyproof
 .. _`valid behavior`: TODO

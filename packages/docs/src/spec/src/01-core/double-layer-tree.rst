@@ -43,14 +43,16 @@ We've provided a diagram of the double-layer Merkle Interval Tree below. The dia
    <img src="../../_static/images/double-layer-tree/double-layer-tree.svg" alt="Double-Layer Merkle Interval Tree">
 
 
-.. _`Plasma Cashflow`: TODO
-.. _`ranges`: TODO
-.. _`state objects`: TODO
-.. _`Plasma Cash`: TODO
+.. References
+
+.. _`ranges`: ./state-object-ranges.html
+.. _`state objects`: ./state-system.html#state-objects
+.. _`ID of a state object`: ./state-system.html#state-objects
+.. _`Merkle Interval Tree`: ./merkle-interval-tree.html
+.. _`deposit contract`: ../02-contracts/deposit-contract.html
+.. _`Plasma Cashflow`: https://hackmd.io/DgzmJIRjSzCYvl4lUjZXNQ?view#
+.. _`Plasma Cash`: https://www.learnplasma.org/en/learn/cash.html
+.. _`WETH`: https://weth.io/
 .. _`defragmenting`: TODO
 .. _`outside of this page`: TODO
-.. _`ID of a state object`: TODO
-.. _`WETH`: TODO
-.. _`deposit contract`: TODO
 .. _`block root`: TODO
-.. _`Merkle Interval Tree`: TODO

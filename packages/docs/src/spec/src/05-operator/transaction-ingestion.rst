@@ -41,14 +41,16 @@ Transaction Receipt
 Finally, once the new state update has been added to the block queue, the operator **MUST** return a `transaction receipt`_ to the client.
 
 
-.. _`send transaction RPC method`: TODO
-.. _`RPC server`: TODO
-.. _`operator's state manager`: TODO
-.. _`correctly formatted`: TODO
-.. _`Invalid Transaction Encoding`: TODO
-.. _`Invalid Transaction`: TODO
-.. _`Duplicate Transaction`: TODO
-.. _`executeStateTransition`: TODO
-.. _`plugin`: TODO
-.. _`queue of state updates`: TODO
+.. References
+
+.. _`correctly formatted`: ../01-core/state-system.html#id12
+.. _`send transaction RPC method`: ../03-client/rpc-methods.html#pg-sendrawtransaction
+.. _`Invalid Transaction Encoding`: ../03-client/rpc-error-messages.html#invalid-transaction-encoding
+.. _`Invalid Transaction`: ../03-client/rpc-error-messages.html#invalid-transaction
+.. _`Duplicate Transaction`: ../03-client/rpc-error-messages.html#duplicate-transaction
+.. _`RPC server`: ../04-client-architecture/rpc-server.html
+.. _`executeStateTransition`: ../04-client-architecture/predicate-plugin.html#executestatetransition
+.. _`plugin`: ../04-client-architecture/predicate-plugin.html
+.. _`operator's state manager`: ../06-operator-architecture/operator-state-manager.html
+.. _`queue of state updates`: ../06-operator-architecture/block-manager.html
 .. _`transaction receipt`: TODO

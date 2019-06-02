@@ -94,4 +94,7 @@ Returns
 ^^^^^^^
 ``Promise<void>``: Promise that resolves once the block has been submitted.
 
+
+.. References
+
 .. _`Merklizes the next block`: TODO

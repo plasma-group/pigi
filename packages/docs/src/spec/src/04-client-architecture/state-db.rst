@@ -91,7 +91,9 @@ Returns
 ``Promise<void>``: Promise that resolves once the object has been added to the database.
 
 
-.. _`StateManager`: TODO
-.. _`StateUpdate`: TODO
-.. _`correctly verified`: TODO
+.. References
+
+.. _`StateUpdate`: ../01-core/state-system.html#StateUpdate
+.. _`correctly verified`: ../01-core/merkle-interval-tree.html#proof-verification
+.. _`StateManager`: ./state-manager.html
 .. _`exclusion proof`: TODO

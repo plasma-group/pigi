@@ -41,5 +41,6 @@ Returns
 ``Promise<string>``: Receipt for the given transaction.
 
 
-.. _`Transaction`: TODO
+.. References
 
+.. _`Transaction`: ../01-core/state-system.html#Transaction

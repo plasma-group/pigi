@@ -120,20 +120,20 @@ Finally, we can combine everything to create the full transaction:
 We now have a correctly formed transaction that can be sent to the operator for inclusion.
 
 
-.. _`Ethereum contract ABI`: TODO
-.. _`Ethereum ABI JSON format`: TODO
-.. _`SimpleOwnership`: TODO
-.. _`plasma deposit contract`: TODO
-.. _`chain ID`: TODO
-.. _`certain attacks`: TODO
-.. _`range`: TODO
-.. _`keccak256`: TODO
+.. References
+
+.. _`sendTransaction RPC method`: ./rpc-methods.html#pg-sendrawtransaction
+.. _`history`: ./history-proofs.html
+.. _`method's signature`: ../01-core/state-system.html#method-identifiers
+.. _`Predicate API`: ../01-core/state-system.html#predicate-api
+.. _`range`: ../01-core/state-object-ranges.html
+.. _`plasma deposit contract`: ../02-contracts/deposit-contract.html
+.. _`SimpleOwnership`: ../07-predicates/simple-ownership.html
+.. _`Ethereum contract ABI`: https://solidity.readthedocs.io/en/latest/abi-spec.html
+.. _`Ethereum ABI JSON format`: https://solidity.readthedocs.io/en/latest/abi-spec.html#json
+.. _`chain ID`: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md
+.. _`keccak256`: https://ethereum.stackexchange.com/questions/550/which-cryptographic-hash-function-does-ethereum-use
 .. _`ABI encoded`:
 .. _`ABI encode`:
-.. _`ABI encoded or decoded`: TODO
-.. _`input value encoding in Ethereum`: TODO
-.. _`ABI encoded or decoded`: TODO
-.. _`sendTransaction RPC method`: TODO
-.. _`Predicate API`: TODO
-.. _`method's signature`: TODO
-.. _`history`: TODO
+.. _`ABI encoded or decoded`:
+.. _`input value encoding in Ethereum`: https://solidity.readthedocs.io/en/latest/abi-spec.html#argument-encoding

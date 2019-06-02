@@ -11,7 +11,7 @@ Event Uniqueness
 ================
 It's often important that an event only be handled **once**. We might otherwise end up in a situation in which, for example, a client attempts to credit the same deposit twice. We also don't want to increase client load by querying the same events multiple times.
 
-``EventWatcher`` is therefore slightly more complicated than a basic Ethereum event watcher. Each ``EventWatcher`` instance has access to a local database that it **MUST** use to store the hash of any event that's already been seen. The hash of an event is computed as the `keccak256`_ hash of the `hash of the transaction`_ that emitted event prepended to the `index of the event`_.
+``EventWatcher`` is therefore slightly more complicated than a basic Ethereum event watcher. Each ``EventWatcher`` instance has access to a local database that it **MUST** use to store the hash of any event that's already been seen. The hash of an event is computed as the `keccak256`_ hash of the hash of the `ABI encoded transaction`_ that emitted event prepended to the index of the event.
 
 ``EventWatcher`` will also store the current block up to which it has checked for a given event on a given contract. ``EventWatcher`` **MUST** store a different block for each tuple of ``(contract, event name, event filter)``.
 
@@ -78,11 +78,12 @@ Parameters
 5. ``callback`` - ``(eventName: string, eventData: any) => void``: Callback to be triggered whenever a matching event is detected in the smart contract.
 
 
-.. _`Ethereum contract events`: TODO
-.. _`deposits`: TODO
+.. References
+
+.. _`ABI encoded transaction`: ../01-core/state-system.html#id12
+.. _`deposits`: ../03-client/deposit-generation.html
+.. _`keccak256`: https://ethereum.stackexchange.com/questions/550/which-cryptographic-hash-function-does-ethereum-use
+.. _`Ethereum contract events`: https://media.consensys.net/technical-introduction-to-events-and-logs-in-ethereum-a074d65dd61e
+.. _`JSON ABI`: https://solidity.readthedocs.io/en/v0.5.9/abi-spec.html
 .. _`exits`: TODO
-.. _`keccak256`: TODO
-.. _`hash of the transaction`: TODO
-.. _`index of the event`: TODO
-.. _`JSON ABI`: TODO
 .. _`event filter`: TODO

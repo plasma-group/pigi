@@ -37,7 +37,9 @@ Returns
 ``JsonRpcResponse``: A `JSON RPC response`_ object sent back by the server.
 
 
-.. _`JSON RPC`: TODO
-.. _`RPC methods`: TODO
-.. _`JSON RPC request`: TODO
-.. _`JSON RPC response`: TODO
+.. References
+
+.. _`RPC methods`: ./rpc-methods
+.. _`JSON RPC`: ../01-core/json-rpc.html
+.. _`JSON RPC request`: ../01-core/json-rpc.html#jsonrpcrequest
+.. _`JSON RPC response`: ../01-core/json-rpc.html#jsonrpcresponse

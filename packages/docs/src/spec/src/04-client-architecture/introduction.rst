@@ -17,7 +17,7 @@ RpcClient
 
 StateDB
 =======
-`StateDB`_ stores information about the current `head state`_.
+`StateDB`_ stores information about the current head state.
 
 StateManager
 ============
@@ -52,11 +52,13 @@ We've provided a diagram of the interactions between the various client componen
 
    <object type="image/svg+xml" data="../../_static/images/architecture/client-architecture.1.svg" style="max-width:100%" class="svg-hoverable">Client Architecture Diagram</object>
 
+
+.. References
+
 .. _`predicate plugins`: ./predicate-plugin.html
 .. _`history proofs`:
 .. _`history proof`: ./history-proof.html
-.. _`head state`: TODO
 .. _`RPC methods`: ./rpc-methods.html
+.. _`ContractWrapper`: ./contract-wrapper.html
+.. _`EventWatcher`: ./event-watcher.html
 .. _`JSON RPC`: https://www.jsonrpc.org/specification
-.. _`ContractWrapper`: TODO
-.. _`EventWatcher`: TODO

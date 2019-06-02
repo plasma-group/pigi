@@ -102,7 +102,7 @@ pg_getTransactionByHash
 
 Description
 -----------
-Returns a full transaction from a `transaction hash`_.
+Returns a full transaction from a transaction hash.
 
 Parameters
 ----------
@@ -158,14 +158,16 @@ Returns
 -------
 ``string``: Version and name of the client in the form ``<name>/<version>/<os>``.
 
+
+.. References
+
+.. _`state query`: ./state-queries.html
+.. _`StateQuery`: ./state-manager.html#StateQuery
+.. _`history proof`: ./history-proofs.html
+.. _`proof elements`: ./history-proofs.html#proof-elements
+.. _`HistoryQuery`: ./history-generation.html#history-query
+.. _`HistoryProof`: ./history-proof-structure.html
+.. _`encoded transaction`: ../01-core/state-system.html#id12
+.. _`Transaction`: ../01-core/state-system.html#Transaction
+.. _`state object`: ../01-core/state-system.html#state-objects
 .. _`JSON RPC`: https://www.jsonrpc.org/specification
-.. _`encoded transaction`: TODO
-.. _`state query`: TODO
-.. _`StateQuery`: TODO
-.. _`state object`: TODO
-.. _`transaction hash`: TODO
-.. _`Transaction`: TODO
-.. _`history proof`: TODO
-.. _`HistoryQuery`: TODO
-.. _`HistoryProof`: TODO
-.. _`proof elements`: TODO

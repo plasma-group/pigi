@@ -74,3 +74,6 @@ Requirements
 - **MUST** check that the transaction is valid with a call to ``verifyTransaction(_deprecatedExit.stateUpdate, _transaction, _witness, _postState``.
 - **MUST** check that the ``_postState.range`` intersects the ``_deprecatedExit.subrange``
 - **MUST** call ``deprecateExit(_deprecatedExit)`` on the ``_deprecatedExit.stateUpdate.state.predicateAddress``.
+
+
+.. References

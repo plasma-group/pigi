@@ -36,7 +36,7 @@ When a node receives a history query, they **MUST** follow the following process
 
 Range Intersection
 ==================
-Generation of a history for a given range begins by performing an intersection of the range with the `historical state`_ for the provided block range. Intersection **MUST** be performed on a start-inclusive, end-exclusive basis. Basically, for each block in the block range, the client needs to find all historical state updates with an `implicit`_ or `explicit`_ range that intersects with the queried range.
+Generation of a history for a given range begins by performing an intersection of the range with the `historical state`_ for the provided block range. Intersection **MUST** be performed on a start-inclusive, end-exclusive basis. Basically, for each block in the block range, the client needs to find all historical state updates with an `implicit range`_ or an `explicit range`_ that intersects with the queried range.
 
 Intersection with the historical state will return three types of relevant elements: **Deposit Proof Elements**, **Exclusion Proof Elements**, and **State Update Proof Elements**. Each of these elements are necessary to generate a full history proof. However, each element must be handled differently during the proof generation process. A more detailed explanation of these elements can be found `here`_.
 
@@ -71,18 +71,20 @@ The client **MUST** also provide an `inclusion proof`_ for the state update that
 It's possible that the validity of a given transaction may also rely on the existence of some other plasma transaction. When this is the case, the verifier must first verify some additional proof elements before executing a given transaction. For each transaction that corresponds to a state update, the client **MUST** ask for a list of additional proof elements from the predicate plugin of the state objects from which the transaction spends. Any additional proof elements **MUST** be inserted *before* the transaction itself so that the client can verify the necessary state before verifying the transaction.
 
 
-.. _`history`: TODO
-.. _`watch several plasma contracts simultaneously`: TODO
-.. _`range`: TODO
-.. _`history query RPC method`: TODO
-.. _`historical state`: TODO
-.. _`state update`: TODO
-.. _`implicit range`: TODO
-.. _`explicit range`: TODO
-.. _`deposit`: TODO
+.. References
+
+.. _`range`: ../01-core/state-object-ranges.html
+.. _`state update`: ../01-core/state-system.html#state-updates
+.. _`transactions`: ../01-core/state-system.html#transactions
+.. _`inclusion proof`: ../01-core/merkle-interval-tree.html#merkle-proofs
+.. _`Merkle Interval Tree`: ../01-core/merkle-interval-tree.html
+.. _`history`:
+.. _`history proofs`: ../03-client/history-proofs.html
+.. _`here`: ../03-client/history-proofs.html#proof-elements
+.. _`history query RPC method`: ../03-client/rpc-methods.html#pg-sendquery
+.. _`historical state`: ../03-client/history-manager.html
+.. _`deposit`: ../03-client/deposit-generation.html
 .. _`deposit ID`: TODO
-.. _`transactions`: TODO
-.. _`inclusion proof`: TODO
-.. _`Merkle Interval Tree`: TODO
-.. _`here`: TODO
-.. _`explicit`: TODO
+.. _`explicit range`: TODO
+.. _`implicit range`: TODO
+.. _`watch several plasma contracts simultaneously`: TODO

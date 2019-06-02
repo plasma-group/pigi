@@ -99,10 +99,12 @@ Description
 A list of ``DepositElement``, ``StateUpdateElement``, and ``NonInclusionElement`` objects.
 
 
-.. _`deposits`: TODO
+.. References
+
+.. _`Transaction`: ../01-core/state-system.html#Transaction
+.. _`transaction`: ../01-core/state-system.html#transactions
+.. _`range`: ../01-core/state-object-ranges.html
+.. _`describe the history proof`: ../03-client/history-proofs.html
+.. _`deposits`: ../03-client/deposit-generation.html
+.. _`InclusionProof`: ./merkle-interval-tree.html#getinclusionproof
 .. _`ID`: TODO
-.. _`Transaction`: TODO
-.. _`InclusionProof`: TODO
-.. _`describe the history proof`: TODO
-.. _`transaction`: TODO
-.. _`range`: TODO

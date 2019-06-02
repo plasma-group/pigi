@@ -27,8 +27,10 @@ It's important to note that, unlike in previous plasma constructions, there's no
 
 For example, imagine we have a predicate that allows anyone to mutate a state object as long as they have the pre-image to some hash. Without the pre-image, the operator has no way to know which user "owns" that state object. A client would have to specifically form a query for all state objects that use that predicate and lock the state object with a specific hash.
 
-.. _`deposit contracts`: TODO
-.. _`commitment contracts`: TODO
-.. _`exits`: TODO
-.. _`range`: TODO
 
+.. References
+
+.. _`range`: ../01-core/state-object-ranges.html
+.. _`deposit contracts`: ../02-contracts/deposit-contract.html
+.. _`commitment contracts`: ../02-contracts/commitment-contract.html
+.. _`exits`: TODO

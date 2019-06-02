@@ -49,6 +49,7 @@ This website documents the entirety of the Plasma Group design, from the inner w
    src/03-client/synchronization
    src/03-client/query-expressions
    src/03-client/rpc-methods
+   src/03-client/rpc-error-messages
 
 .. toctree::
    :maxdepth: 1
@@ -63,11 +64,12 @@ This website documents the entirety of the Plasma Group design, from the inner w
    src/04-client-architecture/wallet
    src/04-client-architecture/predicate-plugin
    src/04-client-architecture/plugin-manager
+   src/04-client-architecture/history-proof-structure
    src/04-client-architecture/history-db
    src/04-client-architecture/history-manager
    src/04-client-architecture/state-db
    src/04-client-architecture/state-manager
-   src/04-client-architecutre/sync-db
+   src/04-client-architecture/sync-db
    src/04-client-architecture/sync-manager
    src/04-client-architecture/rpc-client
    src/04-client-architecture/rpc-server
@@ -95,9 +97,10 @@ This website documents the entirety of the Plasma Group design, from the inner w
    :maxdepth: 1
    :caption: #07: Predicate Specifications
 
-   src/07-predicates/ownership-predicate
+   src/07-predicates/simple-ownership
 
+
+.. References
 
 .. _`Plasma Group`: https://plasma.group
 .. _`generalized plasma`: https://medium.com/plasma-group/plapps-and-predicates-understanding-the-generalized-plasma-architecture-fc171b25741
-

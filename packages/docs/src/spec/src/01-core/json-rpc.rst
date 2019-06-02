@@ -124,8 +124,10 @@ Description
 Either a success response or an error response.
 
 
+.. References
+
+.. _`RPC methods`: ../03-client/rpc-methods.html
 .. _`JSON RPC`: https://www.jsonrpc.org/specification
-.. _`RPC methods`: TODO
 .. _`TypeScript`: https://www.typescriptlang.org/
 .. _`Ethereum also uses JSON RPC`: https://github.com/ethereum/wiki/wiki/JSON-RPC
 .. _`JSON RPC request`: https://www.jsonrpc.org/specification#request_object

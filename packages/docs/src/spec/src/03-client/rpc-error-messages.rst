@@ -148,6 +148,8 @@ Code
 -20006
 
 
-.. _`state query`: TODO
-.. _`incorrectly encoded transaction`: TODO
+.. References
+
+.. _`state query`: ./state-queries.html
+.. _`incorrectly encoded transaction`: ../01-core/state-system.html#id12
 .. _`executes incorrectly`: TODO

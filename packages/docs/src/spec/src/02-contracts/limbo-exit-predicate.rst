@@ -432,3 +432,6 @@ Requirements
 Justification
 ^^^^^^^^^^^^^
 The target of a limbo exit must be able to handle the money arbitrarily, this logic is called by the source predicate on the target to perform that logic.
+
+
+.. References

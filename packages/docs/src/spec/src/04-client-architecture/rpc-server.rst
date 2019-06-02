@@ -50,5 +50,8 @@ Returns
 ^^^^^^^
 ``Promise<void>``: Promise that resolves once the server has been shut down.
 
-.. _`JSON RPC`: TODO
-.. _`RPC methods`: TODO
+
+.. References
+
+.. _`JSON RPC`: ../01-core/json-rpc.html
+.. _`RPC methods`: ../03-client/rpc-methods.html

@@ -32,7 +32,7 @@ Transactions
 ************
 The `transaction format`_ described in our `generalized state system`_ specifies that a transaction **MUST** provide a reference to the `state object`, or set of state objects, from which it spends. Conveniently, this allows us to create transactions over **ranges** of state objects.
 
-The specification for a transaction over a range is very simple. Remember that each ``objectId`` in our system is a `unique 32 byte identifier`_. We therefore require that the ``objectIds`` field be a 64 byte value. The first 32 bytes of this value represents the start of the transacted range and the last 32 bytes represents the end of the transacted range. Transactions over ranges are, in effect, transactions on each individual state object where ``object.id`` falls within the specified range.
+The specification for a transaction over a range is very simple. Remember that each ``objectId`` in our system is a unique 32 byte identifier. We therefore require that the ``objectIds`` field be a 64 byte value. The first 32 bytes of this value represents the start of the transacted range and the last 32 bytes represents the end of the transacted range. Transactions over ranges are, in effect, transactions on each individual state object where ``object.id`` falls within the specified range.
 
 Rationale
 =========
@@ -45,10 +45,12 @@ Requirements
    - **MUST** begin with a 32 byte value that represents that start of the transacted range.
    - **MUST** end with a 32 byte value that represents the end of the transacted range.
 
-.. _`deposited`: TODO
-.. _`Plasma Cash`: TODO
-.. _`generalized state system`: TODO
-.. _`transaction format`: TODO
-.. _`unique 32 byte identifier`: TODO
-.. _`Plasma Cashflow`: TODO
-.. _`background`: TODO
+
+.. References
+
+.. _`deposited`: ../03-client/deposit-generation.html
+.. _`Plasma Cash`: https://www.learnplasma.org/en/learn/cash.html
+.. _`generalized state system`: ./state-system.html
+.. _`transaction format`: ./state-system.html#transactions
+.. _`Plasma Cashflow`: https://hackmd.io/DgzmJIRjSzCYvl4lUjZXNQ?view#
+.. _`background`: #background

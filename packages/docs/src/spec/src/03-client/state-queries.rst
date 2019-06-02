@@ -95,7 +95,7 @@ Query Handling
 
 Range Intersection
 ==================
-Clients will receive a `StateQuery`_ object when receiving a state query. Clients first **MUST** use the range provided by the ``StateQuery`` to find all `state updates`_ in the current `head state`_ that match the provided ``predicateAddress``.
+Clients will receive a `StateQuery`_ object when receiving a state query. Clients first **MUST** use the range provided by the ``StateQuery`` to find all `state updates`_ in the current head state that match the provided ``predicateAddress``.
 
 Passing Queries to Predicate Plugins
 ====================================
@@ -121,14 +121,15 @@ For example, a user could filter results where the first output is greater than 
 Any results that have not been removed by the filter can then be returned to the requesting client.
 
 
-.. _`Predicate API`: TODO
-.. _`SimpleOwnership`: TODO
-.. _`state query RPC method`: TODO
-.. _`StateQuery`: TODO
+.. References
+
+.. _`state query RPC method`: ./rpc-methods.html#pg-sendquery
+.. _`StateQuery`: ./state-manager.html#StateQuery
+.. _`queryState`: ./predicate-plugin.html#querystate
+.. _`predicate plugin`: ./predicate-plugin.html
+.. _`Expression`:
+.. _`Expressions`: ./query-expressions.html
+.. _`Predicate API`: ../01-core/state-system.html#predicate-api
+.. _`state updates`: ../01-core/state-system.html#state-updates
+.. _`SimpleOwnership`: ../07-predicates/simple-ownership.html
 .. _`StateQueryResult``: TODO
-.. _`state updates`: TODO
-.. _`head state`: TODO
-.. _`queryState`: TODO
-.. _`predicate plugin`: TODO
-.. _`Expressions`: TODO
-.. _`Expression`: TODO

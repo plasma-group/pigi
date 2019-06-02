@@ -146,22 +146,22 @@ Returns
 ``Promise<StateQueryResult[]>``: A `StateQueryResult`_ object for each `state update`_ that passed the filter provided in the query.
 
 
+.. References
 
-.. _`StateDB`: TODO
-.. _`HistoryManager`: TODO
-.. _`Expression`: TODO
-.. _`Predicate API`: TODO
-.. _`transaction`: TODO
-.. _`transactions`: TODO
-.. _`deposits`: TODO
-.. _`state update`: TODO
-.. _`state updates`: TODO
-.. _`range`: TODO
-.. _`state object`: TODO
+.. _`Predicate API`: ../01-core/state-system.html#predicate-api
+.. _`transaction`:
+.. _`transactions`: ../01-core/state-system.html#transactions
+.. _`state update`:
+.. _`state updates`: ../01-core/state-system.html#state-updates
+.. _`range`: ../01-core/state-object-ranges.html
+.. _`state object`:
+.. _`state objects`: ../01-core/state-system.html#state-objects
+.. _`Transaction`: ../01-core/state-system.html#Transaction
+.. _`StateUpdate`: ../01-core/state-system.html#StateUpdate
+.. _`deposits`: ../03-client/deposit-generation.html
+.. _`StateDB`: ./state-db.html
+.. _`HistoryManager`: ./history-manager.html
+.. _`Expression`: ./query-expressions.html
+.. _`query on the local state`: ./state-queries.html
 .. _`This behavior is allowed by construction`: TODO
-.. _`Transaction`: TODO
-.. _`StateUpdate`: TODO
-.. _`query on the local state`: TODO
-.. _`StateQueryResult`: TODO
-.. _`state objects`: TODO
-.. _`StateQuery`: TODO
+

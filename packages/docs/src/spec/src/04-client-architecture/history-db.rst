@@ -149,7 +149,7 @@ putStateUpdateLeafPosition
 
 Description
 ^^^^^^^^^^^
-Sets the `leaf position`_ for a given state update within the `Merkle Interval Tree`_ of the block in which the state update was included.
+Sets the leaf position for a given state update within the `Merkle Interval Tree`_ of the block in which the state update was included.
 
 Parameters
 ^^^^^^^^^^
@@ -319,15 +319,16 @@ Returns
 ``Promise<void>``: Promise that resolves once the node has been added to the tree.
 
 
-.. _`StateUpdate`: TODO
-.. _`history`: TODO
-.. _`Merkle Interval Tree inclusion proofs`: TODO
-.. _`transactions`: TODO
-.. _`address tree`: TODO
-.. _`MerkleIntervalAddressTreeNode`: TODO
-.. _`state tree`: TODO
+.. References
+
+.. _`StateUpdate`: ../01-core/state-system.html#StateUpdate
+.. _`transactions`: ../01-core/state-system.html#transactions
+.. _`Transaction`: ../01-core/state-system.html#Transaction
+.. _`Merkle Interval Tree`: ../01-core/merkle-interval-tree.html
+.. _`Merkle Interval Tree inclusion proofs`: ../01-core/merkle-interval-tree.html#merkle-proofs
+.. _`state tree`: ../01-core/double-layer-tree.html#state-tree
+.. _`address tree`: ../01-core/double-layer-tree.html#address-tree
+.. _`history`: ../03-client/history-proofs.html
+.. _`keccak256`: https://ethereum.stackexchange.com/questions/550/which-cryptographic-hash-function-does-ethereum-use
 .. _`MerkleIntervalStateTreeNode`: TODO
-.. _`keccak256`: TODO
-.. _`Merkle Interval Tree`: TODO
-.. _`leaf position`: TODO
-.. _`Transaction`: TODO
+.. _`MerkleIntervalAddressTreeNode`: TODO

@@ -33,6 +33,8 @@ Returns
 ``string``: The `transaction receipt`_ for the given transaction.
 
 
-.. _`ingested`: TODO
-.. _`Transaction`: TODO
+.. References
+
+.. _`ingested`: ./transaction-ingestion.html
+.. _`Transaction`: ../01-core/state-system.html#Transaction
 .. _`transaction receipt`: TODO

@@ -687,21 +687,22 @@ Rationale
 Exit finalization is the step which actually allows the assets locked in plasma to be used on the main chain again.  Finalization requires that the exit and checkpoint games have completed successfully.
 
 
-.. _`state objects`: TODO
-.. _`state object`: TODO
-.. _`predicate contract`: TODO
-.. _`state update`: TODO
-.. _`checkpoint`: TODO
+.. References
+
+.. _`state object`:
+.. _`state objects`: ../01-core/state-system.html#state-objects
+.. _`state update`: ../01-core/state-system.html#state-updates
+.. _`inclusion proofs`: ../01-core/merkle-interval-tree.html#merkle-proofs
+.. _`predicate contract`: ./predicate-contract.html
+.. _`commitment contract`: ./commitment-contract.html
+.. _`ERC-20 token`: https://en.wikipedia.org/wiki/ERC-20
 .. _`withholds data`: TODO
 .. _`deprecated`: TODO
 .. _`partially spent`:
 .. _`state update may be partially spent`: TODO
-.. _`commitment contract`: TODO
-.. _`inclusion proofs`: TODO
-.. _`ERC-20 token`: TODO
 .. _`defragmentation`: TODO
 .. _`ID of a checkpoint`:
-.. _`ID of the checkpoint`:
+.. _`ID of the checkpoint`: TODO
 .. _`ID of an exit`:
 .. _`ID of the exit`: TODO
 .. _`ID of a challenge`:
