@@ -120,5 +120,3 @@ Returns
 
 .. _`Merkle Interval Tree`: TODO
 .. _`inclusion proof`: TODO
-
-

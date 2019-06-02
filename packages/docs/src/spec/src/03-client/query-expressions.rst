@@ -242,5 +242,3 @@ Returns
 
 .. _`state queries`: TODO
 .. _`mongoDB`: https://docs.mongodb.com/manual/reference/operator/
-
-

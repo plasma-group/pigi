@@ -106,4 +106,3 @@ A list of ``DepositElement``, ``StateUpdateElement``, and ``NonInclusionElement`
 .. _`describe the history proof`: TODO
 .. _`transaction`: TODO
 .. _`range`: TODO
-

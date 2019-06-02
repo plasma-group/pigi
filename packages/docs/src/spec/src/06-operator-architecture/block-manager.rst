@@ -95,4 +95,3 @@ Returns
 ``Promise<void>``: Promise that resolves once the block has been submitted.
 
 .. _`Merklizes the next block`: TODO
-

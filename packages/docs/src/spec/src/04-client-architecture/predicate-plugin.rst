@@ -205,4 +205,3 @@ Returns
 .. _`verify the history proof`:
 .. _`fully verified history`: TODO
 .. _`valid behavior`: TODO
-

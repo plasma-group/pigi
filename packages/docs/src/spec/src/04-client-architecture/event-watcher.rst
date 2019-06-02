@@ -86,4 +86,3 @@ Parameters
 .. _`index of the event`: TODO
 .. _`JSON ABI`: TODO
 .. _`event filter`: TODO
-

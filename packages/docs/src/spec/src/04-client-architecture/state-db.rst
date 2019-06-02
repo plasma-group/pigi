@@ -95,4 +95,3 @@ Returns
 .. _`StateUpdate`: TODO
 .. _`correctly verified`: TODO
 .. _`exclusion proof`: TODO
-

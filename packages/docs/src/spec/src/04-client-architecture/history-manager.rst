@@ -85,4 +85,3 @@ Returns
 .. _`state objects`: TODO
 .. _`history`: TODO
 .. _`state updates`: TODO
-

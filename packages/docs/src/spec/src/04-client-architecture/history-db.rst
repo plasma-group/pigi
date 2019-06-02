@@ -331,4 +331,3 @@ Returns
 .. _`Merkle Interval Tree`: TODO
 .. _`leaf position`: TODO
 .. _`Transaction`: TODO
-

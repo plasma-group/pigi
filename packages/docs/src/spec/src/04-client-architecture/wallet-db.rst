@@ -115,4 +115,4 @@ Returns
 
 .. _`keystore objects`:
 .. _`standard keystore`: https://theethereum.wiki/w/index.php/Accounts,_Addresses,_Public_And_Private_Keys,_And_Tokens#UTC_JSON_Keystore_File
-
+.. _`Keystore`: TODO

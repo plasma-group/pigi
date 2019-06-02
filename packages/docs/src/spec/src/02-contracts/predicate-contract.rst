@@ -30,4 +30,3 @@ If the predicate contract has custom/stateful exit logic, it may not know who to
 -------------------------------------------------------------------------------
 
 These are the only real requirements for a predicate contract to be compatible with the deposit contract spec.  However,  it lacks a useful abstraction usually made by blockchains and plasma implementations: the notion of transactions and state transitions.  In the next section, we define a standard predicate baase which is used throughout the rest of the spec, that treats deprecations, exits, etc. in terms of transactions and state transitions.
-

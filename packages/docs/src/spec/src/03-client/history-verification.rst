@@ -65,4 +65,4 @@ Finally, the client **MUST** insert the resulting state update into the local st
 .. _`inclusion proof`: TODO
 .. _`transactions`: TODO
 .. _`execute each transaction`: TODO
-
+.. _`checkpoint`: TODO

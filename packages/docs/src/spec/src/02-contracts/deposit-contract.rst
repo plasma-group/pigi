@@ -708,4 +708,4 @@ Exit finalization is the step which actually allows the assets locked in plasma 
 .. _`ID of the challenge`: TODO
 .. _`invalid history challenge`: TODO
 .. _`asset represented by this contract`: TODO
-
+.. _`challenge`: TODO

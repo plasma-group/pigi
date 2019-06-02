@@ -77,4 +77,3 @@ Parameters
 Returns
 ^^^^^^^
 ``ReturnType``: Description of the return value.
-

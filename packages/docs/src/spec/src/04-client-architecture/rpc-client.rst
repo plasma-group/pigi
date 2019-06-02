@@ -41,4 +41,3 @@ Returns
 .. _`RPC methods`: TODO
 .. _`JSON RPC request`: TODO
 .. _`JSON RPC response`: TODO
-

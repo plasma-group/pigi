@@ -33,4 +33,3 @@ Challenge Submission
 .. todo::
 
    Explain how predicate plugins actually send the challenge to Ethereum.
-

@@ -136,4 +136,4 @@ We now have a correctly formed transaction that can be sent to the operator for 
 .. _`sendTransaction RPC method`: TODO
 .. _`Predicate API`: TODO
 .. _`method's signature`: TODO
-
+.. _`history`: TODO

@@ -19,4 +19,3 @@ Methods
 .. todo::
 
    Add ContractWrapper methods.
-

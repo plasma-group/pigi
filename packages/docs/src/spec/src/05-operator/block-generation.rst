@@ -13,4 +13,3 @@ Block Merklization
 ****************
 Block Submission
 ****************
-

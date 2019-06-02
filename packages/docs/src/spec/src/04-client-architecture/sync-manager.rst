@@ -101,5 +101,4 @@ Parameters
 Returns
 ^^^^^^^
 ``Promise<StateQuery[]>``: A list of `StateQuery`_ objects the manager is using.
-
-
+.. _`StateQuery`: TODO

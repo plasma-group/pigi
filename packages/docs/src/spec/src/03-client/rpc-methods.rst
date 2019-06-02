@@ -169,4 +169,3 @@ Returns
 .. _`HistoryQuery`: TODO
 .. _`HistoryProof`: TODO
 .. _`proof elements`: TODO
-

@@ -214,4 +214,3 @@ A diagram of the Merkle Interval Tree is provided below. We've highlighted the n
 .. _`Plasma Cash`: TODO
 .. _`ranges of state objects`: TODO
 .. _`Plasma Cashflow`: TODO
-

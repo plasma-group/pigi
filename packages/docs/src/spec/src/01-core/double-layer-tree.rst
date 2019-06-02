@@ -54,4 +54,3 @@ We've provided a diagram of the double-layer Merkle Interval Tree below. The dia
 .. _`deposit contract`: TODO
 .. _`block root`: TODO
 .. _`Merkle Interval Tree`: TODO
-

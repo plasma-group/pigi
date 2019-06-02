@@ -398,4 +398,3 @@ Test Vectors
 .. _`Vyper`: TODO
 .. _`native support for ABI encoding and decoding`: TODO
 .. _`predicate`: TODO
-

@@ -76,4 +76,3 @@ Our semantic versioning strategy is pretty simple. Changes to this specification
 .. _`minor version`: https://semver.org/#spec-item-7
 .. _`patch version`: https://semver.org/#spec-item-6
 .. _`major versions`: https://semver.org/#spec-item8
-

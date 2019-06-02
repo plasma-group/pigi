@@ -15,4 +15,3 @@ Exit Game Events
 .. todo::
 
    Explain how to handle exit game events.
-

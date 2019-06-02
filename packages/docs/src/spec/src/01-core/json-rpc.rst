@@ -132,4 +132,3 @@ Either a success response or an error response.
 .. _`JSON RPC error response`:
 .. _`JSON RPC response`: https://www.jsonrpc.org/specification#response_object
 .. _`JSON RPC error`: https://www.jsonrpc.org/specification#error_object
-

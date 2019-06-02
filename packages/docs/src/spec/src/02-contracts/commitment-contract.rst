@@ -119,5 +119,4 @@ Requirements
 
 
 .. _`msg.sender`: TODO
-
-
+.. _`operator`: TODO

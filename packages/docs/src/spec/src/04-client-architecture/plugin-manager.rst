@@ -63,4 +63,3 @@ Returns
 ``Promise<PredicatePlugin>``: The `PredicatePlugin`_ that corresponds to the given address.
 
 .. _`PredicatePlugin`: TODO
-

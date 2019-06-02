@@ -164,4 +164,4 @@ Returns
 .. _`query on the local state`: TODO
 .. _`StateQueryResult`: TODO
 .. _`state objects`: TODO
-
+.. _`StateQuery`: TODO

@@ -52,4 +52,3 @@ Finally, once the new state update has been added to the block queue, the operat
 .. _`plugin`: TODO
 .. _`queue of state updates`: TODO
 .. _`transaction receipt`: TODO
-

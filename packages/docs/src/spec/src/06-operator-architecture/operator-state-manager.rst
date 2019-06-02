@@ -42,4 +42,3 @@ Returns
 
 
 .. _`Transaction`: TODO
-

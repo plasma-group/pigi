@@ -58,4 +58,4 @@ We've provided a diagram of the interactions between the various client componen
 .. _`head state`: TODO
 .. _`RPC methods`: ./rpc-methods.html
 .. _`JSON RPC`: https://www.jsonrpc.org/specification
-
+.. _`ContractWrapper`: TODO
