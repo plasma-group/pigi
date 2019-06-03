@@ -43,7 +43,7 @@ Represents the status of a limbo exit.
 
 Fields
 ^^^^^^
-1. ``targetId`` - ``bytes32``: Hash of the target ``StateUpdatee`` being limbo exited "to".
+1. ``targetId`` - ``bytes32``: Hash of the target ``StateUpdate`` being limbo exited "to".
 2. ``wasReturned`` - ``bool``: Whether the state being limbo exited to cooperatively agreed to return the limbo exit back to the limbo source.
 
 Public Variables
