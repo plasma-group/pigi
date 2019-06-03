@@ -33,7 +33,7 @@ The main thing that must be defined for a state transition model is this ``verif
 Parameters
 ^^^^^^^^^^
 1. ``_preState`` - ``StateUpdate``: the state update which the transaction is being applied on.
-2. ``_transaction`` - ``Transaction``: The transaction being applied.  Follows the standard format as outlined in the transaction generation page in Secion #03.
+2. ``_transaction`` - ``Transaction``: The transaction being applied.  Follows the standard format as outlined in the transaction generation page in Section #03.
 3. ``_witness`` - ``bytes``: Additional witness data which authenticates the transaction validity, e.g. a signature. Defined on a per-predicate basis.
 4. ``_postState`` - ``StateUpdate``: the output of the transaction to be verified.
 
@@ -65,7 +65,7 @@ If a state transition away from a given state update exists, then it is not vali
 Parameters
 ^^^^^^^^^^
 1. ``_deprecatedExit`` - ``Checkpoint``: the deprecated checkpoint being exited.
-2. ``_transaction`` - ``Transaction``: The transaction which deprecates the exit.  Follows the standard format as outlined in the transaction generation page in Secion #03.
+2. ``_transaction`` - ``Transaction``: The transaction which deprecates the exit.  Follows the standard format as outlined in the transaction generation page in Section #03.
 3. ``_witness`` - ``bytes``: Additional witness data which authenticates the transaction validity, e.g. a signature. Defined on a per-predicate basis.
 4. ``_postState`` - ``StateUpdate``: the output of the transaction to be verified.
 
