@@ -53,37 +53,37 @@ This website documents the entirety of the Plasma Group design, from the inner w
 
 .. toctree::
    :maxdepth: 1
-   :caption: #04: Client Architecture
+   :caption: #04: Operator Specification
 
-   src/04-client-architecture/introduction
-   src/04-client-architecture/merkle-interval-tree
-   src/04-client-architecture/range-db
-   src/04-client-architecture/contract-wrapper
-   src/04-client-architecture/event-watcher
-   src/04-client-architecture/wallet-db
-   src/04-client-architecture/wallet
-   src/04-client-architecture/predicate-plugin
-   src/04-client-architecture/plugin-manager
-   src/04-client-architecture/history-proof-structure
-   src/04-client-architecture/history-db
-   src/04-client-architecture/history-manager
-   src/04-client-architecture/state-db
-   src/04-client-architecture/state-manager
-   src/04-client-architecture/sync-db
-   src/04-client-architecture/sync-manager
-   src/04-client-architecture/rpc-client
-   src/04-client-architecture/rpc-server
-
-
+   src/04-operator/introduction
+   src/04-operator/transaction-ingestion
+   src/04-operator/block-generation
+   src/04-operator/operator-rpc-methods
+ 
 .. toctree::
    :maxdepth: 1
-   :caption: #05: Operator Specification
+   :caption: #05: Client Architecture
 
-   src/05-operator/introduction
-   src/05-operator/transaction-ingestion
-   src/05-operator/block-generation
-   src/05-operator/operator-rpc-methods
-   
+   src/05-client-architecture/introduction
+   src/05-client-architecture/merkle-interval-tree
+   src/05-client-architecture/range-db
+   src/05-client-architecture/contract-wrapper
+   src/05-client-architecture/event-watcher
+   src/05-client-architecture/wallet-db
+   src/05-client-architecture/wallet
+   src/05-client-architecture/predicate-plugin
+   src/05-client-architecture/plugin-manager
+   src/05-client-architecture/history-proof-structure
+   src/05-client-architecture/history-db
+   src/05-client-architecture/history-manager
+   src/05-client-architecture/state-db
+   src/05-client-architecture/state-manager
+   src/05-client-architecture/sync-db
+   src/05-client-architecture/sync-manager
+   src/05-client-architecture/rpc-client
+   src/05-client-architecture/rpc-server
+
+  
 .. toctree::
    :maxdepth: 1
    :caption: #06: Operator Architecture

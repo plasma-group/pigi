@@ -48,9 +48,9 @@ Finally, once the new state update has been added to the block queue, the operat
 .. _`Invalid Transaction Encoding`: ../03-client/rpc-error-messages.html#invalid-transaction-encoding
 .. _`Invalid Transaction`: ../03-client/rpc-error-messages.html#invalid-transaction
 .. _`Duplicate Transaction`: ../03-client/rpc-error-messages.html#duplicate-transaction
-.. _`RPC server`: ../04-client-architecture/rpc-server.html
-.. _`executeStateTransition`: ../04-client-architecture/predicate-plugin.html#executestatetransition
-.. _`plugin`: ../04-client-architecture/predicate-plugin.html
+.. _`RPC server`: ../05-client-architecture/rpc-server.html
+.. _`executeStateTransition`: ../05-client-architecture/predicate-plugin.html#executestatetransition
+.. _`plugin`: ../05-client-architecture/predicate-plugin.html
 .. _`operator's state manager`: ../06-operator-architecture/operator-state-manager.html
 .. _`queue of state updates`: ../06-operator-architecture/block-manager.html
 .. _`transaction receipt`: TODO

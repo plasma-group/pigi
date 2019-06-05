@@ -63,7 +63,7 @@ Finally, the client **MUST** insert the resulting state update into the local st
 .. _`Merkle Interval Tree`: ../01-core/merkle-interval-tree.html
 .. _`inclusion proof`: ../01-core/merkle-interval-tree.html#merkle-proofs
 .. _`transactions`: ../01-core/state-system.html#transactions
-.. _`HistoryProof`: ../04-client-architecture/history-proof-structure.html#HistoryProof
+.. _`HistoryProof`: ../05-client-architecture/history-proof-structure.html#HistoryProof
 .. _`execute each transaction`: TODO
 .. _`checkpoint`: TODO
 .. _`explicit range`: TODO
