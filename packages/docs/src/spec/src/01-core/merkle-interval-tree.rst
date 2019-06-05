@@ -16,7 +16,7 @@ The Merkle Interval Tree is a `binary tree`_ with special structures for leaf no
 
 Leaf Node
 =========
-The leaf nodes in a Merkle Interval Tree represent a **range** and a value for thar range. We describe leaf nodes as a tuple of ``(start, end, data)``.
+The leaf nodes in a Merkle Interval Tree represent a **range** and a value for that range. We describe leaf nodes as a tuple of ``(start, end, data)``.
 
 In TypeScript:
 
@@ -60,7 +60,7 @@ The algorithm takes two inputs, a list of leaf nodes and hash function.
 4. Recursively generate the rest of the tree as follows:
    1. Store the list of internal nodes at the current height of the tree.
    1. If the list of internal nodes has only one element, return.
-   2. Pair each node in the list of internal nodes such that any node where ``noe_index % 2 = 0`` is paired with the node at ``node_index + 1``. If the node at ``node_index + 1`` does not exist, pair the node with a new node such that ``pair.index = node.index`` and ``pair.hash = 0``.
+   2. Pair each node in the list of internal nodes such that any node where ``node_index % 2 = 0`` is paired with the node at ``node_index + 1``. If the node at ``node_index + 1`` does not exist, pair the node with a new node such that ``pair.index = node.index`` and ``pair.hash = 0``.
    3. Generate a list of parent nodes. For each pair of nodes, create a corresponding parent node such that:
       1. ``parent.index = left_child.index`` and ``parent.hash`` is the hash of the concatenation of ``left_child.index``, ``left_child.hash``, ``right_child.index``, ``right_child.hash``, in that order.
    4. Repeat this process for the generated list of parent nodes.

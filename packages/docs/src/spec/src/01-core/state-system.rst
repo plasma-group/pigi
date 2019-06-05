@@ -2,7 +2,7 @@
 Generalized State System
 ########################
 
-The concept of state and state transitions is relatively universal. However, Layer 2 systems are unusual because they often require that state transitions be efficiciently representable on the Layer 1 playform. As a result, existing models of state transitions on plasma are usually quite restrictive.
+The concept of state and state transitions is relatively universal. However, Layer 2 systems are unusual because they often require that state transitions be efficiciently representable on the Layer 1 platform. As a result, existing models of state transitions on plasma are usually quite restrictive.
 
 In order to develop a plasma system that could allow for more general state transitions, we found it important to develop a new system for representing state and state transitions. Our system was particularly designed to make state transitions easily executable on Ethereum.
 
@@ -30,7 +30,7 @@ The TypeScript interface for the state object is:
      data: string
    }
 
-State objects are unique objects (hence the ``id``) that may be **created**, **destroyed**, or **mutated**. The conditions under which a state object may undergo one of these changes, as well as the effects of such a change, are defined a `predicate`_. Each state object specifies a prediciate identifier (``predicate``) that points to the specific predicate that controls ("locks") the state object. 
+State objects are unique objects (hence the ``id``) that may be **created**, **destroyed**, or **mutated**. The conditions under which a state object may undergo one of these changes, as well as the effects of such a change, are defined in a `predicate`_. Each state object specifies a prediciate identifier (``predicate``) that points to the specific predicate that controls ("locks") the state object. 
 
 Requirements
 ------------
@@ -88,7 +88,7 @@ Rationale
 ---------
 Effectively all blockchain systems provide a model for different "methods" that determine how a given object can be transformed. Bitcoin's UTXO model allows for multiple "spending conditions" under which a UTXO can be consumed. Ethereum's account model allows a contract to specify multiple explicit state-transforming functions. The "method" model generalizes this concept.
 
-We require that methods only use the primitive types avialable in Solidity so that predicates can easily be executed by treating them as Solidity contracts. Defining new types not understood by Solidity would require the development of a completely new EVM language.
+We require that methods only use the primitive types available in Solidity so that predicates can easily be executed by treating them as Solidity contracts. Defining new types not understood by Solidity would require the development of a completely new EVM language.
 
 Requirements
 ------------

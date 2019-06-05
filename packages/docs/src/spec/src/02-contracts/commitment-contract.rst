@@ -69,7 +69,7 @@ blocks
 
 .. code-block:: solidity
 
-   mapping (uint256 => bytes) public blocksl
+   mapping (uint256 => bytes) public blocks;
 
 Description
 ^^^^^^^^^^^

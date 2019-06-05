@@ -477,7 +477,7 @@ Requirements
 - **MUST** verify that ``subRange`` is actually a sub-range of ``stateUpdate.range``.
 - **MUST** verify that the ``subRange`` is still exitable with the ``exitableRangeId`` .
 - **MUST** verify that an indentical checkpoint has not already been started.
-- **MUST** add the new pending checkpoint to ``checkpoints`` with ``chllengeableUntil`` equalling the current ethereum ``block.number + CHALLENGE_PERIOD`` .
+- **MUST** add the new pending checkpoint to ``checkpoints`` with ``challengeableUntil`` equalling the current ethereum ``block.number + CHALLENGE_PERIOD`` .
 - **MUST** emit a ``CheckpointStarted`` event.
 
 Rationale

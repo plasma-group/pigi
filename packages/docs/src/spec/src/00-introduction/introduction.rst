@@ -58,7 +58,7 @@ Versioning
 ==========
 Most pages within this specification will continue to evolve as we develop `our implementation`_. We've decided to use `semantic versioning`_ so that it's easy to see and understand the difference between versions of this document.
 
-Our semantic versioning strategy is pretty simple. Changes to this specification that would make an implementation incompatible with implementations of previous versions are split into different `major versions`_. Changes that simply add functionality but don't break backwards compatibility bump the `minor version`_. Finally, fixes that don't add or remove functionality (layout edits, grammatical fixes, typo fixes) bump the `patch version`_.
+Our semantic versioning strategy is pretty simple, each version follows the format ``major.minor.patch``. Changes to this specification that would make an implementation incompatible with implementations of previous versions are split into different `major versions`_. Changes that simply add functionality but don't break backwards compatibility bump the `minor version`_. Finally, fixes that don't add or remove functionality (layout edits, grammatical fixes, typo fixes) bump the `patch version`_.
 
 
 .. References
@@ -69,7 +69,7 @@ Our semantic versioning strategy is pretty simple. Changes to this specification
 .. _`#03: Client`: ../03-client/introduction.html
 .. _`#04: Operator`: ../04-client/introduction.html
 .. _`Lightning BOLT specifications`: https://github.com/lightningnetwork/lightning-rfc
-.. _`Plasma Group monorepo`: https://github.com/plasma-group/pigi/tree/master/packages/docs/src/spec
+.. _`Plasma Group monorepo`: https://github.com/plasma-group/pigi
 .. _`our implementation`: https://github.com/plasma-group/pigi/tree/master/packages/core
 .. _`issue on GitHub`: https://github.com/plasma-group/pigi/issues
 .. _`pull request`: https://github.com/plasma-group/pigi/pulls
