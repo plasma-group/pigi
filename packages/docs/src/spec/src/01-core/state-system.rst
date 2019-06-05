@@ -2,7 +2,7 @@
 Generalized State System
 ########################
 
-The concept of state and state transitions is relatively universal. However, Layer 2 systems are unusual because they often require that state transitions be efficiciently representable on the Layer 1 platform. As a result, existing models of state transitions on plasma are usually quite restrictive.
+The concept of state and state transitions is relatively universal. However, Layer 2 systems are unusual because they often require that state transitions be efficiently representable on the Layer 1 platform. As a result, existing models of state transitions on plasma are usually quite restrictive.
 
 In order to develop a plasma system that could allow for more general state transitions, we found it important to develop a new system for representing state and state transitions. Our system was particularly designed to make state transitions easily executable on Ethereum.
 
@@ -108,7 +108,7 @@ For any given method:
 
 We get a corresponding signature:
 
-.. code-block::
+.. code-block:: none
    
    methodName(Param1Type, Param2Type, ...)
 
