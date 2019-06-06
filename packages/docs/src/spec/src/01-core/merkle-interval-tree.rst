@@ -48,10 +48,10 @@ A Merkle Index tree is generated from a list of `leaf nodes`_. Merkle Interval T
 
 An algorithm for generating the tree is described below. All lists used are zero-indexed.
 
-The algorithm takes two inputs, a list of leaf nodes and hash function.
+The algorithm takes two inputs, a list of leaf nodes and a hash function.
 
 1. If the list of leaf nodes is empty, return an empty array.
-2. Assert that the range described by ``start`` and ``end`` of each leaf node does not intersect with the range described by any other leaf node. If any ranges exist, throw an error.
+2. Assert that the range described by ``start`` and ``end`` of each leaf node does not intersect with the range described by any other leaf node. If any intersecting ranges exist, throw an error.
 3. Sort the list of leaf nodes by their ``start`` value.
 4. Store the list of leaf nodes as the first layer of the tree.
 5. Generate a corresponding sorted list of `internal nodes`_ from the leaf nodes by creating an internal for each leaf node such that:
@@ -130,7 +130,7 @@ A pseudocode version of the above algorithm is given below:
 *************
 Merkle Proofs
 *************
-Our tree generation process allows us to create an efficient **proof** that for a given leaf node and a given Merkle Interval Tree root node:
+Our tree generation process allows us to create an efficient **proof** that for a given leaf node and a given Merkle Interval Tree root node such that:
 
 1. The leaf node was contained in the tree that generated the root.
 2. The range described by the leaf node intersects with no other ranges described by any other leaf node in the tree.
