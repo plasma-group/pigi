@@ -45,6 +45,7 @@ StateObject
 .. code-block:: solidity
 
    struct StateObject {
+       string id;
        address predicate;
        bytes data;
    }
@@ -55,8 +56,9 @@ Represents a `state object`_. Contains the address of the `predicate contract`_ 
 
 Fields
 ^^^^^^
-1. ``predicateAddress`` - ``address``: Address of the `predicate contract`_ that dictates how the object can be mutated.
-2. ``data`` - ``bytes``: Arbitrary state data for the object.
+1. ``id`` - ``string``: A globally unique identifier for this state object. 
+2. ``predicateAddress`` - ``address``: Address of the `predicate contract`_ that dictates how the object can be mutated.
+3. ``data`` - ``bytes``: Arbitrary state data for the object.
 
 -------------------------------------------------------------------------------
 
