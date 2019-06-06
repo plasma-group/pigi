@@ -13,7 +13,7 @@ The basic idea behind defragmentation is that contiguous ranges can be "merged" 
 
 We can ensure that the underlying asset will always be the same by reserving some space for the asset. One way to accomplish this is to modify the `ID of a state object`_ with a unique prefix for each asset. For example, the range of state object IDs for ETH might be prefixed with a zero (``(0)(0 - 2^256)``) while the range of IDs for `WETH`_ might be prefixed with a one (``(1)(0 - 2^256)``). This scheme makes sure that the ranges next to yours will always have the same underlying asset.
 
-Another way to achieve the same result is simply to have a different Plasma Cashflow chain for each asset. We do so by creating a unique `deposit contract`_ for each asset. The prefix" for a range becomes the address of the deposit contract that corresponds to the asset.
+Another way to achieve the same result is simply to have a different Plasma Cashflow chain for each asset. We do so by creating a unique `deposit contract`_ for each asset. The prefix for a range becomes the address of the deposit contract that corresponds to the asset.
 
 However, this means that we're simultaneously running a lot of plasma chains. We don't want to have to submit a `block root`_ for each individual chain. We get around this by creating a **double-layered** `Merkle Interval Tree`_. This page explains how the double-layered tree is computed.
 
@@ -36,7 +36,7 @@ Address Tree
 ************
 Tree Diagram
 ************
-We've provided a diagram of the double-layer Merkle Interval Tree below. The diagram explains the relationship the state updates that form the tree and the tree itself.
+We've provided a diagram of the double-layer Merkle Interval Tree below. The diagram explains the relationship between the state updates that form the tree and the tree itself.
 
 .. raw:: html
 
