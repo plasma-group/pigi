@@ -144,10 +144,12 @@ The proof for a given leaf node is computed as follows:
 1. If the leaf node is not in the tree, throw an error.
 2. Find the internal node that corresponds to the leaf node in the bottom-most level of the tree.
 3. Recursively:
-   1. If the internal node is the root node, return.
-   2. Find the sibling of the node. If no sibling exists, set the sibling to the empty node such that ``sibling.index = node.index`` and ``sibling.hash = 0``.
-   3. Insert the sibling into the proof.
-   4. Repeat this process with the parent of the node.
+
+   a) If the internal node is the root node, return.
+   b) Find the sibling of the node. If no sibling exists, set the sibling to the empty node such that ``sibling.index = node.index`` and ``sibling.hash = 0``.
+   c) Insert the sibling into the proof.
+   d) Repeat this process with the parent of the node.
+   
 4. Return the proof.
 
 Pseudocode
@@ -177,9 +179,11 @@ Verification of Merkle Interval Tree proofs is relatively straightforward. Given
 
 1. Compute the internal node that corresponds to the leaf node such that ``node.index = leaf.start`` and ``node.hash`` is the hash of the concatenation of ``leaf.start``, ``leaf.end``, and ``leaf.data``, in that order.
 2. For each element of the proof:
-   1. Use the index of the leaf node to determine whether the element is a left or right sibling of the current internal node.
-   2. Compute the parent of the two siblings.
-   3. Set the current internal node to be the parent.
+
+   a) Use the index of the leaf node to determine whether the element is a left or right sibling of the current internal node.
+   b) Compute the parent of the two siblings.
+   c) Set the current internal node to be the parent.
+   
 3. Check if the current internal node is equal to the root node.
 
 Pseudocode
