@@ -5,7 +5,7 @@ Deposit Contract
 ***********
 Description
 ***********
-Deposit contracts are the ethereum smart contracts into which assets are deposited--custodying the money as it is transacted on plasma and playing out the exit games to resolve the rightful owners of previously deposited assets.  As such, it contains the bulk of the logic for the plasma exit games.  The things it does not cover are 1) block commitments, and 2), state deprecation, which are handled by calls to the commitment contract and predicate contracts specifically.
+Deposit contracts are the Ethereum smart contracts into which assets are deposited--custodying the money as it is transacted on plasma and playing out the exit games to resolve the rightful owners of previously deposited assets.  As such, it contains the bulk of the logic for the plasma exit games.  The things it does not cover are 1) block commitments, and 2), state deprecation, which are handled by calls to the commitment contract and predicate contracts specifically.
 
 
 -------------------------------------------------------------------------------
@@ -51,7 +51,7 @@ StateObject
 
 Description
 ^^^^^^^^^^^
-Represents a `state object`_. Contains the address of the `predicate contract`_ and input data to that contract that control the conditions under which the object may be mutated.
+Represents a `state object`_. Contains the address of the `predicate contract`_ and input data to that contract which control the conditions under which the object may be mutated.
 
 Fields
 ^^^^^^
@@ -99,7 +99,7 @@ Checkpoint
 
 Description
 ^^^^^^^^^^^
-Represents a `checkpoint`_ of a particular state update on which a "checkpoint game" is being or has been played out.  Checkpoints wich have successfully passed the checkpoint game are considered "finalized", meaning the plasma contract should ignore all state updates on that range with an older plasma block number.
+Represents a `checkpoint`_ of a particular state update on which a "checkpoint game" is being or has been played out.  Checkpoints which have successfully passed the checkpoint game are considered "finalized", meaning the plasma contract should ignore all state updates on that range with an older plasma block number.
 
 Fields
 ^^^^^^
@@ -143,7 +143,7 @@ Challenge
 
 Description
 ^^^^^^^^^^^
-Describes a challenge against a checkpoint.  A challenge is a claom that the ``challengingCheckpoint`` has no valid transactions, meaning that the state update in the ``challengedCheckpoint`` could never have been reached and thus is invalid.
+Describes a challenge against a checkpoint.  A challenge is a claim that the ``challengingCheckpoint`` has no valid transactions, meaning that the state update in the ``challengedCheckpoint`` could never have been reached and thus is invalid.
 
 Fields
 ^^^^^^
@@ -689,6 +689,7 @@ Exit finalization is the step which actually allows the assets locked in plasma 
 
 .. References
 
+.. _`The checkpoint`: TODO
 .. _`state object`:
 .. _`state objects`: ../01-core/state-system.html#state-objects
 .. _`state update`: ../01-core/state-system.html#state-updates
