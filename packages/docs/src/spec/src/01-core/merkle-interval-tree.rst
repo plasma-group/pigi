@@ -53,18 +53,24 @@ The algorithm takes two inputs, a list of leaf nodes and hash function.
 1. If the list of leaf nodes is empty, return an empty array.
 2. Assert that the range described by ``start`` and ``end`` of each leaf node does not intersect with the range described by any other leaf node. If any ranges exist, throw an error.
 3. Sort the list of leaf nodes by their ``start`` value.
-3. Store the list of leaf nodes as the first layer of the tree.
-3. Generate a corresponding sorted list of `internal nodes`_ from the leaf nodes by creating an internal for each leaf node such that:
-   1. The ``index`` of the node is equal to the ``start`` of the leaf node.
-   2. The ``hash`` of the node is equal to the hash of the concatenation of ``start``, ``end``, and ``data`` of the leaf node, in that order.
-4. Recursively generate the rest of the tree as follows:
-   1. Store the list of internal nodes at the current height of the tree.
-   1. If the list of internal nodes has only one element, return.
-   2. Pair each node in the list of internal nodes such that any node where ``node_index % 2 = 0`` is paired with the node at ``node_index + 1``. If the node at ``node_index + 1`` does not exist, pair the node with a new node such that ``pair.index = node.index`` and ``pair.hash = 0``.
-   3. Generate a list of parent nodes. For each pair of nodes, create a corresponding parent node such that:
+4. Store the list of leaf nodes as the first layer of the tree.
+5. Generate a corresponding sorted list of `internal nodes`_ from the leaf nodes by creating an internal for each leaf node such that:
+
+   a) The ``index`` of the node is equal to the ``start`` of the leaf node.
+   b) The ``hash`` of the node is equal to the hash of the concatenation of ``start``, ``end``, and ``data`` of the leaf node, in that order.
+   
+6. Recursively generate the rest of the tree as follows:
+
+   a) Store the list of internal nodes at the current height of the tree.
+   b) If the list of internal nodes has only one element, return.
+   c) Pair each node in the list of internal nodes such that any node where ``node_index % 2 = 0`` is paired with the node at ``node_index + 1``. If the node at ``node_index + 1`` does not exist, pair the node with a new node such that ``pair.index = node.index`` and ``pair.hash = 0``.
+   d) Generate a list of parent nodes. For each pair of nodes, create a corresponding parent node such that:
+   
       1. ``parent.index = left_child.index`` and ``parent.hash`` is the hash of the concatenation of ``left_child.index``, ``left_child.hash``, ``right_child.index``, ``right_child.hash``, in that order.
-   4. Repeat this process for the generated list of parent nodes.
-5. Return the generated tree.
+      
+   e) Repeat this process for the generated list of parent nodes.
+   
+7. Return the generated tree.
    
 Pseudocode
 ==========
