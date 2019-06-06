@@ -138,7 +138,7 @@ Rationale
 ---------
 We decided on this scheme for computing method signatures for several reasons.
 
-Other languages, like Solidity and Vyper, define the method ID as the first four bytes of the `keccak256`_ hash. One benefit of the 4-byte scheme is that it reduces the total amount of data on-chain. Unfortunately, this requires checking for any hash collisions between function names. For simplicity, therefore, we decided to use the *full* 32 byte hash. The additional required 28 bytes do not seem like a significant enough waste of gas to justify more complex collision-detection logic for predicates.
+Other languages, like Solidity and Vyper, define the method ID as the first 4 bytes of the `keccak256`_ hash. One benefit of the 4-byte scheme is that it reduces the total amount of data on-chain. Unfortunately, this requires checking for any hash collisions between function names. For simplicity, therefore, we decided to use the *full* 32-byte hash. The additional required 28 bytes do not seem like a significant enough waste of gas to justify more complex collision-detection logic for predicates.
 
 We also chose this system because ``keccak256`` hashes are cheaply computable on Ethereum. 
 
@@ -156,7 +156,7 @@ Test Vectors
 
 Predicate API
 =============
-Predicates **MUST** provide a **Predicate API** that allows a client to interact with the predicate. A Predicate API is composed of an array of **API elements**. each API element describes a single function, including the function's inputs and outputs. The structure of the API element has been based off of the `Ethereum contract ABI`_ specification.
+Predicates **MUST** provide a **Predicate API** that allows a client to interact with the predicate. A Predicate API is composed of an array of **API elements**. Each API element describes a single function, including the function's inputs and outputs. The structure of the API element has been based off of the `Ethereum contract ABI`_ specification.
 
 TypeScript interfaces for valid Predicate API objects are provided below. Compare to the `Ethereum ABI JSON format`_ to understand similarities and differences.
 
