@@ -98,6 +98,7 @@ This website documents the entirety of the Plasma Group design, from the inner w
    :maxdepth: 1
    :caption: #07: Predicate Specifications
 
+   src/07-predicates/introduction
    src/07-predicates/simple-ownership
 
 

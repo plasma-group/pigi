@@ -2,47 +2,50 @@
 Introduction
 ############
 
-**********
-Background
-**********
-.. todo::
+Hello and welcome to Plasma Group's Generalized Plasma Specification! We've been working toward this spec for a long time now and we're excited to be able to share it with the public. We're going to kick the spec off with a high-level overview of our construction and then go into the structure of the spec itself.
 
-   Figure out what background information to provide here.
+*****
+TL;DR
+*****
+Plasma is basically a way to build blockchains on top of blockchains. Plasma chains are sort of like sidechains, except they're a little less flexible and a lot more secure. We won't go into the details here.
 
-********************
-Specification Layout
-********************
-We've laid out this specification in a very deliberate way that attempts to mirror the layout of the `Lightning BOLT specifications`_. This layout will hopefully make the specification more readable.
+Up until now, people have only been able to build very limited plasma chains that accomplish a few specific goals (like make payments or exchange assets). None of these chains support the sort of "smart contracts" that make Ethereum so useful. In order to build a "plasma application", you'd have to build an entire blockchain from scratch. That's obviously way too much work.
 
-We currently have five primary sections:
+So we set out to design a general purpose chain. It took a lot of work, but we finally arrived at a design we're happy with (and that's what we've specified here!). Now, with this new design, developers can build apps and run them on top of a general purpose plasma chain instead of having to build an entire plasma chain from scratch. It's sort of like the jump of going from Bitcoin to Ethereum.
+
+*****************************
+Required Background Knowledge
+*****************************
+You're going to see a lot of terms and ideas from previous plasma research when you're reading through this specification. Although we've provided references to these terms or ideas wherever possible, we generally try to avoid rehashing what's already been explained well before. As a result, you should be familiar with the general theory behind plasma and with various specific plasma constructions (like Plasma MVP and Plasma Cash) before diving into this spec. You don't need an extremely deep knowledge of plasma, but you should be comfortable with the idea of deposits, exits, and exit games. If you're not familiar with these concepts yet, we recommend reading through the original Plasma MVP and Plasma Cash posts, as well as the content on LearnPlasma.
+
+Sometimes we have a little trouble remembering that readers don't have quite as much context as we do. If you feel familiar with these concepts but are still confused by some aspect of the spec, please let us know! We've set up a system that makes it easy for anyone to leave review comments in just a few seconds.
+
+*******************
+Specification Goals
+*******************
+This specification should be detailed, concise, and contained. Readers should have a very clear idea of the system as a whole without relying on guesswork about how a specific mechanism functions. Similarly, developers should be able to create a compliant implementation simply by reading through the specification.
+
+If at any time you feel we haven't quite achieved that goal, please let us know! We're always open to constructive criticism. If you find something confusing, it's likely that others do too.
+
+***********************
+Specification Structure
+***********************
+We've laid out this specification in a very deliberate way that attempts to mirror the layout of the `Lightning BOLT specifications`_.
+
+Our specification is composed of eight primary sections:
 
 - `#00: Introduction`_
-- `#01: Core Components`_
-- `#02: Contracts`_
-- `#03: Client`_
-- `#04: Operator`_
+- `#01: Core Design Components`_
+- `#02: Contract Specifications`_
+- `#03: Client Specification`_
+- `#04: Operator Specification`_
+- `#05: Client Architecture`_
+- `#06: Operator Architecture`_
+- `#07: Predicate Specifications`_
 
-Each section covers a relatively self-contained component of the entire spec. We'll quickly explain each section at a high-level.
+The first five sections (00 - 04) form the specification of the generalized plasma system itself. These sections explain, in detail, how the system works and what components someone would have to include in a compliant implementation.
 
-#00: Introduction
-=================
-This section covers an introduction to the concepts of generalized plasma and the specification as a whole. Here we discuss the background information that someone might need to understand what the specification is attempting to do. We review plasma, Plasma Cashflow, and the main ideas behind generalized plasma.
-
-#01: Core Components
-====================
-The generalized plasma construction relies on various core components that are shared between the contracts, client, and operator. We specify these components to provide the fundamental basis for the rest of the specification.
-
-#02: Contracts
-==============
-All plasma chains need a set of smart contracts sitting on Ethereum. In this section we describe the three main contracts that make up our design. We provide a standard contract interface that implementations must follow and a detailed explanation of the functionality these contracts must provide.
-
-#03: Client
-===========
-Users need to run client software in order to interact with the plasma chain. We first describe the various functions that this client software needs to provide. We then specify particular components that a client must implement in order to expose this functionality.
-
-#04: Operator
-=============
-Plasma chains typically have an operator who aggregates transactions into a single block. Our operator design is an extension of the client design. We specify the functions that an operator must provide on top of the base client and the actual components that enable those functions.
+The last three sections (05 - 07) describe the architecture for Plasma Group's implementation of the specification. A developer would **NOT** have to use the same architecture in their own implementation, but it may be useful in order to better understand how certain components are supposed to function. Someone who's primarily interested in understanding the system at a high-level could skip these sections.
 
 ************
 Housekeeping
@@ -64,10 +67,13 @@ Our semantic versioning strategy is pretty simple, each version follows the form
 .. References
 
 .. _`#00: Introduction`: ./introduction.html
-.. _`#01: Core Components`: ../01-core/state-system.html
-.. _`#02: Contracts`: ../02-contracts/deposit-contract.html
-.. _`#03: Client`: ../03-client/introduction.html
-.. _`#04: Operator`: ../04-client/introduction.html
+.. _`#01: Core Design Components`: ../01-core/state-system.html
+.. _`#02: Contract Specifications`: ../02-contracts/deposit-contract.html
+.. _`#03: Client Specification`: ../03-client/introduction.html
+.. _`#04: Operator Specificiation`: ../04-operator/introduction.html
+.. _`#05: Client Architecture`: ../05-client-architecture/introduction.html
+.. _`#06: Operator Architecture`: ../06-operator-architecture/introduction.html
+.. _`#07: Predicate Specifications`: ../07-predicates/introduction.html
 .. _`Lightning BOLT specifications`: https://github.com/lightningnetwork/lightning-rfc
 .. _`Plasma Group monorepo`: https://github.com/plasma-group/pigi
 .. _`our implementation`: https://github.com/plasma-group/pigi/tree/master/packages/core
