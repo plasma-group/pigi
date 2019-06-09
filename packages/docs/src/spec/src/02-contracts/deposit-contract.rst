@@ -261,12 +261,12 @@ Mapping from the `ID of a checkpoint`_ to the checkpoint's status.
 -------------------------------------------------------------------------------
 
 
-exitableRanges
+depositedRanges
 --------------
 
 .. code-block:: solidity
 
-   mapping (uint256 => Range) public exitableRanges;
+   mapping (uint256 => Range) public depositedRanges;
 
 Description
 ^^^^^^^^^^^
@@ -275,12 +275,12 @@ Stores the list of ranges that have not been exited as a mapping from the ``star
 -------------------------------------------------------------------------------
 
 
-exits
------
+exitRedeemableAfter
+-------------------
 
 .. code-block:: solidity
 
-   mapping (bytes32 => uint256) public exits;
+   mapping (bytes32 => uint256) public exitRedeemableAfter;
 
 Description
 ^^^^^^^^^^^
@@ -460,7 +460,7 @@ startCheckpoint
    function startCheckpoint(
        Checkpoint _checkpoint,
        bytes _inclusionProof,
-       uint256 _exitableRangeId
+       uint256 _depositedRangeId
    ) public
 
 Description
@@ -471,13 +471,13 @@ Parameters
 ^^^^^^^^^^
 1. ``_checkpoint`` - ``Checkpoint``: Checkpoint to be initiated.
 2. ``_inclusionProof`` - ``bytes``: Proof that the state update was included in the block specified within the update.
-3. ``_exitableRangeId`` - ``uint256``: The key in the ``exitableRanges`` mapping which includes the ``subRange`` as a subrange.
+3. ``_depositedRangeId`` - ``uint256``: The key in the ``depositedRanges`` mapping which includes the ``subRange`` as a subrange.
 
 Requirements
 ^^^^^^^^^^^^
 - **MUST** verify the that ``checkpoint.stateUpdate`` was included with ``inclusionProof``.
 - **MUST** verify that ``subRange`` is actually a sub-range of ``stateUpdate.range``.
-- **MUST** verify that the ``subRange`` is still exitable with the ``exitableRangeId`` .
+- **MUST** verify that the ``subRange`` is still exitable with the ``depositedRangeId`` .
 - **MUST** verify that an indentical checkpoint has not already been started.
 - **MUST** add the new pending checkpoint to ``checkpoints`` with ``challengeableUntil`` equalling the current ethereum ``block.number + CHALLENGE_PERIOD`` .
 - **MUST** emit a ``CheckpointStarted`` event.
@@ -490,32 +490,32 @@ Checkpoints are assertions that a certain state update occured/was included, and
 -------------------------------------------------------------------------------
 
 
-challengeCheckpointOutdated
+deleteExitOutdated
 ---------------------------
 
 .. code-block:: solidity
 
-   function challengeCheckpointOutdated(
-       Checkpoint _olderCheckpoint,
+   function deleteExitOutdated(
+       Checkpoint _olderExitt,
        Checkpoint _newerCheckpoint
    ) public
 
 Description
 ^^^^^^^^^^^
-Challenges a checkpoint by showing that there exists a newer finalized checkpoint. Immediately cancels the checkpoint.
+Deletes an exit by showing that there exists a newer finalized checkpoint. Immediately cancels the exit.
 
 Parameters
 ^^^^^^^^^^
-1. ``_olderCheckpoint`` - ``Checkpoint``: `The checkpoint`_ to challenge.
+1. ``_olderExitt`` - ``Checkpoint``: `The exit`_ to delete.
 2. ``_newerCheckpoint`` - ``Checkpoint``: `The checkpoint`_ used to challenge.
 
 Requirements
 ^^^^^^^^^^^^
 - **MUST** ensure the checkpoint ranges intersect.
-- **MUST** ensure that the plasma blocknumber of the ``olderCheckpoint`` is less than that of ``newerCheckpoint``.
+- **MUST** ensure that the plasma blocknumber of the ``_olderExitt`` is less than that of ``_newerCheckpoint``.
 - **MUST** ensure that the ``newerCheckpoint`` has no challenges.
 - **MUST** ensure that the ``newerCheckpoint`` is no longer challengeable.
-- **MUST** delete the entries in ``exits`` and ``checkpoints`` at the ``[olderCheckpointId]``.
+- **MUST** delete the entries in ``exitRedeemableAfter``.
 
 Rationale
 ^^^^^^^^^
@@ -525,12 +525,12 @@ If a checkpoint game has finalized, the safety property should be that nothing i
 -------------------------------------------------------------------------------
 
 
-challengeCheckpointInvalidHistory
+challengeCheckpoint
 ---------------------------------
 
 .. code-block:: solidity
 
-   function challengeCheckpointInvalid(
+   function challengeCheckpoint(
        Challenge _challenge
    ) public
 
@@ -562,12 +562,12 @@ If the operator includes an invalid ``StateUpdate`` (i.e. there is not a depreca
 
 
 
-removeChallengeCheckpointInvalidHistory
----------------------------------------
+removeChallenge
+---------------
 
 .. code-block:: solidity
 
-   function removeChallengeCheckpointInvalidHistory(
+   function removeChallenge(
        Challenge _challenge
    ) public
 
@@ -625,8 +625,8 @@ For a user to redeem state from the plasma chain onto the main chain, they must 
 -------------------------------------------------------------------------------
 
 
-challengeExitDeprecated
------------------------
+deprecateExit
+-------------
 
 .. code-block:: solidity
 
@@ -636,7 +636,7 @@ challengeExitDeprecated
 
 Description
 ^^^^^^^^^^^
-Allows the predicate address to cancel an exit which is deprecated.
+Allows the predicate address to cancel an exit which it determines is deprecated.
 
 Parameters
 ^^^^^^^^^^
@@ -645,7 +645,7 @@ Parameters
 Requirements
 ^^^^^^^^^^^^
 - **MUST** ensure the ``msg.sender`` is the ``_checkpoint.stateUpdate.predicateAddress`` to ensure the deprecation is authenticated.
-- **MUST** delete the ``exit`` from ``exits`` at the ``checkpointId`` .
+- **MUST** delete the exit from ``exitRedeemableAfter`` at the ``checkpointId`` .
 
 Rationale
 ^^^^^^^^^
@@ -660,7 +660,7 @@ finalizeExit
 
 .. code-block:: solidity
 
-   function finalizeExit(Checkpoint _exit, uint256 _exitableRangeId) public
+   function finalizeExit(Checkpoint _exit, uint256 _depositedRangeId) public
 
 Description
 ^^^^^^^^^^^
@@ -669,7 +669,7 @@ Finalizes an exit that has passed its exit period and has not been successfully 
 Parameters
 ^^^^^^^^^^
 1. ``_exit`` - ``Checkpoint``: `The checkpoint`_ on which the exit is not finalizable.
-2. ``_exitableRangeId`` - ``uint256``: the entry in ``exitableRanges`` demonstrating the range is not yet exited.
+2. ``_depositedRangeId`` - ``uint256``: the entry in ``depositedRanges`` demonstrating the range is not yet exited.
 
 Requirements
 ^^^^^^^^^^^^
@@ -677,10 +677,10 @@ Requirements
 - **MUST** ensure that the checkpoint is finalized (current Ethereum block exceeds ``checkpoint.challengeableUntil``).
 - **MUST** ensure that the checkpoint's ``outstandingChallenges`` is 0.
 - **MUST** ensure that the exit is finalized (current Ethereum block exceeds ``redeemablAfter`` ).
-- **MUST** ensure that the checkpoint is on a subrange of the currently exitable ranges via ``exitableRangeId``.
+- **MUST** ensure that the checkpoint is on a subrange of the currently exitable ranges via ``depositedRangeId``.
 - **MUST** make an ERC20 transfer of the ``end - start`` amount to the predicate address.
 - **MUST** delete the exit.
-- **MUST** remove the exited range by updating the ``exitableRanges`` mapping.
+- **MUST** remove the exited range by updating the ``depositedRanges`` mapping.
 - **MUST** delete the checkpoint.
 - **MUST** emit an ``exitFinalized`` event.
 
