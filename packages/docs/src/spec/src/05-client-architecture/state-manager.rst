@@ -29,7 +29,7 @@ StateQuery
      end?: number
      method: string
      params: string[]
-     filter: Expression
+     filter?: Expression
    }
 
 Description
@@ -40,8 +40,8 @@ Fields
 ^^^^^^
 1. ``plasmaContract`` - ``string``: Address of the plasma contract to query. Clients may track multiple plasma contracts, so this parameter is necessary to resolve the correct data.
 2. ``predicateAddress`` - ``string``: Address of the predicate to query.
-3. ``start`` - ``number``: Start of the range to query. If not provided, will default to the 0.
-4. ``end`` - ``number``: End of the range to query. If not provided, will default to the max range value.
+3. ``start?`` - ``number``: Start of the range to query. If not provided, will default to the 0.
+4. ``end?`` - ``number``: End of the range to query. If not provided, will default to the max range value.
 5. ``method`` - ``string``: Name of the method to call.
 6. ``params`` - ``string[]``: List of parameters to the call.
 7. ``filter?`` - ``Expression``: An `Expression`_ to use to filter results. May be omitted to return all results.
