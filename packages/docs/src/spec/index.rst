@@ -26,6 +26,7 @@ This website documents the entirety of the Plasma Group design, from the inner w
 .. toctree::
    :maxdepth: 1
    :caption: #02: Contract Specification
+   
    src/02-contracts/contracts-overview
    src/02-contracts/deposit-contract
    src/02-contracts/commitment-contract
