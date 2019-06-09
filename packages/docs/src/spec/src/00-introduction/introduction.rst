@@ -2,12 +2,12 @@
 Introduction
 ############
 
-Hello and welcome to Plasma Group's Generalized Plasma Specification! We've been working toward this spec for a long time now and we're excited to be able to share it with the public. We're going to kick the spec off with a high-level overview of our construction and then go into the structure of the spec itself.
+Hello and welcome to `Plasma Group`_'s Generalized Plasma Specification! We've been working toward this spec for a long time now and we're excited to be able to share it with the public. We're going to kick the spec off with a high-level overview of our construction and then go into the structure of the spec itself.
 
 *****
 TL;DR
 *****
-Plasma is basically a way to build blockchains on top of blockchains. Plasma chains are sort of like sidechains, except they're a little less flexible and a lot more secure. We won't go into the details here.
+`Plasma`_ is basically a way to build blockchains on top of blockchains. Plasma chains are sort of like `sidechains`_, except they're a little less flexible and a lot more secure. We won't go into the details here.
 
 Up until now, people have only been able to build very limited plasma chains that accomplish a few specific goals (like make payments or exchange assets). None of these chains support the sort of "smart contracts" that make Ethereum so useful. In order to build a "plasma application", you'd have to build an entire blockchain from scratch. That's obviously way too much work.
 
@@ -16,9 +16,11 @@ So we set out to design a general purpose chain. It took a lot of work, but we f
 *****************************
 Required Background Knowledge
 *****************************
-You're going to see a lot of terms and ideas from previous plasma research when you're reading through this specification. Although we've provided references to these terms or ideas wherever possible, we generally try to avoid rehashing what's already been explained well before. As a result, you should be familiar with the general theory behind plasma and with various specific plasma constructions (like Plasma MVP and Plasma Cash) before diving into this spec. You don't need an extremely deep knowledge of plasma, but you should be comfortable with the idea of deposits, exits, and exit games. If you're not familiar with these concepts yet, we recommend reading through the original Plasma MVP and Plasma Cash posts, as well as the content on LearnPlasma.
+You're going to see a lot of terms and ideas from previous plasma research when you're reading through this specification. Although we've provided references to these terms or ideas wherever possible, we generally try to avoid rehashing what's already been explained well before. As a result, you should be familiar with the general theory behind plasma and with various specific plasma constructions (like `Plasma MVP`_ and `Plasma Cash`_) before diving into this spec.
 
-Sometimes we have a little trouble remembering that readers don't have quite as much context as we do. If you feel familiar with these concepts but are still confused by some aspect of the spec, please let us know! We've set up a system that makes it easy for anyone to leave review comments in just a few seconds.
+You don't need an extremely deep knowledge of plasma, but you should be comfortable with the idea of deposits, exits, and exit games. If you're not familiar with these concepts yet, we recommend reading through the original `Plasma MVP`_ and `Plasma Cash`_ posts, as well as the content on `LearnPlasma`_.
+
+Sometimes we have a little trouble remembering that readers don't have quite as much context as we do. If you feel familiar with these concepts but are still confused by some aspect of the spec, please let us know! `We've set up a system`_ that makes it easy for anyone to leave review comments in just a few seconds.
 
 *******************
 Specification Goals
@@ -70,12 +72,19 @@ Our semantic versioning strategy is pretty simple, each version follows the form
 .. _`#01: Core Design Components`: ../01-core/state-system.html
 .. _`#02: Contract Specifications`: ../02-contracts/deposit-contract.html
 .. _`#03: Client Specification`: ../03-client/introduction.html
-.. _`#04: Operator Specificiation`: ../04-operator/introduction.html
+.. _`#04: Operator Specification`: ../04-operator/introduction.html
 .. _`#05: Client Architecture`: ../05-client-architecture/introduction.html
 .. _`#06: Operator Architecture`: ../06-operator-architecture/introduction.html
 .. _`#07: Predicate Specifications`: ../07-predicates/introduction.html
+.. _`Plasma Group`: https://plasma.group
 .. _`Lightning BOLT specifications`: https://github.com/lightningnetwork/lightning-rfc
 .. _`Plasma Group monorepo`: https://github.com/plasma-group/pigi
+.. _`we've set up a system`: https://www.notion.so/Plasma-Group-Generalized-Plasma-Specification-Information-for-Reviewers-d7f42ae99acb4bf2af571bf348e861a0
+.. _`LearnPlasma`: https://learnplasma.org
+.. _`Plasma Cash`: https://ethresear.ch/t/plasma-cash-plasma-with-much-less-per-user-data-checking/1298
+.. _`Plasma MVP`: https://ethresear.ch/t/minimal-viable-plasma/426
+.. _`sidechains`: https://en.bitcoin.it/wiki/Sidechain
+.. _`plasma`: https://plasma.io
 .. _`our implementation`: https://github.com/plasma-group/pigi/tree/master/packages/core
 .. _`issue on GitHub`: https://github.com/plasma-group/pigi/issues
 .. _`pull request`: https://github.com/plasma-group/pigi/pulls
