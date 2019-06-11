@@ -19,7 +19,6 @@ The interface for a ``Transaction`` object looks like this:
      end: number
      methodId: string
      parameters: string
-     witness: string
    }
 
 Where the components of this interface are:
@@ -29,7 +28,6 @@ Where the components of this interface are:
 3. ``end`` - ``number``: End of the range being transacted.
 4. ``methodId`` - ``string``: A unique method identifier that tells a given predicate what type of state transition a user is trying to execute. This is necessary because a predicate may define multiple ways in which a state object can be mutated. ``methodId`` **should** be computed as the `keccak256`_ hash of the method's signature, as given by the `Predicate API`_.
 5. ``parameters`` - ``string``: Input parameters to be sent to the predicate along with ``method`` to compute the state transiton. Must be `ABI encoded`_ according to the `Predicate API`_. This is similar to the transaction `input value encoding in Ethereum`_.
-6. ``witness`` - ``string``: Additional `ABI encoded`_ data used to authenticate the transaction. This will often be a single signature but could theoretically be anything.
 
 Transaction Encoding and Decoding
 =================================
@@ -42,8 +40,7 @@ Plasma transactions **must** be `ABI encoded or decoded`_ according to the follo
        start: uint256,
        end: uint256,
        methodId: bytes32,
-       parameters: bytes,
-       witness: bytes
+       parameters: bytes
    }
 
 ********************
@@ -60,7 +57,7 @@ We're going to look at the whole process for generating a valid transaction to i
 
 First, let's pick some arbitary values for ``plasmaContract``, ``start``, and ``end``. Users will know these values in advance, so we don't really need to explain the process of getting them in the first place. Let's say that the ``plasmaContract`` of the ``SimpleOwnership`` predicate is ``0x5a0b54d5dc17e0aadc383d2db43b0a0d3e029c4c`` and we want to send the range ``(0, 100)``.
 
-Now we just need to figure out our values for ``methodId``, ``parameters``, and ``witness``. We're going to use the `Predicate API`_ for SimpleOwnership in order to generate these values. Users can get this API from a variety of places, but it's likely that most wallet software will come with a hard-coded API. Once we have the API, we know that ``send`` looks like this:
+Now we just need to figure out our values for ``methodId`` and ``parameters``. We're going to use the `Predicate API`_ for SimpleOwnership in order to generate these values. Users can get this API from a variety of places, but it's likely that most wallet software will come with a hard-coded API. Once we have the API, we know that ``send`` looks like this:
 
 .. code-block:: json
 
@@ -89,11 +86,11 @@ Now let's generate ``parameters``. Our only parameter to ``send`` is ``newOwner`
    const newOwner = '0xd98165d91efb90ecef0ddf089ce06a06f6251372'
    const parameters = abi.encode(['address'], newOwner)
 
-Next, we need to generate a valid witness for this transaction. ``SimpleOwnership`` requires a signature from the previous owner over the whole encoded transaction (except, of course, the signature itself) as a witness:
+This is all we need to generate the transaction:
 
 .. code-block:: typescript
 
-   const unsignedTransaction = abi.encode([
+   const transaction = abi.encode([
      'address',
      'uint256',
      'uint256',
@@ -106,18 +103,15 @@ Next, we need to generate a valid witness for this transaction. ``SimpleOwnershi
      methodId,
      parameters
    ])
-   
-   const privateKey = '0x...'
-   const signature = sign(unsignedTransaction, privateKey)
 
-Finally, we can combine everything to create the full transaction:
+Finally, we need to generate a valid *witness* for this transaction. ``SimpleOwnership`` requires a signature from the previous owner over the whole encoded transaction (except, of course, the signature itself) as a witness:
 
 .. code-block:: typescript
 
-   const witness = abi.encode(['bytes'], [signature])
-   const signedTransaction = unsignedTransaction + witness
+   const key = '0x...'
+   const witness = sign(transaction, key)
 
-We now have a correctly formed transaction that can be sent to the operator for inclusion.
+We now have everything we need to send this transaction off to the operator!
 
 
 .. References

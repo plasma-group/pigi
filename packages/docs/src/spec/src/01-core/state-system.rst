@@ -251,7 +251,6 @@ Mutations to state objects are carried out by **transactions**. Transactions spe
 1. The ID of a state object to mutate.
 2. The ID of a method to call in the state object's predicate.
 3. Parameters to be passed to the object's predicate.
-4. Additional witness data to be used to authenticate the transaction.
 
 A TypeScript interface for a transaction:
 
@@ -261,7 +260,6 @@ A TypeScript interface for a transaction:
      objectId: string
      methodId: string
      parameters: string
-     witness: string
    }
 
 A Solidity struct:
@@ -272,7 +270,6 @@ A Solidity struct:
        bytes objectId;
        bytes32 methodId;
        bytes parameters;
-       bytes witness;
    }
 
 ``methodId`` corresponds to the identifier `computed`_ from the `Predicate API`_ of the referenced object's predicate contract.
@@ -297,7 +294,7 @@ Similarly, transactions **MUST** be `ABI encoded and decoded`_ in the form:
 
 .. code-block:: json
    
-   [ objectId: bytes,  methodId: bytes, parameters: bytes, witness: bytes ]``
+   [ objectId: bytes,  methodId: bytes, parameters: bytes ]``
 
 Rationale
 ---------
