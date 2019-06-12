@@ -10,7 +10,7 @@ An important attack on plasma systems is for the operator to start withholding b
 
 One solution is *confirmation signatures*, in which Alice does not create a signature until she sees inclusion of the Bob ownership state.  However, this has bad UX properties--for one, Alice has to wait until the next block before she can sign, which means she cannot simply send a signature and go offline. Further, it requires an out-of-protocol authentication process: how does the operator know to include the Bob ownership before Alice has signed?
 
-Limbo exits are a better way to solve this problem.  They allow Alice to sign a transaction before the block is submitted, go offline, and have Bob recieve the coin at a later time, without reducing safety or extending the exit period.
+Limbo exits are a better way to solve this problem.  They allow Alice to sign a transaction before the block is submitted, go offline, and have Bob receive the coin at a later time, without reducing safety or extending the exit period.
 
 Intuitively, limbo exits work by allowing Alice to exit her ownership state *on Bob's behalf*. A limbo-compatible ownership predicate allows Alice to exit her ownership state "to Bob."  Once she does this, the ``finalizeExit`` call will send the money to Bob instead of Alice. So, if Alice agrees to a limbo exit, it cannot be deprecated by her spend to Bob.
 
@@ -413,7 +413,7 @@ onFinalizeTargetedExit
 
    function onFinalizeTargetedExit(
        Checkpoint _exit,
-       StateUpdte _target
+       StateUpdate _target
    ) public
 
 Description
@@ -427,7 +427,7 @@ Parameters
 
 Requirements
 ^^^^^^^^^^^^
-- **MUST** handle the money recieved from the exit as it pertains to this target.
+- **MUST** handle the money received from the exit as it pertains to this target.
 
 Justification
 ^^^^^^^^^^^^^
