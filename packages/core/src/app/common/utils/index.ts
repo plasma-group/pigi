@@ -1,5 +1,6 @@
 export * from './codec'
 export * from './debug-logger'
+export * from './expression'
 export * from './misc'
 export * from './range-store'
 export * from './type-guards'

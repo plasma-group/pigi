@@ -21,6 +21,7 @@
     "url": "https://github.com/plasma-group/pigi.git"
   },
   "scripts": {
+    "test": "mocha --require ts-node/register 'test/**/*.spec.ts'",
     "lint": "tslint --format stylish --project .",
     "fix": "prettier --config ./.prettierrc.js --write 'index.ts' '{src,test}/**/*.ts'",
     "build": "tsc -p ."
