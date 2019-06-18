@@ -195,3 +195,26 @@ export const hexStringify = (value: BigNum | Buffer): string => {
 export const hexStrToBuf = (hexString: string): Buffer => {
   return Buffer.from(hexString.slice(2), 'hex')
 }
+
+/**
+ * Asynchronous filtering function.
+ * @param arr Array to filter.
+ * @param filter Function used to filter the array.
+ * @returns the filtered array.
+ */
+export const asyncFilter = <T>(
+  arr: T[],
+  filter: (elem: T) => Promise<boolean>
+): Promise<T[]> => {
+  // Array of `true` or `false` filter passing values for each element.
+  const passing = await Promise.all(
+    array.map((elem) => {
+      return filter(elem)
+    })
+  )
+
+  // Return each element that passed the filter.
+  return arr.filter((_, index) => {
+    return passing[index]
+  })
+}
