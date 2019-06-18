@@ -10,7 +10,7 @@ import { AxiosHttpClient } from '~app/common/net/transport/http/axios-http-clien
 
 const startPingServer = async (port) => {
   const app = express()
-  app.get('/', (req, res) => res.json(stringify(req)))
+  app.all('/', (req, res) => res.json(stringify(req)))
   return app.listen(port)
 }
 
@@ -31,12 +31,24 @@ describe('AxiosHttpClient', () => {
   describe('request', () => {
     it('should be able to send a GET request', async () => {
       const response = await client.request({
-        method: 'get',
+        method: 'GET',
         url: '/',
       })
       const data = JSON.parse(response.data)
 
       data.method.should.equal('GET')
+      data.url.should.equal('/')
+    })
+
+    it('should be able to send a POST request', async () => {
+      const response = await client.request({
+        method: 'POST',
+        url: '/',
+        data: 'hello world'
+      })
+      const data = JSON.parse(response.data)
+
+      data.method.should.equal('POST')
       data.url.should.equal('/')
     })
   })
