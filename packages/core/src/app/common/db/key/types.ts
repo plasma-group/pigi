@@ -167,6 +167,23 @@ export const types = {
       return writeString(k, v, o, 'utf8')
     },
   },
+  address: {
+    min: Buffer.alloc(20, 0x00),
+    max: Buffer.alloc(20, 0xff),
+    dynamic: false,
+    size() {
+      return 20
+    },
+    read(k, o) {
+      assertLen(o + 20 <= k.length)
+      return k.slice(o, o + 20)
+    },
+    write(k, v, o) {
+      assertType(Buffer.isBuffer(v))
+      assertType(v.copy(k, o) === 20)
+      return 20
+    },
+  },
   hash160: {
     min: Buffer.alloc(20, 0x00),
     max: Buffer.alloc(20, 0xff),
