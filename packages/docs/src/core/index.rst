@@ -20,7 +20,7 @@ Documentation for ``@pigi/client`` is available at the `@pigi/client docs`_.
    :maxdepth: 2
    :caption: Specifications
 
-   src/specs/operator
+   src/specs/aggregator
    src/specs/coin-assignment
    src/specs/transactions
    src/specs/proofs
@@ -33,7 +33,7 @@ Documentation for ``@pigi/client`` is available at the `@pigi/client docs`_.
    :caption: Service API Reference
 
    src/services/contract
-   src/services/operator
+   src/services/aggregator
    src/services/jsonrpc
    src/services/proof
    src/services/sync

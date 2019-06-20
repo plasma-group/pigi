@@ -54,12 +54,12 @@ This website documents the entirety of the Plasma Group design, from the inner w
 
 .. toctree::
    :maxdepth: 1
-   :caption: #04: Operator Specification
+   :caption: #04: Aggregator Specification
 
-   src/04-operator/introduction
-   src/04-operator/transaction-ingestion
-   src/04-operator/block-generation
-   src/04-operator/operator-rpc-methods
+   src/04-aggregator/introduction
+   src/04-aggregator/transaction-ingestion
+   src/04-aggregator/block-generation
+   src/04-aggregator/aggregator-rpc-methods
  
 .. toctree::
    :maxdepth: 1
@@ -87,12 +87,12 @@ This website documents the entirety of the Plasma Group design, from the inner w
   
 .. toctree::
    :maxdepth: 1
-   :caption: #06: Operator Architecture
+   :caption: #06: Aggregator Architecture
 
-   src/06-operator-architecture/introduction
-   src/06-operator-architecture/block-db
-   src/06-operator-architecture/block-manager
-   src/06-operator-architecture/operator-state-manager
+   src/06-aggregator-architecture/introduction
+   src/06-aggregator-architecture/block-db
+   src/06-aggregator-architecture/block-manager
+   src/06-aggregator-architecture/aggregator-state-manager
 
 .. toctree::
    :maxdepth: 1

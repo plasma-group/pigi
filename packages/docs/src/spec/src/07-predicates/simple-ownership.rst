@@ -32,7 +32,7 @@ getOwner
 
 Description
 -----------
-The ``getOwner`` API method allows the client or operator to query the current owner of the state.
+The ``getOwner`` API method allows the client or aggregator to query the current owner of the state.
 
 Inputs
 ------
@@ -90,7 +90,7 @@ N/A
 Justification
 -------------
 
-Being able to spend to any new state is the base property of ownership.  The ``targetBlock`` may be used to produce replay protection while allowing some level of asynchronicity between the client and operator.
+Being able to spend to any new state is the base property of ownership.  The ``targetBlock`` may be used to produce replay protection while allowing some level of asynchronicity between the client and aggregator.
 
 ***************************
 State Object Specification

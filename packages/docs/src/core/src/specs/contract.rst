@@ -13,12 +13,12 @@ During the dispute period, users may submit "challenges" which claim the money b
 If the person who started the exit *does* in fact own the money, they are always able to calculate and present a "challenge response" which closes the challenge.
 If there are no outstanding disputes at the end of the dispute period, the user can finalize their exit and receive the money.
 
-The goal of the exit game is to keep user assets secure, even in the case of a malicious operator.
+The goal of the exit game is to keep user assets secure, even in the case of a malicious aggregator.
 Particularly, there are three main attacks which we must mitigate:
 
-- **Data withholding:** the operator may publish a root hash to the contract, but not tell anybody what the contents of the block are.
-- **Invalid transactions:** the operator may include a transaction in a block whose ``sender`` was not the previous ``recipient`` in the chain of custody.
-- **Censorship:** the operator may refuse to publish any transactions from a specific user.
+- **Data withholding:** the aggregator may publish a root hash to the contract, but not tell anybody what the contents of the block are.
+- **Invalid transactions:** the aggregator may include a transaction in a block whose ``sender`` was not the previous ``recipient`` in the chain of custody.
+- **Censorship:** the aggregator may refuse to publish any transactions from a specific user.
 
 In all of these cases, the challenge/response protocol of the exit game ensures that these behaviors do not allow theft.
 Importantly, we also ensure that each challenge can be closed in at most one response.
@@ -91,7 +91,7 @@ These IDs are assigned in order based on an incrementing ``challengeNonce`` and 
 Block-specific Transactions
 ===========================
 In the original Plasma Cash spec, the exiter is required to specify both the exited transaction and its previous "parent" transaction to prevent the "in-flight" attack.
-This attack occurs when the operator delays inclusion of a valid transaction and then inserts an invalid transaction before the valid one.
+This attack occurs when the aggregator delays inclusion of a valid transaction and then inserts an invalid transaction before the valid one.
 
 This poses a problem for our range-based schemes because a transaction may have multiple parents.
 For example, if Alice sends ``(0, 50)`` to Carol, and Bob sends ``(50, 100)`` to Carol, Carol can now send ``(0, 100)`` to Dave.
@@ -100,7 +100,7 @@ If Dave wants to exit ``(0, 100)``, he would need to specify both ``(0, 50)`` an
 If a range has dozens or even hundreds of parents, it becomes basically impossible to publish all of these parents on chain.
 Instead, we opted for a simpler alternative in which each transaction specifies the block in which it should be included.
 If the transaction is included in a different block, it's no longer valid.
-This solves the in-flight attack because it becomes impossible for the operator to delay inclusion of the transaction.
+This solves the in-flight attack because it becomes impossible for the aggregator to delay inclusion of the transaction.
 
 This does, unfortunately, introduce one downside -- if a transaction isn't included in the specified block (for whatever reason), it needs to be re-signed and re-submitted.
 Hopefully this won't happen too often in practice, but it's something to think about.
@@ -190,12 +190,12 @@ It uses ``checkTransactionProofAndGetTypedTransfer`` and then checks the followi
 4. The ``transfer.sender`` is the exiter.
 
 The introduction of atomic swaps does mean one thing: the spent coin challenge period must be strictly less than others.
-There's an edge case in which the operator withholds an atomic swap between two or more parties.
+There's an edge case in which the aggregator withholds an atomic swap between two or more parties.
 Those parties must exit their coins from *before* the swap because they don't know if the swap was included.
 If the swap was not included, then these exits will finalize successfully.
-However, if the swap *was* included, then operator can submit a Spent-Coin Challenge and block these exits.
+However, if the swap *was* included, then aggregator can submit a Spent-Coin Challenge and block these exits.
 
-If we allowed the operator to submit this challenge at the last minute, we'd be creating a race condition in which the parties have no time to use the newly revealed information to cancel other exits.
+If we allowed the aggregator to submit this challenge at the last minute, we'd be creating a race condition in which the parties have no time to use the newly revealed information to cancel other exits.
 Thus, the timeout is made shorter (1/2) than the regular challenge window, eliminating "last-minute response" attacks.
 
 Before-Deposit Challenge
@@ -245,7 +245,7 @@ Then, the user who started the exit can respond by showing that the transaction 
       depositEnd: uint256
     )
 
-We need this special second case so that users can withdraw money even if the operator is censoring all transactions after their deposit.
+We need this special second case so that users can withdraw money even if the aggregator is censoring all transactions after their deposit.
 
 Both responses cancel the challenge if:
 1. The deposit or transaction was indeed at the exit's plasma block number.
@@ -255,7 +255,7 @@ Both responses cancel the challenge if:
 Invalid-History Challenge
 =========================
 The Invalid-History Challenge is the most complex challenge-response game in both vanilla Plasma Cash and this spec.
-This part of the protocol mitigates the attack in which the operator includes an forged "invalid" transaction whose sender is not the previous recipient.
+This part of the protocol mitigates the attack in which the aggregator includes an forged "invalid" transaction whose sender is not the previous recipient.
 
 Effectively, this challenge allows the rightful owner of a coin to request that the exiter provide a proof that the owner has spent their funds.
 The idea here is that if the rightful owner really is the rightful owner, then the exiter will not be able to provide such a transaction.

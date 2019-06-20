@@ -46,14 +46,14 @@ Plasma transactions **must** be `ABI encoded or decoded`_ according to the follo
 ********************
 Sending Transactions
 ********************
-The client **SHOULD** verify the `history`_ of the range being transacted before sending the transaction to the operator. Doing so will confirm that no `invalid transactions`_ have been maliciously inserted into the blockchain by the operator between the block in which the user received a state update and the latest block. Otherwise the client may have to start `limbo exit`_, which is more costly than a standard exit.
+The client **SHOULD** verify the `history`_ of the range being transacted before sending the transaction to the aggregator. Doing so will confirm that no `invalid transactions`_ have been maliciously inserted into the blockchain by the aggregator between the block in which the user received a state update and the latest block. Otherwise the client may have to start `limbo exit`_, which is more costly than a standard exit.
 
-Transactions can be submitted to a node via the `sendTransaction RPC method`_. If the node that receives this request is not the operator, then it will forward the transaction to the operator on the requester's behalf.
+Transactions can be submitted to a node via the `sendTransaction RPC method`_. If the node that receives this request is not the aggregator, then it will forward the transaction to the aggregator on the requester's behalf.
 
 **********************************
 Example: SimpleOwnership Predicate
 **********************************
-We're going to look at the whole process for generating a valid transaction to interact with some state objects locked by the `SimpleOwnership`_ predicate. This example will explain how a client can use the `Predicate API`_ to generate a valid state-changing transaction. In this case, we'll generate a transaction that changes the ownership of the objects. We'll then look at the process of encoding the transaction and sending it to the operator.
+We're going to look at the whole process for generating a valid transaction to interact with some state objects locked by the `SimpleOwnership`_ predicate. This example will explain how a client can use the `Predicate API`_ to generate a valid state-changing transaction. In this case, we'll generate a transaction that changes the ownership of the objects. We'll then look at the process of encoding the transaction and sending it to the aggregator.
 
 First, let's pick some arbitary values for ``plasmaContract``, ``start``, and ``end``. Users will know these values in advance, so we don't really need to explain the process of getting them in the first place. Let's say that the ``plasmaContract`` of the ``SimpleOwnership`` predicate is ``0x5a0b54d5dc17e0aadc383d2db43b0a0d3e029c4c`` and we want to send the range ``(0, 100)``.
 
@@ -111,7 +111,7 @@ Finally, we need to generate a valid *witness* for this transaction. ``SimpleOwn
    const key = '0x...'
    const witness = sign(transaction, key)
 
-We now have everything we need to send this transaction off to the operator!
+We now have everything we need to send this transaction off to the aggregator!
 
 
 .. References

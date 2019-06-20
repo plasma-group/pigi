@@ -34,7 +34,7 @@ Plasma Cash
 Client
 ======
 
-Operator
+Aggregator
 ========
 
 Deposit

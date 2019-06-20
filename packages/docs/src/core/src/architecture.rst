@@ -23,7 +23,7 @@ This diagram shows the basic architecture of ``@pigi/core``:
 
 External services
 =================
-``@pigi/core`` talks to three external services: **Ethereum**, the plasma chain **Operator**, and user **applications**.
+``@pigi/core`` talks to three external services: **Ethereum**, the plasma chain **Aggregator**, and user **applications**.
 These three services are *outside* of the scope of ``@pigi/core``.
 Instead, ``@pigi/core`` provides interfaces through which it can talk to and hear from these external services.
 
@@ -37,9 +37,9 @@ ETHService
 ETHService_ exposes the functionality necessary to read information from Ethereum.
 ``ETHService`` is used for non-contract specific interactions.
 
-OperatorService
+AggregatorService
 ---------------
-As its name suggests, OperatorService_ handles all communication with the plasma chain operator_.
+As its name suggests, AggregatorService_ handles all communication with the plasma chain aggregator_.
 This includes sending and receiving plasma chain transactions.
 
 JSONRPCService
@@ -55,7 +55,7 @@ The remaining services of ``@pigi/core`` manage things internally.
 SyncService
 -----------
 Possibly the most important internal service, SyncService_ ensures that your node always has the latest transactions.
-``SyncService`` watches Ethereum for any new plasma chain blocks and automatically pulls any necessary information from the Operator.
+``SyncService`` watches Ethereum for any new plasma chain blocks and automatically pulls any necessary information from the Aggregator.
 ``SyncService`` makes sure your balances are always up-to-date and that you can always send transactions when you need to!
 
 ChainService
@@ -80,8 +80,8 @@ Most services talk to ``ChainService`` to retrieve data from ``DBService`` inste
 
 .. _ContractService: services/contract.html
 .. _ETHService: services/eth.html
-.. _OperatorService: services/operator.html
-.. _operator: specs/operator.html
+.. _AggregatorService: services/aggregator.html
+.. _aggregator: specs/aggregator.html
 .. _JSONRPCSErvice: services/jsonrpc.html
 .. _SyncService: services/sync.html
 .. _ChainService: services/chain.html

@@ -206,7 +206,7 @@ sendTransaction
 
     chain.sendTransaction(transaction)
 
-Sends a transaction to the operator.
+Sends a transaction to the aggregator.
 
 ----------
 Parameters

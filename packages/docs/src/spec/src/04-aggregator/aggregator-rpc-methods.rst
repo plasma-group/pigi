@@ -1,5 +1,5 @@
 ####################
-Operator RPC Methods
+Aggregator RPC Methods
 ####################
 
 ***********
@@ -8,7 +8,7 @@ Description
 
 .. todo::
 
-   Add description for Operator RPC methods.
+   Add description for Aggregator RPC methods.
 
 -------------------------------------------------------------------------------
 
@@ -22,7 +22,7 @@ pgop_sendTransaction
 
 Description
 ^^^^^^^^^^^
-Sends a transaction to be `ingested`_ by the operator.
+Sends a transaction to be `ingested`_ by the aggregator.
 
 Parameters
 ^^^^^^^^^^

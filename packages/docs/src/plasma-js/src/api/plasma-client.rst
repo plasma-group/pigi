@@ -470,7 +470,7 @@ sendRawTransaction
 
     plasma.sendRawTransaction(transaction)
 
-Sends an encoded and signed transaction to the operator.
+Sends an encoded and signed transaction to the aggregator.
 If you're looking for an easier way to send transactions, look at ``sendTransaction`` below.
 
 ----------

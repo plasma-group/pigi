@@ -165,20 +165,20 @@ Returns
 
 ------------------------------------------------------------------------------
 
-getOperator
+getAggregator
 ===========
 
 .. code-block:: javascript
 
-    contract.getOperator()
+    contract.getAggregator()
 
-Returns the address of the operator.
+Returns the address of the aggregator.
 
 -------
 Returns
 -------
 
-``Promise<string>``: Plasma chain operator address.
+``Promise<string>``: Plasma chain aggregator address.
 
 ------------------------------------------------------------------------------
 
@@ -378,7 +378,7 @@ submitBlock
     contract.submitBlock(hash)
 
 Submits a block with the given hash.
-Will only work if the operator's account is unlocked and available to the node.
+Will only work if the aggregator's account is unlocked and available to the node.
 
 ----------
 Parameters

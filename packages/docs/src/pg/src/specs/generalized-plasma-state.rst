@@ -33,13 +33,13 @@ Generalized Plasma State Spec
          - ``laterExitID: uint`` - the challenged ``exit``.
 - Commitment Contract
     - Public Variables:
-        - ``operator: public(address)`` - the operator's address.
+        - ``aggregator: public(address)`` - the aggregator's address.
         - ``nextPlasmaBlockNumber: public(uint256)`` - what the block number of the next block committment will be.
         - ``lastPublish: public(uint256)`` - the Ethereum block number of the last plasma block.
         - ``blockHashes: public(map(uint256, bytes32))`` - the blocks submitted so far.
     - Methods:
         - ``setup`` - Used to initiate the contract with collator pubkey
-        - ``commitBlock``: allows the operator to submit sequential blocks
+        - ``commitBlock``: allows the aggregator to submit sequential blocks
         - ``verifyUpdate(update: stateUpdate, subject: address, stateUpdateWitness: bytes)``: returns bool whether a given ``commitment`` was made on behalf of a given ``subject`` address (this is the plasma contract for e.g. a specific ERC20), at a the given ``plasmaBlockNumber``, based on a valid ``commitmentWitness``
     - Block Structure/Proof Validity, as checked by ``verifyUpdate``:
         - merkle node format: ``[hash: bytes32][subject: address][index: bytes16]``
@@ -56,7 +56,7 @@ Generalized Plasma State Spec
 
 - Plasma Contract
      - Public Variables:
-         - ``self.commitmentAddress`` - where the operator is submitting commitments
+         - ``self.commitmentAddress`` - where the aggregator is submitting commitments
          - ``self.tokenAddress`` - the ERC20 contract of for this plasma contract (we'll have one contract per token)
          - ``self.deposits[end: uint] -> deposit`` - mapping of all deposits to ``deposit`` structs
          - ``self.exitableRanges[end: uint] -> exitableRange`` - mapping of all the unclaimed ranges ("states still in the plasma chain")
@@ -80,7 +80,7 @@ Generalized Plasma State Spec
              - sets the claim's ``ethBlockRedeemable`` to: ``eth.block + self.CHALLENGE_PERIOD + state.predicateAddress.getAdditionalLockup(state)``
              - In this case, the ``update.plasmaBlockNumber`` comes from the ``deposit.precedingPlasmaBlockNumber``
          - ``challengeExit(earlierExitID, laterExitID)`` - allows users to challenge a later exit with an earlier undeprecated exit
-             - this is the way we challenge exits if the operator commits some a state with something undprecated in the history. The function checks that:
+             - this is the way we challenge exits if the aggregator commits some a state with something undprecated in the history. The function checks that:
                  - ``earlierExitID``'s claimed range intersects that of ``laterExitID``
                  - ``earlierExitID.update.plasmaBlockNumber < laterExitID.update.plasmaBlockNumber``
                  - ``eth.block < laterExit.ethBlockRedeemable``

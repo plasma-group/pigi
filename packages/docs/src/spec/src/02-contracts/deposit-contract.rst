@@ -484,7 +484,7 @@ Requirements
 
 Rationale
 ^^^^^^^^^
-Checkpoints are assertions that a certain state update occured/was included, and that it has no intersecting unspent state updates in its history.  Because the operator may publish an invalid block, it must undergo a challenge period in which the parties who care about the unspent state update in the history exit it, and use it to challenge the checkpoint.
+Checkpoints are assertions that a certain state update occured/was included, and that it has no intersecting unspent state updates in its history.  Because the aggregator may publish an invalid block, it must undergo a challenge period in which the parties who care about the unspent state update in the history exit it, and use it to challenge the checkpoint.
 
 
 -------------------------------------------------------------------------------
@@ -555,7 +555,7 @@ Requirements
 
 Rationale
 ^^^^^^^^^
-If the operator includes an invalid ``StateUpdate`` (i.e. there is not a deprecation for the last valid ``StateUpdate`` on an intersecting range), they may checkpoint it and attempt a malicious exit.  To prevent this, the valid owner must checkpoint their unspent state, exit it, and create a challenge on the invalid checkpoint.
+If the aggregator includes an invalid ``StateUpdate`` (i.e. there is not a deprecation for the last valid ``StateUpdate`` on an intersecting range), they may checkpoint it and attempt a malicious exit.  To prevent this, the valid owner must checkpoint their unspent state, exit it, and create a challenge on the invalid checkpoint.
 
 
 -------------------------------------------------------------------------------

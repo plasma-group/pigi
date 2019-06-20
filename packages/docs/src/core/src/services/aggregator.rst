@@ -1,8 +1,8 @@
 ===============
-OperatorService
+AggregatorService
 ===============
 
-``OperatorService`` handles all interaction with the operator_.
+``AggregatorService`` handles all interaction with the aggregator_.
 This includes things like sending transactions and pulling any pending transactions.
 
 ------------------------------------------------------------------------------
@@ -12,7 +12,7 @@ getNextBlock
 
 .. code-block:: javascript
 
-    operator.getNextBlock()
+    aggregator.getNextBlock()
 
 Returns the next block that will be submitted.
 
@@ -29,7 +29,7 @@ getEthInfo
 
 .. code-block:: javascript
 
-    operator.getEthInfo()
+    aggregator.getEthInfo()
 
 Returns information about the smart contract.
 
@@ -46,7 +46,7 @@ getTransactions
 
 .. code-block:: javascript
 
-    operator.getTransactions(address, startBlock, endBlock)
+    aggregator.getTransactions(address, startBlock, endBlock)
 
 Returns a list of transactions received by an address between two blocks.
 
@@ -71,7 +71,7 @@ getTransaction
 
 .. code-block:: javascript
 
-    operator.getTransaction(encoded)
+    aggregator.getTransaction(encoded)
 
 Returns a transaction proof for a given transaction.
 
@@ -94,9 +94,9 @@ sendTransaction
 
 .. code-block:: javascript
 
-    operator.sendTransaction(transaction)
+    aggregator.sendTransaction(transaction)
 
-Sends a SignedTransaction_ to the operator.
+Sends a SignedTransaction_ to the aggregator.
 
 ----------
 Parameters
@@ -117,12 +117,12 @@ submitBlock
 
 .. code-block:: javascript
 
-    operator.submitBlock()
+    aggregator.submitBlock()
 
-Attempts to have the operator submit a new block.
-Won't work if the operator is properly configured, but used for testing.
+Attempts to have the aggregator submit a new block.
+Won't work if the aggregator is properly configured, but used for testing.
 
 
-.. _operator: specs/operator.html
+.. _aggregator: specs/aggregator.html
 .. _transaction relay: TODO
 .. _Transaction: specs/transactions.html#transaction-object

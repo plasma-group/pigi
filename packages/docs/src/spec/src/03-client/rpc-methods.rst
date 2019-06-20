@@ -66,11 +66,11 @@ pg_sendRawTransaction
 
 Description
 -----------
-Sends a transaction to the client. If the client is not the operator, the transaction will be forwarded to the operator.
+Sends a transaction to the client. If the client is not the aggregator, the transaction will be forwarded to the aggregator.
 
 Parameters
 ----------
-1. ``transaction`` - ``string``: Properly `encoded transaction`_ to send to the operator.
+1. ``transaction`` - ``string``: Properly `encoded transaction`_ to send to the aggregator.
 
 Returns
 -------

@@ -5,7 +5,7 @@ SyncManager
 ***********
 Description
 ***********
-``SyncManager`` runs in the background and automatically synchronizes the client's state with the operator's state. It watches for new block submissions and queries the operator for any relevant state updates.
+``SyncManager`` runs in the background and automatically synchronizes the client's state with the aggregator's state. It watches for new block submissions and queries the aggregator for any relevant state updates.
 
 -------------------------------------------------------------------------------
 

@@ -14,7 +14,7 @@ A lot of our documentation is about Plasma Group projects, but there's also a lo
    :caption: Plasma Explainers
 
    src/plasma/sidechains
-   src/plasma/operator
+   src/plasma/aggregator
 
 .. toctree::
    :maxdepth: 2

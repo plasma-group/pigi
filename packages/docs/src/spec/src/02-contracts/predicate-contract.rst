@@ -13,7 +13,7 @@ Predicate contracts define the rules for particular state objects' exit game.  T
 Deprecation
 ***********
 
-The foremost thing a predicate accomplishes is to enable the deprecation of its state, so that a new state included by the operator becomes valid.  This enables state transitions to occur. Because the deposit contract only allows an exit's ``predicateAddress`` to call ``deprecateExit``, the predicate must enable some function which leads to a subcall on ``depositContract.deprecateExit``.
+The foremost thing a predicate accomplishes is to enable the deprecation of its state, so that a new state included by the aggregator becomes valid.  This enables state transitions to occur. Because the deposit contract only allows an exit's ``predicateAddress`` to call ``deprecateExit``, the predicate must enable some function which leads to a subcall on ``depositContract.deprecateExit``.
 
 ***************
 Exit Initiation

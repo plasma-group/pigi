@@ -20,21 +20,21 @@ Expression
 .. code-block:: typescript
 
    interface Expression {
-     [operator: string]: Array<string | number | Expression>
+     [aggregator: string]: Array<string | number | Expression>
    }
 
 Description
 -----------
-Represents an expression. All expressions consist of an operator and a list of input values. Some expressions take other operators as input values.
+Represents an expression. All expressions consist of an aggregator and a list of input values. Some expressions take other aggregators as input values.
 
 -------------------------------------------------------------------------------
 
 
 *********
-Operators
+Aggregators
 *********
 
-Boolean Operators
+Boolean Aggregators
 =================
 
 $and
@@ -103,7 +103,7 @@ Returns
 -------------------------------------------------------------------------------
 
 
-Comparison Operators
+Comparison Aggregators
 ====================
 
 $eq
@@ -243,4 +243,4 @@ Returns
 .. References
 
 .. _`state queries`: ./state-queries.html
-.. _`mongoDB`: https://docs.mongodb.com/manual/reference/operator/
+.. _`mongoDB`: https://docs.mongodb.com/manual/reference/aggregator/

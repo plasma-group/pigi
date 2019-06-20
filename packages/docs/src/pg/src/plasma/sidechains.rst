@@ -89,7 +89,7 @@ This convenient property also means that the plasma chain can use really simple 
 
 .. todo::
 
-    Link out to the operator explainer page.
+    Link out to the aggregator explainer page.
 
 The Cons
 --------

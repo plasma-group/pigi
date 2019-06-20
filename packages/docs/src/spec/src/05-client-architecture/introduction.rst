@@ -13,7 +13,7 @@ RpcServer
 
 RpcClient
 =========
-`RpcClient`_ handles interactions with other clients and with the operator.
+`RpcClient`_ handles interactions with other clients and with the aggregator.
 
 StateDB
 =======

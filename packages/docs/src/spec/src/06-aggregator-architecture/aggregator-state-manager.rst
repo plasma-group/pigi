@@ -1,5 +1,5 @@
 ####################
-OperatorStateManager
+AggregatorStateManager
 ####################
 
 ***********
@@ -8,7 +8,7 @@ Description
 
 .. todo::
 
-   Add description for OperatorStateManager.
+   Add description for AggregatorStateManager.
 
 -------------------------------------------------------------------------------
 

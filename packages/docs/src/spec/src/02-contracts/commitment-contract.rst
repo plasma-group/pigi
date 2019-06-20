@@ -5,7 +5,7 @@ Commitment Contract
 ***********
 Description
 ***********
-Each plasma chain **MUST** have at least one **commitment contract**. Commitment contracts hold the block headers for the plasma chain. Whenever the operator creates a new plasma block, they **MUST** publish this block to the commitment contract.
+Each plasma chain **MUST** have at least one **commitment contract**. Commitment contracts hold the block headers for the plasma chain. Whenever the aggregator creates a new plasma block, they **MUST** publish this block to the commitment contract.
 
 
 -------------------------------------------------------------------------------
@@ -38,7 +38,7 @@ Fields
 
 Rationale
 ^^^^^^^^^
-Users need to know whenever a new block has been published so that they can stay in sync with the operator.
+Users need to know whenever a new block has been published so that they can stay in sync with the aggregator.
 
 
 -------------------------------------------------------------------------------
@@ -106,7 +106,7 @@ Rationale
 ^^^^^^^^^
 It's obviously necessary to expose some functionality that allows a user to submit a block header. However, the rationale around authentication logic is more interesting here. 
 
-Authentication in our original construction was handled by checking that msg.sender was the operator. This works well in a single-operator construction, but it doesn't work if we wanted some more complex system. In order to solve this problem, we initinally wanted to add a ``witness: bytes`` parameter to the method which could then be used to authenticate the submitted header. Fortunately, we stumbled on an even better solution.
+Authentication in our original construction was handled by checking that msg.sender was the aggregator. This works well in a single-aggregator construction, but it doesn't work if we wanted some more complex system. In order to solve this problem, we initinally wanted to add a ``witness: bytes`` parameter to the method which could then be used to authenticate the submitted header. Fortunately, we stumbled on an even better solution.
 
 Conveniently, if a contract calls another contract, then msg.sender within that second contract will be the address of the first contract. We can therefore outsource verification of a given block to some external contract and simply check that ``msg.sender`` is that contract.
 

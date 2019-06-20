@@ -6,7 +6,7 @@ Transaction-based Predicate Standard
 Description
 ***********
 
-Most developers are more familiar with a transaction-based model of cryptocurrencies, where state transitions as the result of transactions form the basis for computation. Our client and operator implementations also work this way--it's really a great model!  The transaction-based predicate standard helps us to do this cleanly, by providing a wrapper which interprets transactions in the context of deprecation and disputes.
+Most developers are more familiar with a transaction-based model of cryptocurrencies, where state transitions as the result of transactions form the basis for computation. Our client and aggregator implementations also work this way--it's really a great model!  The transaction-based predicate standard helps us to do this cleanly, by providing a wrapper which interprets transactions in the context of deprecation and disputes.
 
 In essence, the way to enable this is: if a transaction from one state has been authenticated (e.g. signed by its single owner or signed by the multiple participants of a multisig), it must be deprecable using that transaction.
 

@@ -15,4 +15,4 @@ Hello and welcome to the documentation of Plasma Group's ``@pigi/plasma-js``!
    :caption: API Reference
 
    src/api/plasma-client
-   src/api/plasma-operator
+   src/api/plasma-aggregator

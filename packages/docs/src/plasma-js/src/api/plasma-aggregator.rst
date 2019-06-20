@@ -1,15 +1,15 @@
 ==============
-PlasmaOperator
+PlasmaAggregator
 ==============
 
-``PlasmaOperator`` handles interaction with the plasma operator.
+``PlasmaAggregator`` handles interaction with the plasma aggregator.
 
 .. code-block:: javascript
 
-    const PlasmaOperator = require('@pigi/plasma-js').PlasmaOperator
+    const PlasmaAggregator = require('@pigi/plasma-js').PlasmaAggregator
 
-    // Can replace the endpoint with the endpoint of your operator.
-    const operator = new PlasmaOperator('http://localhost:3000')
+    // Can replace the endpoint with the endpoint of your aggregator.
+    const aggregator = new PlasmaAggregator('http://localhost:3000')
 
 ------------------------------------------------------------------------------
 
@@ -18,7 +18,7 @@ getBlockMetadata
 
 .. code-block:: javascript
 
-    operator.getBlockMetadata(start, end)
+    aggregator.getBlockMetadata(start, end)
 
 Returns metadata about a list of blocks.
 
@@ -41,7 +41,7 @@ Example
 
 .. code-block:: javascript
 
-    const blocks = await operator.getBlockMetadata(0, 3)
+    const blocks = await aggregator.getBlockMetadata(0, 3)
     console.log(blocks)
     > [ { blockNumber: '00000001',
           rootHash: '0000000000000000000000000000000000000000000000000000000000000000',
@@ -63,7 +63,7 @@ getBlockTransactions
 
 .. code-block:: javascript
 
-    operator.getBlockTransactions(block, start, end)
+    aggregator.getBlockTransactions(block, start, end)
 
 Returns the transactions in a specific block.
 Queries all transactions between ``start`` and ``end``.
@@ -90,7 +90,7 @@ getTransaction
 
 .. code-block:: javascript
 
-    operator.getTransaction(hash)
+    aggregator.getTransaction(hash)
 
 Returns a transaction by its hash.
 
@@ -112,7 +112,7 @@ Example
 
 .. code-block:: javascript
 
-    const transaction = await operator.getTransaction('0x7b6ced8ecd267f504f86b6cace13f078f936a20adc98b37fc83e1030f976e8e5')
+    const transaction = await aggregator.getTransaction('0x7b6ced8ecd267f504f86b6cace13f078f936a20adc98b37fc83e1030f976e8e5')
     console.log(transaction)
     > SignedTransaction {
         schema:
@@ -139,7 +139,7 @@ getRecentTransactions
 
 .. code-block:: javascript
 
-    operator.getRecentTransactions(start, end)
+    aggregator.getRecentTransactions(start, end)
 
 Returns a list of recent transactions.
 
@@ -162,7 +162,7 @@ Example
 
 .. code-block:: javascript
 
-    const transactions = await operator.getRecentTransactions(0, 10)
+    const transactions = await aggregator.getRecentTransactions(0, 10)
     console.log(transactions)
     > [ SignedTransaction {
           schema: Schema { unparsedFields: [Object], fields: [Object] },
@@ -187,9 +187,9 @@ getCurrentBlock
 
 .. code-block:: javascript
 
-    operator.getCurrentBlock()
+    aggregator.getCurrentBlock()
 
-Returns the current block number according to the operator.
+Returns the current block number according to the aggregator.
 
 -------
 Returns
@@ -203,7 +203,7 @@ Example
 
 .. code-block:: javascript
 
-    const currentBlock = await operator.getCurrentBlock()
+    const currentBlock = await aggregator.getCurrentBlock()
     console.log(currentBlock)
     > 6
 
@@ -214,10 +214,10 @@ submitBlock
 
 .. code-block:: javascript
 
-    operator.submitBlock()
+    aggregator.submitBlock()
 
-Attempts to force the operator to submit a block.
-If the operator is properly configured, it won't let you do this.
+Attempts to force the aggregator to submit a block.
+If the aggregator is properly configured, it won't let you do this.
 Usually used for testing locally.
 
 -------
@@ -226,6 +226,6 @@ Example
 
 .. code-block:: javascript
 
-    const submittedBlock = await operator.submitBlock()
+    const submittedBlock = await aggregator.submitBlock()
     console.log(submittedBlock)
     > 7

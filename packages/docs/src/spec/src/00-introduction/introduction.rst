@@ -40,9 +40,9 @@ Our specification is composed of eight primary sections:
 - `#01: Core Design Components`_
 - `#02: Contract Specifications`_
 - `#03: Client Specification`_
-- `#04: Operator Specification`_
+- `#04: Aggregator Specification`_
 - `#05: Client Architecture`_
-- `#06: Operator Architecture`_
+- `#06: Aggregator Architecture`_
 - `#07: Predicate Specifications`_
 
 The first five sections (00 - 04) form the specification of the generalized plasma system itself. These sections explain, in detail, how the system works and what components someone would have to include in a compliant implementation.
@@ -72,9 +72,9 @@ Our semantic versioning strategy is pretty simple, each version follows the form
 .. _`#01: Core Design Components`: ../01-core/state-system.html
 .. _`#02: Contract Specifications`: ../02-contracts/deposit-contract.html
 .. _`#03: Client Specification`: ../03-client/introduction.html
-.. _`#04: Operator Specification`: ../04-operator/introduction.html
+.. _`#04: Aggregator Specification`: ../04-aggregator/introduction.html
 .. _`#05: Client Architecture`: ../05-client-architecture/introduction.html
-.. _`#06: Operator Architecture`: ../06-operator-architecture/introduction.html
+.. _`#06: Aggregator Architecture`: ../06-aggregator-architecture/introduction.html
 .. _`#07: Predicate Specifications`: ../07-predicates/introduction.html
 .. _`Plasma Group`: https://plasma.group
 .. _`Lightning BOLT specifications`: https://github.com/lightningnetwork/lightning-rfc
