@@ -11,7 +11,7 @@ export interface PredicatePlugin {
    */
   executeStateTransition(
     previousStateUpdate: StateUpdate,
-    stateUpdateBlock: number,
+    inBlock: number,
     transaction: Transaction
   ): Promise<StateUpdate>
 

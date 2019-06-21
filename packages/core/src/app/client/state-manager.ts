@@ -84,7 +84,7 @@ export class DefaultStateManager implements StateManager {
 
       const computedState: StateUpdate = await predicatePlugin.executeStateTransition(
         verifiedUpdate.stateUpdate,
-        verifiedUpdate.verifiedBlockNumber,
+        inBlock,
         transaction
       )
 
