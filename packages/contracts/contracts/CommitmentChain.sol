@@ -17,9 +17,9 @@ contract CommitmentChain {
         bytes memory packed =
             abi.encodePacked(
                 _leftSibling.hashValue,
-                _leftSibling.start,
+                _leftSibling.lowerBound,
                 _rightSibling.hashValue,
-                _rightSibling.start
+                _rightSibling.lowerBound
             );
         return packed;
     }
@@ -31,13 +31,13 @@ contract CommitmentChain {
         bytes32 computedHash = keccak256(
             abi.encodePacked(
                 _leftSibling.hashValue,
-                _leftSibling.start,
+                _leftSibling.lowerBound,
                 _rightSibling.hashValue,
-                _rightSibling.start
+                _rightSibling.lowerBound
             )
         );
         parent.hashValue = computedHash;
-        parent.start = _leftSibling.start;
+        parent.lowerBound = _leftSibling.lowerBound;
         return parent;
     }
 }
