@@ -57,15 +57,11 @@ send
         constant: false,
         inputs: [
             {
-                name: "newState",
+                name: "newStateObject",
                 type: "StateObject"
             },
             {
                 name: "originBlock",
-                type: "uint"
-            },
-            {
-                name: "maxBlock",
                 type: "uint"
             }
         ],
@@ -79,9 +75,8 @@ The ``send`` method is used to set the state to a new arbitrary state object, gi
 Inputs
 ------
 
-1. ``newState`` - ``StateObject`` : the state object that the owner desires to mutate to.
+1. ``newStateObject`` - ``StateObject`` : the state object that the owner desires to mutate to.
 2. ``originBlock`` - ``uint`` : the maximum plasma blocknumber of the ownership ``StateUpdate`` s from which you are spending.
-3. ``maxBlock`` - ``uint`` : the maximum plasma block number for which the send is valid.
 
 Outputs
 -------
@@ -129,7 +124,6 @@ Requirements
 2. **MUST** ensure that the ``preState.plasmaBlockNumber`` is less than the ``input.parameters.originBlock`` .
 3. **MUST** ensure that the ``postState.range`` is the same as ``transaction.start`` and ``transaction.end`` .
 4. **MUST** ensure that the ``transaction.parameters.newState`` is the same as the ``postState.state`` .
-5. **MUST** ensure that the ``input.parameters.targetBlock`` is greater than or equal to the ``postState.plasmaBlockNumber`` .
 
 Rationale
 ---------
@@ -269,7 +263,6 @@ Requirements
 2. **MUST** ensure that the ``preState.plasmaBlockNumber`` is less thana the ``input.parameters.originBlock`` .
 3. **MUST** return a ``StateUpdate`` with a range the same as ``transaction.start`` and ``transaction.end`` .
 4. **MUST** return a ``StateUpdate`` with ``state`` is the same as the ``transaction.parameters.newState`` .
-5. **MUST** ensure that the ``transaction.parameters.targetBlock`` is greater than or equal to the pending plasma block number .
 
 Rationale
 ---------
