@@ -40,4 +40,22 @@ contract CommitmentChain {
         parent.lowerBound = _leftSibling.lowerBound;
         return parent;
     }
+    
+    function assetTreeParent(
+        dt.AssetTreeNode memory _leftSibling,
+        dt.AssetTreeNode memory _rightSibling
+    ) public pure returns (dt.AssetTreeNode memory) {
+        dt.AssetTreeNode memory parent;
+        bytes32 computedHash = keccak256(
+            abi.encodePacked(
+                _leftSibling.hashValue,
+                _leftSibling.lowerBound,
+                _rightSibling.hashValue,
+                _rightSibling.lowerBound
+            )
+        );
+        parent.hashValue = computedHash;
+        parent.lowerBound = _leftSibling.lowerBound;
+        return parent;
+    }
 }

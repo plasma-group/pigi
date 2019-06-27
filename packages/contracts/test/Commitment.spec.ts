@@ -2,6 +2,7 @@
 import {
   GenericMerkleIntervalTree,
   AbiStateSubtreeNode,
+  AbiAssetTreeNode,
   MerkleStateIntervalTree,
 } from '@pigi/core'
 import BigNum = require('bn.js')
@@ -42,19 +43,46 @@ describe.only('Commitment Contract', () => {
         ),
         Buffer.from('00000000000000000000000000000001', 'hex')
       )
-      console.log(leftSibling.jsonified)
       const contractParent = await commitmentContract.stateSubtreeParent(
         leftSibling.jsonified,
         rightSibling.jsonified
       )
-      const clientParent = GenericMerkleIntervalTree.parent(
+      const ovmParent = GenericMerkleIntervalTree.parent(
         leftSibling,
         rightSibling
       )
-      contractParent.hashValue.should.equal('0x' + clientParent.hash.toString('hex'))
+      contractParent.hashValue.should.equal('0x' + ovmParent.hash.toString('hex'))
       new BigNum(contractParent.lowerBound.toString('hex'), 'hex').eq(
-          new BigNum(clientParent.lowerBound)
+          new BigNum(ovmParent.lowerBound)
         ).should.equal(true) // horibly messy way to compare equality
     })
+    it('correctly calculates a assetTreeParent', async () => {
+        const leftSibling = new AbiAssetTreeNode(
+          Buffer.from(
+            '1111111111111111111111111111111111111111111111111111111111111111',
+            'hex'
+          ),
+          Buffer.from('0000000000000000000000000000000000000000000000000000000000000000', 'hex')
+        )
+        const rightSibling = new AbiAssetTreeNode(
+          Buffer.from(
+            '2222222222222222222222222222222222222222222222222222222222222222',
+            'hex'
+          ),
+          Buffer.from('0000000000000000000000000000000000000000000000000000000000000001', 'hex')
+        )
+        const contractParent = await commitmentContract.assetTreeParent(
+          leftSibling.jsonified,
+          rightSibling.jsonified
+        )
+        const ovmParent = GenericMerkleIntervalTree.parent(
+          leftSibling,
+          rightSibling
+        )
+        contractParent.hashValue.should.equal('0x' + ovmParent.hash.toString('hex'))
+        new BigNum(contractParent.lowerBound.toString('hex'), 'hex').eq(
+            new BigNum(ovmParent.lowerBound)
+          ).should.equal(true) // horibly messy way to compare equality
+      })
   })
 })
