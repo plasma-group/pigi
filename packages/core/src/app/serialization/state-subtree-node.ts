@@ -5,7 +5,7 @@ const log = debug('info:state-update')
 
 /* Internal Imports */
 import { abi, hexStringify, GenericMerkleIntervalTreeNode } from '..'
-import { MerkleIntervalTreeNode, AbiEncodable } from '../../types'
+import { AbiEncodable } from '../../types'
 
 /**
  * Creates a AbiStateSubtreeNode from an encoded AbiStateSubtreeNode.
