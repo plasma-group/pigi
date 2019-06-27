@@ -56,7 +56,7 @@ describe.only('Commitment Contract', () => {
           new BigNum(ovmParent.lowerBound)
         ).should.equal(true) // horibly messy way to compare equality
     })
-    it('correctly calculates a assetTreeParent', async () => {
+    it('correctly calculates an assetTreeParent', async () => {
         const leftSibling = new AbiAssetTreeNode(
           Buffer.from(
             '1111111111111111111111111111111111111111111111111111111111111111',

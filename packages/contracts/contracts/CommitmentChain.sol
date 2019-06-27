@@ -10,19 +10,6 @@ contract CommitmentChain {
         return true;
     }
 
-    function getAbiPacked(
-        dt.StateSubtreeNode memory _leftSibling,
-        dt.StateSubtreeNode memory _rightSibling
-    ) public pure returns (bytes memory) {
-        bytes memory packed =
-            abi.encodePacked(
-                _leftSibling.hashValue,
-                _leftSibling.lowerBound,
-                _rightSibling.hashValue,
-                _rightSibling.lowerBound
-            );
-        return packed;
-    }
     function stateSubtreeParent(
         dt.StateSubtreeNode memory _leftSibling,
         dt.StateSubtreeNode memory _rightSibling
