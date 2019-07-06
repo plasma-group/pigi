@@ -1,6 +1,8 @@
 /* Internal Imports */
 import { abi } from '../../app'
 import { StateObject, AbiEncodable } from '../../types'
+import { encode } from 'ethers/utils/base64';
+import { hexDataSlice } from 'ethers/utils';
 
 /**
  * Creates a StateObject from an encoded StateObject.
@@ -24,10 +26,10 @@ export class AbiStateObject implements StateObject, AbiEncodable {
    * @returns the abi encoded StateObject.
    */
   get encoded(): string {
-    return abi.encode(AbiStateObject.abiTypes, [
-      this.predicateAddress,
-      this.data,
-    ])
+    // need to encode this packed for parity with hash(encodepacked(SO)) in the contracts
+    const packedPredicateEncoding = this.predicateAddress.slice(2)
+    const packedDataEncoding = this.data.slice(2)
+    return '0x' + packedPredicateEncoding + packedDataEncoding
   }
 
   /**
