@@ -31,7 +31,7 @@ contract OwnershipTransactionPredicate is TransactionPredicate {
         super.startExit(_checkpoint);
     }
 
-    function finalizeExitByOwner(types.Checkpoint memory _exit, uint256 depositedRangeId) public {
+    function finalizeExitByOwner(types.Checkpoint memory _exit, uint128 depositedRangeId) public {
         // Extract the owner from the state object data field
         address owner = getOwner(_exit.stateUpdate);
         // Require that this is called by the owner

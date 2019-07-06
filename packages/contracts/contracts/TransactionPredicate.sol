@@ -50,7 +50,7 @@ contract TransactionPredicate {
     }
 
     // Note: in theory we might want custom functionality here, but usually for predicates inheriting this model they will be the same.
-    function finalizeExit(types.Checkpoint memory _exit, uint256 depositedRangeId) internal {
+    function finalizeExit(types.Checkpoint memory _exit, uint128 depositedRangeId) internal {
         Deposit depositContract = Deposit(_exit.stateUpdate.depositAddress);
         depositContract.finalizeExit(_exit, depositedRangeId);
     }

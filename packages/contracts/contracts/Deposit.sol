@@ -18,7 +18,7 @@ contract Deposit {
     /*** Structs ***/
     struct CheckpointStatus {
         uint256 challengeableUntil;
-        uint256 outstandingChallenges;
+        uint128 outstandingChallenges;
     }
 
     struct Challenge {
@@ -56,10 +56,10 @@ contract Deposit {
     /*** Public ***/
     ERC20 public erc20;
     CommitmentChain public commitmentChain;
-    uint256 public totalDeposited;
+    uint128 public totalDeposited;
     mapping (bytes32 => CheckpointStatus) public checkpoints;
     mapping (bytes32 => uint256) public exitRedeemableAfter;
-    mapping (uint256 => types.Range) public depositedRanges;
+    mapping (uint128 => types.Range) public depositedRanges;
     mapping (bytes32 => bool) public challenges;
 
     /*** Public Constants ***/
@@ -82,7 +82,7 @@ contract Deposit {
      * @param _amount TODO
      * @param _initialState  TODO
      */
-    function deposit(uint256 _amount, types.StateObject memory _initialState) public {
+    function deposit(uint128 _amount, types.StateObject memory _initialState) public {
         // Transfer tokens to the deposit contract
         erc20.transferFrom(msg.sender, address(this), _amount);
         // Create the Range, StateUpdate & Checkpoint
@@ -107,11 +107,11 @@ contract Deposit {
         emit LogCheckpoint(checkpoint);
     }
 
-    function extendDepositedRanges(uint256 _amount) public {
-        uint256 oldStart = depositedRanges[totalDeposited].start;
-        uint256 oldEnd = depositedRanges[totalDeposited].end;
+    function extendDepositedRanges(uint128 _amount) public {
+        uint128 oldStart = depositedRanges[totalDeposited].start;
+        uint128 oldEnd = depositedRanges[totalDeposited].end;
         // Set the newStart for the last range
-        uint256 newStart;
+        uint128 newStart;
         if (oldStart == 0 && oldEnd == 0) {
             // Case 1: We are creating a new range (this is the case when the rightmost range has been removed)
             newStart = totalDeposited;
@@ -121,7 +121,7 @@ contract Deposit {
             newStart = oldStart;
         }
         // Set the newEnd to the totalDeposited plus how much was deposited
-        uint256 newEnd = totalDeposited + _amount;
+        uint128 newEnd = totalDeposited + _amount;
         // Finally create and store the range!
         depositedRanges[newEnd] = types.Range(newStart, newEnd);
         // Increment total deposited now that we've extended our depositedRanges
@@ -130,7 +130,7 @@ contract Deposit {
 
     // This function is called when an exit is finalized to "burn" it--so that checkpoints and exits 
     // on the range cannot be made.  It is equivalent to the range having never been deposited.
-    function removeDepositedRange(types.Range memory range, uint256 depositedRangeId) public {
+    function removeDepositedRange(types.Range memory range, uint128 depositedRangeId) public {
         types.Range memory encompasingRange = depositedRanges[depositedRangeId];
 
         // Split the LEFT side
@@ -161,7 +161,7 @@ contract Deposit {
     function startCheckpoint(
         types.Checkpoint memory _checkpoint,
         bytes memory _inclusionProof,
-        uint256 _depositedRangeId
+        uint128 _depositedRangeId
     ) public {
         bytes32 checkpointId = getCheckpointId(_checkpoint);
         require(commitmentChain.verifyInclusion(_checkpoint.stateUpdate, _inclusionProof), "Checkpoint must be included");
@@ -183,7 +183,7 @@ contract Deposit {
         emit ExitStarted(checkpointId, exitRedeemableAfter[checkpointId]);
     }
 
-    function finalizeExit(types.Checkpoint memory _exit, uint256 depositedRangeId) public {
+    function finalizeExit(types.Checkpoint memory _exit, uint128 depositedRangeId) public {
         bytes32 checkpointId = getCheckpointId(_exit);
         // Check that we are authorized to finalize this exit
         require(_exit.stateUpdate.stateObject.predicateAddress == msg.sender, "Exit must be finalized by its predicate");
@@ -196,7 +196,7 @@ contract Deposit {
         delete checkpoints[checkpointId];
         delete exitRedeemableAfter[checkpointId];
         // Transfer tokens to the deposit contract
-        uint256 amount = _exit.subrange.end - _exit.subrange.start;
+        uint128 amount = _exit.subrange.end - _exit.subrange.start;
         erc20.transfer(_exit.stateUpdate.stateObject.predicateAddress, amount);
         // Emit an event recording the exit's finalization
         emit ExitFinalized(checkpointId);
@@ -256,7 +256,7 @@ contract Deposit {
         return keccak256(abi.encode(_challenge));
     }
 
-    function getLatestPlasmaBlockNumber() private returns (uint256) {
+    function getLatestPlasmaBlockNumber() private returns (uint128) {
         return 0;
     }
 

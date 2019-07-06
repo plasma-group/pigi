@@ -10,15 +10,32 @@ contract CommitmentChain {
         return true;
     }
 
-    function calculateStateUpdateLeaf(dt.StateUpdate memory _stateUpdate) public pure returns (bytes32) {
-        bytes memory packed = abi.encodePacked(
+    function isLeftSiblingAtHeight(uint128 leafPosition, uint128 height) public {
+        return;
+    }
+
+    function recieveProof(dt.StateUpdateInclusionProof memory _proof) public {
+        for (uint level = 0; level < _proof.stateLeafInclusionProof.length; level++) {
+            
+        }
+    }
+
+    // Via https://github.com/ethereum/solidity-examples/blob/master/src/bits/Bits.sol
+    // Gets the value of the bit at the given 'index' in 'self'.
+    function getNthBitFromRightmost(uint self, uint8 index) public pure returns (uint8) {
+        return uint8(self >> index & 1);
+    }
+
+    function calculateStateUpdateLeaf(dt.StateUpdate memory _stateUpdate) public pure returns (dt.StateSubtreeNode memory) {
+        dt.StateSubtreeNode memory parent;
+        parent.hashValue = keccak256(
+            abi.encodePacked(
                 _stateUpdate.stateObject.predicateAddress,
                 _stateUpdate.stateObject.data
-            );
-        bytes32 computedHash = keccak256(
-            packed
+            )
         );
-        return computedHash;
+        parent.lowerBound = _stateUpdate.range.start;
+        return parent;
     }
 
     function stateSubtreeParent(

@@ -9,8 +9,8 @@ contract DataTypes {
 
     /*** Structs ***/
     struct Range {
-        uint256 start;
-        uint256 end;
+        uint128 start;
+        uint128 end;
     }
 
     struct StateObject {
@@ -21,7 +21,7 @@ contract DataTypes {
     struct StateUpdate {
         StateObject stateObject;
         Range range;
-        uint256 plasmaBlockNumber;
+        uint128 plasmaBlockNumber;
         address depositAddress;
     }
 
@@ -45,5 +45,12 @@ contract DataTypes {
     struct StateSubtreeNode {
         bytes32 hashValue;
         uint128 lowerBound;
+    }
+
+    struct StateUpdateInclusionProof {
+        uint128 stateLeafPosition;
+        StateSubtreeNode[] stateLeafInclusionProof;
+        uint128 assetLeafPosition;
+        AssetTreeNode[] assetLeafInclusionProof;
     }
 }
