@@ -4,7 +4,7 @@ import {
   GenericMerkleIntervalTreeNode,
   MerkleStateIntervalTree,
 } from './'
-import { AbiStateUpdate } from '../'
+import { AbiStateUpdate, AbiStateUpdateInclusionProof } from '../'
 import {
   SubtreeContents,
   MerkleIntervalProofOutput,
@@ -48,13 +48,13 @@ export class PlasmaBlock extends GenericMerkleIntervalTree
   public getStateUpdateInclusionProof(
     stateUpdatePosition: number,
     assetIdPosition: number
-  ): DoubleMerkleInclusionProof {
-    return {
+  ): AbiStateUpdateInclusionProof {
+    return new AbiStateUpdateInclusionProof({
       stateTreeInclusionProof: this.subtrees[assetIdPosition].getInclusionProof(
         stateUpdatePosition
       ),
       assetTreeInclusionProof: this.getInclusionProof(assetIdPosition),
-    }
+    })
   }
 
   /**
