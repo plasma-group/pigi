@@ -58,7 +58,7 @@ export class AbiStateUpdate implements StateUpdate, AbiEncodable {
     return {
       stateObject: this.stateObject.jsonified,
       range: this.range.jsonified,
-      plasmaBlockNumber: this.plasmaBlockNumber,
+      plasmaBlockNumber: hexStringify(this.plasmaBlockNumber),
       depositAddress: this.depositAddress,
     }
   }
