@@ -18,7 +18,7 @@ export class MerkleStateIntervalTree extends GenericMerkleIntervalTree {
     stateUpdate: AbiStateUpdate
   ): GenericMerkleIntervalTreeNode {
     const hash = GenericMerkleIntervalTree.hash(
-      Buffer.from(stateUpdate.encoded)
+      Buffer.from(stateUpdate.stateObject.encoded, 'hex')
     )
     const index = stateUpdate.range.start.toBuffer('be', STATE_ID_LENGTH)
     return new GenericMerkleIntervalTreeNode(hash, index)
