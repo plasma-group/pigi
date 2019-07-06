@@ -34,7 +34,7 @@ export class AbiStateObject implements StateObject, AbiEncodable {
     // need to encode this packed for parity with hash(encodepacked(SO)) in the contracts
     const packedPredicateEncoding = this.predicateAddress.slice(2)
     const packedDataEncoding = this.data.slice(2)
-    return '0x' + packedPredicateEncoding + packedDataEncoding
+    return packedPredicateEncoding + packedDataEncoding
   }
 
   /**
