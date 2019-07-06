@@ -1,5 +1,8 @@
 /* External Imports */
 import {
+  AbiStateUpdate,
+  AbiStateObject,
+  AbiRange,
   GenericMerkleIntervalTree,
   AbiStateSubtreeNode,
   AbiAssetTreeNode,
@@ -17,6 +20,27 @@ const log = debug('test:info:state-ownership')
 /* Testing Setup */
 import chai = require('chai')
 export const should = chai.should()
+
+function generateNSequentialStateUpdates(
+  numerOfUpdates: number
+): AbiStateUpdate[] {
+  const stateUpdates: AbiStateUpdate[] = []
+  for (let i = 0; i < numerOfUpdates; i++) {
+    const stateObject = new AbiStateObject(
+      '0xbdAd2846585129Fc98538ce21cfcED21dDDE0a63',
+      '0x123456'
+    )
+    const range = new AbiRange(new BigNum(i * 100), new BigNum((i + 0.5) * 100))
+    const stateUpdate = new AbiStateUpdate(
+      stateObject,
+      range,
+      new BigNum(1),
+      '0xbdAd2846585129Fc98538ce21cfcED21dDDE0a63'
+    )
+    stateUpdates.push(stateUpdate)
+  }
+  return stateUpdates
+}
 
 describe.only('Commitment Contract', () => {
   const provider = createMockProvider()
@@ -83,6 +107,12 @@ describe.only('Commitment Contract', () => {
         new BigNum(contractParent.lowerBound.toString('hex'), 'hex').eq(
             new BigNum(ovmParent.lowerBound)
           ).should.equal(true) // horibly messy way to compare equality
+      })
+      it('correctly parses calculateStateUpdateLeaf', async () => {
+        const stateUpdateToParse = generateNSequentialStateUpdates(1)[0]
+        const contractLeaf = await commitmentContract.calculateStateUpdateLeaf(stateUpdateToParse.jsonified)
+        const ovmLeaf = MerkleStateIntervalTree.calculateStateUpdateLeaf(stateUpdateToParse)
+        contractLeaf.should.equal('0x' + ovmLeaf.hash.toString('hex'))
       })
   })
 })

@@ -10,6 +10,17 @@ contract CommitmentChain {
         return true;
     }
 
+    function calculateStateUpdateLeaf(dt.StateUpdate memory _stateUpdate) public pure returns (bytes32) {
+        bytes memory packed = abi.encodePacked(
+                _stateUpdate.stateObject.predicateAddress,
+                _stateUpdate.stateObject.data
+            );
+        bytes32 computedHash = keccak256(
+            packed
+        );
+        return computedHash;
+    }
+
     function stateSubtreeParent(
         dt.StateSubtreeNode memory _leftSibling,
         dt.StateSubtreeNode memory _rightSibling
