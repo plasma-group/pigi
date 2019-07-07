@@ -7,6 +7,7 @@ import {
   AbiStateSubtreeNode,
   AbiAssetTreeNode,
   MerkleStateIntervalTree,
+  PlasmaBlock
 } from '@pigi/core'
 import BigNum = require('bn.js')
 
@@ -110,9 +111,49 @@ describe.only('Commitment Contract', () => {
       })
       it('correctly parses calculateStateUpdateLeaf', async () => {
         const stateUpdateToParse = generateNSequentialStateUpdates(1)[0]
+        
         const contractLeaf = await commitmentContract.calculateStateUpdateLeaf(stateUpdateToParse.jsonified)
-        const ovmLeaf = MerkleStateIntervalTree.calculateStateUpdateLeaf(stateUpdateToParse)
-        contractLeaf.should.equal('0x' + ovmLeaf.hash.toString('hex'))
+        const ovmLeaf = MerkleStateIntervalTree.calculateStateUpdateLeaf(stateUpdateToParse)        
+        
+        contractLeaf.hashValue.should.equal('0x' + ovmLeaf.hash.toString('hex'))
+        contractLeaf.lowerBound.should.equal('0x' + ovmLeaf.lowerBound.toString('hex'))
+      })
+      it.only('correctly calculates stateSubtree root', async () => {
+        const numUpdatesInSubtree = 10
+        const stateUpdates = generateNSequentialStateUpdates(numUpdatesInSubtree)
+        const blockContents = [
+          {
+            assetId: Buffer.from(
+              '1dAd2846585129Fc98538ce21cfcED21dDDE0a63',
+              'hex'
+            ),
+            stateUpdates,
+          }
+        ]
+        const plasmaBlock = new PlasmaBlock(blockContents)
+        const SUindex = 7
+        const subtreeIndex = 0
+        const stateUpdate = stateUpdates[SUindex]
+        const proof = plasmaBlock.getStateUpdateInclusionProof(SUindex, subtreeIndex)
+        const contractRoot = await commitmentContract.verifySubtreeInclusionAndGetRoot(stateUpdate.jsonified, proof.jsonified)
+        const ovmRoot = plasmaBlock.subtrees[subtreeIndex].root()
+        contractRoot.should.equal('0x' + ovmRoot.hash.toString('hex'))
+      })
+      it.skip('correctly gets the binary path from a leafPosition', async () => {
+        let bit = await commitmentContract.getNthBitFromRightmost(5, 0)
+        console.log('5, 0 bit is: ', bit)
+        bit = await commitmentContract.getNthBitFromRightmost(5, 1)
+        console.log('5, 1 bit is: ', bit)
+        bit = await commitmentContract.getNthBitFromRightmost(5, 2)
+        console.log('5, 2 bit is: ', bit)
+        bit = await commitmentContract.getNthBitFromRightmost(5, 20)
+        console.log('5, 20 bit is: ', bit)
+        bit = await commitmentContract.getNthBitFromRightmost(5, 21)
+        console.log('5, 21 bit is: ', bit)
+        bit = await commitmentContract.getNthBitFromRightmost(5, 22)
+        console.log('5, 22 bit is: ', bit)
+        bit = await commitmentContract.getNthBitFromRightmost(5, 23)
+        console.log('5, 23 bit is: ', bit)
       })
   })
 })

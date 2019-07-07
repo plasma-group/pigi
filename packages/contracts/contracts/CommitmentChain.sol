@@ -14,10 +14,27 @@ contract CommitmentChain {
         return;
     }
 
-    function recieveProof(dt.StateUpdateInclusionProof memory _proof) public {
-        for (uint level = 0; level < _proof.stateLeafInclusionProof.length; level++) {
-            
+    function verifySubtreeInclusionAndGetRoot(dt.StateUpdate memory _stateUpdate, dt.StateUpdateInclusionProof memory _proof) public pure returns (bytes32) {
+        dt.StateSubtreeNode memory computedNode = calculateStateUpdateLeaf(_stateUpdate);
+        uint128 leafPosition = _proof.stateLeafPosition;
+        uint128 previousRightLowerBound = 0;
+        for (uint8 level = 0; level < _proof.stateLeafInclusionProof.length; level++) {
+            dt.StateSubtreeNode memory siblingNode = _proof.stateLeafInclusionProof[level];
+            // the binaryPath up the tree is the leafPosition expressed in bits
+            uint8 isComputedRightSibling = getNthBitFromRightmost(leafPosition, level);
+            if (isComputedRightSibling == 0) {
+                // if binaryPath[level] == 0, the proof element is a right sibling
+                computedNode = stateSubtreeParent(computedNode, siblingNode);
+                // make sure the sibling does not violate interval proof lowerBound rules
+                require(previousRightLowerBound < siblingNode.lowerBound, 'No valid branch allows potential intersections with other branches.');
+                // store the new previousRightLowerBound to check against going forward
+                previousRightLowerBound = siblingNode.lowerBound;
+            } else if (isComputedRightSibling == 1) {
+                // otherwise, the proof element is the right sibling
+                computedNode = stateSubtreeParent(siblingNode, computedNode);
+            }
         }
+        return computedNode.hashValue;
     }
 
     // Via https://github.com/ethereum/solidity-examples/blob/master/src/bits/Bits.sol
