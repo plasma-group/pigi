@@ -38,7 +38,7 @@ contract CommitmentChain {
     }
 
     // Via https://github.com/ethereum/solidity-examples/blob/master/src/bits/Bits.sol
-    // Gets the value of the bit at the given 'index' in 'self'.
+    // Gets the value of the bit 'index' (where 0 => rightmost bit) in the binary expression of 'self'.
     function getNthBitFromRightmost(uint self, uint8 index) public pure returns (uint8) {
         return uint8(self >> index & 1);
     }
@@ -59,6 +59,7 @@ contract CommitmentChain {
         dt.StateSubtreeNode memory _leftSibling,
         dt.StateSubtreeNode memory _rightSibling
     ) public pure returns (dt.StateSubtreeNode memory) {
+        require(_leftSibling.lowerBound < _rightSibling.lowerBound, 'Interval tree siblings must be ordered to have a valid parent.');
         dt.StateSubtreeNode memory parent;
         bytes32 computedHash = keccak256(
             abi.encodePacked(
@@ -77,6 +78,7 @@ contract CommitmentChain {
         dt.AssetTreeNode memory _leftSibling,
         dt.AssetTreeNode memory _rightSibling
     ) public pure returns (dt.AssetTreeNode memory) {
+        require(_leftSibling.lowerBound < _rightSibling.lowerBound, 'Interval tree siblings must be ordered to have a valid parent.');
         dt.AssetTreeNode memory parent;
         bytes32 computedHash = keccak256(
             abi.encodePacked(

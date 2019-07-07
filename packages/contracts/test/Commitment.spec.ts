@@ -12,7 +12,7 @@ import {
 import BigNum = require('bn.js')
 
 /* Contract Imports */
-import { createMockProvider, deployContract, getWallets } from 'ethereum-waffle'
+import { createMockProvider, deployContract, getWallets, solidity } from 'ethereum-waffle'
 import * as Commitment from '../build/CommitmentChain.json'
 /* Logging */
 import debug from 'debug'
@@ -20,6 +20,7 @@ import { check } from 'ethers/utils/wordlist'
 const log = debug('test:info:state-ownership')
 /* Testing Setup */
 import chai = require('chai')
+chai.use(solidity)
 export const should = chai.should()
 
 function generateNSequentialStateUpdates(
@@ -53,7 +54,7 @@ describe.only('Commitment Contract', () => {
   })
 
   describe('Verification Components', () => {
-    it('correctly calculates a stateSubtreeParent', async () => {
+    describe('stateSubtreeParent', () => {
       const leftSibling = new AbiStateSubtreeNode(
         Buffer.from(
           '1111111111111111111111111111111111111111111111111111111111111111',
@@ -68,20 +69,29 @@ describe.only('Commitment Contract', () => {
         ),
         Buffer.from('00000000000000000000000000000001', 'hex')
       )
-      const contractParent = await commitmentContract.stateSubtreeParent(
-        leftSibling.jsonified,
-        rightSibling.jsonified
-      )
       const ovmParent = GenericMerkleIntervalTree.parent(
         leftSibling,
         rightSibling
       )
-      contractParent.hashValue.should.equal('0x' + ovmParent.hash.toString('hex'))
-      new BigNum(contractParent.lowerBound.toString('hex'), 'hex').eq(
+      it('should correctly calculate a state subtree parent', async () => {
+        const contractParent = await commitmentContract.stateSubtreeParent(
+          leftSibling.jsonified,
+          rightSibling.jsonified
+        )
+        contractParent.hashValue.should.equal('0x' + ovmParent.hash.toString('hex'))
+        new BigNum(contractParent.lowerBound.toString('hex'), 'hex').eq(
           new BigNum(ovmParent.lowerBound)
         ).should.equal(true) // horibly messy way to compare equality
+      })
+      it('should throw if given siblings out of order', async () => {
+        // do parent(right, left) instead of (left, right)
+        chai.expect(commitmentContract.stateSubtreeParent(
+          rightSibling.jsonified,
+          leftSibling.jsonified
+        )).to.be.revertedWith('Interval tree siblings must be ordered to have a valid parent.')
+      })
     })
-    it('correctly calculates an assetTreeParent', async () => {
+    describe('assetTreeParent', () => {
         const leftSibling = new AbiAssetTreeNode(
           Buffer.from(
             '1111111111111111111111111111111111111111111111111111111111111111',
@@ -96,20 +106,29 @@ describe.only('Commitment Contract', () => {
           ),
           Buffer.from('0000000000000000000000000000000000000000000000000000000000000001', 'hex')
         )
-        const contractParent = await commitmentContract.assetTreeParent(
-          leftSibling.jsonified,
-          rightSibling.jsonified
-        )
         const ovmParent = GenericMerkleIntervalTree.parent(
           leftSibling,
           rightSibling
         )
-        contractParent.hashValue.should.equal('0x' + ovmParent.hash.toString('hex'))
-        new BigNum(contractParent.lowerBound.toString('hex'), 'hex').eq(
-            new BigNum(ovmParent.lowerBound)
-          ).should.equal(true) // horibly messy way to compare equality
+        it('should correctly calculate an asset tree parent', async () => {
+          const contractParent = await commitmentContract.assetTreeParent(
+            leftSibling.jsonified,
+            rightSibling.jsonified
+          )
+          contractParent.hashValue.should.equal('0x' + ovmParent.hash.toString('hex'))
+          new BigNum(contractParent.lowerBound.toString('hex'), 'hex').eq(
+              new BigNum(ovmParent.lowerBound)
+            ).should.equal(true) // horibly messy way to compare equality
+          })
+          it('should throw if given siblings out of order', async () => {
+            // do parent(right, left) instead of (left, right)
+            chai.expect(commitmentContract.assetTreeParent(
+              rightSibling.jsonified,
+              leftSibling.jsonified
+            )).to.be.revertedWith('Interval tree siblings must be ordered to have a valid parent.')
+          })
       })
-      it('correctly parses calculateStateUpdateLeaf', async () => {
+      it('calculateStateUpdateLeaf', async () => {
         const stateUpdateToParse = generateNSequentialStateUpdates(1)[0]
         
         const contractLeaf = await commitmentContract.calculateStateUpdateLeaf(stateUpdateToParse.jsonified)
@@ -118,7 +137,7 @@ describe.only('Commitment Contract', () => {
         contractLeaf.hashValue.should.equal('0x' + ovmLeaf.hash.toString('hex'))
         contractLeaf.lowerBound.should.equal('0x' + ovmLeaf.lowerBound.toString('hex'))
       })
-      it.only('correctly calculates stateSubtree root', async () => {
+      it('correctly calculates stateSubtree root', async () => {
         const numUpdatesInSubtree = 10
         const stateUpdates = generateNSequentialStateUpdates(numUpdatesInSubtree)
         const blockContents = [
