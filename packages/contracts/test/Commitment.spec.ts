@@ -137,7 +137,17 @@ describe.only('Commitment Contract', () => {
         contractLeaf.hashValue.should.equal('0x' + ovmLeaf.hash.toString('hex'))
         contractLeaf.lowerBound.should.equal('0x' + ovmLeaf.lowerBound.toString('hex'))
       })
-      it('correctly calculates stateSubtree root', async () => {
+      describe('verifySubtreeInclusionAndGetRoot', async () => {
+        it('correctly gets the binary path from a leafPosition', async () => {
+          let bit = await commitmentContract.getNthBitFromRightmost(5, 0)
+          bit.should.equal(1)
+          bit = await commitmentContract.getNthBitFromRightmost(5, 1)
+          bit.should.equal(0)
+          bit = await commitmentContract.getNthBitFromRightmost(5, 2)
+          bit.should.equal(1)
+          bit = await commitmentContract.getNthBitFromRightmost(5, 20)
+          bit.should.equal(0)
+        })
         const numUpdatesInSubtree = 10
         const stateUpdates = generateNSequentialStateUpdates(numUpdatesInSubtree)
         const blockContents = [
@@ -154,25 +164,26 @@ describe.only('Commitment Contract', () => {
         const subtreeIndex = 0
         const stateUpdate = stateUpdates[SUindex]
         const proof = plasmaBlock.getStateUpdateInclusionProof(SUindex, subtreeIndex)
-        const contractRoot = await commitmentContract.verifySubtreeInclusionAndGetRoot(stateUpdate.jsonified, proof.jsonified)
         const ovmRoot = plasmaBlock.subtrees[subtreeIndex].root()
-        contractRoot.should.equal('0x' + ovmRoot.hash.toString('hex'))
-      })
-      it.skip('correctly gets the binary path from a leafPosition', async () => {
-        let bit = await commitmentContract.getNthBitFromRightmost(5, 0)
-        console.log('5, 0 bit is: ', bit)
-        bit = await commitmentContract.getNthBitFromRightmost(5, 1)
-        console.log('5, 1 bit is: ', bit)
-        bit = await commitmentContract.getNthBitFromRightmost(5, 2)
-        console.log('5, 2 bit is: ', bit)
-        bit = await commitmentContract.getNthBitFromRightmost(5, 20)
-        console.log('5, 20 bit is: ', bit)
-        bit = await commitmentContract.getNthBitFromRightmost(5, 21)
-        console.log('5, 21 bit is: ', bit)
-        bit = await commitmentContract.getNthBitFromRightmost(5, 22)
-        console.log('5, 22 bit is: ', bit)
-        bit = await commitmentContract.getNthBitFromRightmost(5, 23)
-        console.log('5, 23 bit is: ', bit)
+        it('correctly calculates a root', async () => {
+          const contractRoot = await commitmentContract.verifySubtreeInclusionAndGetRoot(stateUpdate.jsonified, proof.jsonified)
+          contractRoot.should.equal('0x' + ovmRoot.hash.toString('hex'))
+        })
+        it('throws if the SU.end is greater than first right sibling ', async () => {
+          const faultyEndSU = new AbiStateUpdate(
+            stateUpdate.stateObject,
+            new AbiRange(
+              stateUpdate.range.start,
+              stateUpdate.range.end.add(new BigNum(1000))
+            ),
+            stateUpdate.plasmaBlockNumber,
+            stateUpdate.depositAddress
+          )
+          chai.expect(commitmentContract.verifySubtreeInclusionAndGetRoot(
+            faultyEndSU.jsonified,
+            proof.jsonified
+          )).to.be.revertedWith('No valid branch allows potential intersections with other branches.')
+        })
       })
   })
 })

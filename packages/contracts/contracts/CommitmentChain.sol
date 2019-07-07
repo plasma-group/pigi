@@ -17,7 +17,9 @@ contract CommitmentChain {
     function verifySubtreeInclusionAndGetRoot(dt.StateUpdate memory _stateUpdate, dt.StateUpdateInclusionProof memory _proof) public pure returns (bytes32) {
         dt.StateSubtreeNode memory computedNode = calculateStateUpdateLeaf(_stateUpdate);
         uint128 leafPosition = _proof.stateLeafPosition;
-        uint128 previousRightLowerBound = 0;
+        // all left siblings' lower bound must be increasing from the included SU.end onward
+        // TODO change this
+        uint128 previousRightLowerBound = _stateUpdate.range.end;
         for (uint8 level = 0; level < _proof.stateLeafInclusionProof.length; level++) {
             dt.StateSubtreeNode memory siblingNode = _proof.stateLeafInclusionProof[level];
             // the binaryPath up the tree is the leafPosition expressed in bits
@@ -38,7 +40,7 @@ contract CommitmentChain {
     }
 
     // Via https://github.com/ethereum/solidity-examples/blob/master/src/bits/Bits.sol
-    // Gets the value of the bit 'index' (where 0 => rightmost bit) in the binary expression of 'self'.
+    // Gets the value of the 'index'th bit (where 0 => rightmost bit) in the binary expression of 'self'.
     function getNthBitFromRightmost(uint self, uint8 index) public pure returns (uint8) {
         return uint8(self >> index & 1);
     }
