@@ -229,5 +229,13 @@ describe.only('Commitment Contract', () => {
       const storedHeader = await commitmentContract.getBlockRoot(0)
       storedHeader.should.equal(header)
     })
+    it('allows the aggregator to submit two blocks and stores them', async () => {
+      const header0 = '0x1100000000000000000000000000000000000000000000000000000000000000'
+      const header1 = '0x2200000000000000000000000000000000000000000000000000000000000000'
+      await commitmentContract.submitBlock(header0)
+      await commitmentContract.submitBlock(header1)
+      const storedHeader = await commitmentContract.getBlockRoot(1)
+      storedHeader.should.equal(header1)
+    })
   })
 })
