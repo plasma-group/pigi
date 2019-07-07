@@ -237,5 +237,11 @@ describe.only('Commitment Contract', () => {
       const storedHeader = await commitmentContract.getBlockRoot(1)
       storedHeader.should.equal(header1)
     })
+    it('throws if someone else tries to submit a block', async () => {
+      const secondCommitmentContract = await deployContract(wallet, Commitment, ['0x94BA4d5Ebb0e05A50e977FFbF6e1a1Ee3D89299c'])
+      chai.expect(secondCommitmentContract.submitBlock(
+        '0x0000000000000000000000000000000000000000000000000000000000000000'
+      )).to.be.revertedWith('Only the aggregator can submit blocks.')
+    })
   })
 })
