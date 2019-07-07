@@ -33,8 +33,11 @@ contract CommitmentChain {
     }
 
     function verifyStateUpdateInclusion(dt.StateUpdate memory _stateUpdate, dt.StateUpdateInclusionProof memory _inclusionProof) public view returns (bool) {
+        // calculate what the state root for the subtree should be from the stateTreeInclusionProof
         bytes32 stateSubtreeRoot = verifySubtreeInclusionAndGetRoot(_stateUpdate, _inclusionProof.stateTreeInclusionProof);
+        // calculate what the block root would be if the stateSubtreeRoot is correct
         bytes32 assetTreeRoot = verifyAssetTreeInclusionAndGetRoot(stateSubtreeRoot, _stateUpdate.depositAddress, _inclusionProof.assetTreeInclusionProof);
+        // check this is indeed the root for the state update's block
         uint128 expectedPlasmaBlockNumber = _stateUpdate.plasmaBlockNumber;
         return assetTreeRoot == blocks[expectedPlasmaBlockNumber];
     }
@@ -45,24 +48,29 @@ contract CommitmentChain {
         return uint8(self >> index & 1);
     }
 
+    // calculates what the bottommost leaf node of an inclusion proof should be based on an SU
     function calculateStateUpdateLeaf(dt.StateUpdate memory _stateUpdate) public pure returns (dt.StateSubtreeNode memory) {
-        dt.StateSubtreeNode memory parent;
-        parent.hashValue = keccak256(
+        dt.StateSubtreeNode memory leaf;
+        // hash the state object to get the hash value
+        leaf.hashValue = keccak256(
             abi.encodePacked(
                 _stateUpdate.stateObject.predicateAddress,
                 _stateUpdate.stateObject.data
             )
         );
-        parent.lowerBound = _stateUpdate.range.start;
-        return parent;
+        // lower bound is the start of the SU
+        leaf.lowerBound = _stateUpdate.range.start;
+        return leaf;
     }
 
     function stateSubtreeParent(
         dt.StateSubtreeNode memory _leftSibling,
         dt.StateSubtreeNode memory _rightSibling
     ) public pure returns (dt.StateSubtreeNode memory) {
+        // if the left sibling is >= the right sibling, this is an invalid proof
         require(_leftSibling.lowerBound < _rightSibling.lowerBound, 'Interval tree siblings must be ordered to have a valid parent.');
         dt.StateSubtreeNode memory parent;
+        // calculate hash as a commitment to all parent data
         bytes32 computedHash = keccak256(
             abi.encodePacked(
                 _leftSibling.hashValue,
@@ -72,6 +80,7 @@ contract CommitmentChain {
             )
         );
         parent.hashValue = computedHash;
+        // carry the lower bound from the left sibling
         parent.lowerBound = _leftSibling.lowerBound;
         return parent;
     }
@@ -104,6 +113,7 @@ contract CommitmentChain {
         dt.AssetTreeNode memory _leftSibling,
         dt.AssetTreeNode memory _rightSibling
     ) public pure returns (dt.AssetTreeNode memory) {
+        // if the left sibling is >= the right sibling, this is an invalid proof
         require(_leftSibling.lowerBound < _rightSibling.lowerBound, 'Interval tree siblings must be ordered to have a valid parent.');
         dt.AssetTreeNode memory parent;
         bytes32 computedHash = keccak256(
@@ -115,6 +125,7 @@ contract CommitmentChain {
             )
         );
         parent.hashValue = computedHash;
+        // carry the lower bound from the left sibling
         parent.lowerBound = _leftSibling.lowerBound;
         return parent;
     }
