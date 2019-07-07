@@ -44,6 +44,24 @@ function generateNSequentialStateUpdates(
   return stateUpdates
 }
 
+function generatePlasmaBlockOfSize(
+  numOfUpdates: number,
+  numOfDepositAddress: number
+): PlasmaBlock {
+  const stateUpdates = generateNSequentialStateUpdates(numOfUpdates)
+  let blockContents = []
+  for (let i = 0; i < numOfDepositAddress; i++) {
+    const randomNum = Math.random() * 1000
+    const randomAssetId = new BigNum(randomNum).toBuffer('be', 32)
+    blockContents.push({
+      assetId: randomAssetId,
+      stateUpdates
+    })
+  }
+  blockContents = blockContents.sort((c1, c2) => {return Buffer.compare(c1.assetId, c2.assetId)})
+  return new PlasmaBlock(blockContents)
+}
+
 describe.only('Commitment Contract', () => {
   const provider = createMockProvider()
   const [wallet, walletTo] = getWallets(provider)
@@ -57,14 +75,14 @@ describe.only('Commitment Contract', () => {
     describe('stateSubtreeParent', () => {
       const leftSibling = new AbiStateSubtreeNode(
         Buffer.from(
-          '1111111111111111111111111111111111111111111111111111111111111111',
+          '0000111111111111111111111111111111111111111111111111111111111111',
           'hex'
         ),
         Buffer.from('00000000000000000000000000000000', 'hex')
       )
       const rightSibling = new AbiStateSubtreeNode(
         Buffer.from(
-          '2222222222222222222222222222222222222222222222222222222222222222',
+          '0000222222222222222222222222222222222222222222222222222222222222',
           'hex'
         ),
         Buffer.from('00000000000000000000000000000001', 'hex')
@@ -94,24 +112,24 @@ describe.only('Commitment Contract', () => {
     describe('assetTreeParent', () => {
         const leftSibling = new AbiAssetTreeNode(
           Buffer.from(
-            '1111111111111111111111111111111111111111111111111111111111111111',
+            '0000111111111111111111111111111111111111111111111111111111111111',
             'hex'
           ),
-          Buffer.from('0000000000000000000000000000000000000000000000000000000000000000', 'hex')
+          Buffer.from('0000000000000000000000000000000000000000000000000000000000000001', 'hex')
         )
         const rightSibling = new AbiAssetTreeNode(
           Buffer.from(
             '2222222222222222222222222222222222222222222222222222222222222222',
             'hex'
           ),
-          Buffer.from('0000000000000000000000000000000000000000000000000000000000000001', 'hex')
+          Buffer.from('0000000000000000000000000000000000000000000000000000000000000011', 'hex')
         )
         const ovmParent = GenericMerkleIntervalTree.parent(
           leftSibling,
           rightSibling
         )
         it('should correctly calculate an asset tree parent', async () => {
-          const contractParent = await commitmentContract.assetTreeParent(
+            const contractParent = await commitmentContract.assetTreeParent(
             leftSibling.jsonified,
             rightSibling.jsonified
           )
@@ -139,13 +157,13 @@ describe.only('Commitment Contract', () => {
       })
       describe('verifySubtreeInclusionAndGetRoot', async () => {
         it('correctly gets the binary path from a leafPosition', async () => {
-          let bit = await commitmentContract.getNthBitFromRightmost(5, 0)
+          let bit = await commitmentContract.getNthBitFromRight(5, 0)
           bit.should.equal(1)
-          bit = await commitmentContract.getNthBitFromRightmost(5, 1)
+          bit = await commitmentContract.getNthBitFromRight(5, 1)
           bit.should.equal(0)
-          bit = await commitmentContract.getNthBitFromRightmost(5, 2)
+          bit = await commitmentContract.getNthBitFromRight(5, 2)
           bit.should.equal(1)
-          bit = await commitmentContract.getNthBitFromRightmost(5, 20)
+          bit = await commitmentContract.getNthBitFromRight(5, 20)
           bit.should.equal(0)
         })
         const numUpdatesInSubtree = 10
@@ -183,6 +201,20 @@ describe.only('Commitment Contract', () => {
             faultyEndSU.jsonified,
             proof.jsonified
           )).to.be.revertedWith('No valid branch allows potential intersections with other branches.')
+        })
+      })
+      describe.only('verifyAssetTreeInclusionAndGetRoot', () => {
+        const numUpdatesPerSubtree = 1
+        const numStateSubtrees = 5
+        const block = generatePlasmaBlockOfSize(numUpdatesPerSubtree, numStateSubtrees)
+        const ovmRoot = block.root()
+        const subtreeIndex = 3
+        const subtreeRoot = '0x' + block.subtrees[subtreeIndex].root().hash.toString('hex')
+        const depositAddress = '0x' + block.levels[0][subtreeIndex].lowerBound.toString('hex').slice(24)
+        const proof = block.getStateUpdateInclusionProof(0, subtreeIndex)
+        it('should calculate the right root', async () => {
+          const contractRoot = await commitmentContract.verifyAssetTreeInclusionAndGetRoot(subtreeRoot, depositAddress, proof.jsonified)
+          contractRoot.should.equal('0x' + ovmRoot.hash.toString('hex'))
         })
       })
   })

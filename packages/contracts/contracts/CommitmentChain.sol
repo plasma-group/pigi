@@ -10,38 +10,9 @@ contract CommitmentChain {
         return true;
     }
 
-    function isLeftSiblingAtHeight(uint128 leafPosition, uint128 height) public {
-        return;
-    }
-
-    function verifySubtreeInclusionAndGetRoot(dt.StateUpdate memory _stateUpdate, dt.StateUpdateInclusionProof memory _proof) public pure returns (bytes32) {
-        dt.StateSubtreeNode memory computedNode = calculateStateUpdateLeaf(_stateUpdate);
-        uint128 leafPosition = _proof.stateLeafPosition;
-        // all left siblings' lower bound must be increasing from the included SU.end onward
-        // TODO change this
-        uint128 previousRightLowerBound = _stateUpdate.range.end;
-        for (uint8 level = 0; level < _proof.stateLeafInclusionProof.length; level++) {
-            dt.StateSubtreeNode memory siblingNode = _proof.stateLeafInclusionProof[level];
-            // the binaryPath up the tree is the leafPosition expressed in bits
-            uint8 isComputedRightSibling = getNthBitFromRightmost(leafPosition, level);
-            if (isComputedRightSibling == 0) {
-                // if binaryPath[level] == 0, the proof element is a right sibling
-                computedNode = stateSubtreeParent(computedNode, siblingNode);
-                // make sure the sibling does not violate interval proof lowerBound rules
-                require(previousRightLowerBound < siblingNode.lowerBound, 'No valid branch allows potential intersections with other branches.');
-                // store the new previousRightLowerBound to check against going forward
-                previousRightLowerBound = siblingNode.lowerBound;
-            } else if (isComputedRightSibling == 1) {
-                // otherwise, the proof element is the right sibling
-                computedNode = stateSubtreeParent(siblingNode, computedNode);
-            }
-        }
-        return computedNode.hashValue;
-    }
-
     // Via https://github.com/ethereum/solidity-examples/blob/master/src/bits/Bits.sol
     // Gets the value of the 'index'th bit (where 0 => rightmost bit) in the binary expression of 'self'.
-    function getNthBitFromRightmost(uint self, uint8 index) public pure returns (uint8) {
+    function getNthBitFromRight(uint self, uint8 index) public pure returns (uint8) {
         return uint8(self >> index & 1);
     }
 
@@ -75,6 +46,30 @@ contract CommitmentChain {
         parent.lowerBound = _leftSibling.lowerBound;
         return parent;
     }
+
+    function verifySubtreeInclusionAndGetRoot(dt.StateUpdate memory _stateUpdate, dt.StateUpdateInclusionProof memory _proof) public pure returns (bytes32) {
+        dt.StateSubtreeNode memory computedNode = calculateStateUpdateLeaf(_stateUpdate);
+        uint128 leafPosition = _proof.stateLeafPosition;
+        // all left siblings' lower bound must be increasing from the included SU.end onward
+        uint128 previousRightLowerBound = _stateUpdate.range.end;
+        for (uint8 level = 0; level < _proof.stateLeafInclusionProof.length; level++) {
+            dt.StateSubtreeNode memory siblingNode = _proof.stateLeafInclusionProof[level];
+            // the binaryPath up the tree is the leafPosition expressed in bits
+            uint8 isComputedRightSibling = getNthBitFromRight(leafPosition, level);
+            if (isComputedRightSibling == 0) {
+                // if binaryPath[level] == 0, the proof element is a right sibling
+                computedNode = stateSubtreeParent(computedNode, siblingNode);
+                // make sure the sibling does not violate interval proof lowerBound rules
+                require(previousRightLowerBound < siblingNode.lowerBound, 'No valid branch allows potential intersections with other branches.');
+                // store the new previousRightLowerBound to check against going forward
+                previousRightLowerBound = siblingNode.lowerBound;
+            } else if (isComputedRightSibling == 1) {
+                // otherwise, the proof element is the right sibling
+                computedNode = stateSubtreeParent(siblingNode, computedNode);
+            }
+        }
+        return computedNode.hashValue;
+    }
     
     function assetTreeParent(
         dt.AssetTreeNode memory _leftSibling,
@@ -93,5 +88,32 @@ contract CommitmentChain {
         parent.hashValue = computedHash;
         parent.lowerBound = _leftSibling.lowerBound;
         return parent;
+    }
+
+    function verifyAssetTreeInclusionAndGetRoot(bytes32 _stateSubtreeRoot, address _depositAddress, dt.StateUpdateInclusionProof memory _proof) public pure returns (bytes32) {
+        dt.AssetTreeNode memory computedNode;
+        computedNode.hashValue = _stateSubtreeRoot;
+        computedNode.lowerBound = uint256(_depositAddress);
+        // leaf position is asset leaf position
+        uint128 leafPosition = _proof.assetLeafPosition;
+        // since state root leaves don't have a range, we can initialize this to 0
+        uint256 previousRightLowerBound = 0;
+        for (uint8 level = 0; level < _proof.assetLeafInclusionProof.length; level++) {
+            dt.AssetTreeNode memory siblingNode = _proof.assetLeafInclusionProof[level];
+            // the binaryPath up the tree is the leafPosition expressed in bits
+            uint8 isComputedRightSibling = getNthBitFromRight(leafPosition, level);
+            if (isComputedRightSibling == 0) {
+                // if binaryPath[level] == 0, the proof element is a right sibling
+                computedNode = assetTreeParent(computedNode, siblingNode);
+                // make sure the sibling does not violate interval proof lowerBound rules
+                require(previousRightLowerBound < siblingNode.lowerBound, 'No valid branch allows potential intersections with other branches.');
+                // store the new previousRightLowerBound to check against going forward
+                previousRightLowerBound = siblingNode.lowerBound;
+            } else if (isComputedRightSibling == 1) {
+                // otherwise, the proof element is the right sibling
+                computedNode = assetTreeParent(siblingNode, computedNode);
+            }
+        }
+        return computedNode.hashValue;
     }
 }
