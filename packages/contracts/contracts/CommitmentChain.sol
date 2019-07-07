@@ -5,6 +5,13 @@ pragma experimental ABIEncoderV2;
 import {DataTypes as dt} from "./DataTypes.sol";
 
 contract CommitmentChain {
+
+    address public aggregator;
+
+    constructor(address _aggregator) public {
+        aggregator = _aggregator;
+    }
+
     function verifyInclusion(dt.StateUpdate memory _stateUpdate, bytes memory _inclusionProof) public returns (bool) {
         // Always return true for now until we can verify inclusion proofs.
         return true;
@@ -70,7 +77,7 @@ contract CommitmentChain {
         }
         return computedNode.hashValue;
     }
-    
+
     function assetTreeParent(
         dt.AssetTreeNode memory _leftSibling,
         dt.AssetTreeNode memory _rightSibling

@@ -68,7 +68,7 @@ describe.only('Commitment Contract', () => {
   let commitmentContract
 
   beforeEach(async () => {
-    commitmentContract = await deployContract(wallet, Commitment, [])
+    commitmentContract = await deployContract(wallet, Commitment, [wallet.address])
   })
 
   describe('Verification Components', () => {
@@ -217,5 +217,10 @@ describe.only('Commitment Contract', () => {
           contractRoot.should.equal('0x' + ovmRoot.hash.toString('hex'))
         })
       })
+  })
+  describe('Block Submission', () => {
+    it('allows the aggregator to submit a new block and stores it', async () => {
+
+    })
   })
 })

@@ -55,7 +55,7 @@ describe('Deposit Contract with Ownership', () => {
 
   beforeEach(async () => {
     token = await deployContract(wallet, BasicTokenMock, [wallet.address, 1000])
-    commitmentContract = await deployContract(wallet, Commitment, [])
+    commitmentContract = await deployContract(wallet, Commitment, [wallet.address])
     depositContract = await deployContract(wallet, Deposit, [
       token.address,
       commitmentContract.address,
