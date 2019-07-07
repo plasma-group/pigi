@@ -47,13 +47,13 @@ contract CommitmentChain {
         return parent;
     }
 
-    function verifySubtreeInclusionAndGetRoot(dt.StateUpdate memory _stateUpdate, dt.StateUpdateInclusionProof memory _proof) public pure returns (bytes32) {
+    function verifySubtreeInclusionAndGetRoot(dt.StateUpdate memory _stateUpdate, dt.StateTreeInclusionProof memory _proof) public pure returns (bytes32) {
         dt.StateSubtreeNode memory computedNode = calculateStateUpdateLeaf(_stateUpdate);
         uint128 leafPosition = _proof.stateLeafPosition;
         // all left siblings' lower bound must be increasing from the included SU.end onward
         uint128 previousRightLowerBound = _stateUpdate.range.end;
-        for (uint8 level = 0; level < _proof.stateLeafInclusionProof.length; level++) {
-            dt.StateSubtreeNode memory siblingNode = _proof.stateLeafInclusionProof[level];
+        for (uint8 level = 0; level < _proof.siblings.length; level++) {
+            dt.StateSubtreeNode memory siblingNode = _proof.siblings[level];
             // the binaryPath up the tree is the leafPosition expressed in bits
             uint8 isComputedRightSibling = getNthBitFromRight(leafPosition, level);
             if (isComputedRightSibling == 0) {
@@ -90,7 +90,7 @@ contract CommitmentChain {
         return parent;
     }
 
-    function verifyAssetTreeInclusionAndGetRoot(bytes32 _stateSubtreeRoot, address _depositAddress, dt.StateUpdateInclusionProof memory _proof) public pure returns (bytes32) {
+    function verifyAssetTreeInclusionAndGetRoot(bytes32 _stateSubtreeRoot, address _depositAddress, dt.AssetTreeInclusionProof memory _proof) public pure returns (bytes32) {
         dt.AssetTreeNode memory computedNode;
         computedNode.hashValue = _stateSubtreeRoot;
         computedNode.lowerBound = uint256(_depositAddress);
@@ -98,8 +98,8 @@ contract CommitmentChain {
         uint128 leafPosition = _proof.assetLeafPosition;
         // since state root leaves don't have a range, we can initialize this to 0
         uint256 previousRightLowerBound = 0;
-        for (uint8 level = 0; level < _proof.assetLeafInclusionProof.length; level++) {
-            dt.AssetTreeNode memory siblingNode = _proof.assetLeafInclusionProof[level];
+        for (uint8 level = 0; level < _proof.siblings.length; level++) {
+            dt.AssetTreeNode memory siblingNode = _proof.siblings[level];
             // the binaryPath up the tree is the leafPosition expressed in bits
             uint8 isComputedRightSibling = getNthBitFromRight(leafPosition, level);
             if (isComputedRightSibling == 0) {

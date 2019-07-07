@@ -47,10 +47,18 @@ contract DataTypes {
         uint128 lowerBound;
     }
 
-    struct StateUpdateInclusionProof {
+    struct StateTreeInclusionProof {
         uint128 stateLeafPosition;
-        StateSubtreeNode[] stateLeafInclusionProof;
+        StateSubtreeNode[] siblings;
+    }
+
+    struct AssetTreeInclusionProof {
         uint128 assetLeafPosition;
-        AssetTreeNode[] assetLeafInclusionProof;
+        AssetTreeNode[] siblings;
+    }
+
+    struct StateUpdateInclusionProof {
+        AssetTreeInclusionProof assetTreeInclusionProof;
+        StateTreeInclusionProof stateTreeInclusionProof;
     }
 }

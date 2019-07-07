@@ -59,10 +59,14 @@ export class AbiStateUpdateInclusionProof implements DoubleMerkleInclusionProof 
     }
 
     return {
-        stateLeafPosition: hexStringify(this.stateTreeInclusionProof.leafPosition),
-        stateLeafInclusionProof: jsonifiedStatesubtreeInclusionProof,
-        assetLeafPosition: hexStringify(this.assetTreeInclusionProof.leafPosition),
-        assetLeafInclusionProof: jsonifiedAssetTreeInclusionProof
+        stateTreeInclusionProof: {
+            stateLeafPosition: hexStringify(this.stateTreeInclusionProof.leafPosition),
+            siblings: jsonifiedStatesubtreeInclusionProof,
+        },
+        assetTreeInclusionProof: {
+            assetLeafPosition: hexStringify(this.assetTreeInclusionProof.leafPosition),
+            siblings: jsonifiedAssetTreeInclusionProof
+        }
     }
   }
 }

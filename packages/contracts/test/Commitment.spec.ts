@@ -184,7 +184,7 @@ describe.only('Commitment Contract', () => {
         const proof = plasmaBlock.getStateUpdateInclusionProof(SUindex, subtreeIndex)
         const ovmRoot = plasmaBlock.subtrees[subtreeIndex].root()
         it('correctly calculates a root', async () => {
-          const contractRoot = await commitmentContract.verifySubtreeInclusionAndGetRoot(stateUpdate.jsonified, proof.jsonified)
+          const contractRoot = await commitmentContract.verifySubtreeInclusionAndGetRoot(stateUpdate.jsonified, proof.jsonified.stateTreeInclusionProof)
           contractRoot.should.equal('0x' + ovmRoot.hash.toString('hex'))
         })
         it('throws if the SU.end is greater than first right sibling ', async () => {
@@ -199,11 +199,11 @@ describe.only('Commitment Contract', () => {
           )
           chai.expect(commitmentContract.verifySubtreeInclusionAndGetRoot(
             faultyEndSU.jsonified,
-            proof.jsonified
+            proof.jsonified.stateTreeInclusionProof
           )).to.be.revertedWith('No valid branch allows potential intersections with other branches.')
         })
       })
-      describe.only('verifyAssetTreeInclusionAndGetRoot', () => {
+      describe('verifyAssetTreeInclusionAndGetRoot', () => {
         const numUpdatesPerSubtree = 1
         const numStateSubtrees = 5
         const block = generatePlasmaBlockOfSize(numUpdatesPerSubtree, numStateSubtrees)
@@ -213,7 +213,7 @@ describe.only('Commitment Contract', () => {
         const depositAddress = '0x' + block.levels[0][subtreeIndex].lowerBound.toString('hex').slice(24)
         const proof = block.getStateUpdateInclusionProof(0, subtreeIndex)
         it('should calculate the right root', async () => {
-          const contractRoot = await commitmentContract.verifyAssetTreeInclusionAndGetRoot(subtreeRoot, depositAddress, proof.jsonified)
+          const contractRoot = await commitmentContract.verifyAssetTreeInclusionAndGetRoot(subtreeRoot, depositAddress, proof.jsonified.assetTreeInclusionProof)
           contractRoot.should.equal('0x' + ovmRoot.hash.toString('hex'))
         })
       })
