@@ -7,9 +7,24 @@ import {DataTypes as dt} from "./DataTypes.sol";
 contract CommitmentChain {
 
     address public aggregator;
+    uint128 public nextPlasmaBlockNumber = 0;
+    mapping (uint128 => bytes32) blocks;
 
     constructor(address _aggregator) public {
         aggregator = _aggregator;
+    }
+
+    function getBlockRoot(uint128 _plasmaBlockNumber) public view returns(bytes32) {
+        return blocks[_plasmaBlockNumber];
+    }
+
+    function submitBlock(bytes32 _blockHeader) public {
+        // make sure it's the aggregator submitting the block
+        require(msg.sender == aggregator, 'Only the aggregator can submit blocks.');
+        // store the block
+        blocks[nextPlasmaBlockNumber] = _blockHeader;
+        // increment the block number
+        nextPlasmaBlockNumber += 1;
     }
 
     function verifyInclusion(dt.StateUpdate memory _stateUpdate, bytes memory _inclusionProof) public returns (bool) {

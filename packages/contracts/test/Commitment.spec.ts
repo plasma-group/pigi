@@ -218,9 +218,16 @@ describe.only('Commitment Contract', () => {
         })
       })
   })
-  describe('Block Submission', () => {
+  describe.only('Block Submission', () => {
+    it('allows getBlockRoot', async () => {
+      const root0 = await commitmentContract.getBlockRoot(0)
+      root0.should.equal('0x0000000000000000000000000000000000000000000000000000000000000000')
+    })
     it('allows the aggregator to submit a new block and stores it', async () => {
-
+      const header = '0x1100000000000000000000000000000000000000000000000000000000000000'
+      await commitmentContract.submitBlock(header)
+      const storedHeader = await commitmentContract.getBlockRoot(0)
+      storedHeader.should.equal(header)
     })
   })
 })
