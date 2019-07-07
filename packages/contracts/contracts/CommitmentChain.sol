@@ -32,6 +32,13 @@ contract CommitmentChain {
         return true;
     }
 
+    function verifyStateUpdateInclusion(dt.StateUpdate memory _stateUpdate, dt.StateUpdateInclusionProof memory _inclusionProof) public view returns (bool) {
+        bytes32 stateSubtreeRoot = verifySubtreeInclusionAndGetRoot(_stateUpdate, _inclusionProof.stateTreeInclusionProof);
+        bytes32 assetTreeRoot = verifyAssetTreeInclusionAndGetRoot(stateSubtreeRoot, _stateUpdate.depositAddress, _inclusionProof.assetTreeInclusionProof);
+        uint128 expectedPlasmaBlockNumber = _stateUpdate.plasmaBlockNumber;
+        return assetTreeRoot == blocks[expectedPlasmaBlockNumber];
+    }
+
     // Via https://github.com/ethereum/solidity-examples/blob/master/src/bits/Bits.sol
     // Gets the value of the 'index'th bit (where 0 => rightmost bit) in the binary expression of 'self'.
     function getNthBitFromRight(uint self, uint8 index) public pure returns (uint8) {

@@ -45,19 +45,30 @@ function generateNSequentialStateUpdates(
 }
 
 function generatePlasmaBlockOfSize(
-  numOfUpdates: number,
+  numUpdatesPerSubtree: number,
   numOfDepositAddress: number
 ): PlasmaBlock {
-  const stateUpdates = generateNSequentialStateUpdates(numOfUpdates)
   let blockContents = []
   for (let i = 0; i < numOfDepositAddress; i++) {
-    const randomNum = Math.random() * 1000
-    const randomAssetId = new BigNum(randomNum).toBuffer('be', 32)
-    blockContents.push({
-      assetId: randomAssetId,
-      stateUpdates
-    })
+  const randomNum = Math.random() * 1000
+  const randomAssetId = new BigNum(randomNum).toBuffer('be', 32)
+  let stateUpdates = []
+  for (let j = 0; j < numUpdatesPerSubtree; j++) {
+    stateUpdates.push(new AbiStateUpdate(
+      new AbiStateObject(
+        '0xbdAd2846585129Fc98538ce21cfcED21dDDE0a63',
+        '0x123456'
+      ),
+      new AbiRange(new BigNum(j * 100), new BigNum((j + 0.5) * 100)),
+      new BigNum(0),
+      '0x' + randomAssetId.toString('hex').slice(24)
+    ))
   }
+  blockContents.push({
+    assetId: randomAssetId,
+    stateUpdates
+  })
+}
   blockContents = blockContents.sort((c1, c2) => {return Buffer.compare(c1.assetId, c2.assetId)})
   return new PlasmaBlock(blockContents)
 }
@@ -218,7 +229,7 @@ describe.only('Commitment Contract', () => {
         })
       })
   })
-  describe.only('Block Submission', () => {
+  describe('Block Submission', () => {
     it('allows getBlockRoot', async () => {
       const root0 = await commitmentContract.getBlockRoot(0)
       root0.should.equal('0x0000000000000000000000000000000000000000000000000000000000000000')
@@ -242,6 +253,26 @@ describe.only('Commitment Contract', () => {
       chai.expect(secondCommitmentContract.submitBlock(
         '0x0000000000000000000000000000000000000000000000000000000000000000'
       )).to.be.revertedWith('Only the aggregator can submit blocks.')
+    })
+  })
+  describe('Full flow', () => {
+    const numUpdatesPerSubtree = 5
+    const numStateSubtrees = 3
+    const block = generatePlasmaBlockOfSize(numUpdatesPerSubtree, numStateSubtrees)
+    const updateToProveIndex = 0
+    const subtreeToProveIndex = 0
+    const updateToProve = block.subtrees[subtreeToProveIndex].dataBlocks[updateToProveIndex]
+    const proof = block.getStateUpdateInclusionProof(updateToProveIndex, subtreeToProveIndex)
+    it('should verify inclusion of an SU in a submitted  block', async ()=> {
+      await commitmentContract.submitBlock(block.root().hash)
+      const check = await commitmentContract.verifyStateUpdateInclusion(updateToProve.jsonified, proof.jsonified)
+      check.should.be.true
+    })
+    it('should not verify if wrong block order', async () => {
+      await commitmentContract.submitBlock('0x0000000000000000000000000000000000000000000000000000000000000000')
+      await commitmentContract.submitBlock(block.root().hash)
+      const check = await commitmentContract.verifyStateUpdateInclusion(updateToProve.jsonified, proof.jsonified)
+      check.should.be.false
     })
   })
 })
