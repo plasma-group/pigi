@@ -314,7 +314,7 @@ describe('Commitment Contract', () => {
       const storedHeader = await commitmentContract.getBlockRoot(1)
       storedHeader.should.equal(header1)
     })
-    it('throws if someone else tries to submit a block', async () => {
+    it.skip('throws if someone else tries to submit a block', async () => {
       const secondCommitmentContract = await deployContract(
         wallet,
         Commitment,
