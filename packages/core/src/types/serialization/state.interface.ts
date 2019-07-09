@@ -44,6 +44,11 @@ export interface Transaction {
   body: any
 }
 
+export interface TransactionResult {
+  stateUpdate: StateUpdate
+  validRanges: Range[]
+}
+
 export interface OwnershipBody {
   newState: StateObject
   originBlock: BigNum
