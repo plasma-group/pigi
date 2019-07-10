@@ -66,6 +66,39 @@ export const isRangeSubset = (subset: Range, superset: Range): boolean => {
 }
 
 /**
+ * Determines whether the provided Ranges collectively span the Range in question
+ *
+ * @param ranges the Ranges that will/won't span the rangeToSpan
+ * @param rangeToSpan the Range being spanned
+ * @returns true if ranges span rangeToSpan, false otherwise
+ */
+export const rangesSpanRange = (
+  ranges: Range[],
+  rangeToSpan: Range
+): boolean => {
+  const sortedRanges: Range[] = ranges.sort((a: Range, b: Range) => {
+    return a.start.lt(b.start) ? -1 : a.start.eq(b.start) ? 0 : 1
+  })
+
+  let spannedEnd: BigNum = rangeToSpan.start
+  for (const rangeElem of sortedRanges) {
+    // If our lowest range start is greater than our spannedEnd, the range cannot be spanned
+    if (rangeElem.start.gt(spannedEnd)) {
+      return false
+    }
+
+    spannedEnd = rangeElem.end
+
+    // If the entire range has been spanned we can ,
+    if (spannedEnd.gte(rangeToSpan.end)) {
+      return true
+    }
+  }
+
+  return false
+}
+
+/**
  * RangeStore makes it easy to store ranges.
  * When ranges are added, only the sections with
  * a higher block number than existing ranges

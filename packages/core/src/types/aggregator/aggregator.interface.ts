@@ -1,4 +1,4 @@
-import { Transaction } from '../serialization'
+import { BlockTransactionCommitment, Transaction } from '../serialization'
 
 export interface Aggregator {
   /**
@@ -6,6 +6,18 @@ export interface Aggregator {
    *
    * @param transaction the Transaction in question
    * @param witness the Witness of the Transaction in question
+   *
+   * @returns the BlockTransactionCommitment indicating the transaction will be included in the next block
    */
-  ingestTransaction(transaction: Transaction, witness: string): Promise<void>
+  ingestTransaction(
+    transaction: Transaction,
+    witness: string
+  ): Promise<BlockTransactionCommitment>
+
+  /**
+   * Gets the public key of the Aggregator to be able to validate signatures
+   *
+   * @returns the public key
+   */
+  getPublicKey(): Promise<any>
 }

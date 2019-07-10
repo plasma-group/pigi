@@ -4,6 +4,8 @@ import { should } from '../../setup'
 import {
   Aggregator,
   BlockManager,
+  BlockTransaction,
+  BlockTransactionCommitment,
   HistoryProof,
   StateManager,
   StateQuery,
@@ -12,7 +14,14 @@ import {
   Transaction,
   TransactionResult,
 } from '../../../src/types'
-import { DefaultAggregator, ONE, ZERO } from '../../../src/app/'
+import {
+  blockTransactionsEqual,
+  decryptWithPublicKey,
+  DefaultAggregator,
+  ONE,
+  transactionsEqual,
+  ZERO,
+} from '../../../src/app/'
 import { TestUtils } from '../utils/test-utils'
 import * as assert from 'assert'
 
@@ -103,17 +112,39 @@ describe('DefaultAggregator', () => {
         blockManager
       )
 
-      const transaction: Transaction = {
-        depositAddress: '',
-        range: {
-          start: ZERO,
-          end: ONE,
-        },
-        body: {},
-      }
+      const transactions: Transaction[] = []
+      transactionResults.forEach((result: TransactionResult) => {
+        transactions.push({
+          depositAddress: '',
+          range: result.validRanges[0],
+          body: {},
+        })
+      })
 
       for (let i = 0; i < numTransactions; i++) {
-        await aggregator.ingestTransaction(transaction, '')
+        const txCommitment: BlockTransactionCommitment = await aggregator.ingestTransaction(
+          transactions[i],
+          ''
+        )
+        assert(
+          transactionsEqual(
+            txCommitment.blockTransaction.transaction,
+            transactions[i]
+          ),
+          'Resulting BlockTransactionCommitment does not match passed in Transaction.'
+        )
+
+        const decryptedBlockTransaction: BlockTransaction = decryptWithPublicKey(
+          aggregator.getPublicKey(),
+          txCommitment.witness
+        )
+        assert(
+          blockTransactionsEqual(
+            decryptedBlockTransaction,
+            txCommitment.blockTransaction
+          ),
+          'BlockTransactionCommitment signature is invalid'
+        )
       }
 
       const stateUpdates: StateUpdate[] = await blockManager.getPendingStateUpdates()
@@ -136,6 +167,37 @@ describe('DefaultAggregator', () => {
 
       try {
         await aggregator.ingestTransaction(undefined, '')
+        assert(false, 'This should have thrown')
+      } catch (e) {
+        // This is success
+      }
+    })
+
+    it('Throws if Transaction range is not valid', async () => {
+      const transactionResult: TransactionResult = TestUtils.generateNSequentialTransactionResults(
+        1
+      )[0]
+
+      const blockManager: DummyBlockManager = new DummyBlockManager()
+      const stateManager: DummyStateManager = new DummyStateManager()
+      stateManager.setExecuteTransactionResults([transactionResult])
+
+      const aggregator: Aggregator = new DefaultAggregator(
+        stateManager,
+        blockManager
+      )
+
+      const transaction: Transaction = {
+        depositAddress: '',
+        range: {
+          start: transactionResult.validRanges[0].start,
+          end: transactionResult.validRanges[0].end.add(ONE),
+        },
+        body: {},
+      }
+
+      try {
+        await aggregator.ingestTransaction(transaction, '')
         assert(false, 'This should have thrown')
       } catch (e) {
         // This is success
