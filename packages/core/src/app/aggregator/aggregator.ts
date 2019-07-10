@@ -1,6 +1,6 @@
 import BigNum = require('bn.js')
 
-import { Aggregator, BlockManager } from '../../types/aggregator'
+import { Aggregator } from '../../types/aggregator'
 import { StateManager } from '../../types/ovm'
 import {
   BlockTransaction,
@@ -9,19 +9,18 @@ import {
   TransactionResult,
 } from '../../types/serialization'
 import { rangesSpanRange, sign } from '../utils'
+import { BlockManager } from '../../types/block-production'
 
 export class DefaultAggregator implements Aggregator {
   private readonly publicKey: string =
     'TODO: figure out public key storage and access'
   private readonly privateKey: string =
     'TODO: figure out private key storage and access'
-  private readonly stateManager: StateManager
-  private readonly blockManager: BlockManager
 
-  public constructor(stateManager: StateManager, blockManager: BlockManager) {
-    this.stateManager = stateManager
-    this.blockManager = blockManager
-  }
+  public constructor(
+    private readonly stateManager: StateManager,
+    private readonly blockManager: BlockManager
+  ) {}
 
   public async ingestTransaction(
     transaction: Transaction,

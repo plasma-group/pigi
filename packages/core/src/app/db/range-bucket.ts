@@ -234,6 +234,11 @@ export class BaseRangeBucket implements RangeBucket {
     return ranges
   }
 
+  public async hasDataInRange(start: BigNum, end: BigNum): Promise<boolean> {
+    // TODO: can eagerly return when true, but this is good enough or now
+    return (await this.get(start, end)).length > 0
+  }
+
   /**
    * Gets all ranges which intersect with [start,end)
    * @param start The start of the range we are getting.

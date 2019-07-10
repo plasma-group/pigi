@@ -3,7 +3,6 @@ import { should } from '../../setup'
 
 import {
   Aggregator,
-  BlockManager,
   BlockTransaction,
   BlockTransactionCommitment,
   HistoryProof,
@@ -24,6 +23,7 @@ import {
 } from '../../../src/app/'
 import { TestUtils } from '../utils/test-utils'
 import * as assert from 'assert'
+import { BlockManager } from '../../../src/types/block-production'
 
 /*******************
  * Mocks & Helpers *
