@@ -1,5 +1,7 @@
 /* External Imports */
 import BigNum = require('bn.js')
+import { Mutex, MutexInterface } from 'async-mutex'
+
 import { BaseKey, BaseRangeBucket } from '../db'
 import { BlockDB } from '../../types/block-production'
 import { KeyValueStore, RangeStore } from '../../types/db'
@@ -21,6 +23,7 @@ const KEYS = {
  * Simple BlockDB implementation.
  */
 export class DefaultBlockDB implements BlockDB {
+  private readonly blockMutex: Mutex
   private vars: KeyValueStore
   private blocks: KeyValueStore
 
@@ -31,6 +34,7 @@ export class DefaultBlockDB implements BlockDB {
   constructor(private db: KeyValueStore) {
     this.vars = this.db.bucket(PREFIXES.VARS)
     this.blocks = this.db.bucket(PREFIXES.BLOCKS)
+    this.blockMutex = new Mutex()
   }
 
   /**
@@ -55,19 +59,20 @@ export class DefaultBlockDB implements BlockDB {
    * @returns a promise that resolves once the update has been added.
    */
   public async addPendingStateUpdate(stateUpdate: StateUpdate): Promise<void> {
-    const block = await this.getNextBlockStore()
-    const start = stateUpdate.range.start
-    const end = stateUpdate.range.end
+    await this.blockMutex.runExclusive(async () => {
+      const block = await this.getNextBlockStore()
+      const start = stateUpdate.range.start
+      const end = stateUpdate.range.end
 
-    // TODO: Figure out how to implement locking here so two state updates
-    // can't be added at the same time.
+      if (await block.hasDataInRange(start, end)) {
+        throw new Error(
+          'Block already contains a state update over that range.'
+        )
+      }
 
-    if (await block.hasDataInRange(start, end)) {
-      throw new Error('Block already contains a state update over that range.')
-    }
-
-    const value = Buffer.from(JSON.stringify(stateUpdate))
-    await block.put(start, end, value)
+      const value = Buffer.from(JSON.stringify(stateUpdate))
+      await block.put(start, end, value)
+    })
   }
 
   /**
@@ -104,11 +109,13 @@ export class DefaultBlockDB implements BlockDB {
    * Finalizes the next plasma block so that it can be published.
    */
   public async finalizeNextBlock(): Promise<void> {
-    // TODO: manage concurrency here
-    const prevBlockNumber = await this.getNextBlockNumber()
-    const nextBlockNumber = Buffer.allocUnsafe(4)
-    nextBlockNumber.writeUInt32BE(prevBlockNumber.add(ONE).toNumber(), 0)
-    await this.vars.put(KEYS.NEXT_BLOCK, nextBlockNumber)
+    await this.blockMutex.runExclusive(async () => {
+      const prevBlockNumber = await this.getNextBlockNumber()
+      const nextBlockNumber = Buffer.allocUnsafe(4)
+
+      nextBlockNumber.writeUInt32BE(prevBlockNumber.add(ONE).toNumber(), 0)
+      await this.vars.put(KEYS.NEXT_BLOCK, nextBlockNumber)
+    })
   }
 
   /**
@@ -124,6 +131,12 @@ export class DefaultBlockDB implements BlockDB {
 
   /**
    * @returns the RangeDB instance for the next block to be published.
+   *
+   * IMPORTANT: This function itself is safe from concurrency issues, but
+   * if the caller is modifying the returned RangeStore or needs to
+   * guarantee the returned next RangeStore is not stale, both the call
+   * to this function AND any subsequent reads / writes should be run with
+   * the blockMutex lock held to guarantee the expected behavior.
    */
   private async getNextBlockStore(): Promise<RangeStore> {
     const blockNumber = await this.getNextBlockNumber()
