@@ -41,7 +41,7 @@ export class MerkleStateIntervalTree extends GenericMerkleIntervalTree {
     // Check that the bound agrees with the end.
     if (stateUpdate.range.end.gt(rootAndBound.upperBound)) {
       throw new Error(
-        'State Update range.end exceeds the max for its inclusion proof.'
+        'Invalid Merkle Index Tree proof--potential intersection detected.'
       )
     }
     return rootAndBound.root
