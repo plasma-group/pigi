@@ -1,6 +1,6 @@
 /* External Imports */
 import BigNum = require('bn.js')
-import { Mutex, MutexInterface } from 'async-mutex'
+import { Mutex } from 'async-mutex'
 
 import { BaseKey, BaseRangeBucket } from '../db'
 import { BlockDB } from '../../types/block-production'

@@ -1,4 +1,5 @@
 import BigNum = require('bn.js')
+import { Mutex } from 'async-mutex'
 
 import {
   BlockDB,
@@ -11,6 +12,8 @@ import { StateUpdate } from '../../types/serialization'
  * Simple BlockManager implementation.
  */
 export class DefaultBlockManager implements BlockManager {
+  private readonly blockSubmissionMutex: Mutex
+
   /**
    * Initializes the manager.
    * @param blockdb BlockDB instance to store/query data from.
@@ -19,7 +22,9 @@ export class DefaultBlockManager implements BlockManager {
   constructor(
     private blockdb: BlockDB,
     private commitmentContract: CommitmentContract
-  ) {}
+  ) {
+    this.blockSubmissionMutex = new Mutex()
+  }
 
   /**
    * @returns the next plasma block number.
@@ -50,10 +55,15 @@ export class DefaultBlockManager implements BlockManager {
    * @returns a promise that resolves once the block has been published.
    */
   public async submitNextBlock(): Promise<void> {
-    // TODO: Lock / figure out concurrency
-    const blockNumber = await this.getNextBlockNumber()
-    await this.blockdb.finalizeNextBlock()
-    const root = await this.blockdb.getMerkleRoot(blockNumber)
-    await this.commitmentContract.submitBlock(root)
+    await this.blockSubmissionMutex.runExclusive(async () => {
+      // Don't submit the block if there are no StateUpdates
+      if ((await this.getPendingStateUpdates()).length === 0) {
+        return
+      }
+      const blockNumber = await this.getNextBlockNumber()
+      await this.blockdb.finalizeNextBlock()
+      const root = await this.blockdb.getMerkleRoot(blockNumber)
+      await this.commitmentContract.submitBlock(root)
+    })
   }
 }
