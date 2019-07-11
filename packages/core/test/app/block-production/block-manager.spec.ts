@@ -173,6 +173,17 @@ describe('DefaultBlockManager', () => {
       )
     })
 
+    it('does not submit block if there are no updates', async () => {
+      const previousNextBlockNumber: BigNum = await blockManager.getNextBlockNumber()
+      await blockManager.submitNextBlock()
+      const updatedNextBlockNumber: BigNum = await blockManager.getNextBlockNumber()
+
+      assert(
+        previousNextBlockNumber.eq(updatedNextBlockNumber),
+        'Block was incremented when submission should not have taken place.'
+      )
+    })
+
     it('throws if block submission fails', async () => {
       await addStateUpdateToBlockManager(blockManager)
 
