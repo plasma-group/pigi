@@ -257,7 +257,7 @@ export class GenericMerkleIntervalTree implements MerkleIntervalTree {
           Buffer.compare(right.lowerBound, firstRightSibling.lowerBound) === -1
         ) {
           throw new Error(
-            'Invalid Merkle Index Tree proof--potential intersection detected.'
+            'Invalid Merkle Index Tree proof--leaves are not sorted by lowerBound.'
           )
         }
       }
