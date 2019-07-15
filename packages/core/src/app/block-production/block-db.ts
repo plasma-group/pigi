@@ -8,15 +8,11 @@ import { KeyValueStore, RangeStore } from '../../types/db'
 import { StateUpdate } from '../../types/serialization'
 import { MAX_BIG_NUM, ONE, ZERO } from '../utils'
 import { GenericMerkleIntervalTree } from './merkle-interval-tree'
-
-const PREFIXES = {
-  VARS: new BaseKey('v').encode(),
-  BLOCKS: new BaseKey('b').encode(),
-}
+import { deserializeStateUpdate, serializeStateUpdate } from '../serialization'
 
 const KEYS = {
   NEXT_BLOCK: Buffer.from('nextblock'),
-  BLOCK: new BaseKey('b', ['uint32']),
+  BLOCK: new BaseKey('b', ['buffer']),
 }
 
 /**
@@ -24,16 +20,16 @@ const KEYS = {
  */
 export class DefaultBlockDB implements BlockDB {
   private readonly blockMutex: Mutex
-  private vars: KeyValueStore
-  private blocks: KeyValueStore
 
   /**
    * Initializes the database wrapper.
-   * @param db Database to store values in.
+   * @param vars the KeyValueStore to store variables in
+   * @param blocks the KeyValueStore to store Blocks in
    */
-  constructor(private db: KeyValueStore) {
-    this.vars = this.db.bucket(PREFIXES.VARS)
-    this.blocks = this.db.bucket(PREFIXES.BLOCKS)
+  constructor(
+    private readonly vars: KeyValueStore,
+    private readonly blocks: KeyValueStore
+  ) {
     this.blockMutex = new Mutex()
   }
 
@@ -41,15 +37,9 @@ export class DefaultBlockDB implements BlockDB {
    * @returns the next plasma block number.
    */
   public async getNextBlockNumber(): Promise<BigNum> {
-    // NOTE: You could theoretically cache the next block number as to avoid
-    // having to read from the database repeatedly. However, this introduces
-    // the need to ensure that the cached value and stored value never fall out
-    // of sync. It's probably better to hold off on implementing caching until
-    // this becomes a performance bottleneck.
-
+    // TODO: Cache this when it makes sense
     const buf = await this.vars.get(KEYS.NEXT_BLOCK)
-    // TODO: Node 12 has Buffer.readBigInt64BE(...) -- upgrade?
-    return new BigNum(buf.readUInt32BE(0))
+    return !buf ? ONE : new BigNum(buf, 'be')
   }
 
   /**
@@ -70,7 +60,7 @@ export class DefaultBlockDB implements BlockDB {
         )
       }
 
-      const value = Buffer.from(JSON.stringify(stateUpdate))
+      const value = Buffer.from(serializeStateUpdate(stateUpdate))
       await block.put(start, end, value)
     })
   }
@@ -94,7 +84,7 @@ export class DefaultBlockDB implements BlockDB {
 
     const leaves = stateUpdates.map((stateUpdate) => {
       // TODO: Actually encode this.
-      const encodedStateUpdate = JSON.stringify(stateUpdate)
+      const encodedStateUpdate = serializeStateUpdate(stateUpdate)
       return {
         start: stateUpdate.range.start,
         end: stateUpdate.range.end,
@@ -107,13 +97,16 @@ export class DefaultBlockDB implements BlockDB {
 
   /**
    * Finalizes the next plasma block so that it can be published.
+   *
+   * Note: The execution of this function is serialized internally,
+   * but to be of use, the caller will most likely want to serialize
+   * their calls to it as well.
    */
   public async finalizeNextBlock(): Promise<void> {
     await this.blockMutex.runExclusive(async () => {
-      const prevBlockNumber = await this.getNextBlockNumber()
-      const nextBlockNumber = Buffer.allocUnsafe(4)
+      const prevBlockNumber: BigNum = await this.getNextBlockNumber()
+      const nextBlockNumber: Buffer = prevBlockNumber.add(ONE).toBuffer('be')
 
-      nextBlockNumber.writeUInt32BE(prevBlockNumber.add(ONE).toNumber(), 0)
       await this.vars.put(KEYS.NEXT_BLOCK, nextBlockNumber)
     })
   }
@@ -124,7 +117,7 @@ export class DefaultBlockDB implements BlockDB {
    * @returns the RangeDB instance for the given block.
    */
   private async getBlockStore(blockNumber: BigNum): Promise<RangeStore> {
-    const key = KEYS.BLOCK.encode([blockNumber])
+    const key = KEYS.BLOCK.encode([blockNumber.toBuffer('be')])
     const bucket = this.blocks.bucket(key)
     return new BaseRangeBucket(bucket.db, bucket.prefix)
   }
@@ -152,7 +145,7 @@ export class DefaultBlockDB implements BlockDB {
     const block = await this.getBlockStore(blockNumber)
     const values = await block.get(ZERO, MAX_BIG_NUM)
     return values.map((value) => {
-      return JSON.parse(value.toString())
+      return deserializeStateUpdate(value.value.toString())
     })
   }
 }
