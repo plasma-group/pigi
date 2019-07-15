@@ -39,7 +39,9 @@ export class DefaultAggregator implements Aggregator {
 
     if (!rangesSpanRange(validRanges, transaction.range)) {
       throw Error(
-        'Cannot ingest Transaction that is not valid across its entire range.'
+        `Cannot ingest Transaction that is not valid across its entire range. 
+        Valid Ranges: ${JSON.stringify(validRanges)}. 
+        Transaction: ${JSON.stringify(transaction)}.`
       )
     }
 

@@ -72,8 +72,8 @@ export const isRangeSubset = (subset: Range, superset: Range): boolean => {
  * returns true because there is no number in range that is not covered by at
  * least one element in ranges.
  *
- * @param ranges the Ranges that will/won't span the rangeToSpan
- * @param rangeToSpan the Range being spanned
+ * @param ranges the Ranges that, when combined will/won't span the rangeToSpan
+ * @param rangeToSpan the Range being evaluated
  * @returns true if ranges span rangeToSpan, false otherwise
  */
 export const rangesSpanRange = (
