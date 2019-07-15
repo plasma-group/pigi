@@ -66,7 +66,11 @@ export const isRangeSubset = (subset: Range, superset: Range): boolean => {
 }
 
 /**
- * Determines whether the provided Ranges collectively span the Range in question
+ * Determines whether the provided Ranges collectively span the Range in question.
+ * For instance,
+ * doRangesSpanRange([{start: 1, end: 3}, {start: 3,  end: 5}], {start: 2, end: 4})
+ * returns true because there is no number in range that is not covered by at
+ * least one element in ranges.
  *
  * @param ranges the Ranges that will/won't span the rangeToSpan
  * @param rangeToSpan the Range being spanned
@@ -76,21 +80,24 @@ export const rangesSpanRange = (
   ranges: Range[],
   rangeToSpan: Range
 ): boolean => {
+  // Sorting the ranges by Start so we can go through them sequentially
   const sortedRanges: Range[] = ranges.sort((a: Range, b: Range) => {
     return a.start.lt(b.start) ? -1 : a.start.eq(b.start) ? 0 : 1
   })
 
-  let spannedEnd: BigNum = rangeToSpan.start
+  let lowestNotSpanned: BigNum = rangeToSpan.start
   for (const rangeElem of sortedRanges) {
-    // If our lowest range start is greater than our spannedEnd, the range cannot be spanned
-    if (rangeElem.start.gt(spannedEnd)) {
+    // If our lowest range start is greater than our lowestNotSpanned,
+    // the range cannot be spanned because the Ranges do not include lowestNotSpanned.
+    if (rangeElem.start.gt(lowestNotSpanned)) {
       return false
     }
 
-    spannedEnd = rangeElem.end
+    // Now we've covered rangeElem.start - rangeElem.end, so update lowestNotSpanned
+    lowestNotSpanned = rangeElem.end
 
-    // If the entire range has been spanned we can ,
-    if (spannedEnd.gte(rangeToSpan.end)) {
+    // If the entire range has been spanned we can return true
+    if (lowestNotSpanned.gte(rangeToSpan.end)) {
       return true
     }
   }
