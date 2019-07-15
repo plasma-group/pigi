@@ -1,7 +1,6 @@
 {
   "extends": ["./../../tslint.json"],
   "rules": {
-    "prettier": [true, "./.prettierrc.js"],
-    "no-string-literal": false // Allows obj['property'] access
+    "prettier": [true, "./.prettierrc.js"]
   }
 }
