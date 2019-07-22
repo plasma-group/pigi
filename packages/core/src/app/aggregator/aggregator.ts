@@ -8,7 +8,7 @@ import {
   Transaction,
   TransactionResult,
 } from '../../types/serialization'
-import { rangesSpanRange, sign } from '../utils'
+import { doRangesSpanRange, sign } from '../utils'
 import { BlockManager } from '../../types/block-production'
 
 export class DefaultAggregator implements Aggregator {
@@ -37,7 +37,7 @@ export class DefaultAggregator implements Aggregator {
       witness
     )
 
-    if (!rangesSpanRange(validRanges, transaction.range)) {
+    if (!doRangesSpanRange(validRanges, transaction.range)) {
       throw Error(
         `Cannot ingest Transaction that is not valid across its entire range. 
         Valid Ranges: ${JSON.stringify(validRanges)}. 

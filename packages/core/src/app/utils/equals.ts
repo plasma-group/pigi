@@ -5,7 +5,6 @@ import {
   StateUpdate,
   Transaction,
 } from '../../types/serialization'
-import { unwatchFile } from 'fs'
 
 /**
  * All of the below functions check whether or not the two provided objects are equal,

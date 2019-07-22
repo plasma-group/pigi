@@ -76,7 +76,7 @@ export const isRangeSubset = (subset: Range, superset: Range): boolean => {
  * @param rangeToSpan the Range being evaluated
  * @returns true if ranges span rangeToSpan, false otherwise
  */
-export const rangesSpanRange = (
+export const doRangesSpanRange = (
   ranges: Range[],
   rangeToSpan: Range
 ): boolean => {
