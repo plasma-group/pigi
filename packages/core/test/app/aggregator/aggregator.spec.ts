@@ -123,8 +123,7 @@ describe('DefaultAggregator', () => {
 
       for (let i = 0; i < numTransactions; i++) {
         const txCommitment: BlockTransactionCommitment = await aggregator.ingestTransaction(
-          transactions[i],
-          ''
+          transactions[i]
         )
         assert(
           transactionsEqual(
@@ -166,7 +165,7 @@ describe('DefaultAggregator', () => {
       )
 
       try {
-        await aggregator.ingestTransaction(undefined, '')
+        await aggregator.ingestTransaction(undefined)
         assert(false, 'This should have thrown')
       } catch (e) {
         // This is success
@@ -197,7 +196,7 @@ describe('DefaultAggregator', () => {
       }
 
       try {
-        await aggregator.ingestTransaction(transaction, '')
+        await aggregator.ingestTransaction(transaction)
         assert(false, 'This should have thrown')
       } catch (e) {
         // This is success

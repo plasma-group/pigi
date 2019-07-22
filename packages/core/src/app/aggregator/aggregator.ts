@@ -23,8 +23,7 @@ export class DefaultAggregator implements Aggregator {
   ) {}
 
   public async ingestTransaction(
-    transaction: Transaction,
-    witness: string
+    transaction: Transaction
   ): Promise<BlockTransactionCommitment> {
     const blockNumber: BigNum = await this.blockManager.getNextBlockNumber()
 
@@ -34,7 +33,7 @@ export class DefaultAggregator implements Aggregator {
     }: TransactionResult = await this.stateManager.executeTransaction(
       transaction,
       blockNumber,
-      witness
+      '' // Note: This function call will change, so just using '' so it compiles
     )
 
     if (!doRangesSpanRange(validRanges, transaction.range)) {
