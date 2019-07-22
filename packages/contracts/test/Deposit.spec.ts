@@ -80,7 +80,7 @@ describe('Deposit Contract with Ownership', () => {
       })
     })
 
-    it('allows exits to be started and finalized on deposits',  async () => {
+    it('allows exits to be started and finalized on deposits', async () => {
       // Deposit some money into the ownership predicate
       await token.approve(depositContract.address, 500)
       const depositData = abi.encode(['address'], [wallet.address])
