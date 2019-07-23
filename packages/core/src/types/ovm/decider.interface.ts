@@ -22,7 +22,9 @@ export interface Decision {
   implicationProof: ImplicationProofElement[] // constructed such that claim[N] --> claim[N-1] --> claim[N-2]... Claim[0]
 }
 
-export type DecisionStatus = boolean | undefined
+export const UNDECIDED = undefined
+export type Undecided = undefined
+export type DecisionStatus = boolean | Undecided
 
 /**
  * Defines the Decider interface that implementations capable of making decisions
