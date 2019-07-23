@@ -9,21 +9,19 @@ import {
   Batch,
   DB,
   IteratorOptions,
-  Iterator,
-  K,
-  V,
+  KV,
   RangeBucket,
   RangeEntry,
   PUT_BATCH_TYPE,
+  RangeIterator,
 } from '../../types'
 import {
-  bufferUtils,
   intersects,
-  BaseDB,
   BigNumber,
   BIG_ENDIAN,
   Endianness,
   ZERO,
+  BaseRangeIterator,
 } from '../../app'
 
 /* Logging */
@@ -50,12 +48,14 @@ export class BaseRangeBucket implements RangeBucket {
   ) {}
 
   /**
-   * Adds this RangeBucket's prefix to the target Buffer
-   * @param target A Buffer which will have the prefix prepended to it.
-   * @returns resulting Buffer `prefix+target`.
+   * Concatenates some value to this bucket's prefix.
+   * @param value Value to concatenate.
+   * @returns the value concatenated to the prefix.
    */
-  private addPrefix(target: Buffer): Buffer {
-    return Buffer.concat([this.prefix, target])
+  private addPrefix(value: Buffer): Buffer {
+    return value !== undefined
+      ? Buffer.concat([this.prefix, value])
+      : this.prefix
   }
 
   /**
@@ -138,7 +138,7 @@ export class BaseRangeBucket implements RangeBucket {
    * @param result The resulting value which has been extracted from our DB.
    * @returns a range object with {start, end, value}
    */
-  private resultToRange(result): RangeEntry {
+  private resultToRange(result: KV): RangeEntry {
     // Helper function which gets the start and end position from a DB seek result
     return {
       start: new BigNumber(this.getStartFromValue(result.value)),
@@ -297,6 +297,23 @@ export class BaseRangeBucket implements RangeBucket {
     await it.end()
     // Return the ranges
     return ranges
+  }
+
+  /**
+   * Creates an iterator with some options.
+   * @param options Parameters for the iterator.
+   * @returns the iterator instance.
+   */
+  public iterator(options: IteratorOptions = {}): RangeIterator {
+    const rangeIterator = new BaseRangeIterator(
+      this.db,
+      {
+        ...options,
+        prefix: this.addPrefix(options.prefix),
+      },
+      (res: KV) => this.resultToRange(res)
+    )
+    return rangeIterator
   }
 
   /**

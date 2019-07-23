@@ -91,6 +91,14 @@ export class BigNumber {
   }
 
   /**
+   * Serializes this object to JSON by simply returning the represented number as a string.
+   * @returns the JSON representing the number in question
+   */
+  public toJSON(): string {
+    return this.toString()
+  }
+
+  /**
    * Creates and returns a regular number from this number.
    * Note: Precision may be lost.
    *

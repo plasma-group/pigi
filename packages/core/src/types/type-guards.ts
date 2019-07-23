@@ -76,7 +76,7 @@ export const isValidStateUpdate = (
     !!stateUpdate.stateObject &&
     !!stateUpdate.range &&
     !!stateUpdate.depositAddress &&
-    stateUpdate.plasmaBlockNumber > 0 &&
+    stateUpdate.plasmaBlockNumber.gt(ZERO) &&
     isValidRange(stateUpdate.range) &&
     isValidStateObject(stateUpdate.stateObject)
   )
@@ -111,7 +111,7 @@ export const isValidVerifiedStateUpdate = (
   return (
     !!verifiedUpdate &&
     !!verifiedUpdate.range &&
-    verifiedUpdate.verifiedBlockNumber >= 0 &&
+    verifiedUpdate.verifiedBlockNumber.gte(ZERO) &&
     isValidRange(verifiedUpdate.range) &&
     isValidStateUpdate(verifiedUpdate.stateUpdate)
   )

@@ -212,8 +212,14 @@ describe('DefaultStateManager', () => {
       assert(stateUpdatesEqual(result.stateUpdate, endStateUpdate))
 
       result.validRanges.length.should.equal(1)
-      result.validRanges[0].start.should.equal(start)
-      result.validRanges[0].end.should.equal(end)
+      assert(
+        result.validRanges[0].start.eq(start),
+        `Valid Range start is [${result.validRanges[0].start.toString()}], when [${start.toString()}] was expected.`
+      )
+      assert(
+        result.validRanges[0].end.eq(end),
+        `Valid Range end is [${result.validRanges[0].end.toString()}], when [${end.toString()}] was expected.`
+      )
     })
 
     it('should process complex transaction for contiguous range', async () => {
@@ -258,10 +264,22 @@ describe('DefaultStateManager', () => {
       assert(stateUpdatesEqual(result.stateUpdate, endStateUpdate))
 
       result.validRanges.length.should.equal(2)
-      result.validRanges[0].start.should.equal(start)
-      result.validRanges[0].end.should.equal(midPoint)
-      result.validRanges[1].start.should.equal(midPoint)
-      result.validRanges[1].end.should.equal(end)
+      assert(
+        result.validRanges[0].start.eq(start),
+        `Valid Range [0] start is [${result.validRanges[0].start.toString()}], when [${start.toString()}] was expected.`
+      )
+      assert(
+        result.validRanges[0].end.eq(midPoint),
+        `Valid Range [0] end is [${result.validRanges[0].end.toString()}], when [${midPoint.toString()}] was expected.`
+      )
+      assert(
+        result.validRanges[1].start.eq(midPoint),
+        `Valid Range [1] start is [${result.validRanges[1].start.toString()}], when [${midPoint.toString()}] was expected.`
+      )
+      assert(
+        result.validRanges[1].end.eq(end),
+        `Valid Range [1] end is [${result.validRanges[1].end.toString()}], when [${end.toString()}] was expected.`
+      )
     })
 
     it('should process complex transaction for non-subset range', async () => {
@@ -306,10 +324,22 @@ describe('DefaultStateManager', () => {
       assert(stateUpdatesEqual(result.stateUpdate, endStateUpdate))
 
       result.validRanges.length.should.equal(2)
-      result.validRanges[0].start.should.equal(start)
-      result.validRanges[0].end.should.equal(midPoint)
-      result.validRanges[1].start.should.equal(midPoint)
-      result.validRanges[1].end.should.equal(end)
+      assert(
+        result.validRanges[0].start.eq(start),
+        `Valid Range [0] start is [${result.validRanges[0].start.toString()}], when [${start.toString()}] was expected.`
+      )
+      assert(
+        result.validRanges[0].end.eq(midPoint),
+        `Valid Range [0] end is [${result.validRanges[0].end.toString()}], when [${midPoint.toString()}] was expected.`
+      )
+      assert(
+        result.validRanges[1].start.eq(midPoint),
+        `Valid Range [1] start is [${result.validRanges[1].start.toString()}], when [${midPoint.toString()}] was expected.`
+      )
+      assert(
+        result.validRanges[1].end.eq(end),
+        `Valid Range [1] end is [${result.validRanges[1].end.toString()}], when [${end.toString()}] was expected.`
+      )
     })
 
     it('should process complex transaction for non-contiguous range', async () => {
@@ -352,10 +382,22 @@ describe('DefaultStateManager', () => {
       assert(stateUpdatesEqual(result.stateUpdate, endStateUpdate))
 
       result.validRanges.length.should.equal(2)
-      result.validRanges[0].start.should.equal(start)
-      result.validRanges[0].end.should.equal(endRange1)
-      result.validRanges[1].start.should.equal(startRange2)
-      result.validRanges[1].end.should.equal(end)
+      assert(
+        result.validRanges[0].start.eq(start),
+        `Valid Range [0] start is [${result.validRanges[0].start.toString()}], when [${start.toString()}] was expected.`
+      )
+      assert(
+        result.validRanges[0].end.eq(endRange1),
+        `Valid Range [0] end is [${result.validRanges[0].end.toString()}], when [${endRange1.toString()}] was expected.`
+      )
+      assert(
+        result.validRanges[1].start.eq(startRange2),
+        `Valid Range [1] start is [${result.validRanges[1].start.toString()}], when [${startRange2.toString()}] was expected.`
+      )
+      assert(
+        result.validRanges[1].end.eq(end),
+        `Valid Range [1] end is [${result.validRanges[1].end.toString()}], when [${end.toString()}] was expected.`
+      )
     })
 
     it('should return empty range if no VerifiedStateUpdates', async () => {

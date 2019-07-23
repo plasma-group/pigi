@@ -73,7 +73,9 @@ describe('DefaultBlockDB', () => {
 
       assert(
         stateUpdatesEqual(returnedUpdates[0], stateUpdates[0]),
-        'Added StateUpdate is not the same as returned StateUpdate.'
+        `Added StateUpdate is not the same as returned StateUpdate. 
+        Returned: ${JSON.stringify(returnedUpdates[0])},
+        Added: ${JSON.stringify(stateUpdates[0])}`
       )
 
       await blockDB.addPendingStateUpdate(stateUpdates[1])
