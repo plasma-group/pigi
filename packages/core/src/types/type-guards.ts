@@ -1,5 +1,3 @@
-import BigNum = require('bn.js')
-
 import {
   JsonRpcResponse,
   JsonRpcErrorResponse,
@@ -10,6 +8,7 @@ import {
   StateUpdate,
   StateObject,
 } from '../types'
+import { ZERO } from '../app/utils'
 
 /**
  * Checks if a JSON-RPC response is an error response.
@@ -35,8 +34,6 @@ export const isJsonRpcRequest = (request: any): request is JsonRpcRequest => {
   )
 }
 
-const zero: BigNum = new BigNum(0)
-
 /**
  * Validates that the provided Range has all of the necessary fields populated with valid data.
  *
@@ -48,7 +45,7 @@ export const isValidRange = (range: any): range is Range => {
     !!range &&
     !!range.start &&
     !!range.end &&
-    range.start.gte(zero) &&
+    range.start.gte(ZERO) &&
     range.end.gt(range.start)
   )
 }

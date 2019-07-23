@@ -3,8 +3,8 @@ import '../../setup'
 /* External Imports */
 import debug from 'debug'
 const log = debug('test:info:state-manager')
-import BigNum = require('bn.js')
 import {
+  BigNumber,
   DefaultStateDB,
   DefaultStateManager,
   ONE,
@@ -80,8 +80,8 @@ function getStateDBThatReturns(
 ): StateDB {
   const stateDB = new DefaultStateDB()
   stateDB.getVerifiedStateUpdates = async (
-    start: BigNum,
-    end: BigNum
+    start: BigNumber,
+    end: BigNumber
   ): Promise<VerifiedStateUpdate[]> => {
     return verifiedStateUpdates
   }
@@ -89,9 +89,9 @@ function getStateDBThatReturns(
 }
 
 function getStateUpdate(
-  start: BigNum,
-  end: BigNum,
-  plasmaBlockNumber: BigNum,
+  start: BigNumber,
+  end: BigNumber,
+  plasmaBlockNumber: BigNumber,
   stateObject: StateObject,
   depositAddress: string = '0x1234'
 ): StateUpdate {
@@ -102,14 +102,14 @@ function getStateUpdate(
     },
     stateObject,
     depositAddress,
-    plasmaBlockNumber: new BigNum(plasmaBlockNumber),
+    plasmaBlockNumber: new BigNumber(plasmaBlockNumber),
   }
 }
 
 function getVerifiedStateUpdate(
-  start: BigNum,
-  end: BigNum,
-  block: BigNum,
+  start: BigNumber,
+  end: BigNumber,
+  block: BigNumber,
   depositAddress: string,
   predicateAddress: string,
   data: any = { dummyData: false }
@@ -132,8 +132,8 @@ function getVerifiedStateUpdate(
 
 function getTransaction(
   depositAddress: string,
-  start: BigNum,
-  end: BigNum,
+  start: BigNumber,
+  end: BigNumber,
   body: any = { dummyData: false }
 ) {
   return {
@@ -158,11 +158,11 @@ describe('DefaultStateManager', () => {
   })
 
   describe('executeTransaction', () => {
-    const start: BigNum = new BigNum(10)
-    const end: BigNum = new BigNum(20)
+    const start: BigNumber = new BigNumber(10)
+    const end: BigNumber = new BigNumber(20)
     const defaultWitness: string = 'none'
-    const previousBlockNumber: BigNum = new BigNum(10)
-    const nextBlockNumber: BigNum = new BigNum(11)
+    const previousBlockNumber: BigNumber = new BigNumber(10)
+    const nextBlockNumber: BigNumber = new BigNumber(11)
     const depositAddress = '0x1234'
     const predicateAddress = '0x12345678'
     const defaultEndData = { testResult: 'test' }
@@ -219,7 +219,7 @@ describe('DefaultStateManager', () => {
     it('should process complex transaction for contiguous range', async () => {
       const midPoint = end
         .sub(start)
-        .divRound(new BigNum(2))
+        .divRound(new BigNumber(2))
         .add(start)
       const verifiedStateUpdates: VerifiedStateUpdate[] = [
         getVerifiedStateUpdate(
@@ -267,11 +267,11 @@ describe('DefaultStateManager', () => {
     it('should process complex transaction for non-subset range', async () => {
       const midPoint = end
         .sub(start)
-        .divRound(new BigNum(2))
+        .divRound(new BigNumber(2))
         .add(start)
       const verifiedStateUpdates: VerifiedStateUpdate[] = [
         getVerifiedStateUpdate(
-          start.sub(new BigNum(5)),
+          start.sub(new BigNumber(5)),
           midPoint,
           previousBlockNumber,
           depositAddress,
@@ -279,7 +279,7 @@ describe('DefaultStateManager', () => {
         ),
         getVerifiedStateUpdate(
           midPoint,
-          end.add(new BigNum(4)),
+          end.add(new BigNumber(4)),
           previousBlockNumber,
           depositAddress,
           predicateAddress
@@ -313,8 +313,8 @@ describe('DefaultStateManager', () => {
     })
 
     it('should process complex transaction for non-contiguous range', async () => {
-      const endRange1: BigNum = start.add(new BigNum(1))
-      const startRange2: BigNum = end.sub(new BigNum(1))
+      const endRange1: BigNumber = start.add(ONE)
+      const startRange2: BigNumber = end.sub(ONE)
       const verifiedStateUpdates: VerifiedStateUpdate[] = [
         getVerifiedStateUpdate(
           start,
@@ -387,13 +387,13 @@ describe('DefaultStateManager', () => {
       const verifiedStateUpdates: VerifiedStateUpdate[] = [
         getVerifiedStateUpdate(
           end,
-          end.add(new BigNum(1)),
+          end.add(ONE),
           previousBlockNumber,
           depositAddress,
           predicateAddress
         ),
         getVerifiedStateUpdate(
-          start.sub(new BigNum(1)),
+          start.sub(ONE),
           start,
           previousBlockNumber,
           depositAddress,
@@ -428,7 +428,7 @@ describe('DefaultStateManager', () => {
       const secondPredicateAddress = '0x87654321'
       const midPoint = end
         .sub(start)
-        .divRound(new BigNum(2))
+        .divRound(new BigNumber(2))
         .add(start)
       const verifiedStateUpdates: VerifiedStateUpdate[] = [
         getVerifiedStateUpdate(
@@ -489,7 +489,7 @@ describe('DefaultStateManager', () => {
     it('should fail if same predicate but StateObjects do not match', async () => {
       const midPoint = end
         .sub(start)
-        .divRound(new BigNum(2))
+        .divRound(new BigNumber(2))
         .add(start)
       const verifiedStateUpdates: VerifiedStateUpdate[] = [
         getVerifiedStateUpdate(
