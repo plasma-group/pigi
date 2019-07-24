@@ -1,5 +1,11 @@
 import '../../setup'
-import { BigNumber, ZERO, ONE } from '../../../src/app/utils'
+import {
+  BigNumber,
+  ZERO,
+  ONE,
+  LITTLE_ENDIAN,
+  BIG_ENDIAN,
+} from '../../../src/app/utils'
 import * as assert from 'assert'
 
 describe('BigNumber', () => {
@@ -80,6 +86,27 @@ describe('BigNumber', () => {
     it('test different memory address', () => {
       const clone: BigNumber = ONE.clone()
       assert(clone.eq(ONE) && clone !== ONE)
+    })
+  })
+
+  describe('toString', () => {
+    it('test base 10', () => {
+      assert(new BigNumber(11).toString(10) === '11')
+      assert(new BigNumber(-11).toString(10) === '-11')
+    })
+
+    it('test hex', () => {
+      assert(new BigNumber(11).toString(16) === 'b')
+      assert(new BigNumber(11).toString('hex') === 'b')
+      assert(new BigNumber(-11).toString(16) === '-b')
+      assert(new BigNumber(-11).toString('hex') === '-b')
+    })
+  })
+
+  describe('toJSON', () => {
+    it('test positive and negative', () => {
+      assert(new BigNumber(11).toJSON() === 'b')
+      assert(new BigNumber(-11).toJSON() === '-b')
     })
   })
 
