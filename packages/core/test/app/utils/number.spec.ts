@@ -1,6 +1,6 @@
 import '../../setup'
-import {BigNumber, ZERO, ONE} from "../../../src/app/utils";
-import * as assert from "assert";
+import { BigNumber, ZERO, ONE } from '../../../src/app/utils'
+import * as assert from 'assert'
 
 describe('BigNumber', () => {
   describe('constructor', () => {
@@ -144,7 +144,9 @@ describe('BigNumber', () => {
     })
 
     it('test divide & round down negative', () => {
-      assert(new BigNumber(10).divRound(new BigNumber(-3)).eq(new BigNumber(-3)))
+      assert(
+        new BigNumber(10).divRound(new BigNumber(-3)).eq(new BigNumber(-3))
+      )
     })
 
     it('test divide & round up positive', () => {
@@ -152,7 +154,9 @@ describe('BigNumber', () => {
     })
 
     it('test divide & round up negative', () => {
-      assert(new BigNumber(10).divRound(new BigNumber(-9)).eq(new BigNumber(-1)))
+      assert(
+        new BigNumber(10).divRound(new BigNumber(-9)).eq(new BigNumber(-1))
+      )
     })
 
     it('test divide by 0 throws', () => {
@@ -191,7 +195,6 @@ describe('BigNumber', () => {
     // it('test negative fractional power', () => {
     //   assert(new BigNumber(100).pow(new BigNumber(-.5)).eq(new BigNumber(0.1)))
     // })
-
   })
 
   describe('mod', () => {
@@ -298,7 +301,6 @@ describe('BigNumber', () => {
     })
   })
 
-
   describe('compare', () => {
     it('test first is less', () => {
       assert(new BigNumber(10).compare(new BigNumber(11)) === -1)
@@ -315,5 +317,4 @@ describe('BigNumber', () => {
       assert(new BigNumber(-10).compare(new BigNumber(-10)) === 0)
     })
   })
-
 })

@@ -1,5 +1,5 @@
 import BigNum = require('bn.js')
-import * as assert from "assert";
+import * as assert from 'assert'
 
 export type Endianness = 'B' | 'L'
 export const BIG_ENDIAN: Endianness = 'B'
@@ -214,8 +214,14 @@ export class BigNumber {
    * @returns a *new* BigNumber with the result
    */
   public pow(exp: BigNumber): BigNumber {
-    assert(exp.mod(ONE).eq(ZERO), 'BigNumber.pow(...) does not support fractions at this time.')
-    assert(!exp.num.isNeg(), 'BigNumber.pow(...) does not support negative exponents at this time.')
+    assert(
+      exp.mod(ONE).eq(ZERO),
+      'BigNumber.pow(...) does not support fractions at this time.'
+    )
+    assert(
+      !exp.num.isNeg(),
+      'BigNumber.pow(...) does not support negative exponents at this time.'
+    )
 
     return new BigNumber(this.num.pow(exp.num))
   }
@@ -227,7 +233,10 @@ export class BigNumber {
    * @returns a *new* BigNumber with the result
    */
   public mod(mod: BigNumber): BigNumber {
-    assert(!this.num.isNeg() || !mod.num.isNeg(), 'Big number does not support negative mod negative.')
+    assert(
+      !this.num.isNeg() || !mod.num.isNeg(),
+      'Big number does not support negative mod negative.'
+    )
     return new BigNumber(this.num.mod(mod.num))
   }
 
@@ -320,5 +329,5 @@ export class BigNumber {
 
 export const ZERO = new BigNumber(0)
 export const ONE = new BigNumber(1)
-export const ONE_HALF = new BigNumber(.5)
+export const ONE_HALF = new BigNumber(0.5)
 export const MAX_BIG_NUM = new BigNumber('0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF')
