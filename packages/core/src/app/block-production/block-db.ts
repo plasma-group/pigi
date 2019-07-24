@@ -38,7 +38,7 @@ export class DefaultBlockDB implements BlockDB {
   public async getNextBlockNumber(): Promise<BigNumber> {
     // TODO: Cache this when it makes sense
     const buf = await this.vars.get(KEYS.NEXT_BLOCK)
-    return !buf ? ONE : new BigNumber(buf, undefined, BIG_ENDIAN)
+    return !buf ? ONE : new BigNumber(buf, 'hex', BIG_ENDIAN)
   }
 
   /**

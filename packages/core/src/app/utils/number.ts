@@ -96,7 +96,7 @@ export class BigNumber {
    * @returns the JSON representing the number in question
    */
   public toJSON(): string {
-    return this.toString()
+    return this.toString('hex')
   }
 
   /**
