@@ -1,4 +1,5 @@
 import BigNum = require('bn.js')
+import * as assert from "assert";
 
 export type Endianness = 'B' | 'L'
 export const BIG_ENDIAN: Endianness = 'B'
@@ -64,7 +65,7 @@ export class BigNumber {
    */
   public static isBigNumber(num: any): boolean {
     if (num instanceof BigNumber) {
-      return BigNum.isBN(num)
+      return BigNum.isBN(num.num)
     }
 
     return false
@@ -176,7 +177,34 @@ export class BigNumber {
    * @returns a *new* BigNumber with the result
    */
   public divRound(other: BigNumber): BigNumber {
-    return new BigNumber(this.num.divRound(other.num))
+    // // TODO: This is only overridden because bn.js divRound rounds -3.3 to -4 instead of -3
+    const thisAbs: BigNumber = this.abs()
+    const otherAbs: BigNumber = other.abs()
+
+    const remainderAbs: BigNumber = thisAbs.mod(otherAbs)
+    const div: BigNumber = this.div(other)
+
+    // if there's no remainder, it's the same as regular division
+    if (remainderAbs.eq(ZERO)) {
+      return div
+    }
+
+    const decimalAbs = remainderAbs.div(otherAbs)
+    // if the decimal portion is GTE .5, round up, else round down (absolute)
+    if (decimalAbs.gte(ONE_HALF)) {
+      if (div.num.isNeg()) {
+        return div.add(remainderAbs).sub(ONE)
+      } else {
+        return div.sub(remainderAbs).add(ONE)
+      }
+    } else {
+      // rounding down (absolute)
+      if (div.num.isNeg()) {
+        return div.add(remainderAbs)
+      } else {
+        return div.sub(remainderAbs)
+      }
+    }
   }
 
   /**
@@ -186,6 +214,9 @@ export class BigNumber {
    * @returns a *new* BigNumber with the result
    */
   public pow(exp: BigNumber): BigNumber {
+    assert(exp.mod(ONE).eq(ZERO), 'BigNumber.pow(...) does not support fractions at this time.')
+    assert(!exp.num.isNeg(), 'BigNumber.pow(...) does not support negative exponents at this time.')
+
     return new BigNumber(this.num.pow(exp.num))
   }
 
@@ -196,6 +227,7 @@ export class BigNumber {
    * @returns a *new* BigNumber with the result
    */
   public mod(mod: BigNumber): BigNumber {
+    assert(!this.num.isNeg() || !mod.num.isNeg(), 'Big number does not support negative mod negative.')
     return new BigNumber(this.num.mod(mod.num))
   }
 
@@ -288,4 +320,5 @@ export class BigNumber {
 
 export const ZERO = new BigNumber(0)
 export const ONE = new BigNumber(1)
+export const ONE_HALF = new BigNumber(.5)
 export const MAX_BIG_NUM = new BigNumber('0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF')
