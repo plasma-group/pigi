@@ -22,10 +22,6 @@ export interface Decision {
   implicationProof: ImplicationProofElement[] // constructed such that claim[N] --> claim[N-1] --> claim[N-2]... Claim[0]
 }
 
-export const UNDECIDED = undefined
-export type Undecided = undefined
-export type DecisionStatus = boolean | Undecided
-
 /**
  * Defines the Decider interface that implementations capable of making decisions
  * on the provided input according to the logic of the specific implementation.
@@ -36,16 +32,16 @@ export type DecisionStatus = boolean | Undecided
 export interface Decider {
   /**
    * Makes a Decision on the provided input
-   * @param _input
-   * @param _witness
+   * @param input
+   * @param witness
    */
-  decide(_input: any, _witness: any): Decision
+  decide(input: any, witness: any): Promise<Decision>
 
   /**
    * Checks whether or not a decision has been made for the provided Input
    * Note: This should access a cache decisions that have been made
    * @param _input
-   * @returns the DecisionStatus, indicating if one was made.
+   * @returns the Decision that was made, if one was made.
    */
-  checkDecision(_input: any): DecisionStatus
+  checkDecision(input: any): Promise<Decision>
 }
