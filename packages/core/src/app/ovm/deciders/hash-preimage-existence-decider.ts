@@ -1,16 +1,14 @@
 import { Decision } from '../../../types/ovm/decider.interface'
 import { DB } from '../../../types/db'
 import { DbDecider } from './db-decider'
-import { CannotDecideError } from './utils'
-
-export type HashFunction = (preimage: string) => string
+import { CannotDecideError, HashFunction } from './utils'
 
 export interface HashPreimageInput {
-  hash: string
+  hash: Buffer
 }
 
 export interface HashPreimageWitness {
-  preimage: string
+  preimage: Buffer
 }
 
 /**
@@ -31,7 +29,8 @@ export class HashPreimageExistenceDecider extends DbDecider {
     input: HashPreimageInput,
     witness: HashPreimageWitness
   ): Promise<Decision> {
-    const outcome = this.hashFunction(witness.preimage) === input.hash
+    const outcome =
+      this.hashFunction(Buffer.from(witness.preimage)) === input.hash
 
     if (!outcome) {
       throw new CannotDecideError(
@@ -59,7 +58,11 @@ export class HashPreimageExistenceDecider extends DbDecider {
 
   protected deserializeDecision(decision: Buffer): Decision {
     const json: any[] = JSON.parse(decision.toString())
-    return this.constructDecision(json[0], json[1], json[2])
+    return this.constructDecision(
+      Buffer.from(json[0]),
+      json[1],
+      Buffer.from(json[2])
+    )
   }
 
   /**
@@ -71,13 +74,13 @@ export class HashPreimageExistenceDecider extends DbDecider {
    * @returns the Decision
    */
   private constructDecision(
-    hash: string,
+    hash: Buffer,
     outcome: boolean,
-    preimage: string
+    preimage: Buffer
   ): Decision {
     return {
       outcome,
-      implicationProof: [
+      justification: [
         {
           implication: {
             decider: this,
@@ -106,6 +109,12 @@ export class HashPreimageExistenceDecider extends DbDecider {
     outcome: boolean,
     witness: HashPreimageWitness
   ): Buffer {
-    return Buffer.from(JSON.stringify([input.hash, outcome, witness.preimage]))
+    return Buffer.from(
+      JSON.stringify([
+        input.hash.toString(),
+        outcome,
+        witness.preimage.toString(),
+      ])
+    )
   }
 }

@@ -1,17 +1,19 @@
-import { Md5 } from 'ts-md5/dist/md5'
-
 import { Decider, Decision } from '../../../types/ovm/decider.interface'
 import { Bucket, DB } from '../../../types/db'
+import { HashFunction } from './utils'
+import { Md5Hash } from '../../utils'
 
 export abstract class DbDecider implements Decider {
   private readonly decisionBucket: Bucket
+  private readonly keyGenerationFunction: HashFunction
 
-  protected constructor(db: DB) {
+  protected constructor(db: DB, hashFunction: HashFunction = Md5Hash) {
     this.decisionBucket = db.bucket(Buffer.from(this.getUniqueId()))
+    this.keyGenerationFunction = hashFunction
   }
 
   public async checkDecision(input: any): Promise<Decision> {
-    const hash: Buffer = DbDecider.getCacheKey(input)
+    const hash: Buffer = this.getCacheKey(input)
     const decisionBuffer: Buffer = await this.decisionBucket.get(hash)
 
     if (decisionBuffer === null) {
@@ -31,7 +33,7 @@ export abstract class DbDecider implements Decider {
     input: any,
     serializedDecision: Buffer
   ): Promise<void> {
-    const key: Buffer = DbDecider.getCacheKey(input)
+    const key: Buffer = this.getCacheKey(input)
 
     await this.decisionBucket.put(key, serializedDecision)
   }
@@ -42,8 +44,8 @@ export abstract class DbDecider implements Decider {
    * @param input the input for which a key will be computed
    * @returns the computed cache key
    */
-  private static getCacheKey(input: any): Buffer {
-    return Buffer.from(Md5.hashStr(JSON.stringify(input)) as string)
+  private getCacheKey(input: any): Buffer {
+    return this.keyGenerationFunction(Buffer.from(JSON.stringify(input)))
   }
 
   /********************

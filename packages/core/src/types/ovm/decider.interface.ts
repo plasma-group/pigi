@@ -19,7 +19,7 @@ export interface ImplicationProofElement {
 
 export interface Decision {
   outcome: boolean
-  implicationProof: ImplicationProofElement[] // constructed such that claim[N] --> claim[N-1] --> claim[N-2]... Claim[0]
+  justification: ImplicationProofElement[] // constructed such that claim[N] --> claim[N-1] --> claim[N-2]... Claim[0]
 }
 
 /**
