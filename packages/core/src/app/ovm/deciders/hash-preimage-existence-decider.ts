@@ -1,6 +1,6 @@
 import { Decision } from '../../../types/ovm/decider.interface'
 import { DB } from '../../../types/db'
-import { DbDecider } from './db-decider'
+import { KeyValueStoreDecider } from './key-value-store-decider'
 import { CannotDecideError, HashFunction } from './utils'
 
 export interface HashInput {
@@ -14,7 +14,7 @@ export interface PreimageWitness {
 /**
  * Decider that determines whether the provided witness is the preimage to the hash in question.
  */
-export class HashPreimageExistenceDecider extends DbDecider {
+export class HashPreimageExistenceDecider extends KeyValueStoreDecider {
   private static readonly UNIQUE_ID = 'HashPreimageDecider'
 
   private readonly hashFunction: HashFunction

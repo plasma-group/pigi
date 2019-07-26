@@ -135,8 +135,8 @@ describe('HashPreimageExistenceDecider', () => {
       const secondPreimage: Buffer = Buffer.from('Another great preimage!')
       const secondHash: Buffer = Md5Hash(secondPreimage)
 
-      await decider.decide({hash}, {preimage})
-      await decider.decide({hash: secondHash }, { preimage: secondPreimage })
+      await decider.decide({ hash }, { preimage })
+      await decider.decide({ hash: secondHash }, { preimage: secondPreimage })
 
       const checkedDecision: Decision = await decider.checkDecision({ hash })
 
@@ -155,7 +155,9 @@ describe('HashPreimageExistenceDecider', () => {
         'decided preimage is not what it should be'
       )
 
-      const secondCheckedDecision: Decision = await decider.checkDecision({ hash: secondHash })
+      const secondCheckedDecision: Decision = await decider.checkDecision({
+        hash: secondHash,
+      })
 
       secondCheckedDecision.outcome.should.equal(true)
       secondCheckedDecision.justification.length.should.equal(1)

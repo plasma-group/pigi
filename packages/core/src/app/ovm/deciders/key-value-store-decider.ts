@@ -2,7 +2,7 @@ import { Decider, Decision } from '../../../types/ovm/decider.interface'
 import { Bucket, DB } from '../../../types/db'
 import { Md5Hash } from '../../utils'
 
-export abstract class DbDecider implements Decider {
+export abstract class KeyValueStoreDecider implements Decider {
   private readonly decisionBucket: Bucket
 
   protected constructor(db: DB) {
