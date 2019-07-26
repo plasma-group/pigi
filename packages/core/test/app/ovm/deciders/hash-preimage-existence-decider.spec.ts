@@ -129,5 +129,47 @@ describe('HashPreimageExistenceDecider', () => {
         'decided preimage is not what it should be'
       )
     })
+
+    it('should work with multiple Decisions that have been made', async () => {
+      await decider.decide({ hash }, { preimage })
+      const secondPreimage: Buffer = Buffer.from('Another great preimage!')
+      const secondHash: Buffer = Md5Hash(secondPreimage)
+
+      await decider.decide({hash}, {preimage})
+      await decider.decide({hash: secondHash }, { preimage: secondPreimage })
+
+      const checkedDecision: Decision = await decider.checkDecision({ hash })
+
+      checkedDecision.outcome.should.equal(true)
+      checkedDecision.justification.length.should.equal(1)
+
+      let justification: ImplicationProofElement =
+        checkedDecision.justification[0]
+      justification.implication.decider.should.equal(decider)
+      assert(
+        justification.implication.input['hash'].equals(hash),
+        'decided hash is not what it should be'
+      )
+      assert(
+        justification.implicationWitness['preimage'].equals(preimage),
+        'decided preimage is not what it should be'
+      )
+
+      const secondCheckedDecision: Decision = await decider.checkDecision({ hash: secondHash })
+
+      secondCheckedDecision.outcome.should.equal(true)
+      secondCheckedDecision.justification.length.should.equal(1)
+
+      justification = secondCheckedDecision.justification[0]
+      justification.implication.decider.should.equal(decider)
+      assert(
+        justification.implication.input['hash'].equals(secondHash),
+        'second decided hash is not what it should be'
+      )
+      assert(
+        justification.implicationWitness['preimage'].equals(secondPreimage),
+        'second decided preimage is not what it should be'
+      )
+    })
   })
 })
