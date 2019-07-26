@@ -1,15 +1,12 @@
 import { Decider, Decision } from '../../../types/ovm/decider.interface'
 import { Bucket, DB } from '../../../types/db'
-import { HashFunction } from './utils'
 import { Md5Hash } from '../../utils'
 
 export abstract class DbDecider implements Decider {
   private readonly decisionBucket: Bucket
-  private readonly keyGenerationFunction: HashFunction
 
-  protected constructor(db: DB, hashFunction: HashFunction = Md5Hash) {
+  protected constructor(db: DB) {
     this.decisionBucket = db.bucket(Buffer.from(this.getUniqueId()))
-    this.keyGenerationFunction = hashFunction
   }
 
   public async checkDecision(input: any): Promise<Decision> {
@@ -45,14 +42,14 @@ export abstract class DbDecider implements Decider {
    * @returns the computed cache key
    */
   private getCacheKey(input: any): Buffer {
-    return this.keyGenerationFunction(Buffer.from(JSON.stringify(input)))
+    return Md5Hash(Buffer.from(JSON.stringify(input)))
   }
 
   /********************
    * ABSTRACT METHODS *
    ********************/
 
-  public abstract decide(_input: any, _witness: any): Promise<Decision>
+  public abstract decide(input: any, witness: any): Promise<Decision>
 
   /**
    * Returns the unique ID of this Decider.

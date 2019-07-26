@@ -3,11 +3,11 @@ import { DB } from '../../../types/db'
 import { DbDecider } from './db-decider'
 import { CannotDecideError, HashFunction } from './utils'
 
-export interface HashPreimageInput {
+export interface HashInput {
   hash: Buffer
 }
 
-export interface HashPreimageWitness {
+export interface PreimageWitness {
   preimage: Buffer
 }
 
@@ -26,11 +26,10 @@ export class HashPreimageExistenceDecider extends DbDecider {
   }
 
   public async decide(
-    input: HashPreimageInput,
-    witness: HashPreimageWitness
+    input: HashInput,
+    witness: PreimageWitness
   ): Promise<Decision> {
-    const outcome =
-      this.hashFunction(Buffer.from(witness.preimage)) === input.hash
+    const outcome = this.hashFunction(witness.preimage).equals(input.hash)
 
     if (!outcome) {
       throw new CannotDecideError(
@@ -40,13 +39,13 @@ export class HashPreimageExistenceDecider extends DbDecider {
 
     const decision: Decision = this.constructDecision(
       witness.preimage,
-      outcome,
-      input.hash
+      input.hash,
+      outcome
     )
 
     await this.storeDecision(
       input,
-      HashPreimageExistenceDecider.serializeDecision(input, outcome, witness)
+      HashPreimageExistenceDecider.serializeDecision(witness, input, outcome)
     )
 
     return decision
@@ -60,23 +59,23 @@ export class HashPreimageExistenceDecider extends DbDecider {
     const json: any[] = JSON.parse(decision.toString())
     return this.constructDecision(
       Buffer.from(json[0]),
-      json[1],
-      Buffer.from(json[2])
+      Buffer.from(json[1]),
+      json[2]
     )
   }
 
   /**
    * Builds a Decision from the provided hash, outcome, and preimage
    *
+   * @param preimage being tested
    * @param hash the hash for the Decision calculation
    * @param outcome the outcome of the Decision
-   * @param preimage being tested
    * @returns the Decision
    */
   private constructDecision(
+    preimage: Buffer,
     hash: Buffer,
-    outcome: boolean,
-    preimage: Buffer
+    outcome: boolean
   ): Decision {
     return {
       outcome,
@@ -99,21 +98,21 @@ export class HashPreimageExistenceDecider extends DbDecider {
   /**
    * Creates the buffer to be stored for a Decision
    *
+   * @param witness the HashPreimageWitness
    * @param input the input that led to the Decision
    * @param outcome the outcome of the Decision
-   * @param witness the HashPreimageWitness
    * @returns the Buffer of the serialized data
    */
   private static serializeDecision(
-    input: HashPreimageInput,
-    outcome: boolean,
-    witness: HashPreimageWitness
+    witness: PreimageWitness,
+    input: HashInput,
+    outcome: boolean
   ): Buffer {
     return Buffer.from(
       JSON.stringify([
+        witness.preimage.toString(),
         input.hash.toString(),
         outcome,
-        witness.preimage.toString(),
       ])
     )
   }
