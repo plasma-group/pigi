@@ -34,10 +34,10 @@ export class AndDecider implements Decider {
 
     const justification: ImplicationProofItem[] = []
     if (!!leftDecision.justification.length) {
-      justification.concat(leftDecision.justification)
+      justification.push(...leftDecision.justification)
     }
     if (!!rightDecision.justification.length) {
-      justification.concat(rightDecision.justification)
+      justification.push(...rightDecision.justification)
     }
 
     return this.getDecision(input, { outcome: true, justification })

@@ -1,5 +1,25 @@
-import { Decider, Decision } from '../../../../src/types/ovm'
+import {
+  Decider,
+  Decision,
+  ImplicationProofItem,
+} from '../../../../src/types/ovm'
 import { CannotDecideError } from '../../../../src/app/ovm/deciders'
+
+const getJustification = (
+  decider: Decider,
+  input: any,
+  witness: any
+): ImplicationProofItem[] => {
+  return [
+    {
+      implication: {
+        decider,
+        input,
+      },
+      implicationWitness: witness,
+    },
+  ]
+}
 
 export class TrueDecider implements Decider {
   public async checkDecision(input: any): Promise<Decision> {
@@ -9,7 +29,7 @@ export class TrueDecider implements Decider {
   public async decide(input: any, witness: any): Promise<Decision> {
     return {
       outcome: true,
-      justification: [],
+      justification: getJustification(this, input, witness),
     }
   }
 }
@@ -22,7 +42,7 @@ export class FalseDecider implements Decider {
   public async decide(input: any, witness: any): Promise<Decision> {
     return {
       outcome: false,
-      justification: [],
+      justification: getJustification(this, input, witness),
     }
   }
 }
