@@ -47,6 +47,14 @@ export class AndDecider implements Decider {
     return this.decide(input, undefined)
   }
 
+  /**
+   * Gets the Decision that results from invocation of the And decider, which simply
+   * returns true if both sub-Decisions returned true.
+   *
+   * @param input The input that led to the Decision
+   * @param subDecision The decision of the wrapped Property, provided the witness
+   * @returns The Decision
+   */
   private getDecision(input: AndDeciderInput, subDecision: Decision): Decision {
     const justification: ImplicationProofItem[] = [
       {
