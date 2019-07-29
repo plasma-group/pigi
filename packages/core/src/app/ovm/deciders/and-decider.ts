@@ -1,9 +1,9 @@
 import {
   Decider,
   Decision,
-  ImplicationProofElement,
+  ImplicationProofItem,
   Property,
-} from '../../../types/ovm/decider.interface'
+} from '../../../types/ovm'
 
 export interface AndDeciderInput {
   left: Property
@@ -26,13 +26,13 @@ export class AndDecider implements Decider {
     ])
 
     if (!leftDecision.outcome) {
-      return leftDecision
+      return this.getDecision(input, leftDecision)
     }
     if (!rightDecision.outcome) {
-      return rightDecision
+      return this.getDecision(input, rightDecision)
     }
 
-    const justification: ImplicationProofElement[] = []
+    const justification: ImplicationProofItem[] = []
     if (!!leftDecision.justification.length) {
       justification.concat(leftDecision.justification)
     }
@@ -40,13 +40,28 @@ export class AndDecider implements Decider {
       justification.concat(rightDecision.justification)
     }
 
-    return {
-      outcome: true,
-      justification,
-    }
+    return this.getDecision(input, { outcome: true, justification })
   }
 
   public async checkDecision(input: AndDeciderInput): Promise<Decision> {
     return this.decide(input, undefined)
+  }
+
+  private getDecision(input: AndDeciderInput, subDecision: Decision): Decision {
+    const justification: ImplicationProofItem[] = [
+      {
+        implication: {
+          decider: this,
+          input,
+        },
+        implicationWitness: undefined,
+      },
+      ...subDecision.justification,
+    ]
+
+    return {
+      outcome: subDecision.outcome,
+      justification,
+    }
   }
 }

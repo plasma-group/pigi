@@ -1,8 +1,9 @@
 import {
   Decider,
   Decision,
+  ImplicationProofItem,
   Property,
-} from '../../../types/ovm/decider.interface'
+} from '../../../types/ovm'
 
 export interface NotDeciderInput {
   property: Property
@@ -22,16 +23,28 @@ export class NotDecider implements Decider {
       input.witness
     )
 
-    if (!decision) {
-      decision.outcome = true
-      return decision
-    }
-
-    decision.outcome = false
-    return decision
+    return this.getDecision(input, decision)
   }
 
   public async checkDecision(input: NotDeciderInput): Promise<Decision> {
     return this.decide(input, undefined)
+  }
+
+  private getDecision(input: NotDeciderInput, subDecision: Decision): Decision {
+    const justification: ImplicationProofItem[] = [
+      {
+        implication: {
+          decider: this,
+          input,
+        },
+        implicationWitness: undefined,
+      },
+      ...subDecision.justification,
+    ]
+
+    return {
+      outcome: !subDecision.outcome,
+      justification,
+    }
   }
 }
