@@ -104,15 +104,15 @@ describe('NotDecider', () => {
 
   describe('checkDecision', () => {
     it('should return true with false decision', async () => {
-      await testReturnTrueWithFalseDecision(true)
+      await testReturnTrueWithFalseDecision(false)
     })
 
     it('should return false with true decision', async () => {
-      await testReturnFalseWithTrueDecision(true)
+      await testReturnFalseWithTrueDecision(false)
     })
 
     it('should throw when cannot decide', async () => {
-      await testThrowWhenCannotDecide(true)
+      await testThrowWhenCannotDecide(false)
     })
   })
 })
