@@ -61,9 +61,7 @@ describe('ForAllSuchThatDecider', () => {
     decider = new ForAllSuchThatDecider()
   })
 
-  const testReturnTrueWithNoDeciders = async (
-    isDecide: boolean = true
-  ) => {
+  const testReturnTrueWithNoDeciders = async (isDecide: boolean = true) => {
     const input: ForAllSuchThatInput = {
       quantifier: getQuantifierThatReturns([], true),
       quantifierParameters: undefined,
@@ -204,7 +202,7 @@ describe('ForAllSuchThatDecider', () => {
     }
 
     try {
-      const decision: Decision = isDecide
+      isDecide
         ? await decider.decide(input, undefined)
         : await decider.checkDecision(input)
       assert(false, 'this should have thrown')
