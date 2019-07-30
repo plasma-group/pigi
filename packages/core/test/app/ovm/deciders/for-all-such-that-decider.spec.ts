@@ -6,7 +6,13 @@ import {
   CannotDecideError,
 } from '../../../../src/app/ovm/deciders'
 import { CannotDecideDecider, FalseDecider, TrueDecider } from './utils'
-import {Decision, Property, PropertyFactory, Quantifier, QuantifierResult} from '../../../../src/types/ovm'
+import {
+  Decision,
+  Property,
+  PropertyFactory,
+  Quantifier,
+  QuantifierResult,
+} from '../../../../src/types/ovm'
 import * as assert from 'assert'
 
 /*******************
@@ -14,23 +20,28 @@ import * as assert from 'assert'
  *******************/
 
 class DummyQuantifier implements Quantifier {
-  getAllQuantified(parameters: any): Promise<QuantifierResult> {
-    return undefined;
+  public async getAllQuantified(parameters: any): Promise<QuantifierResult> {
+    return undefined
   }
 }
 
-const getQuantifierThatReturns = (results: any[], allResultsQuantified: boolean): Quantifier => {
+const getQuantifierThatReturns = (
+  results: any[],
+  allResultsQuantified: boolean
+): Quantifier => {
   const quantifier: Quantifier = new DummyQuantifier()
   quantifier.getAllQuantified = async (params): Promise<QuantifierResult> => {
     return {
       results,
-      allResultsQuantified
+      allResultsQuantified,
     }
   }
   return quantifier
 }
 
-const getPropertyFactoryThatReturns = (properties: Property[]): PropertyFactory => {
+const getPropertyFactoryThatReturns = (
+  properties: Property[]
+): PropertyFactory => {
   return (input: any): Property => {
     return properties.shift()
   }
@@ -56,7 +67,9 @@ describe('ForAllSuchThatDecider', () => {
     const input: ForAllSuchThatInput = {
       quantifier: getQuantifierThatReturns([1], true),
       quantifierParameters: undefined,
-      propertyFactory: getPropertyFactoryThatReturns([{decider: trueDecider, input: undefined}])
+      propertyFactory: getPropertyFactoryThatReturns([
+        { decider: trueDecider, input: undefined },
+      ]),
     }
 
     const decision: Decision = isDecide
@@ -73,14 +86,13 @@ describe('ForAllSuchThatDecider', () => {
     isDecide: boolean = true
   ) => {
     const input: ForAllSuchThatInput = {
-      quantifier: getQuantifierThatReturns([1,2,3], true),
+      quantifier: getQuantifierThatReturns([1, 2, 3], true),
       quantifierParameters: undefined,
-      propertyFactory: getPropertyFactoryThatReturns(
-        [
-          {decider: trueDecider, input: undefined},
-          {decider: trueDecider, input: undefined},
-          {decider: trueDecider, input: undefined}
-        ])
+      propertyFactory: getPropertyFactoryThatReturns([
+        { decider: trueDecider, input: undefined },
+        { decider: trueDecider, input: undefined },
+        { decider: trueDecider, input: undefined },
+      ]),
     }
 
     const decision: Decision = isDecide
@@ -101,7 +113,9 @@ describe('ForAllSuchThatDecider', () => {
     const input: ForAllSuchThatInput = {
       quantifier: getQuantifierThatReturns([1], true),
       quantifierParameters: undefined,
-      propertyFactory: getPropertyFactoryThatReturns([{decider: falseDecider, input: undefined}])
+      propertyFactory: getPropertyFactoryThatReturns([
+        { decider: falseDecider, input: undefined },
+      ]),
     }
 
     const decision: Decision = isDecide
@@ -118,14 +132,13 @@ describe('ForAllSuchThatDecider', () => {
     isDecide: boolean = true
   ) => {
     const input: ForAllSuchThatInput = {
-      quantifier: getQuantifierThatReturns([1,2,3], true),
+      quantifier: getQuantifierThatReturns([1, 2, 3], true),
       quantifierParameters: undefined,
-      propertyFactory: getPropertyFactoryThatReturns(
-        [
-          {decider: trueDecider, input: undefined},
-          {decider: falseDecider, input: undefined},
-          {decider: trueDecider, input: undefined}
-        ])
+      propertyFactory: getPropertyFactoryThatReturns([
+        { decider: trueDecider, input: undefined },
+        { decider: falseDecider, input: undefined },
+        { decider: trueDecider, input: undefined },
+      ]),
     }
 
     const decision: Decision = isDecide
@@ -142,14 +155,13 @@ describe('ForAllSuchThatDecider', () => {
     isDecide: boolean = true
   ) => {
     const input: ForAllSuchThatInput = {
-      quantifier: getQuantifierThatReturns([1,2,3], true),
+      quantifier: getQuantifierThatReturns([1, 2, 3], true),
       quantifierParameters: undefined,
-      propertyFactory: getPropertyFactoryThatReturns(
-        [
-          {decider: trueDecider, input: undefined},
-          {decider: cannotDecideDecider, input: undefined},
-          {decider: falseDecider, input: undefined}
-        ])
+      propertyFactory: getPropertyFactoryThatReturns([
+        { decider: trueDecider, input: undefined },
+        { decider: cannotDecideDecider, input: undefined },
+        { decider: falseDecider, input: undefined },
+      ]),
     }
 
     const decision: Decision = isDecide
@@ -168,17 +180,22 @@ describe('ForAllSuchThatDecider', () => {
     const input: ForAllSuchThatInput = {
       quantifier: getQuantifierThatReturns([1], true),
       quantifierParameters: undefined,
-      propertyFactory: getPropertyFactoryThatReturns([{decider: cannotDecideDecider, input: undefined}])
+      propertyFactory: getPropertyFactoryThatReturns([
+        { decider: cannotDecideDecider, input: undefined },
+      ]),
     }
 
     try {
       const decision: Decision = isDecide
         ? await decider.decide(input, undefined)
         : await decider.checkDecision(input)
-      assert(false, "this should have thrown")
+      assert(false, 'this should have thrown')
     } catch (e) {
       if (!(e instanceof CannotDecideError)) {
-        assert(false, `CannotDecideError expected, but got ${JSON.stringify(e)}`)
+        assert(
+          false,
+          `CannotDecideError expected, but got ${JSON.stringify(e)}`
+        )
       }
     }
   }
@@ -187,24 +204,26 @@ describe('ForAllSuchThatDecider', () => {
     isDecide: boolean = true
   ) => {
     const input: ForAllSuchThatInput = {
-      quantifier: getQuantifierThatReturns([1,2,3], true),
+      quantifier: getQuantifierThatReturns([1, 2, 3], true),
       quantifierParameters: undefined,
-      propertyFactory: getPropertyFactoryThatReturns(
-        [
-        {decider: cannotDecideDecider, input: undefined},
-        {decider: cannotDecideDecider, input: undefined},
-        {decider: cannotDecideDecider, input: undefined}
-        ])
+      propertyFactory: getPropertyFactoryThatReturns([
+        { decider: cannotDecideDecider, input: undefined },
+        { decider: cannotDecideDecider, input: undefined },
+        { decider: cannotDecideDecider, input: undefined },
+      ]),
     }
 
     try {
       isDecide
         ? await decider.decide(input, undefined)
         : await decider.checkDecision(input)
-      assert(false, "this should have thrown")
+      assert(false, 'this should have thrown')
     } catch (e) {
       if (!(e instanceof CannotDecideError)) {
-        assert(false, `CannotDecideError expected, but got ${JSON.stringify(e)}`)
+        assert(
+          false,
+          `CannotDecideError expected, but got ${JSON.stringify(e)}`
+        )
       }
     }
   }
@@ -213,28 +232,29 @@ describe('ForAllSuchThatDecider', () => {
     isDecide: boolean = true
   ) => {
     const input: ForAllSuchThatInput = {
-      quantifier: getQuantifierThatReturns([1,2,3], true),
+      quantifier: getQuantifierThatReturns([1, 2, 3], true),
       quantifierParameters: undefined,
-      propertyFactory: getPropertyFactoryThatReturns(
-        [
-          {decider: trueDecider, input: undefined},
-          {decider: trueDecider, input: undefined},
-          {decider: cannotDecideDecider, input: undefined}
-        ])
+      propertyFactory: getPropertyFactoryThatReturns([
+        { decider: trueDecider, input: undefined },
+        { decider: trueDecider, input: undefined },
+        { decider: cannotDecideDecider, input: undefined },
+      ]),
     }
 
     try {
       isDecide
         ? await decider.decide(input, undefined)
         : await decider.checkDecision(input)
-      assert(false, "this should have thrown")
+      assert(false, 'this should have thrown')
     } catch (e) {
       if (!(e instanceof CannotDecideError)) {
-        assert(false, `CannotDecideError expected, but got ${JSON.stringify(e)}`)
+        assert(
+          false,
+          `CannotDecideError expected, but got ${JSON.stringify(e)}`
+        )
       }
     }
   }
-
 
   describe('decide', () => {
     it('should return true with single true decision', async () => {
@@ -268,7 +288,6 @@ describe('ForAllSuchThatDecider', () => {
     it('should throw undecided with single undecided in multiple true', async () => {
       await testCannotDecideWithSingleUndecidedInMultipleDecidersWithTrueDecisions()
     })
-
   })
 
   describe('checkDecision', () => {
@@ -289,7 +308,9 @@ describe('ForAllSuchThatDecider', () => {
     })
 
     it('should return false with a single false decision in multiple deciders, some undecided', async () => {
-      await testFalseWithSingleFalseInMultipleDecidersWithTrueAndUndecided(false)
+      await testFalseWithSingleFalseInMultipleDecidersWithTrueAndUndecided(
+        false
+      )
     })
 
     it('should throw undecided with single undecided', async () => {
@@ -301,7 +322,9 @@ describe('ForAllSuchThatDecider', () => {
     })
 
     it('should throw undecided with single undecided in multiple true', async () => {
-      await testCannotDecideWithSingleUndecidedInMultipleDecidersWithTrueDecisions(false)
+      await testCannotDecideWithSingleUndecidedInMultipleDecidersWithTrueDecisions(
+        false
+      )
     })
   })
 })

@@ -30,7 +30,7 @@ export class ForAllSuchThatDecider implements Decider {
 
     let anyUndecided: boolean = false
     let falseDecision: Decision
-    let trueDecisions: Decision[] = []
+    const trueDecisions: Decision[] = []
     for (const res of quantifierResult.results) {
       const prop: Property = input.propertyFactory(res)
       try {
