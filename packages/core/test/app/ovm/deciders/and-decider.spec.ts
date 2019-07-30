@@ -253,31 +253,31 @@ describe('AndDecider', () => {
 
   describe('checkDecision', () => {
     it('should return true with two true decisions', async () => {
-      await testReturnTrueWithTwoTrueDecisions(true)
+      await testReturnTrueWithTwoTrueDecisions(false)
     })
 
     it('should return false with left false', async () => {
-      await testReturnFalseWhenLeftIsFalse(true)
+      await testReturnFalseWhenLeftIsFalse(false)
     })
 
     it('should return false with right false', async () => {
-      await testReturnFalseWhenRightIsFalse(true)
+      await testReturnFalseWhenRightIsFalse(false)
     })
 
     it('should return false with both false', async () => {
-      await testReturnFalseWhenBothAreFalse(true)
+      await testReturnFalseWhenBothAreFalse(false)
     })
 
     it('should throw when left cannot decide', async () => {
-      await testThrowWhenLeftCannotDecide(true)
+      await testThrowWhenLeftCannotDecide(false)
     })
 
     it('should throw when right cannot decide', async () => {
-      await testThrowWhenRightCannotDecide(true)
+      await testThrowWhenRightCannotDecide(false)
     })
 
     it('should throw when both cannot decide', async () => {
-      await testThrowWhenBothCannotDecide(true)
+      await testThrowWhenBothCannotDecide(false)
     })
   })
 })
