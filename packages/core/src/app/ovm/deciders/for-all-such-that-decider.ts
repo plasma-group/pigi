@@ -30,6 +30,7 @@ export class ForAllSuchThatDecider implements Decider {
 
     let anyUndecided: boolean = false
     let falseDecision: Decision
+    let trueDecisions: Decision[] = []
     for (const res of quantifierResult.results) {
       const prop: Property = input.propertyFactory(res)
       try {
@@ -38,6 +39,7 @@ export class ForAllSuchThatDecider implements Decider {
           falseDecision = decision
           break
         }
+        trueDecisions.push(decision)
       } catch (e) {
         if (e instanceof CannotDecideError) {
           anyUndecided = true
@@ -50,6 +52,7 @@ export class ForAllSuchThatDecider implements Decider {
     return this.getDecision(
       input,
       falseDecision,
+      trueDecisions,
       anyUndecided || !quantifierResult.allResultsQuantified
     )
   }
@@ -63,12 +66,14 @@ export class ForAllSuchThatDecider implements Decider {
    *
    * @param input The input that led to the Decision
    * @param falseDecision A [possibly undefined] Decision failing this Decider to be used as proof
+   * @param trueDecisions An array of true Decisions to use as justification for this Decider returning True.
    * @param undecided Whether or not some results of this Decider are undecided
    * @returns The Decision.
    */
   private getDecision(
     input: ForAllSuchThatInput,
     falseDecision: Decision,
+    trueDecisions: Decision[],
     undecided: boolean
   ): Decision {
     if (!falseDecision && undecided) {
@@ -88,6 +93,10 @@ export class ForAllSuchThatDecider implements Decider {
 
     if (!!falseDecision) {
       justification.push(...falseDecision.justification)
+    } else {
+      for (const decision of trueDecisions) {
+        justification.push(...decision.justification)
+      }
     }
 
     return {
