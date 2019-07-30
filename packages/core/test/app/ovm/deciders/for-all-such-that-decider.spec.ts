@@ -61,6 +61,24 @@ describe('ForAllSuchThatDecider', () => {
     decider = new ForAllSuchThatDecider()
   })
 
+  const testReturnTrueWithNoDeciders = async (
+    isDecide: boolean = true
+  ) => {
+    const input: ForAllSuchThatInput = {
+      quantifier: getQuantifierThatReturns([], true),
+      quantifierParameters: undefined,
+      propertyFactory: getPropertyFactoryThatReturns([]),
+    }
+
+    const decision: Decision = isDecide
+      ? await decider.decide(input, undefined)
+      : await decider.checkDecision(input)
+
+    decision.outcome.should.eq(true)
+    decision.justification.length.should.eq(1)
+    decision.justification[0].implication.decider.should.eq(decider)
+  }
+
   const testReturnTrueWithASingleTrueDecider = async (
     isDecide: boolean = true
   ) => {
@@ -257,6 +275,10 @@ describe('ForAllSuchThatDecider', () => {
   }
 
   describe('decide', () => {
+    it('should return true with 0 decisions', async () => {
+      await testReturnTrueWithNoDeciders()
+    })
+
     it('should return true with single true decision', async () => {
       await testReturnTrueWithASingleTrueDecider()
     })
@@ -291,6 +313,10 @@ describe('ForAllSuchThatDecider', () => {
   })
 
   describe('checkDecision', () => {
+    it('should return true with 0 decisions', async () => {
+      await testReturnTrueWithNoDeciders(false)
+    })
+
     it('should return true with single true decision', async () => {
       await testReturnTrueWithASingleTrueDecider(false)
     })
