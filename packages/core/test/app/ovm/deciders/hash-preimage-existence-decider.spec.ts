@@ -85,12 +85,19 @@ describe('HashPreimageExistenceDecider', () => {
       memdown = undefined
     })
 
-    it('should not return anything if no decision', async () => {
-      assert(
-        (await decider.checkDecision({ hash })) === undefined,
-        '' +
+    it('should throw if no decision', async () => {
+      try {
+        await decider.checkDecision({ hash })
+        assert(
+          false,
           'No decision should exist for input on which a decision has not been made.'
-      )
+        )
+      } catch (e) {
+        assert(
+          e instanceof CannotDecideError,
+          `Expected error, but not ${JSON.stringify(e)}`
+        )
+      }
     })
 
     it('should not return anything if no decision with previous attempt', async () => {
@@ -100,10 +107,18 @@ describe('HashPreimageExistenceDecider', () => {
         // No-Op
       }
 
-      assert(
-        (await decider.checkDecision({ hash })) === undefined,
-        'No decision should exist for input on which a decision has not been made.'
-      )
+      try {
+        await decider.checkDecision({ hash })
+        assert(
+          false,
+          'No decision should exist for input on which a decision has not been made.'
+        )
+      } catch (e) {
+        assert(
+          e instanceof CannotDecideError,
+          `Expected error, but not ${JSON.stringify(e)}`
+        )
+      }
     })
 
     it('should return Decisions that have been made', async () => {

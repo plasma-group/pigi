@@ -6,6 +6,7 @@ import {
   PropertyFactory,
   Quantifier,
   QuantifierResult,
+  WitnessFactory,
 } from '../../../types/ovm'
 import { CannotDecideError } from './utils'
 
@@ -13,6 +14,7 @@ export interface ForAllSuchThatInput {
   quantifier: Quantifier
   quantifierParameters: any
   propertyFactory: PropertyFactory
+  witnessFactory: WitnessFactory | undefined
 }
 
 /**
@@ -22,7 +24,7 @@ export interface ForAllSuchThatInput {
 export class ForAllSuchThatDecider implements Decider {
   public async decide(
     input: ForAllSuchThatInput,
-    witness: undefined
+    _witness: undefined
   ): Promise<Decision> {
     const quantifierResult: QuantifierResult = await input.quantifier.getAllQuantified(
       input.quantifierParameters
@@ -33,8 +35,11 @@ export class ForAllSuchThatDecider implements Decider {
     const trueDecisions: Decision[] = []
     for (const res of quantifierResult.results) {
       const prop: Property = input.propertyFactory(res)
+      const witness: any = !!input.witnessFactory
+        ? input.witnessFactory(res)
+        : undefined
       try {
-        const decision: Decision = await prop.decider.decide(input, undefined)
+        const decision: Decision = await prop.decider.decide(input, witness)
         if (!decision.outcome) {
           falseDecision = decision
           break

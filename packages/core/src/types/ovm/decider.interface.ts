@@ -11,6 +11,7 @@ export interface Property {
 }
 
 export type PropertyFactory = (input: any) => Property
+export type WitnessFactory = (input: any) => any
 
 export interface ImplicationProofItem {
   implication: Property

@@ -12,6 +12,7 @@ import {
   PropertyFactory,
   Quantifier,
   QuantifierResult,
+  WitnessFactory,
 } from '../../../../src/types/ovm'
 import * as assert from 'assert'
 
@@ -47,6 +48,8 @@ const getPropertyFactoryThatReturns = (
   }
 }
 
+const undefinedWitnessFactory = (input: any) => undefined
+
 /*********
  * TESTS *
  *********/
@@ -66,6 +69,24 @@ describe('ForAllSuchThatDecider', () => {
       quantifier: getQuantifierThatReturns([], true),
       quantifierParameters: undefined,
       propertyFactory: getPropertyFactoryThatReturns([]),
+      witnessFactory: undefinedWitnessFactory,
+    }
+
+    const decision: Decision = isDecide
+      ? await decider.decide(input, undefined)
+      : await decider.checkDecision(input)
+
+    decision.outcome.should.eq(true)
+    decision.justification.length.should.eq(1)
+    decision.justification[0].implication.decider.should.eq(decider)
+  }
+
+  const testUndefinedWitnessFactory = async (isDecide: boolean = true) => {
+    const input: ForAllSuchThatInput = {
+      quantifier: getQuantifierThatReturns([], true),
+      quantifierParameters: undefined,
+      propertyFactory: getPropertyFactoryThatReturns([]),
+      witnessFactory: undefined,
     }
 
     const decision: Decision = isDecide
@@ -86,6 +107,7 @@ describe('ForAllSuchThatDecider', () => {
       propertyFactory: getPropertyFactoryThatReturns([
         { decider: trueDecider, input: undefined },
       ]),
+      witnessFactory: undefinedWitnessFactory,
     }
 
     const decision: Decision = isDecide
@@ -109,6 +131,7 @@ describe('ForAllSuchThatDecider', () => {
         { decider: trueDecider, input: undefined },
         { decider: trueDecider, input: undefined },
       ]),
+      witnessFactory: undefinedWitnessFactory,
     }
 
     const decision: Decision = isDecide
@@ -132,6 +155,7 @@ describe('ForAllSuchThatDecider', () => {
       propertyFactory: getPropertyFactoryThatReturns([
         { decider: falseDecider, input: undefined },
       ]),
+      witnessFactory: undefinedWitnessFactory,
     }
 
     const decision: Decision = isDecide
@@ -155,6 +179,7 @@ describe('ForAllSuchThatDecider', () => {
         { decider: falseDecider, input: undefined },
         { decider: trueDecider, input: undefined },
       ]),
+      witnessFactory: undefinedWitnessFactory,
     }
 
     const decision: Decision = isDecide
@@ -178,6 +203,7 @@ describe('ForAllSuchThatDecider', () => {
         { decider: cannotDecideDecider, input: undefined },
         { decider: falseDecider, input: undefined },
       ]),
+      witnessFactory: undefinedWitnessFactory,
     }
 
     const decision: Decision = isDecide
@@ -199,6 +225,7 @@ describe('ForAllSuchThatDecider', () => {
       propertyFactory: getPropertyFactoryThatReturns([
         { decider: cannotDecideDecider, input: undefined },
       ]),
+      witnessFactory: undefinedWitnessFactory,
     }
 
     try {
@@ -227,6 +254,7 @@ describe('ForAllSuchThatDecider', () => {
         { decider: cannotDecideDecider, input: undefined },
         { decider: cannotDecideDecider, input: undefined },
       ]),
+      witnessFactory: undefinedWitnessFactory,
     }
 
     try {
@@ -255,6 +283,7 @@ describe('ForAllSuchThatDecider', () => {
         { decider: trueDecider, input: undefined },
         { decider: cannotDecideDecider, input: undefined },
       ]),
+      witnessFactory: undefinedWitnessFactory,
     }
 
     try {
@@ -272,9 +301,95 @@ describe('ForAllSuchThatDecider', () => {
     }
   }
 
+  const testCannotDecideWhenNotAllResultsQuantifiedAndTrueDecisions = async (
+    isDecide: boolean = true
+  ) => {
+    const input: ForAllSuchThatInput = {
+      quantifier: getQuantifierThatReturns([1, 2, 3], false),
+      quantifierParameters: undefined,
+      propertyFactory: getPropertyFactoryThatReturns([
+        { decider: trueDecider, input: undefined },
+        { decider: trueDecider, input: undefined },
+        { decider: trueDecider, input: undefined },
+      ]),
+      witnessFactory: undefinedWitnessFactory,
+    }
+
+    try {
+      isDecide
+        ? await decider.decide(input, undefined)
+        : await decider.checkDecision(input)
+      assert(false, 'this should have thrown')
+    } catch (e) {
+      if (!(e instanceof CannotDecideError)) {
+        assert(
+          false,
+          `CannotDecideError expected, but got ${JSON.stringify(e)}`
+        )
+      }
+    }
+  }
+
+  const testCannotDecideWhenNotAllResultsQuantifiedAndUndecidedAndTrueDecisions = async (
+    isDecide: boolean = true
+  ) => {
+    const input: ForAllSuchThatInput = {
+      quantifier: getQuantifierThatReturns([1, 2, 3], false),
+      quantifierParameters: undefined,
+      propertyFactory: getPropertyFactoryThatReturns([
+        { decider: trueDecider, input: undefined },
+        { decider: cannotDecideDecider, input: undefined },
+        { decider: trueDecider, input: undefined },
+      ]),
+      witnessFactory: undefinedWitnessFactory,
+    }
+
+    try {
+      isDecide
+        ? await decider.decide(input, undefined)
+        : await decider.checkDecision(input)
+      assert(false, 'this should have thrown')
+    } catch (e) {
+      if (!(e instanceof CannotDecideError)) {
+        assert(
+          false,
+          `CannotDecideError expected, but got ${JSON.stringify(e)}`
+        )
+      }
+    }
+  }
+
+  const testFalseWhenNotAllResultsQuantifiedAndFalseDecision = async (
+    isDecide: boolean = true
+  ) => {
+    const input: ForAllSuchThatInput = {
+      quantifier: getQuantifierThatReturns([1, 2, 3], false),
+      quantifierParameters: undefined,
+      propertyFactory: getPropertyFactoryThatReturns([
+        { decider: trueDecider, input: undefined },
+        { decider: cannotDecideDecider, input: undefined },
+        { decider: falseDecider, input: undefined },
+      ]),
+      witnessFactory: undefinedWitnessFactory,
+    }
+
+    const decision: Decision = isDecide
+      ? await decider.decide(input, undefined)
+      : await decider.checkDecision(input)
+
+    decision.outcome.should.eq(false)
+    decision.justification.length.should.eq(2)
+    decision.justification[0].implication.decider.should.eq(decider)
+    decision.justification[1].implication.decider.should.eq(falseDecider)
+  }
+
   describe('decide', () => {
     it('should return true with 0 decisions', async () => {
       await testReturnTrueWithNoDeciders()
+    })
+
+    it('should work with undefined witness factory', async () => {
+      await testUndefinedWitnessFactory()
     })
 
     it('should return true with single true decision', async () => {
@@ -308,11 +423,27 @@ describe('ForAllSuchThatDecider', () => {
     it('should throw undecided with single undecided in multiple true', async () => {
       await testCannotDecideWithSingleUndecidedInMultipleDecidersWithTrueDecisions()
     })
+
+    it('should throw undecided with true decisions when not all results quantified', async () => {
+      await testCannotDecideWhenNotAllResultsQuantifiedAndTrueDecisions()
+    })
+
+    it('should throw undecided with true and undecided decisions when not all results quantified', async () => {
+      await testCannotDecideWhenNotAllResultsQuantifiedAndUndecidedAndTrueDecisions()
+    })
+
+    it('should decide false with any false decision when not all results quantified', async () => {
+      await testFalseWhenNotAllResultsQuantifiedAndFalseDecision()
+    })
   })
 
   describe('checkDecision', () => {
     it('should return true with 0 decisions', async () => {
       await testReturnTrueWithNoDeciders(false)
+    })
+
+    it('should work with undefined witness factory', async () => {
+      await testUndefinedWitnessFactory(false)
     })
 
     it('should return true with single true decision', async () => {
@@ -349,6 +480,20 @@ describe('ForAllSuchThatDecider', () => {
       await testCannotDecideWithSingleUndecidedInMultipleDecidersWithTrueDecisions(
         false
       )
+    })
+
+    it('should throw undecided with true decisions when not all results quantified', async () => {
+      await testCannotDecideWhenNotAllResultsQuantifiedAndTrueDecisions(false)
+    })
+
+    it('should throw undecided with true and undecided decisions when not all results quantified', async () => {
+      await testCannotDecideWhenNotAllResultsQuantifiedAndUndecidedAndTrueDecisions(
+        false
+      )
+    })
+
+    it('should decide false with any false decision when not all results quantified', async () => {
+      await testFalseWhenNotAllResultsQuantifiedAndFalseDecision(false)
     })
   })
 })

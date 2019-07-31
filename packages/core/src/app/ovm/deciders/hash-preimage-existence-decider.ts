@@ -25,7 +25,7 @@ export class HashPreimageExistenceDecider extends KeyValueStoreDecider {
     this.hashFunction = hashFunction
   }
 
-  public async decide(
+  protected async makeDecision(
     input: HashInput,
     witness: PreimageWitness
   ): Promise<Decision> {
