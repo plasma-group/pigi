@@ -37,18 +37,16 @@ export class HashPreimageExistenceDecider extends KeyValueStoreDecider {
       )
     }
 
-    const decision: Decision = this.constructDecision(
-      witness.preimage,
-      input.hash,
-      outcome
-    )
-
     await this.storeDecision(
       input,
       HashPreimageExistenceDecider.serializeDecision(witness, input, outcome)
     )
 
-    return decision
+    return this.constructDecision(
+      witness.preimage,
+      input.hash,
+      outcome
+    )
   }
 
   protected getUniqueId(): string {
