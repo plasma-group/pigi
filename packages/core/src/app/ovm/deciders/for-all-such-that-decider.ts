@@ -41,7 +41,7 @@ export class ForAllSuchThatDecider implements Decider {
         : undefined
       try {
         const decision: Decision = await prop.decider.decide(
-          input,
+          prop.input,
           witness,
           cached
         )
