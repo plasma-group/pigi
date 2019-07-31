@@ -39,16 +39,19 @@ export class ForAllSuchThatDecider implements Decider {
       const witness: any = !!input.witnessFactory
         ? input.witnessFactory(res)
         : undefined
+
       try {
         const decision: Decision = await prop.decider.decide(
           prop.input,
           witness,
           cached
         )
+
         if (!decision.outcome) {
           falseDecision = decision
           break
         }
+
         trueDecisions.push(decision)
       } catch (e) {
         if (e instanceof CannotDecideError) {

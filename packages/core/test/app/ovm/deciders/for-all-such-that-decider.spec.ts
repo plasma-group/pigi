@@ -12,7 +12,6 @@ import {
   PropertyFactory,
   Quantifier,
   QuantifierResult,
-  WitnessFactory,
 } from '../../../../src/types/ovm'
 import * as assert from 'assert'
 

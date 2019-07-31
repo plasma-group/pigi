@@ -7,11 +7,7 @@ import {
 } from '../../../../src/app/ovm/deciders'
 import { BaseDB } from '../../../../src/app/db'
 import { Md5Hash } from '../../../../src/app/utils'
-import {
-  Decider,
-  Decision,
-  ImplicationProofItem,
-} from '../../../../src/types/ovm/decider.interface'
+import { Decision, ImplicationProofItem } from '../../../../src/types/ovm'
 import * as assert from 'assert'
 import { DB } from '../../../../src/types/db'
 
