@@ -24,7 +24,8 @@ export interface ForAllSuchThatInput {
 export class ForAllSuchThatDecider implements Decider {
   public async decide(
     input: ForAllSuchThatInput,
-    _witness: undefined
+    _witness: undefined,
+    cached: boolean = true
   ): Promise<Decision> {
     const quantifierResult: QuantifierResult = await input.quantifier.getAllQuantified(
       input.quantifierParameters
@@ -39,7 +40,11 @@ export class ForAllSuchThatDecider implements Decider {
         ? input.witnessFactory(res)
         : undefined
       try {
-        const decision: Decision = await prop.decider.decide(input, witness)
+        const decision: Decision = await prop.decider.decide(
+          input,
+          witness,
+          cached
+        )
         if (!decision.outcome) {
           falseDecision = decision
           break

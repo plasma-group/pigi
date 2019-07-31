@@ -32,16 +32,17 @@ export interface Decision {
  */
 export interface Decider {
   /**
-   * Makes a Decision on the provided input
-   * @param input
-   * @param witness
+   * Makes a Decision on the provided input.
+   * @param input The input on which a decision is being made
+   * @param witness The evidence for the decision
+   * @param cached Whether or not the caller allows a cached result
    */
-  decide(input: any, witness: any): Promise<Decision>
+  decide(input: any, witness: any, cached: boolean): Promise<Decision>
 
   /**
    * Checks whether or not a decision has been made for the provided Input
    * Note: This should access a cache decisions that have been made
-   * @param input
+   * @param input The input on which a decision is being made
    * @returns the Decision that was made, if one was made.
    */
   checkDecision(input: any): Promise<Decision>

@@ -16,11 +16,13 @@ export interface NotDeciderInput {
 export class NotDecider implements Decider {
   public async decide(
     input: NotDeciderInput,
-    witness: undefined
+    witness: undefined,
+    cached: boolean = true
   ): Promise<Decision> {
     const decision: Decision = await input.property.decider.decide(
       input.property.input,
-      input.witness
+      input.witness,
+      cached
     )
 
     return this.getDecision(input, decision)

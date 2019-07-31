@@ -29,7 +29,7 @@ describe('HashPreimageExistenceDecider', () => {
   })
 
   describe('decide', () => {
-    let decider: Decider
+    let decider: HashPreimageExistenceDecider
     let db: DB
     let memdown: any
 
@@ -70,7 +70,7 @@ describe('HashPreimageExistenceDecider', () => {
   })
 
   describe('checkDecision', () => {
-    let decider: Decider
+    let decider: HashPreimageExistenceDecider
     let db: DB
     let memdown: any
 

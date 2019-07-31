@@ -10,15 +10,22 @@ export abstract class KeyValueStoreDecider implements Decider {
     this.decisionBucket = db.bucket(Buffer.from(this.getUniqueId()))
   }
 
-  public async decide(input: any, witness: any): Promise<Decision> {
-    try {
-      return await this.checkDecision(input)
-    } catch (e) {
-      if (e instanceof CannotDecideError) {
-        return this.makeDecision(input, witness)
+  public async decide(
+    input: any,
+    witness: any,
+    cached: boolean = true
+  ): Promise<Decision> {
+    if (cached) {
+      try {
+        return await this.checkDecision(input)
+      } catch (e) {
+        if (!(e instanceof CannotDecideError)) {
+          throw e
+        }
       }
-      throw e
     }
+
+    return this.makeDecision(input, witness)
   }
 
   public async checkDecision(input: any): Promise<Decision> {
