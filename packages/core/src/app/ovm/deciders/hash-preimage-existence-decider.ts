@@ -42,11 +42,7 @@ export class HashPreimageExistenceDecider extends KeyValueStoreDecider {
       HashPreimageExistenceDecider.serializeDecision(witness, input, outcome)
     )
 
-    return this.constructDecision(
-      witness.preimage,
-      input.hash,
-      outcome
-    )
+    return this.constructDecision(witness.preimage, input.hash, outcome)
   }
 
   protected getUniqueId(): string {

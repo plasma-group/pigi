@@ -1,8 +1,6 @@
-import {
-  Decision,
-  } from '../../../types/ovm'
-import {KeyValueStoreDecider} from "./key-value-store-decider";
-import {DB} from "../../../types/db";
+import { Decision } from '../../../types/ovm'
+import { KeyValueStoreDecider } from './key-value-store-decider'
+import { DB } from '../../../types/db'
 
 export interface SignedByInput {
   publicKey: Buffer
@@ -13,7 +11,11 @@ export interface SignedByWitness {
   signature: Buffer
 }
 
-export type SignatureVerifier = (publicKey: Buffer, message: Buffer, signature: Buffer) => Promise<boolean>
+export type SignatureVerifier = (
+  publicKey: Buffer,
+  message: Buffer,
+  signature: Buffer
+) => Promise<boolean>
 
 /**
  * Decider that determines whether the provided witness is the provided message signed by
@@ -34,7 +36,11 @@ export class SignedByDecider extends KeyValueStoreDecider {
     input: SignedByInput,
     witness: SignedByWitness
   ): Promise<Decision> {
-    const signatureMatches: boolean = await this.signatureVerifier(input.publicKey, input.message, witness.signature)
+    const signatureMatches: boolean = await this.signatureVerifier(
+      input.publicKey,
+      input.message,
+      witness.signature
+    )
 
     if (signatureMatches) {
       await this.storeDecision(
@@ -88,14 +94,14 @@ export class SignedByDecider extends KeyValueStoreDecider {
             decider: this,
             input: {
               publicKey,
-              message
-            }
+              message,
+            },
           },
           implicationWitness: {
-            signature
-          }
-        }
-      ]
+            signature,
+          },
+        },
+      ],
     }
   }
 
@@ -122,5 +128,3 @@ export class SignedByDecider extends KeyValueStoreDecider {
     )
   }
 }
-
-
