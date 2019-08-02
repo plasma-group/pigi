@@ -1,6 +1,5 @@
 import '../../../setup'
 
-import * as assert from 'assert'
 import {
   Message,
   MessageDB,
