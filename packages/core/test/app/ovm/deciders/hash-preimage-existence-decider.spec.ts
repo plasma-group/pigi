@@ -7,11 +7,7 @@ import {
 } from '../../../../src/app/ovm/deciders'
 import { BaseDB } from '../../../../src/app/db'
 import { Md5Hash } from '../../../../src/app/utils'
-import {
-  Decider,
-  Decision,
-  ImplicationProofItem,
-} from '../../../../src/types/ovm/decider.interface'
+import { Decision, ImplicationProofItem } from '../../../../src/types/ovm'
 import * as assert from 'assert'
 import { DB } from '../../../../src/types/db'
 
@@ -69,7 +65,7 @@ describe('HashPreimageExistenceDecider', () => {
     })
   })
 
-  describe('checkDecision', () => {
+  describe('decide with cache', () => {
     let decider: HashPreimageExistenceDecider
     let db: DB
     let memdown: any
@@ -87,7 +83,7 @@ describe('HashPreimageExistenceDecider', () => {
 
     it('should throw if no decision', async () => {
       try {
-        await decider.checkDecision({ hash })
+        await decider.decide({ hash })
         assert(
           false,
           'No decision should exist for input on which a decision has not been made.'
@@ -95,7 +91,7 @@ describe('HashPreimageExistenceDecider', () => {
       } catch (e) {
         assert(
           e instanceof CannotDecideError,
-          `Expected error, but not ${JSON.stringify(e)}`
+          `Expected error, but got ${JSON.stringify(e)}`
         )
       }
     })
@@ -108,7 +104,7 @@ describe('HashPreimageExistenceDecider', () => {
       }
 
       try {
-        await decider.checkDecision({ hash })
+        await decider.decide({ hash })
         assert(
           false,
           'No decision should exist for input on which a decision has not been made.'
@@ -123,7 +119,7 @@ describe('HashPreimageExistenceDecider', () => {
 
     it('should return Decisions that have been made', async () => {
       await decider.decide({ hash }, { preimage })
-      const checkedDecision: Decision = await decider.checkDecision({ hash })
+      const checkedDecision: Decision = await decider.decide({ hash })
 
       checkedDecision.outcome.should.equal(true)
       checkedDecision.justification.length.should.equal(1)
@@ -149,7 +145,7 @@ describe('HashPreimageExistenceDecider', () => {
       await decider.decide({ hash }, { preimage })
       await decider.decide({ hash: secondHash }, { preimage: secondPreimage })
 
-      const checkedDecision: Decision = await decider.checkDecision({ hash })
+      const checkedDecision: Decision = await decider.decide({ hash })
 
       checkedDecision.outcome.should.equal(true)
       checkedDecision.justification.length.should.equal(1)
@@ -165,7 +161,7 @@ describe('HashPreimageExistenceDecider', () => {
         'decided preimage is not what it should be'
       )
 
-      const secondCheckedDecision: Decision = await decider.checkDecision({
+      const secondCheckedDecision: Decision = await decider.decide({
         hash: secondHash,
       })
 

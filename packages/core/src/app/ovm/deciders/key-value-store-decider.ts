@@ -12,10 +12,10 @@ export abstract class KeyValueStoreDecider implements Decider {
 
   public async decide(
     input: any,
-    witness: any,
-    cached: boolean = true
+    witness?: any,
+    noCache?: boolean
   ): Promise<Decision> {
-    if (cached) {
+    if (!noCache) {
       try {
         return await this.checkDecision(input)
       } catch (e) {
@@ -28,11 +28,11 @@ export abstract class KeyValueStoreDecider implements Decider {
     return this.makeDecision(input, witness)
   }
 
-  public async checkDecision(input: any): Promise<Decision> {
+  private async checkDecision(input: any): Promise<Decision> {
     const hash: Buffer = this.getCacheKey(input)
     const decisionBuffer: Buffer = await this.decisionBucket.get(hash)
 
-    if (decisionBuffer === null) {
+    if (decisionBuffer === null || decisionBuffer === undefined) {
       throw new CannotDecideError('No decision was made!')
     }
 
