@@ -13,6 +13,7 @@ import {
   SignatureVerifier,
   SignedByDecider,
 } from '../../../../src/app/ovm/deciders/signed-by-decider'
+import { CannotDecideError } from '../../../../src/app/ovm/deciders'
 
 describe('SignedByDecider', () => {
   const publicKey: Buffer = Buffer.from('key')
@@ -128,7 +129,7 @@ describe('SignedByDecider', () => {
       justification.implication.input['message'].should.equal(message)
       justification.implicationWitness['signature'].should.equal(signature)
 
-      const checkedDecision: Decision = await decider.checkDecision({
+      const checkedDecision: Decision = await decider.decide({
         publicKey,
         message,
       })
@@ -148,7 +149,7 @@ describe('SignedByDecider', () => {
       )
     })
 
-    it('should return undefined when signature is not verified', async () => {
+    it('should return false  when signature is not verified', async () => {
       decider = new SignedByDecider(db, falseSignatureVerifier)
       const decision: Decision = await decider.decide(
         { publicKey, message },
@@ -164,12 +165,14 @@ describe('SignedByDecider', () => {
       justification.implication.input['message'].should.equal(message)
       justification.implicationWitness['signature'].should.equal(signature)
 
-      const checkedDecision: Decision = await decider.checkDecision({
-        publicKey,
-        message,
-      })
-
-      assert(checkedDecision === undefined)
+      try {
+        await decider.decide({ publicKey, message })
+        assert(false, 'This should have thrown a CannotDecideError.')
+      } catch (e) {
+        if (!(e instanceof CannotDecideError)) {
+          throw Error(`Expected CannotDecideError. Got: ${e}`)
+        }
+      }
     })
   })
 })

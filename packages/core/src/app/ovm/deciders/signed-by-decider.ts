@@ -1,6 +1,7 @@
 import { Decision } from '../../../types/ovm'
 import { KeyValueStoreDecider } from './key-value-store-decider'
 import { DB } from '../../../types/db'
+import { CannotDecideError } from './utils'
 
 export interface SignedByInput {
   publicKey: Buffer
@@ -32,10 +33,16 @@ export class SignedByDecider extends KeyValueStoreDecider {
     this.signatureVerifier = signatureVerifier
   }
 
-  public async decide(
+  public async makeDecision(
     input: SignedByInput,
     witness: SignedByWitness
   ): Promise<Decision> {
+    if (!witness) {
+      throw new CannotDecideError(
+        'Cannot decide whether message was signed without witness.'
+      )
+    }
+
     const signatureMatches: boolean = await this.signatureVerifier(
       input.publicKey,
       input.message,
