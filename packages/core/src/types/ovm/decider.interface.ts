@@ -32,18 +32,18 @@ export interface Decision {
  */
 export interface Decider {
   /**
-   * Makes a Decision on the provided input.
+   * Makes a Decision on the provided input, given the provided witness.
+   *
+   * If this Decider is capable of caching and the noCache flag is not set,
+   * it will first check to see if a decision has already been made on this input.
+   * If this Decider is capable of caching and the noCache flag is set,
+   * it will make the Decision, if possible, and overwrite the cache.
+   *
    * @param input The input on which a decision is being made
-   * @param witness The evidence for the decision
-   * @param cached Whether or not the caller allows a cached result
+   * @param witness [optional] The evidence for the decision if not relying on cached decisions
+   * @param noCache [optional] Flag set when caching should not be used.
+   * @returns the Decision that was made if one was possible
+   * @throws CannotDecideError if it cannot decide.
    */
-  decide(input: any, witness: any, cached: boolean): Promise<Decision>
-
-  /**
-   * Checks whether or not a decision has been made for the provided Input
-   * Note: This should access a cache decisions that have been made
-   * @param input The input on which a decision is being made
-   * @returns the Decision that was made, if one was made.
-   */
-  checkDecision(input: any): Promise<Decision>
+  decide(input: any, witness?: any, noCache?: boolean): Promise<Decision>
 }
