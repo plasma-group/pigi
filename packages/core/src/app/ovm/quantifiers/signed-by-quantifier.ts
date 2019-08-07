@@ -1,5 +1,6 @@
 import { Quantifier, QuantifierResult } from '../../../types/ovm'
-import { Message, MessageDB } from '../../../types/ovm/db/message-db.interface'
+import { MessageDB } from '../../../types/ovm/db'
+import { ParsedMessage } from '../../../types/serialization'
 
 interface SignedByQuantifierParameters {
   address: Buffer
@@ -22,7 +23,7 @@ export class SignedByQuantifier implements Quantifier {
   public async getAllQuantified(
     signerParams: SignedByQuantifierParameters
   ): Promise<QuantifierResult> {
-    const messages: Message[] = await this.db.getMessagesSignedBy(
+    const messages: ParsedMessage[] = await this.db.getMessagesSignedBy(
       signerParams.address
     )
 

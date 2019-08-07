@@ -1,12 +1,10 @@
 import '../../../setup'
 
-import {
-  Message,
-  MessageDB,
-} from '../../../../src/types/ovm/db/message-db.interface'
-import { BigNumber } from '../../../../src/types/number'
+import { MessageDB } from '../../../../src/types/ovm/db'
+import { BigNumber, ParsedMessage } from '../../../../src/types'
 import { SignedByQuantifier } from '../../../../src/app/ovm/quantifiers/signed-by-quantifier'
 import { QuantifierResult } from '../../../../src/types/ovm'
+import { Message } from '../../../../src/types/serialization'
 
 /*******************
  * Mocks & Helpers *
@@ -16,7 +14,7 @@ class MockedMessageDB implements MessageDB {
   public async getMessageByChannelIdAndNonce(
     channelId: Buffer,
     nonce: BigNumber
-  ): Promise<Message> {
+  ): Promise<ParsedMessage> {
     return undefined
   }
 
@@ -24,7 +22,7 @@ class MockedMessageDB implements MessageDB {
     address: Buffer,
     channelId?: Buffer,
     nonce?: BigNumber
-  ): Promise<Message[]> {
+  ): Promise<ParsedMessage[]> {
     return undefined
   }
 
@@ -32,7 +30,7 @@ class MockedMessageDB implements MessageDB {
     address: Buffer,
     channelId?: Buffer,
     nonce?: BigNumber
-  ): Promise<Message[]> {
+  ): Promise<ParsedMessage[]> {
     return undefined
   }
 
@@ -40,12 +38,29 @@ class MockedMessageDB implements MessageDB {
     signer: Buffer,
     channelId?: Buffer,
     nonce?: BigNumber
-  ): Promise<Message[]> {
+  ): Promise<ParsedMessage[]> {
+    return undefined
+  }
+
+  public async getConflictingCounterpartyMessage(
+    channelId: Buffer,
+    nonce: BigNumber
+  ): Promise<ParsedMessage> {
+    return undefined
+  }
+
+  public async storeMessage(message: ParsedMessage): Promise<void> {
+    return undefined
+  }
+
+  public getMyAddress(): Buffer {
     return undefined
   }
 }
 
-const getMessageDBThatReturns = (messages: Message[]): MockedMessageDB => {
+const getMessageDBThatReturns = (
+  messages: ParsedMessage[]
+): MockedMessageDB => {
   const db: MockedMessageDB = new MockedMessageDB()
   db.getMessagesSignedBy = async (
     signer: Buffer,
@@ -63,26 +78,30 @@ describe('SignedByQuantifier', () => {
   describe('getAllQuantified', () => {
     const myAddress: Buffer = Buffer.from('0xMY_ADDRESS =D')
     const notMyAddress: Buffer = Buffer.from('0xNOT_MY_ADDRESS =|')
+    const mySignatures: {} = {}
+    mySignatures[myAddress.toString()] = Buffer.from('My Signature')
 
     it('returns messages from the DB with my address', async () => {
-      const message1: Message = {
-        channelId: Buffer.from('channel'),
+      const message1: ParsedMessage = {
         sender: Buffer.from('sender'),
         recipient: Buffer.from('recipient'),
-        signers: [myAddress],
-        message: undefined,
-        signedMessage: undefined,
+        message: {
+          channelId: Buffer.from('channel'),
+          data: {},
+        },
+        signatures: mySignatures,
       }
 
-      const message2: Message = {
-        channelId: Buffer.from('channel'),
+      const message2: ParsedMessage = {
         sender: Buffer.from('sender'),
         recipient: Buffer.from('recipient'),
-        signers: [myAddress],
-        message: undefined,
-        signedMessage: undefined,
+        message: {
+          channelId: Buffer.from('channel'),
+          data: {},
+        },
+        signatures: mySignatures,
       }
-      const messages: Message[] = [message1, message2]
+      const messages: ParsedMessage[] = [message1, message2]
       const db: MockedMessageDB = getMessageDBThatReturns(messages)
       const quantifier: SignedByQuantifier = new SignedByQuantifier(
         db,
@@ -99,24 +118,26 @@ describe('SignedByQuantifier', () => {
     })
 
     it('returns messages from the DB not with my address', async () => {
-      const message1: Message = {
-        channelId: Buffer.from('channel'),
+      const message1: ParsedMessage = {
         sender: Buffer.from('sender'),
         recipient: Buffer.from('recipient'),
-        signers: [myAddress],
-        message: undefined,
-        signedMessage: undefined,
+        message: {
+          channelId: Buffer.from('channel'),
+          data: {},
+        },
+        signatures: mySignatures,
       }
 
-      const message2: Message = {
-        channelId: Buffer.from('channel'),
+      const message2: ParsedMessage = {
         sender: Buffer.from('sender'),
         recipient: Buffer.from('recipient'),
-        signers: [myAddress],
-        message: undefined,
-        signedMessage: undefined,
+        message: {
+          channelId: Buffer.from('channel'),
+          data: {},
+        },
+        signatures: mySignatures,
       }
-      const messages: Message[] = [message1, message2]
+      const messages: ParsedMessage[] = [message1, message2]
       const db: MockedMessageDB = getMessageDBThatReturns(messages)
       const quantifier: SignedByQuantifier = new SignedByQuantifier(
         db,

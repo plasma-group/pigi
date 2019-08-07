@@ -16,6 +16,15 @@ export interface AndDeciderInput {
  * Decider that decides true iff both of the provided properties evaluate to true.
  */
 export class AndDecider implements Decider {
+  private static _instance: AndDecider
+
+  public static instance(): AndDecider {
+    if (!AndDecider._instance) {
+      AndDecider._instance = new AndDecider()
+    }
+    return AndDecider._instance
+  }
+
   public async decide(
     input: AndDeciderInput,
     witness?: undefined,
