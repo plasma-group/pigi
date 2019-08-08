@@ -90,7 +90,7 @@ export class ThereExistsSuchThatDecider implements Decider {
   ): Decision {
     if (!trueDecision && undecided) {
       throw new CannotDecideError(
-        'Cannot decide ForAllSuchThat due to undecided Decision or not all results being quantified.'
+        'Cannot decide ThereExistsSuchThat due to undecided Decision or not all results being quantified.'
       )
     }
     const justification: ImplicationProofItem[] = [
