@@ -69,21 +69,16 @@ describe('SignedByDecider', () => {
       justification.implicationWitness['signature'].should.equal(signature)
     })
 
-    it('should return false when signature is not verified', async () => {
+    it('should throw cannot decide when signature is not verified', async () => {
       decider = new SignedByDecider(db, falseSignatureVerifier)
-      const decision: Decision = await decider.decide(
-        { publicKey, message },
-        { signature }
-      )
-
-      decision.outcome.should.equal(false)
-      decision.justification.length.should.equal(1)
-
-      const justification: ImplicationProofItem = decision.justification[0]
-      justification.implication.decider.should.equal(decider)
-      justification.implication.input['publicKey'].should.equal(publicKey)
-      justification.implication.input['message'].should.equal(message)
-      justification.implicationWitness['signature'].should.equal(signature)
+      try {
+        await decider.decide({ publicKey, message }, { signature })
+        assert(false, 'This should have thrown CannotDecideError')
+      } catch (e) {
+        if (!(e instanceof CannotDecideError)) {
+          assert(false, 'This should have thrown CannotDecideError')
+        }
+      }
     })
 
     it('should throw if signature checker throws', async () => {
@@ -149,21 +144,16 @@ describe('SignedByDecider', () => {
       )
     })
 
-    it('should return false  when signature is not verified', async () => {
+    it('should throw cannot decide when signature is not verified', async () => {
       decider = new SignedByDecider(db, falseSignatureVerifier)
-      const decision: Decision = await decider.decide(
-        { publicKey, message },
-        { signature }
-      )
-
-      decision.outcome.should.equal(false)
-      decision.justification.length.should.equal(1)
-
-      const justification: ImplicationProofItem = decision.justification[0]
-      justification.implication.decider.should.equal(decider)
-      justification.implication.input['publicKey'].should.equal(publicKey)
-      justification.implication.input['message'].should.equal(message)
-      justification.implicationWitness['signature'].should.equal(signature)
+      try {
+        await decider.decide({ publicKey, message }, { signature })
+        assert(false, 'This should have thrown CannotDecideError')
+      } catch (e) {
+        if (!(e instanceof CannotDecideError)) {
+          assert(false, 'This should have thrown CannotDecideError')
+        }
+      }
 
       try {
         await decider.decide({ publicKey, message })

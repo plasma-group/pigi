@@ -37,24 +37,24 @@ export class SignedByDecider extends KeyValueStoreDecider {
     input: SignedByInput,
     witness: SignedByWitness
   ): Promise<Decision> {
-    if (!witness) {
+    const signatureMatches: boolean =
+      witness &&
+      (await this.signatureVerifier(
+        input.publicKey,
+        input.message,
+        witness.signature
+      ))
+
+    if (!signatureMatches) {
       throw new CannotDecideError(
-        'Cannot decide whether message was signed without witness.'
+        'Signature does not match the provided witness, but we do not know for certain that the message was not signed by the private key associated with the provided public key.'
       )
     }
 
-    const signatureMatches: boolean = await this.signatureVerifier(
-      input.publicKey,
-      input.message,
-      witness.signature
+    await this.storeDecision(
+      input,
+      SignedByDecider.serializeDecision(witness, input, signatureMatches)
     )
-
-    if (signatureMatches) {
-      await this.storeDecision(
-        input,
-        SignedByDecider.serializeDecision(witness, input, signatureMatches)
-      )
-    }
 
     return this.constructDecision(
       witness.signature,
