@@ -15,6 +15,8 @@ export class Utils {
     other: ParsedMessage
   ): boolean {
     return (
+      !!message &&
+      !!other &&
       message.message.channelId.equals(other.message.channelId) &&
       message.message.nonce.equals(other.message.nonce) &&
       (message.sender.equals(other.sender) ||

@@ -16,11 +16,13 @@ import {
   Decision,
   MessageDB,
   PropertyFactory,
+  StateChannelMessageDB,
   WitnessFactory,
 } from '../../../../src/types/ovm'
 import { ParsedMessage } from '../../../../src/types/serialization'
 
-class TestMessageDB implements MessageDB {
+class TestMessageDB implements StateChannelMessageDB {
+  private readonly exitedChannels: Set<string> = new Set()
   private readonly conflictingMessageStore: {} = {}
   private readonly messageStore: ParsedMessage[] = []
 
@@ -32,9 +34,22 @@ class TestMessageDB implements MessageDB {
       parsedMessage.message.channelId,
       parsedMessage.message.nonce
     )
+
     if (Utils.messagesConflict(potentialConflict, parsedMessage)) {
-      this.storeConflictingMessage(potentialConflict)
+      this.putConflict(potentialConflict)
       return
+    }
+
+    const channelId: Buffer = await this.getChannelForCounterparty(
+      parsedMessage.sender.equals(this.myAddress)
+        ? parsedMessage.recipient
+        : parsedMessage.sender
+    )
+
+    if (channelId && !channelId.equals(parsedMessage.message.channelId)) {
+      throw Error(
+        'Cannot store message because at least one participant is not a part of the listed channel.'
+      )
     }
 
     for (let i = 0; i < this.messageStore.length; i++) {
@@ -153,28 +168,113 @@ class TestMessageDB implements MessageDB {
     channelId: Buffer,
     nonce: BigNumber
   ): Promise<ParsedMessage> {
-    const chan: string = channelId.toString()
-    const non: string = nonce.toString()
-    if (
-      chan in this.conflictingMessageStore &&
-      non in this.conflictingMessageStore[chan]
-    ) {
-      return this.conflictingMessageStore[chan][non]
+    return this.getConflict(channelId, nonce)
+  }
+
+  public async channelIdExists(channelId: Buffer): Promise<boolean> {
+    for (const message of this.messageStore) {
+      if (channelId.equals(message.message.channelId)) {
+        return true
+      }
     }
-    return undefined
+    return false
+  }
+
+  public async conflictsWithAnotherMessage(
+    message: ParsedMessage
+  ): Promise<ParsedMessage> {
+    const conflict: ParsedMessage = this.getConflict(
+      message.message.channelId,
+      message.message.nonce
+    )
+    if (!!conflict) {
+      return conflict
+    }
+
+    for (const msg of this.messageStore) {
+      const storedConflict = this.getConflict(
+        msg.message.channelId,
+        msg.message.nonce
+      )
+      if (storedConflict.message.nonce.equals(message.message.nonce)) {
+        return msg
+      }
+    }
+  }
+
+  public async getChannelForCounterparty(address: Buffer): Promise<Buffer> {
+    for (const message of this.messageStore) {
+      if (message.recipient.equals(address) || message.sender.equals(address)) {
+        return message.message.channelId
+      }
+    }
+  }
+
+  public async getMostRecentMessageSignedBy(
+    channelId: Buffer,
+    address: Buffer
+  ): Promise<ParsedMessage> {
+    const addressString: string = address.toString()
+    let mostRecent: ParsedMessage
+    for (const message of this.messageStore) {
+      if (
+        message.message.channelId.equals(channelId) &&
+        (!mostRecent || message.message.nonce.gt(mostRecent.message.nonce)) &&
+        addressString in message.signatures
+      ) {
+        mostRecent = message
+      }
+    }
+    return mostRecent
+  }
+
+  public async getMostRecentValidStateChannelMessage(
+    channelId: Buffer
+  ): Promise<ParsedMessage> {
+    let mostRecent: ParsedMessage
+    for (const message of this.messageStore) {
+      if (
+        message.message.channelId.equals(channelId) &&
+        (!mostRecent || message.message.nonce.gt(mostRecent.message.nonce)) &&
+        Object.keys(message.signatures).length === 2
+      ) {
+        mostRecent = message
+      }
+    }
+    return mostRecent
+  }
+
+  public async isChannelExited(channelId: Buffer): Promise<boolean> {
+    return this.exitedChannels.has(channelId.toString())
+  }
+
+  public async markChannelExited(channelId: Buffer): Promise<void> {
+    this.exitedChannels.add(channelId.toString())
   }
 
   public getMyAddress(): Buffer {
     return this.myAddress
   }
 
-  private storeConflictingMessage(message: ParsedMessage): void {
-    const chan: string = message.message.channelId.toString()
-    const non: string = message.message.nonce.toString()
-    if (!(chan in this.conflictingMessageStore)) {
-      this.conflictingMessageStore[chan] = {}
+  private getConflict(channelId: Buffer, nonce: BigNumber): ParsedMessage {
+    const channelString: string = channelId.toString()
+    const nonceString: string = nonce.toString()
+    if (
+      channelString in this.conflictingMessageStore &&
+      nonceString in this.conflictingMessageStore[channelString]
+    ) {
+      return this.conflictingMessageStore[channelString][nonce]
     }
-    this.conflictingMessageStore[chan][non] = message
+    return undefined
+  }
+
+  private putConflict(message: ParsedMessage): void {
+    const channelString: string = message.message.channelId.toString()
+    const nonceString: string = message.message.nonce.toString()
+    if (!(channelString in this.conflictingMessageStore)) {
+      this.conflictingMessageStore[channelString] = {}
+    }
+    this.conflictingMessageStore[channelString][nonceString] = message
   }
 }
 
