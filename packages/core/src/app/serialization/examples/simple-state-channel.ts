@@ -1,64 +1,30 @@
-import { BigNumber, Property, WitnessFactory } from '../../../types'
+import { BigNumber, Property } from '../../../types'
 import {
   AndDecider,
   ForAllSuchThatDecider,
-  MessageEqualsDecider,
-  MessageEqualsInput,
-  MessageInvalidatedDecider,
-  MessageInvalidatedInput,
-  MessageInvalidatedWitness,
+  NonceLessThanDecider,
 } from '../../ovm/deciders'
 import {
   SignedByDecider,
   SignedByInput,
 } from '../../ovm/deciders/signed-by-decider'
-import { OrDecider } from '../../ovm/deciders/or-decider'
 import { SignedByQuantifier } from '../../ovm/quantifiers/signed-by-quantifier'
-import { ThereExistsSuchThatDecider } from '../../ovm/deciders/there-exists-such-that-decider'
 
-export interface AddressBalance {
-  [address: string]: BigNumber
-}
-
-export interface MessageInvalidatedClaim extends Property {
-  decider: MessageInvalidatedDecider
-  input: MessageInvalidatedInput
-}
-
-export type MessageInvalidatedWitnessFactory = (
+/*
+INTERFACES FOR StateChannelExitClaim
+ */
+export interface NonceLessThanProperty {
+  decider: NonceLessThanDecider
   input: any
-) => MessageInvalidatedWitness
-
-export interface MessageInvalidatedOrCurrentClaim extends Property {
-  decider: OrDecider
-  input: {
-    properties: [
-      {
-        decider: ThereExistsSuchThatDecider
-        input: {
-          quantifier: SignedByQuantifier
-          quantifierParameters: any
-          propertyFactory: MessageInvalidatedClaim
-          witnessFactory: MessageInvalidatedWitnessFactory
-        }
-      },
-      {
-        decider: MessageEqualsDecider
-        input: MessageEqualsInput
-      }
-    ]
-  }
 }
 
-export type MessageInvalidatedOrCurrentPropertyFactory = (
-  input: any
-) => MessageInvalidatedOrCurrentClaim
+export type NonceLessThanPropertyFactory = (input: any) => NonceLessThanProperty
 
-export interface StateChannelClaim extends Property {
+export interface StateChannelExitClaim extends Property {
   decider: AndDecider
   input: {
     left: {
-      decider: SignedByDecider // Asserts message this message invalidates is signed by counter-party
+      decider: SignedByDecider // Asserts this message is signed by counter-party
       input: SignedByInput
     }
     leftWitness: any
@@ -67,15 +33,20 @@ export interface StateChannelClaim extends Property {
       input: {
         quantifier: SignedByQuantifier
         quantifierParameters: any
-        propertyFactory: MessageInvalidatedOrCurrentPropertyFactory
-        witnessFactory: WitnessFactory
+        propertyFactory: NonceLessThanPropertyFactory
       }
     }
+    rightWitness: any
   }
 }
 
+/*
+INTERFACES FOR StateChannelMessage
+ */
+export interface AddressBalance {
+  [address: string]: BigNumber
+}
+
 export interface StateChannelMessage {
-  invalidatesNonce: BigNumber
   addressBalance: AddressBalance
-  messageContractAddress: Buffer // TODO: insert whole claim here -- this is just a shortcut for the claim
 }

@@ -22,6 +22,14 @@ export interface ForAllSuchThatInput {
  * If any evaluates to false, it will decide false. Otherwise, it is undecidable.
  */
 export class ForAllSuchThatDecider implements Decider {
+  private static _instance: ForAllSuchThatDecider
+  public static instance(): ForAllSuchThatDecider {
+    if (!ForAllSuchThatDecider._instance) {
+      ForAllSuchThatDecider._instance = new ForAllSuchThatDecider()
+    }
+    return ForAllSuchThatDecider._instance
+  }
+
   public async decide(
     input: ForAllSuchThatInput,
     _witness?: undefined,
@@ -65,10 +73,6 @@ export class ForAllSuchThatDecider implements Decider {
       trueDecisions,
       anyUndecided || !quantifierResult.allResultsQuantified
     )
-  }
-
-  private async checkDecision(input: ForAllSuchThatInput): Promise<Decision> {
-    return this.decide(input, undefined)
   }
 
   /**

@@ -1,3 +1,2 @@
-export * from './message-equals-decider'
-export * from './message-invalidated-decider'
+export * from './nonce-less-than-decider'
 export * from './utils'
