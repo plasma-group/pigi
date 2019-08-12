@@ -1,14 +1,6 @@
 import { AddressBalance, StateChannelMessage } from './examples'
 import { BigNumber, Message } from '../../types'
 
-export const jsonReplacer = (key: any, value: any): any => {
-  if (Buffer.isBuffer(value)) {
-    return value.toString()
-  }
-
-  return value
-}
-
 /**
  * Serializes the provided object to its canonical string representation.
  *
@@ -16,7 +8,7 @@ export const jsonReplacer = (key: any, value: any): any => {
  * @returns The serialized object as a string.
  */
 export const serializeObject = (obj: {}): string => {
-  return JSON.stringify(obj, jsonReplacer)
+  return JSON.stringify(obj)
 }
 
 /**

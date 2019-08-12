@@ -1,1 +1,1 @@
-export * from './simple-state-channel'
+export * from './state-channel-client'

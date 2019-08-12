@@ -24,6 +24,7 @@ import {
   CannotDecideError,
   ForAllSuchThatDecider,
   NonceLessThanDecider,
+  Utils,
 } from '../deciders'
 import { SignedByDecider } from '../deciders/signed-by-decider'
 import { SignedByQuantifier } from '../quantifiers/signed-by-quantifier'
@@ -41,7 +42,7 @@ export class StateChannelClient {
     private readonly signedByDecider: SignedByDecider,
     private readonly signedByQuantifier: SignedByQuantifier,
     private readonly myPrivateKey: Buffer,
-    private readonly myAddress: Buffer
+    public readonly myAddress: Buffer
   ) {}
 
   /**
@@ -137,15 +138,17 @@ export class StateChannelClient {
               mostRecent.message,
               stateChannelMessageToString
             ),
-            publicKey: this.myAddress,
+            publicKey: counterparty,
           },
         },
-        leftWitness: mostRecent.signatures[this.myAddress.toString()],
+        leftWitness: {
+          signature: mostRecent.signatures[counterparty.toString()],
+        },
         right: {
           decider: ForAllSuchThatDecider.instance(),
           input: {
             quantifier: this.signedByQuantifier,
-            quantifierParameters: this.myAddress,
+            quantifierParameters: { address: this.myAddress },
             propertyFactory: (message: ParsedMessage) => {
               return {
                 decider: NonceLessThanDecider.instance(),
@@ -166,7 +169,7 @@ export class StateChannelClient {
    * Handles a channel exit claim by validating it. If it can be disproven, it will return the
    * counter-claim that disproves it.
    *
-   * TODO: Improve this signature
+   * TODO: Improve this signature so that channel ID doesn't need to be passed
    * @param channelId the ChannelID in question
    * @param exitClaim the Exit claim in question
    * @returns the counter-claim that the original claim is invalid
@@ -209,11 +212,19 @@ export class StateChannelClient {
       parsedMessage.message.nonce
     )
 
-    // Store message no matter what
-    await this.messageDB.storeMessage(parsedMessage)
+    const mergedMessage: ParsedMessage = this.updateWithReceived(
+      existingMessage,
+      parsedMessage
+    )
 
-    if (existingMessage) {
-      await this.handleExistingMessage(parsedMessage, existingMessage)
+    // Store message no matter what
+    if (!!mergedMessage) {
+      await this.messageDB.storeMessage(mergedMessage)
+    } else {
+      await this.messageDB.storeMessage(parsedMessage)
+    }
+
+    if (!!existingMessage) {
       return undefined
     }
 
@@ -239,23 +250,6 @@ export class StateChannelClient {
     }
 
     return this.signAndSaveMessage(message)
-  }
-
-  /**
-   * Handles the case when we receive a message for a channel and nonce that we already
-   * have a message for. This could be as simple as the counterparty countersigning or
-   * it could be us and the counterparty sending a new message at the same time or some
-   * unknown case.
-   *
-   * @param parsedMessage The new message
-   * @param existingMessage The existing message
-   */
-  private async handleExistingMessage(
-    parsedMessage: ParsedMessage,
-    existingMessage: ParsedMessage
-  ): Promise<void> {
-    // TODO: Anything?
-    // Either just a countersign or a conflicting message, but that's already accounted for in storeMessage(...)
   }
 
   /**
@@ -295,6 +289,28 @@ export class StateChannelClient {
     }
 
     return this.signAndSaveMessage(message)
+  }
+
+  /**
+   * Creates a ParsedMessage that represents the existing message with updates
+   * from the received message.
+   * Mainly, this entails adding signatures if the sender is a new signer.
+   *
+   * @param existing The existing message, if one exists.
+   * @param received The received message.
+   * @returns The updated message or undefined if one does not exist.
+   */
+  private updateWithReceived(
+    existing: ParsedMessage,
+    received: ParsedMessage
+  ): ParsedMessage {
+    if (!!existing && !Utils.messagesConflict(received, existing)) {
+      for (const [address, signature] of Object.entries(received.signatures)) {
+        existing.signatures[address] = signature
+      }
+      return existing
+    }
+    return undefined
   }
 
   /**
