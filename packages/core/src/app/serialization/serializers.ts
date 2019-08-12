@@ -1,7 +1,7 @@
 import { AddressBalance, StateChannelMessage } from './examples'
-import { BigNumber, Message, ParsedMessage } from '../../types'
+import { BigNumber, Message } from '../../types'
 
-const jsonReplacer = (key: any, value: any): any => {
+export const jsonReplacer = (key: any, value: any): any => {
   if (Buffer.isBuffer(value)) {
     return value.toString()
   }
@@ -41,15 +41,15 @@ export const objectToBuffer = (obj: {}): Buffer => {
 }
 
 /**
- * Turns the provided StateChannelMessage into its canonical buffer representation.
+ * Turns the provided StateChannelMessage into its canonical string representation.
  *
  * @param message The StateChannelMessage
- * @returns The resulting Buffer
+ * @returns The resulting string
  */
-export const stateChannelMessageToBuffer = (
+export const stateChannelMessageToString = (
   message: StateChannelMessage
-): Buffer => {
-  return objectToBuffer(message)
+): string => {
+  return serializeObject(message)
 }
 
 /**
@@ -61,7 +61,7 @@ export const stateChannelMessageToBuffer = (
  */
 export const messageToBuffer = (
   message: Message,
-  messageSerializer: ({}) => Buffer
+  messageSerializer: ({}) => string
 ): Buffer => {
   return objectToBuffer({
     channelId: message.channelId,
@@ -109,14 +109,17 @@ export const deserializeMessage = (
 }
 
 /**
- * Deserializes the provided object into a StateChannelMessage.
+ * Deserializes the provided string into a StateChannelMessage.
  *
- * @param obj The object to convert into a StateChannelMessage.
+ * @param message The string to convert into a StateChannelMessage.
  * @returns The resulting StateChannelMessage.
  */
-export const stateChannelMessageObjectDeserializer = (obj: {}): StateChannelMessage => {
+export const stateChannelMessageDeserializer = (
+  message: string
+): StateChannelMessage => {
+  const deserialized: {} = deserializeObject(message)
   const addressBalance: AddressBalance = {}
-  Object.entries(obj['addressBalance']).forEach(
+  Object.entries(deserialized['addressBalance']).forEach(
     ([address, balance]: [string, string]) => {
       addressBalance[address] = new BigNumber(balance)
     }

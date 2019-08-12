@@ -1,4 +1,10 @@
-import { BigNumber, Property } from '../../../types'
+import {
+  BigNumber,
+  Message,
+  ParsedMessage,
+  Property,
+  SignedMessage,
+} from '../../../types'
 import {
   AndDecider,
   ForAllSuchThatDecider,
@@ -9,6 +15,11 @@ import {
   SignedByInput,
 } from '../../ovm/deciders/signed-by-decider'
 import { SignedByQuantifier } from '../../ovm/quantifiers/signed-by-quantifier'
+import {
+  deserializeBuffer,
+  deserializeMessage,
+  stateChannelMessageDeserializer,
+} from '../serializers'
 
 /*
 INTERFACES FOR StateChannelExitClaim
@@ -49,4 +60,36 @@ export interface AddressBalance {
 
 export interface StateChannelMessage {
   addressBalance: AddressBalance
+}
+
+const signaturePlaceholder: Buffer = Buffer.from(
+  'Trust me, this is totally signed.'
+)
+
+/**
+ * Parses the signed message into a ParsedMessage, if possible.
+ * If not, it throws.
+ *
+ * @param signedMessage The signed message to parse.
+ * @param myAddress The address of the caller.
+ * @returns the resulting ParsedMessage.
+ */
+export const parseStateChannelSignedMessage = (
+  signedMessage: SignedMessage,
+  myAddress: Buffer
+): ParsedMessage => {
+  // TODO: Would usually decrypt message based on sender key, but that part omitted for simplicity
+  const message: Message = deserializeBuffer(
+    signedMessage.signedMessage,
+    deserializeMessage,
+    stateChannelMessageDeserializer
+  )
+  const signatures = {}
+  signatures[signedMessage.sender.toString()] = signaturePlaceholder
+  return {
+    sender: signedMessage.sender,
+    recipient: myAddress,
+    message,
+    signatures,
+  }
 }

@@ -12,11 +12,11 @@ import {
  */
 
 export const objectsEqual = (obj1: {}, obj2: {}): boolean => {
-  if (obj1 === undefined && obj2 === undefined) {
+  if (!obj1 && !obj2) {
     return true
   }
 
-  if (obj1 === undefined || obj2 === undefined) {
+  if (!obj1 || !obj2) {
     return false
   }
 

@@ -3,7 +3,6 @@ import uuid = require('uuid')
 import {
   ONE,
   ZERO,
-  Message,
   ParsedMessage,
   SignedMessage,
   StateChannelMessageDB,
@@ -13,14 +12,12 @@ import {
 } from '../../../types'
 import {
   AddressBalance,
-  deserializeBuffer,
-  deserializeMessage,
   messageToBuffer,
   objectToBuffer,
+  parseStateChannelSignedMessage,
   StateChannelExitClaim,
   StateChannelMessage,
-  stateChannelMessageObjectDeserializer,
-  stateChannelMessageToBuffer,
+  stateChannelMessageToString,
 } from '../../serialization'
 import {
   AndDecider,
@@ -38,7 +35,7 @@ const signaturePlaceholder: Buffer = Buffer.from(
 /**
  * Client responsible for State Channel communication
  */
-class StateChannelClient {
+export class StateChannelClient {
   public constructor(
     private readonly messageDB: StateChannelMessageDB,
     private readonly signedByDecider: SignedByDecider,
@@ -101,7 +98,7 @@ class StateChannelClient {
       message: {
         channelId,
         nonce,
-        data: addressBalance,
+        data: { addressBalance },
       },
       signatures: {},
     })
@@ -138,7 +135,7 @@ class StateChannelClient {
           input: {
             message: messageToBuffer(
               mostRecent.message,
-              stateChannelMessageToBuffer
+              stateChannelMessageToString
             ),
             publicKey: this.myAddress,
           },
@@ -202,15 +199,19 @@ class StateChannelClient {
    * @returns The response message, if one exists
    */
   public async handleMessage(message: SignedMessage): Promise<SignedMessage> {
-    const parsedMessage: ParsedMessage = this.parseMessage(message)
-
-    // Store message no matter what
-    await this.messageDB.storeMessage(parsedMessage)
+    const parsedMessage: ParsedMessage = parseStateChannelSignedMessage(
+      message,
+      this.myAddress
+    )
 
     const existingMessage: ParsedMessage = await this.messageDB.getMessageByChannelIdAndNonce(
       parsedMessage.message.channelId,
       parsedMessage.message.nonce
     )
+
+    // Store message no matter what
+    await this.messageDB.storeMessage(parsedMessage)
+
     if (existingMessage) {
       await this.handleExistingMessage(parsedMessage, existingMessage)
       return undefined
@@ -232,10 +233,7 @@ class StateChannelClient {
   private async handleNewChannel(
     message: ParsedMessage
   ): Promise<SignedMessage> {
-    if (
-      !this.validateStateChannelMessage(message) ||
-      this.messageDB.channelIdExists(message.message.channelId)
-    ) {
+    if (!this.validateStateChannelMessage(message)) {
       // Not going to be a part of this channel
       return undefined
     }
@@ -314,9 +312,9 @@ class StateChannelClient {
     return {
       sender: this.myAddress,
       signedMessage: objectToBuffer({
-        channelId: message.message.channelId,
+        channelId: message.message.channelId.toString(),
         nonce: message.message.nonce,
-        data: stateChannelMessageToBuffer(message.message
+        data: stateChannelMessageToString(message.message
           .data as StateChannelMessage),
       }),
     }
@@ -342,30 +340,6 @@ class StateChannelClient {
       )
     } catch (e) {
       return false
-    }
-  }
-
-  /**
-   * Parses the signed message into a ParsedMessage, if possible.
-   * If not, it throws.
-   *
-   * @param signedMessage The signed message to parse.
-   * @returns the resulting ParsedMessage.
-   */
-  private parseMessage(signedMessage: SignedMessage): ParsedMessage {
-    // TODO: Would usually decrypt message based on sender key, but that part omitted for simplicity
-    const message: Message = deserializeBuffer(
-      signedMessage.signedMessage,
-      deserializeMessage,
-      stateChannelMessageObjectDeserializer
-    )
-    const signatures = {}
-    signatures[signedMessage.sender.toString()] = signaturePlaceholder
-    return {
-      sender: signedMessage.sender,
-      recipient: this.myAddress,
-      message,
-      signatures,
     }
   }
 }
