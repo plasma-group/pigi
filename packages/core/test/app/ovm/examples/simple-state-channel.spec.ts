@@ -60,8 +60,6 @@ class TestStateChannelMessageDB implements StateChannelMessageDB {
       const parsedMsg: ParsedMessage = this.messageStore[i]
       if (
         parsedMsg.message.channelId.equals(parsedMessage.message.channelId) &&
-        parsedMsg.sender.equals(parsedMessage.sender) &&
-        parsedMsg.recipient.equals(parsedMessage.recipient) &&
         objectsEqual(parsedMsg.message, parsedMessage.message) &&
         ((!parsedMsg.message.nonce && !parsedMessage.message.nonce) ||
           (parsedMsg.message.nonce &&
@@ -200,7 +198,10 @@ class TestStateChannelMessageDB implements StateChannelMessageDB {
         msg.message.channelId,
         msg.message.nonce
       )
-      if (storedConflict.message.nonce.equals(message.message.nonce)) {
+      if (
+        !!storedConflict &&
+        storedConflict.message.nonce.equals(message.message.nonce)
+      ) {
         return msg
       }
     }
@@ -437,153 +438,292 @@ describe('State Channel Tests', () => {
 
   const acknowledgeMessage = async (
     signedMessage: SignedMessage,
-    myClient: StateChannelClient
+    myClient: StateChannelClient,
+    nonce: BigNumber = ONE
   ): Promise<void> => {
     const parsedMessage: ParsedMessage = parseStateChannelSignedMessage(
       signedMessage,
       myClient.myAddress
     )
 
-    const counterSigned: SignedMessage = await b.handleMessage(signedMessage)
+    const counterSigned: SignedMessage = await myClient.handleMessage(
+      signedMessage
+    )
     checkSignedMessage(
       counterSigned,
       myClient.myAddress,
-      ONE,
+      nonce,
       parsedMessage.message.channelId,
       [myClient.myAddress],
       parsedMessage.message.data['addressBalance']
     )
 
-    const res: SignedMessage = await a.handleMessage(counterSigned)
+    const otherClient: StateChannelClient = myClient === a ? b : a
+    const res: SignedMessage = await otherClient.handleMessage(counterSigned)
     assert(
       res === undefined,
       'There should be no response when accepting a coutnersigned message'
     )
   }
 
-  it('handles channel creation', async () => {
-    await createChannel()
+  describe('channel creation', () => {
+    it('handles channel creation', async () => {
+      await createChannel()
+    })
+
+    it('handles channel creation acknowledgement', async () => {
+      const signedMessage: SignedMessage = await createChannel()
+      await acknowledgeMessage(signedMessage, b)
+    })
   })
 
-  it('handles channel creation acknowledgement', async () => {
-    const signedMessage: SignedMessage = await createChannel()
-    await acknowledgeMessage(signedMessage, b)
+  describe('message exchange', () => {
+    it('handles new message from A on created channel', async () => {
+      const signedMessage: SignedMessage = await createChannel()
+      await acknowledgeMessage(signedMessage, b)
+
+      const addressBalance: AddressBalance = {}
+      addressBalance[aAddress.toString()] = new BigNumber(5)
+      addressBalance[bAddress.toString()] = new BigNumber(15)
+
+      const nextMessage: SignedMessage = await a.createNewMessage(
+        addressBalance,
+        bAddress
+      )
+
+      const parsedMessage: ParsedMessage = parseStateChannelSignedMessage(
+        nextMessage,
+        aAddress
+      )
+
+      checkSignedMessage(
+        nextMessage,
+        aAddress,
+        new BigNumber(2),
+        parsedMessage.message.channelId,
+        [aAddress],
+        parsedMessage.message.data['addressBalance']
+      )
+    })
+
+    it('handles new message from B on created channel', async () => {
+      const signedMessage: SignedMessage = await createChannel()
+      await acknowledgeMessage(signedMessage, b)
+
+      const addressBalance: AddressBalance = {}
+      addressBalance[bAddress.toString()] = new BigNumber(5)
+      addressBalance[aAddress.toString()] = new BigNumber(15)
+
+      const nextMessage: SignedMessage = await b.createNewMessage(
+        addressBalance,
+        aAddress
+      )
+
+      const parsedMessage: ParsedMessage = parseStateChannelSignedMessage(
+        nextMessage,
+        bAddress
+      )
+
+      checkSignedMessage(
+        nextMessage,
+        bAddress,
+        new BigNumber(2),
+        parsedMessage.message.channelId,
+        [bAddress],
+        parsedMessage.message.data['addressBalance']
+      )
+    })
+
+    it('acknowledges new message from A on created channel', async () => {
+      const signedMessage: SignedMessage = await createChannel()
+      await acknowledgeMessage(signedMessage, b)
+
+      const addressBalance: AddressBalance = {}
+      addressBalance[aAddress.toString()] = new BigNumber(5)
+      addressBalance[bAddress.toString()] = new BigNumber(15)
+
+      const nextMessage: SignedMessage = await a.createNewMessage(
+        addressBalance,
+        bAddress
+      )
+
+      const parsedMessage: ParsedMessage = parseStateChannelSignedMessage(
+        nextMessage,
+        bAddress
+      )
+
+      checkSignedMessage(
+        nextMessage,
+        aAddress,
+        new BigNumber(2),
+        parsedMessage.message.channelId,
+        [aAddress],
+        parsedMessage.message.data['addressBalance']
+      )
+
+      await acknowledgeMessage(nextMessage, b, new BigNumber(2))
+    })
+
+    it('acknowledges new message from B on created channel', async () => {
+      const signedMessage: SignedMessage = await createChannel()
+      await acknowledgeMessage(signedMessage, b)
+
+      const addressBalance: AddressBalance = {}
+      addressBalance[bAddress.toString()] = new BigNumber(5)
+      addressBalance[aAddress.toString()] = new BigNumber(15)
+
+      const nextMessage: SignedMessage = await b.createNewMessage(
+        addressBalance,
+        aAddress
+      )
+
+      const parsedMessage: ParsedMessage = parseStateChannelSignedMessage(
+        nextMessage,
+        bAddress
+      )
+
+      checkSignedMessage(
+        nextMessage,
+        bAddress,
+        new BigNumber(2),
+        parsedMessage.message.channelId,
+        [bAddress],
+        parsedMessage.message.data['addressBalance']
+      )
+
+      await acknowledgeMessage(nextMessage, a, new BigNumber(2))
+    })
   })
 
-  it('handles new message from A on created channel', async () => {
-    const signedMessage: SignedMessage = await createChannel()
-    await acknowledgeMessage(signedMessage, b)
+  describe('channel exit', () => {
+    it('handles A exit right after creation', async () => {
+      const signedMessage: SignedMessage = await createChannel()
+      await acknowledgeMessage(signedMessage, b)
 
-    const addressBalance: AddressBalance = {}
-    addressBalance[aAddress.toString()] = new BigNumber(5)
-    addressBalance[bAddress.toString()] = new BigNumber(15)
+      const claim: StateChannelExitClaim = await a.exitChannel(b.myAddress)
+      assert(!!claim, 'Exist claim should not be null/undefined!')
 
-    const nextMessage: SignedMessage = await a.createNewMessage(
-      addressBalance,
-      bAddress
-    )
+      const counterClaim: ImplicationProofItem[] = await b.handleChannelExit(
+        getChannelId(signedMessage),
+        claim
+      )
+      assert(
+        !counterClaim,
+        'Exit should be valid, so there should be no counter-claim'
+      )
+    })
 
-    const parsedMessage: ParsedMessage = parseStateChannelSignedMessage(
-      nextMessage,
-      aAddress
-    )
+    it('handles B exit right after creation', async () => {
+      const signedMessage: SignedMessage = await createChannel()
+      await acknowledgeMessage(signedMessage, b)
 
-    checkSignedMessage(
-      nextMessage,
-      aAddress,
-      new BigNumber(2),
-      parsedMessage.message.channelId,
-      [aAddress],
-      parsedMessage.message.data['addressBalance']
-    )
-  })
+      const claim: StateChannelExitClaim = await b.exitChannel(a.myAddress)
+      assert(!!claim, 'Exist claim should not be null/undefined!')
 
-  it('handles new message from B on created channel', async () => {
-    const signedMessage: SignedMessage = await createChannel()
-    await acknowledgeMessage(signedMessage, b)
+      const counterClaim: ImplicationProofItem[] = await a.handleChannelExit(
+        getChannelId(signedMessage),
+        claim
+      )
+      assert(
+        !counterClaim,
+        'Exit should be valid, so there should be no counter-claim'
+      )
+    })
 
-    const addressBalance: AddressBalance = {}
-    addressBalance[bAddress.toString()] = new BigNumber(5)
-    addressBalance[aAddress.toString()] = new BigNumber(15)
+    it('ensures B properly refutes an invalid nonce exit from A', async () => {
+      const signedMessage: SignedMessage = await createChannel()
+      await acknowledgeMessage(signedMessage, b)
 
-    const nextMessage: SignedMessage = await b.createNewMessage(
-      addressBalance,
-      aAddress
-    )
+      const claim: StateChannelExitClaim = await a.exitChannel(b.myAddress)
+      assert(!!claim, 'Exist claim should not be null/undefined!')
 
-    const parsedMessage: ParsedMessage = parseStateChannelSignedMessage(
-      nextMessage,
-      bAddress
-    )
-
-    checkSignedMessage(
-      nextMessage,
-      bAddress,
-      new BigNumber(2),
-      parsedMessage.message.channelId,
-      [bAddress],
-      parsedMessage.message.data['addressBalance']
-    )
-  })
-
-  it('handles A exit right after creation', async () => {
-    const signedMessage: SignedMessage = await createChannel()
-    await acknowledgeMessage(signedMessage, b)
-
-    const claim: StateChannelExitClaim = await a.exitChannel(b.myAddress)
-    assert(!!claim, 'Exist claim should not be null/undefined!')
-
-    const counterClaim: ImplicationProofItem[] = await b.handleChannelExit(
-      getChannelId(signedMessage),
-      claim
-    )
-    assert(
-      !counterClaim,
-      'Exit should be valid, so there should be no counter-claim'
-    )
-  })
-
-  it('handles B exit right after creation', async () => {
-    const signedMessage: SignedMessage = await createChannel()
-    await acknowledgeMessage(signedMessage, b)
-
-    const claim: StateChannelExitClaim = await b.exitChannel(a.myAddress)
-    assert(!!claim, 'Exist claim should not be null/undefined!')
-
-    const counterClaim: ImplicationProofItem[] = await a.handleChannelExit(
-      getChannelId(signedMessage),
-      claim
-    )
-    assert(
-      !counterClaim,
-      'Exit should be valid, so there should be no counter-claim'
-    )
-  })
-
-  it('B properly refutes an invalid exit from A', async () => {
-    const signedMessage: SignedMessage = await createChannel()
-    await acknowledgeMessage(signedMessage, b)
-
-    const claim: StateChannelExitClaim = await a.exitChannel(b.myAddress)
-    assert(!!claim, 'Exist claim should not be null/undefined!')
-
-    claim.input.right.input.propertyFactory = (message: ParsedMessage) => {
-      return {
-        decider: NonceLessThanDecider.instance(),
-        input: {
-          message,
-          nonce: ONE, // All nonce's should NOT be less than this
-        },
+      claim.input.right.input.propertyFactory = (message: ParsedMessage) => {
+        return {
+          decider: NonceLessThanDecider.instance(),
+          input: {
+            message,
+            nonce: ONE, // All nonce's should NOT be less than this
+          },
+        }
       }
-    }
 
-    const counterClaim: ImplicationProofItem[] = await b.handleChannelExit(
-      getChannelId(signedMessage),
-      claim
-    )
-    assert(
-      !!counterClaim,
-      'Exit should not be valid, so there should be a counter-claim'
-    )
+      const counterClaim: ImplicationProofItem[] = await b.handleChannelExit(
+        getChannelId(signedMessage),
+        claim
+      )
+      assert(
+        !!counterClaim,
+        'Exit should not be valid, so there should be a counter-claim'
+      )
+    })
+
+    it('ensures A properly refutes an invalid nonce exit from B', async () => {
+      const signedMessage: SignedMessage = await createChannel()
+      await acknowledgeMessage(signedMessage, b)
+
+      const claim: StateChannelExitClaim = await b.exitChannel(a.myAddress)
+      assert(!!claim, 'Exist claim should not be null/undefined!')
+
+      claim.input.right.input.propertyFactory = (message: ParsedMessage) => {
+        return {
+          decider: NonceLessThanDecider.instance(),
+          input: {
+            message,
+            nonce: ONE, // All nonce's should NOT be less than this
+          },
+        }
+      }
+
+      const counterClaim: ImplicationProofItem[] = await a.handleChannelExit(
+        getChannelId(signedMessage),
+        claim
+      )
+      assert(
+        !!counterClaim,
+        'Exit should not be valid, so there should be a counter-claim'
+      )
+    })
+
+    it('handles A exit right of message 2', async () => {
+      const signedMessage: SignedMessage = await createChannel()
+      await acknowledgeMessage(signedMessage, b)
+
+      const addressBalance: AddressBalance = {}
+      addressBalance[aAddress.toString()] = new BigNumber(5)
+      addressBalance[bAddress.toString()] = new BigNumber(15)
+
+      const nextMessage: SignedMessage = await a.createNewMessage(
+        addressBalance,
+        bAddress
+      )
+
+      const parsedMessage: ParsedMessage = parseStateChannelSignedMessage(
+        nextMessage,
+        bAddress
+      )
+
+      checkSignedMessage(
+        nextMessage,
+        aAddress,
+        new BigNumber(2),
+        parsedMessage.message.channelId,
+        [aAddress],
+        parsedMessage.message.data['addressBalance']
+      )
+
+      await acknowledgeMessage(nextMessage, b, new BigNumber(2))
+
+      const claim: StateChannelExitClaim = await a.exitChannel(b.myAddress)
+      assert(!!claim, 'Exist claim should not be null/undefined!')
+
+      const counterClaim: ImplicationProofItem[] = await b.handleChannelExit(
+        getChannelId(signedMessage),
+        claim
+      )
+      assert(
+        !counterClaim,
+        'Exit should be valid, so there should be no counter-claim'
+      )
+    })
   })
 })
