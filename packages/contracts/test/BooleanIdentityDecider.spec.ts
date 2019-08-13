@@ -1,8 +1,5 @@
 /* External Imports */
-import {
-  abi,
-  BigNumber,
-} from '@pigi/core'
+import { abi, BigNumber } from '@pigi/core'
 /* Contract Imports */
 import { createMockProvider, deployContract, getWallets } from 'ethereum-waffle'
 import * as BasicTokenMock from '../build/BasicTokenMock.json'
@@ -16,7 +13,7 @@ const log = debug('test:info:BooleanIdentityDecider')
 import chai = require('chai')
 export const should = chai.should()
 
-/* 
+/*
  * Begin Tests
  */
 describe('BooleanIdentityDecider', () => {
@@ -34,7 +31,11 @@ describe('BooleanIdentityDecider', () => {
     // Depoy our adjudication contract
     adjudicationContract = await deployContract(wallet, Adjudicator)
     // Next deploy a BooleanIdentityDecider for easy testing!
-    booleanIdentityDecider = await deployContract(wallet, BooleanIdentityDecider, [adjudicationContract.address])
+    booleanIdentityDecider = await deployContract(
+      wallet,
+      BooleanIdentityDecider,
+      [adjudicationContract.address]
+    )
   })
 
   describe('decideTrue', () => {
@@ -42,13 +43,13 @@ describe('BooleanIdentityDecider', () => {
       // Get the claimId for the claim we will be testing
       const claimId = await adjudicationContract.getClaimId({
         decider: booleanIdentityDecider.address,
-        input: abi.encode(['bool'], [true])
+        input: abi.encode(['bool'], [true]),
       })
       // Verify that this claim doesn't already exists
       const doesClaimExist = await adjudicationContract.claimExists(claimId)
       doesClaimExist.should.equal(false)
       // Now that we know our claim doesn't exist, let's decideTrue!
-      await booleanIdentityDecider.decideTrue({inputBool: true}, '0x')
+      await booleanIdentityDecider.decideTrue({ inputBool: true }, '0x')
       // Check if we've decided this claim -- it should have!
       const isDecided = await adjudicationContract.isDecided(claimId)
       isDecided.should.equal(true)
@@ -60,13 +61,13 @@ describe('BooleanIdentityDecider', () => {
       // Get the claimId for the claim we will be testing
       const claimId = await adjudicationContract.getClaimId({
         decider: booleanIdentityDecider.address,
-        input: abi.encode(['bool'], [false])
+        input: abi.encode(['bool'], [false]),
       })
       // Verify that this claim doesn't already exists
       const doesClaimExist = await adjudicationContract.claimExists(claimId)
       doesClaimExist.should.equal(false)
       // Now that we know our claim doesn't exist, let's decideFalse!
-      await booleanIdentityDecider.decideFalse({inputBool: false}, '0x')
+      await booleanIdentityDecider.decideFalse({ inputBool: false }, '0x')
       // Check if we've decided this claim -- it should have!
       const isDecided = await adjudicationContract.isDecided(claimId)
       isDecided.should.equal(true)

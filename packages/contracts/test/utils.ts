@@ -1,4 +1,4 @@
-/* 
+/*
  * Helper Functions
  */
 export async function mineBlocks(provider: any, numBlocks: number = 1) {

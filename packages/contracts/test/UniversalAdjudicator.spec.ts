@@ -1,7 +1,5 @@
 /* External Imports */
-import {
-  BigNumber,
-} from '@pigi/core'
+import { BigNumber } from '@pigi/core'
 /* Contract Imports */
 import { createMockProvider, deployContract, getWallets } from 'ethereum-waffle'
 import * as BasicTokenMock from '../build/BasicTokenMock.json'
@@ -14,7 +12,7 @@ const log = debug('test:info:Adjudicator')
 import chai = require('chai')
 export const should = chai.should()
 
-/* 
+/*
  * Helper Functions
  */
 async function mineBlocks(provider: any, numBlocks: number = 1) {
@@ -23,7 +21,7 @@ async function mineBlocks(provider: any, numBlocks: number = 1) {
   }
 }
 
-/* 
+/*
  * Begin Tests
  */
 describe('UniversalAdjudicator', () => {
@@ -41,11 +39,10 @@ describe('UniversalAdjudicator', () => {
   })
 
   describe('ClaimProperty', () => {
-
     it('Adds a claim', async () => {
       const myClaim = {
         decider: '0x5a8cDc465fba0f4dC27aB2b6DA321AfeBbE5a0Aa',
-        input: '0x01'
+        input: '0x01',
       }
       // Claim a property
       await adjudicationContract.claimProperty(myClaim)
