@@ -2,25 +2,25 @@ import { Decider, Decision, ImplicationProofItem } from '../../../../types/ovm'
 import { ParsedMessage } from '../../../../types/serialization'
 import { BigNumber } from '../../../utils'
 
-export interface NonceLessThanInput {
-  message: ParsedMessage
-  nonce: BigNumber
+export interface MessageNonceLessThanInput {
+  messageWithNonce: ParsedMessage
+  lessThanThis: BigNumber
 }
 
 /**
  * Decider that decides true iff the input message has a nonce less than the input nonce.
  */
-export class NonceLessThanDecider implements Decider {
-  private static _instance: NonceLessThanDecider
-  public static instance(): NonceLessThanDecider {
-    if (!NonceLessThanDecider._instance) {
-      NonceLessThanDecider._instance = new NonceLessThanDecider()
+export class MessageNonceLessThanDecider implements Decider {
+  private static _instance: MessageNonceLessThanDecider
+  public static instance(): MessageNonceLessThanDecider {
+    if (!MessageNonceLessThanDecider._instance) {
+      MessageNonceLessThanDecider._instance = new MessageNonceLessThanDecider()
     }
-    return NonceLessThanDecider._instance
+    return MessageNonceLessThanDecider._instance
   }
 
   public async decide(
-    input: NonceLessThanInput,
+    input: MessageNonceLessThanInput,
     witness: undefined,
     noCache?: boolean
   ): Promise<Decision> {
@@ -35,7 +35,7 @@ export class NonceLessThanDecider implements Decider {
     ]
 
     return {
-      outcome: input.message.message.nonce.lt(input.nonce),
+      outcome: input.messageWithNonce.message.nonce.lt(input.lessThanThis),
       justification,
     }
   }

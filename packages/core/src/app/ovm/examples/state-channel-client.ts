@@ -23,7 +23,7 @@ import {
   AndDecider,
   CannotDecideError,
   ForAllSuchThatDecider,
-  NonceLessThanDecider,
+  MessageNonceLessThanDecider,
   Utils,
 } from '../deciders'
 import { SignedByDecider } from '../deciders/signed-by-decider'
@@ -151,10 +151,10 @@ export class StateChannelClient {
             quantifierParameters: { address: this.myAddress },
             propertyFactory: (message: ParsedMessage) => {
               return {
-                decider: NonceLessThanDecider.instance(),
+                decider: MessageNonceLessThanDecider.instance(),
                 input: {
-                  message,
-                  nonce: mostRecent.message.nonce.add(ONE),
+                  messageWithNonce: message,
+                  lessThanThis: mostRecent.message.nonce.add(ONE),
                 },
               }
             },
@@ -304,7 +304,7 @@ export class StateChannelClient {
     existing: ParsedMessage,
     received: ParsedMessage
   ): ParsedMessage {
-    if (!!existing && !Utils.messagesConflict(received, existing)) {
+    if (!!existing && !Utils.stateChannelMessagesConflict(received, existing)) {
       for (const [address, signature] of Object.entries(received.signatures)) {
         existing.signatures[address] = signature
       }

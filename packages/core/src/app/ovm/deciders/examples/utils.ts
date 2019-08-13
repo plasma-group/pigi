@@ -10,7 +10,7 @@ export class Utils {
    * @param other The second message
    * @returns True if they conflict, false otherwise
    */
-  public static messagesConflict(
+  public static stateChannelMessagesConflict(
     message: ParsedMessage,
     other: ParsedMessage
   ): boolean {

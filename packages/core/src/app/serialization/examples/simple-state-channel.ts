@@ -8,7 +8,7 @@ import {
 import {
   AndDecider,
   ForAllSuchThatDecider,
-  NonceLessThanDecider,
+  MessageNonceLessThanDecider,
 } from '../../ovm/deciders'
 import {
   SignedByDecider,
@@ -25,7 +25,7 @@ import {
 INTERFACES FOR StateChannelExitClaim
  */
 export interface NonceLessThanProperty {
-  decider: NonceLessThanDecider
+  decider: MessageNonceLessThanDecider
   input: any
 }
 

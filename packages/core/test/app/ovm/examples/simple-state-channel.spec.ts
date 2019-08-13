@@ -2,7 +2,7 @@ import '../../../setup'
 
 import MemDown from 'memdown'
 
-import { NonceLessThanDecider, Utils } from '../../../../src/app/ovm/deciders'
+import { MessageNonceLessThanDecider, Utils } from '../../../../src/app/ovm/deciders'
 import { BaseDB } from '../../../../src/app/db'
 import { BigNumber, objectsEqual, ONE } from '../../../../src/app/utils'
 import { DB } from '../../../../src/types/db'
@@ -39,7 +39,7 @@ class TestStateChannelMessageDB implements StateChannelMessageDB {
       parsedMessage.message.nonce
     )
 
-    if (Utils.messagesConflict(parsedMessage, potentialConflict)) {
+    if (Utils.stateChannelMessagesConflict(parsedMessage, potentialConflict)) {
       this.putConflict(potentialConflict)
       return
     }
@@ -639,10 +639,10 @@ describe('State Channel Tests', () => {
 
       claim.input.right.input.propertyFactory = (message: ParsedMessage) => {
         return {
-          decider: NonceLessThanDecider.instance(),
+          decider: MessageNonceLessThanDecider.instance(),
           input: {
-            message,
-            nonce: ONE, // All nonce's should NOT be less than this
+            messageWithNonce: message,
+            lessThanThis: ONE, // All nonce's should NOT be less than this
           },
         }
       }
@@ -666,10 +666,10 @@ describe('State Channel Tests', () => {
 
       claim.input.right.input.propertyFactory = (message: ParsedMessage) => {
         return {
-          decider: NonceLessThanDecider.instance(),
+          decider: MessageNonceLessThanDecider.instance(),
           input: {
-            message,
-            nonce: ONE, // All nonce's should NOT be less than this
+            messageWithNonce: message,
+            lessThanThis: ONE, // All nonce's should NOT be less than this
           },
         }
       }
