@@ -2,7 +2,13 @@ import '../../../setup'
 
 import MemDown from 'memdown'
 
-import { MessageNonceLessThanDecider, Utils } from '../../../../src/app/ovm/deciders'
+import {
+  AndDecider,
+  ForAllSuchThatDecider,
+  MessageNonceLessThanDecider,
+  MessageNonceLessThanInput,
+  Utils,
+} from '../../../../src/app/ovm/deciders'
 import { BaseDB } from '../../../../src/app/db'
 import { BigNumber, objectsEqual, ONE } from '../../../../src/app/utils'
 import { DB } from '../../../../src/types/db'
@@ -24,6 +30,10 @@ import {
   StateChannelMessage,
 } from '../../../../src/app/serialization/examples'
 import * as assert from 'assert'
+import {
+  messageToBuffer,
+  stateChannelMessageToString,
+} from '../../../../src/app/serialization'
 
 class TestStateChannelMessageDB implements StateChannelMessageDB {
   private readonly exitedChannels: Set<string> = new Set()
@@ -377,21 +387,27 @@ describe('State Channel Tests', () => {
   let aMemdown: any
   let aDb: DB
   let aMessageDB: TestStateChannelMessageDB
+  let aSignedByDecider: SignedByDecider
+  let aSignedByQuantifier: SignedByQuantifier
 
   let b: StateChannelClient
   let bMemdown: any
   let bDb: DB
   let bMessageDB: TestStateChannelMessageDB
+  let bSignedByDecider: SignedByDecider
+  let bSignedByQuantifier: SignedByQuantifier
 
   beforeEach(() => {
     aMemdown = new MemDown('a')
     aDb = new BaseDB(aMemdown, 256)
     aMessageDB = new TestStateChannelMessageDB(aAddress)
+    aSignedByDecider = new SignedByDecider(aDb, equalsSignatureVerifier)
+    aSignedByQuantifier = new SignedByQuantifier(aMessageDB, aAddress)
 
     a = new StateChannelClient(
       aMessageDB,
-      new SignedByDecider(aDb, equalsSignatureVerifier),
-      new SignedByQuantifier(aMessageDB, aAddress),
+      aSignedByDecider,
+      aSignedByQuantifier,
       aPrivateKey,
       aAddress
     )
@@ -399,11 +415,13 @@ describe('State Channel Tests', () => {
     bMemdown = new MemDown('b')
     bDb = new BaseDB(bMemdown, 256)
     bMessageDB = new TestStateChannelMessageDB(bAddress)
+    bSignedByDecider = new SignedByDecider(bDb, equalsSignatureVerifier)
+    bSignedByQuantifier = new SignedByQuantifier(bMessageDB, bAddress)
 
     b = new StateChannelClient(
       bMessageDB,
-      new SignedByDecider(bDb, equalsSignatureVerifier),
-      new SignedByQuantifier(bMessageDB, bAddress),
+      bSignedByDecider,
+      bSignedByQuantifier,
       bPrivateKey,
       bAddress
     )
@@ -596,134 +614,286 @@ describe('State Channel Tests', () => {
   })
 
   describe('channel exit', () => {
-    it('handles A exit right after creation', async () => {
-      const signedMessage: SignedMessage = await createChannel()
-      await acknowledgeMessage(signedMessage, b)
+    describe('valid exits', () => {
+      it('handles A exit right after creation', async () => {
+        const signedMessage: SignedMessage = await createChannel()
+        await acknowledgeMessage(signedMessage, b)
 
-      const claim: StateChannelExitClaim = await a.exitChannel(b.myAddress)
-      assert(!!claim, 'Exist claim should not be null/undefined!')
+        const claim: StateChannelExitClaim = await a.exitChannel(b.myAddress)
+        assert(!!claim, 'Exist claim should not be null/undefined!')
 
-      const counterClaim: ImplicationProofItem[] = await b.handleChannelExit(
-        getChannelId(signedMessage),
-        claim
-      )
-      assert(
-        !counterClaim,
-        'Exit should be valid, so there should be no counter-claim'
-      )
+        const counterClaim: ImplicationProofItem[] = await b.handleChannelExit(
+          getChannelId(signedMessage),
+          claim
+        )
+        assert(
+          !counterClaim,
+          'Exit should be valid, so there should be no counter-claim'
+        )
+      })
+
+      it('handles B exit right after creation', async () => {
+        const signedMessage: SignedMessage = await createChannel()
+        await acknowledgeMessage(signedMessage, b)
+
+        const claim: StateChannelExitClaim = await b.exitChannel(a.myAddress)
+        assert(!!claim, 'Exist claim should not be null/undefined!')
+
+        const counterClaim: ImplicationProofItem[] = await a.handleChannelExit(
+          getChannelId(signedMessage),
+          claim
+        )
+        assert(
+          !counterClaim,
+          'Exit should be valid, so there should be no counter-claim'
+        )
+      })
+
+      it('handles A exit of second message', async () => {
+        const signedMessage: SignedMessage = await createChannel()
+        await acknowledgeMessage(signedMessage, b)
+
+        const addressBalance: AddressBalance = {}
+        addressBalance[aAddress.toString()] = new BigNumber(5)
+        addressBalance[bAddress.toString()] = new BigNumber(15)
+
+        const nextMessage: SignedMessage = await a.createNewMessage(
+          addressBalance,
+          bAddress
+        )
+
+        const parsedMessage: ParsedMessage = parseStateChannelSignedMessage(
+          nextMessage,
+          bAddress
+        )
+
+        checkSignedMessage(
+          nextMessage,
+          aAddress,
+          new BigNumber(2),
+          parsedMessage.message.channelId,
+          [aAddress],
+          parsedMessage.message.data['addressBalance']
+        )
+
+        await acknowledgeMessage(nextMessage, b, new BigNumber(2))
+
+        const claim: StateChannelExitClaim = await a.exitChannel(b.myAddress)
+        assert(!!claim, 'Exist claim should not be null/undefined!')
+
+        const counterClaim: ImplicationProofItem[] = await b.handleChannelExit(
+          getChannelId(signedMessage),
+          claim
+        )
+        assert(
+          !counterClaim,
+          'Exit should be valid, so there should be no counter-claim'
+        )
+      })
     })
 
-    it('handles B exit right after creation', async () => {
-      const signedMessage: SignedMessage = await createChannel()
-      await acknowledgeMessage(signedMessage, b)
+    describe('invalid exit disputes', () => {
+      it('ensures B properly refutes an invalid nonce exit from A', async () => {
+        const signedMessage: SignedMessage = await createChannel()
+        await acknowledgeMessage(signedMessage, b)
 
-      const claim: StateChannelExitClaim = await b.exitChannel(a.myAddress)
-      assert(!!claim, 'Exist claim should not be null/undefined!')
+        const mostRecentMessage: ParsedMessage = parseStateChannelSignedMessage(
+          signedMessage,
+          aAddress
+        )
 
-      const counterClaim: ImplicationProofItem[] = await a.handleChannelExit(
-        getChannelId(signedMessage),
-        claim
-      )
-      assert(
-        !counterClaim,
-        'Exit should be valid, so there should be no counter-claim'
-      )
-    })
-
-    it('ensures B properly refutes an invalid nonce exit from A', async () => {
-      const signedMessage: SignedMessage = await createChannel()
-      await acknowledgeMessage(signedMessage, b)
-
-      const claim: StateChannelExitClaim = await a.exitChannel(b.myAddress)
-      assert(!!claim, 'Exist claim should not be null/undefined!')
-
-      claim.input.right.input.propertyFactory = (message: ParsedMessage) => {
-        return {
-          decider: MessageNonceLessThanDecider.instance(),
+        const refutableClaim: StateChannelExitClaim = {
+          decider: AndDecider.instance(),
           input: {
-            messageWithNonce: message,
-            lessThanThis: ONE, // All nonce's should NOT be less than this
+            // Claim that B has signed the message to be exited (this will evaluate to true)
+            left: {
+              decider: aSignedByDecider,
+              input: {
+                message: messageToBuffer(
+                  mostRecentMessage.message,
+                  stateChannelMessageToString
+                ),
+                publicKey: bAddress,
+              },
+            },
+            leftWitness: {
+              signature: mostRecentMessage.signatures[bAddress.toString()],
+            },
+            // Claim that A has not signed any message with nonce higher than the previous message (wrong)
+            right: {
+              decider: ForAllSuchThatDecider.instance(),
+              input: {
+                quantifier: aSignedByQuantifier,
+                quantifierParameters: { address: aAddress },
+                propertyFactory: (message: ParsedMessage) => {
+                  return {
+                    decider: MessageNonceLessThanDecider.instance(),
+                    input: {
+                      messageWithNonce: message,
+                      // This will be disputed because mostRecentMessage has been signed by A
+                      lessThanThis: mostRecentMessage.message.nonce,
+                    },
+                  }
+                },
+              },
+            },
+            rightWitness: undefined,
           },
         }
-      }
 
-      const counterClaim: ImplicationProofItem[] = await b.handleChannelExit(
-        getChannelId(signedMessage),
-        claim
-      )
-      assert(
-        !!counterClaim,
-        'Exit should not be valid, so there should be a counter-claim'
-      )
-    })
+        const counterClaimJustification: ImplicationProofItem[] = await b.handleChannelExit(
+          getChannelId(signedMessage),
+          refutableClaim
+        )
+        assert(
+          !!counterClaimJustification,
+          'Exit should not be valid, so there should be a counter-claim'
+        )
+        assert(
+          counterClaimJustification.length === 3,
+          `Counter claim should have 3 justification layers: AndDecider, ForAllSuchThatDecider, and MessageNonceLessThanDecider. Received ${counterClaimJustification.length}.`
+        )
+        assert(
+          counterClaimJustification[0].implication.decider instanceof
+            AndDecider,
+          `First counter-claim decider should be AndDecider. Received: ${JSON.stringify(
+            counterClaimJustification[0]
+          )}`
+        )
+        assert(
+          counterClaimJustification[1].implication.decider instanceof
+            ForAllSuchThatDecider,
+          `Second counter-claim decider should be ForAllSuchThatDecider. Received: ${JSON.stringify(
+            counterClaimJustification[1]
+          )}`
+        )
+        assert(
+          counterClaimJustification[2].implication.decider instanceof
+            MessageNonceLessThanDecider,
+          `Third counter-claim decider should be MessageNonceLessThanDecider. Received: ${JSON.stringify(
+            counterClaimJustification[2]
+          )}`
+        )
+        const nonceLessThanInput: MessageNonceLessThanInput = counterClaimJustification[2]
+          .implication.input as MessageNonceLessThanInput
+        assert(
+          nonceLessThanInput.messageWithNonce.message.nonce.gte(
+            nonceLessThanInput.lessThanThis
+          ),
+          `Counter-claim should be based on a message with a nonce that is NOT less than ${
+            nonceLessThanInput.lessThanThis
+          }, but received message: ${JSON.stringify(
+            nonceLessThanInput.messageWithNonce
+          )}`
+        )
+        assert(
+          aAddress.toString() in nonceLessThanInput.messageWithNonce.signatures,
+          `Counter-claim proof message should be signed by A, but received message: ${JSON.stringify(
+            nonceLessThanInput.messageWithNonce
+          )}`
+        )
+      })
 
-    it('ensures A properly refutes an invalid nonce exit from B', async () => {
-      const signedMessage: SignedMessage = await createChannel()
-      await acknowledgeMessage(signedMessage, b)
+      it('ensures A properly refutes an invalid nonce exit from B', async () => {
+        const signedMessage: SignedMessage = await createChannel()
+        await acknowledgeMessage(signedMessage, b)
 
-      const claim: StateChannelExitClaim = await b.exitChannel(a.myAddress)
-      assert(!!claim, 'Exist claim should not be null/undefined!')
+        const mostRecentMessage: ParsedMessage = parseStateChannelSignedMessage(
+          signedMessage,
+          bAddress
+        )
 
-      claim.input.right.input.propertyFactory = (message: ParsedMessage) => {
-        return {
-          decider: MessageNonceLessThanDecider.instance(),
+        const refutableClaim: StateChannelExitClaim = {
+          decider: AndDecider.instance(),
           input: {
-            messageWithNonce: message,
-            lessThanThis: ONE, // All nonce's should NOT be less than this
+            // Claim that A has signed the message to be exited (this will evaluate to true)
+            left: {
+              decider: bSignedByDecider,
+              input: {
+                message: messageToBuffer(
+                  mostRecentMessage.message,
+                  stateChannelMessageToString
+                ),
+                publicKey: aAddress,
+              },
+            },
+            leftWitness: {
+              signature: mostRecentMessage.signatures[aAddress.toString()],
+            },
+            // Claim that B has not signed any message with nonce higher than the previous message (wrong)
+            right: {
+              decider: ForAllSuchThatDecider.instance(),
+              input: {
+                quantifier: bSignedByQuantifier,
+                quantifierParameters: { address: bAddress },
+                propertyFactory: (message: ParsedMessage) => {
+                  return {
+                    decider: MessageNonceLessThanDecider.instance(),
+                    input: {
+                      messageWithNonce: message,
+                      // This will be disputed because mostRecentMessage has been signed by B
+                      lessThanThis: mostRecentMessage.message.nonce,
+                    },
+                  }
+                },
+              },
+            },
+            rightWitness: undefined,
           },
         }
-      }
 
-      const counterClaim: ImplicationProofItem[] = await a.handleChannelExit(
-        getChannelId(signedMessage),
-        claim
-      )
-      assert(
-        !!counterClaim,
-        'Exit should not be valid, so there should be a counter-claim'
-      )
-    })
-
-    it('handles A exit right of message 2', async () => {
-      const signedMessage: SignedMessage = await createChannel()
-      await acknowledgeMessage(signedMessage, b)
-
-      const addressBalance: AddressBalance = {}
-      addressBalance[aAddress.toString()] = new BigNumber(5)
-      addressBalance[bAddress.toString()] = new BigNumber(15)
-
-      const nextMessage: SignedMessage = await a.createNewMessage(
-        addressBalance,
-        bAddress
-      )
-
-      const parsedMessage: ParsedMessage = parseStateChannelSignedMessage(
-        nextMessage,
-        bAddress
-      )
-
-      checkSignedMessage(
-        nextMessage,
-        aAddress,
-        new BigNumber(2),
-        parsedMessage.message.channelId,
-        [aAddress],
-        parsedMessage.message.data['addressBalance']
-      )
-
-      await acknowledgeMessage(nextMessage, b, new BigNumber(2))
-
-      const claim: StateChannelExitClaim = await a.exitChannel(b.myAddress)
-      assert(!!claim, 'Exist claim should not be null/undefined!')
-
-      const counterClaim: ImplicationProofItem[] = await b.handleChannelExit(
-        getChannelId(signedMessage),
-        claim
-      )
-      assert(
-        !counterClaim,
-        'Exit should be valid, so there should be no counter-claim'
-      )
+        const counterClaimJustification: ImplicationProofItem[] = await a.handleChannelExit(
+          getChannelId(signedMessage),
+          refutableClaim
+        )
+        assert(
+          !!counterClaimJustification,
+          'Exit should not be valid, so there should be a counter-claim'
+        )
+        assert(
+          counterClaimJustification.length === 3,
+          `Counter claim should have 3 justification layers: AndDecider, ForAllSuchThatDecider, and MessageNonceLessThanDecider. Received ${counterClaimJustification.length}.`
+        )
+        assert(
+          counterClaimJustification[0].implication.decider instanceof
+            AndDecider,
+          `First counter-claim decider should be AndDecider. Received: ${JSON.stringify(
+            counterClaimJustification[0]
+          )}`
+        )
+        assert(
+          counterClaimJustification[1].implication.decider instanceof
+            ForAllSuchThatDecider,
+          `Second counter-claim decider should be ForAllSuchThatDecider. Received: ${JSON.stringify(
+            counterClaimJustification[1]
+          )}`
+        )
+        assert(
+          counterClaimJustification[2].implication.decider instanceof
+            MessageNonceLessThanDecider,
+          `Third counter-claim decider should be MessageNonceLessThanDecider. Received: ${JSON.stringify(
+            counterClaimJustification[2]
+          )}`
+        )
+        const nonceLessThanInput: MessageNonceLessThanInput = counterClaimJustification[2]
+          .implication.input as MessageNonceLessThanInput
+        assert(
+          nonceLessThanInput.messageWithNonce.message.nonce.gte(
+            nonceLessThanInput.lessThanThis
+          ),
+          `Counter-claim should be based on a message with a nonce that is NOT less than ${
+            nonceLessThanInput.lessThanThis
+          }, but received message: ${JSON.stringify(
+            nonceLessThanInput.messageWithNonce
+          )}`
+        )
+        assert(
+          aAddress.toString() in nonceLessThanInput.messageWithNonce.signatures,
+          `Counter-claim proof message should be signed by B, but received message: ${JSON.stringify(
+            nonceLessThanInput.messageWithNonce
+          )}`
+        )
+      })
     })
   })
 })
