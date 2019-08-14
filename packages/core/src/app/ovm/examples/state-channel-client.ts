@@ -5,7 +5,7 @@ import {
   ZERO,
   ParsedMessage,
   SignedMessage,
-  StateChannelMessageDB,
+  StateChannelMessageDbInterface,
   ImplicationProofItem,
   Decision,
   BigNumber,
@@ -38,7 +38,7 @@ const signaturePlaceholder: Buffer = Buffer.from(
  */
 export class StateChannelClient {
   public constructor(
-    private readonly messageDB: StateChannelMessageDB,
+    private readonly messageDB: StateChannelMessageDbInterface,
     private readonly signedByDecider: SignedByDecider,
     private readonly signedByQuantifier: SignedByQuantifier,
     private readonly myPrivateKey: Buffer,

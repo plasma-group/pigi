@@ -5,7 +5,7 @@ import { ParsedMessage } from '../../serialization'
  * The MessageDB interface specific to StateChannelMessages, offering various
  * StateChannelMessage-specific CRUD operations.
  */
-export interface StateChannelMessageDB extends MessageDB {
+export interface StateChannelMessageDbInterface extends MessageDB {
   /**
    * Gets the ParsedMessage of the StateChannelMessage with the provided
    * ChannelID that is signed by both parties and has the highest nonce.

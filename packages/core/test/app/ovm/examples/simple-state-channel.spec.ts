@@ -14,7 +14,7 @@ import { BigNumber, objectsEqual, ONE } from '../../../../src/app/utils'
 import { DB } from '../../../../src/types/db'
 import {
   ImplicationProofItem,
-  StateChannelMessageDB,
+  StateChannelMessageDbInterface,
 } from '../../../../src/types/ovm'
 import {
   ParsedMessage,
@@ -35,7 +35,7 @@ import {
   stateChannelMessageToString,
 } from '../../../../src/app/serialization'
 
-class TestStateChannelMessageDB implements StateChannelMessageDB {
+class TestStateChannelMessageDB implements StateChannelMessageDbInterface {
   private readonly exitedChannels: Set<string> = new Set()
   private readonly conflictingMessageStore: {} = {}
   private readonly messageStore: ParsedMessage[] = []
