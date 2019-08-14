@@ -34,6 +34,7 @@ import {
   messageToBuffer,
   stateChannelMessageToString,
 } from '../../../../src/app/serialization'
+import { SignedByDb } from '../../../../src/app/ovm/db/signed-by-db'
 
 class TestStateChannelMessageDB implements StateChannelMessageDbInterface {
   private readonly exitedChannels: Set<string> = new Set()
@@ -387,6 +388,7 @@ describe('State Channel Tests', () => {
   let aMemdown: any
   let aDb: DB
   let aMessageDB: TestStateChannelMessageDB
+  let aSignedByDB: SignedByDb
   let aSignedByDecider: SignedByDecider
   let aSignedByQuantifier: SignedByQuantifier
 
@@ -394,6 +396,7 @@ describe('State Channel Tests', () => {
   let bMemdown: any
   let bDb: DB
   let bMessageDB: TestStateChannelMessageDB
+  let bSignedByDB: SignedByDb
   let bSignedByDecider: SignedByDecider
   let bSignedByQuantifier: SignedByQuantifier
 
@@ -401,7 +404,8 @@ describe('State Channel Tests', () => {
     aMemdown = new MemDown('a')
     aDb = new BaseDB(aMemdown, 256)
     aMessageDB = new TestStateChannelMessageDB(aAddress)
-    aSignedByDecider = new SignedByDecider(aDb, equalsSignatureVerifier)
+    aSignedByDB = new SignedByDb(aDb)
+    aSignedByDecider = new SignedByDecider(aSignedByDB, aAddress)
     aSignedByQuantifier = new SignedByQuantifier(aMessageDB, aAddress)
 
     a = new StateChannelClient(
@@ -415,7 +419,8 @@ describe('State Channel Tests', () => {
     bMemdown = new MemDown('b')
     bDb = new BaseDB(bMemdown, 256)
     bMessageDB = new TestStateChannelMessageDB(bAddress)
-    bSignedByDecider = new SignedByDecider(bDb, equalsSignatureVerifier)
+    bSignedByDB = new SignedByDb(bDb)
+    bSignedByDecider = new SignedByDecider(bSignedByDB, bAddress)
     bSignedByQuantifier = new SignedByQuantifier(bMessageDB, bAddress)
 
     b = new StateChannelClient(

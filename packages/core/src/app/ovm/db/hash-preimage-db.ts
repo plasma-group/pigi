@@ -11,7 +11,7 @@ interface Record {
 }
 
 /**
- * A DB to store and access hashes and their associated preimages.
+ * DB to store and access hashes and their associated preimages.
  */
 export class HashPreimageDb implements HashPreimageDbInterface {
   public constructor(private readonly db: DB) {}
@@ -45,15 +45,15 @@ export class HashPreimageDb implements HashPreimageDbInterface {
     hash: Buffer,
     hashAlgorithm: HashAlgorithm
   ): Promise<Buffer | undefined> {
-    const record: Buffer = await this.db
+    const recordBuffer: Buffer = await this.db
       .bucket(Buffer.from(hashAlgorithm))
       .get(hash)
 
-    if (!record) {
+    if (!recordBuffer) {
       return undefined
     }
 
-    return HashPreimageDb.deserializeRecord(record).preimage
+    return HashPreimageDb.deserializeRecord(recordBuffer).preimage
   }
 
   private static serializeRecord(record: Record): Buffer {

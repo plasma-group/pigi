@@ -141,9 +141,7 @@ export class StateChannelClient {
             publicKey: counterparty,
           },
         },
-        leftWitness: {
-          signature: mostRecent.signatures[counterparty.toString()],
-        },
+        leftWitness: undefined,
         right: {
           decider: ForAllSuchThatDecider.instance(),
           input: {
