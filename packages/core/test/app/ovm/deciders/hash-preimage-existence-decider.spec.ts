@@ -15,11 +15,12 @@ import {
 import * as assert from 'assert'
 import { DB } from '../../../../src/types/db'
 import { HashPreimageDb } from '../../../../src/app/ovm/db/hash-preimage-db'
-import { HashAlgorithm } from '../../../../src/types/utils'
+import { HashAlgorithm, HashFunction } from '../../../../src/types/utils'
 
 describe('HashPreimageExistenceDecider', () => {
   const preimage: Buffer = Buffer.from('really great preimage')
-  const hash: Buffer = keccak256(preimage)
+  const hashFunction: HashFunction = keccak256
+  const hash: Buffer = hashFunction(preimage)
   const hashAlgorithm: HashAlgorithm = HashAlgorithm.KECCAK256
   const notTheHashAlgorithm: HashAlgorithm = HashAlgorithm.MD5
 
@@ -110,7 +111,7 @@ describe('HashPreimageExistenceDecider', () => {
       const secondPreimage: Buffer = Buffer.from('Another great preimage!')
       await preimageDB.storePreimage(secondPreimage, hashAlgorithm)
 
-      const secondHash: Buffer = keccak256(secondPreimage)
+      const secondHash: Buffer = hashFunction(secondPreimage)
       await decider.decide({ hash: secondHash })
 
       const checkedDecision: Decision = await decider.decide({ hash })
