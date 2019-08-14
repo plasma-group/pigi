@@ -1,6 +1,4 @@
 import { Decider, Decision } from '../../../types/ovm'
-import { KeyValueStoreDecider } from './key-value-store-decider'
-import { DB } from '../../../types/db'
 import { CannotDecideError } from './utils'
 import { SignedByDb } from '../db/signed-by-db'
 
