@@ -2,6 +2,7 @@ import { HashPreimageDbInterface } from '../../../types/ovm/db'
 import { HashAlgorithm } from '../../../types/utils'
 import { DB } from '../../../types/db'
 import { hashFunctionFor } from '../../utils'
+import { Message } from '../../../types/serialization'
 
 interface Record {
   preimage: Buffer
@@ -14,6 +15,16 @@ interface Record {
  */
 export class HashPreimageDb implements HashPreimageDbInterface {
   public constructor(private readonly db: DB) {}
+
+  public async handleMessage(message: Message): Promise<void> {
+    // TODO: handle each specific type of message when we formally define different messages.
+    if (message.data && 'preimage' in message.data) {
+      await this.storePreimage(
+        Buffer.from(message.data['preimage']),
+        HashAlgorithm.KECCAK256
+      )
+    }
+  }
 
   public async storePreimage(
     preimage: Buffer,

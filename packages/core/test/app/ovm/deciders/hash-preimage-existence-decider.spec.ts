@@ -35,7 +35,7 @@ describe('HashPreimageExistenceDecider', () => {
 
   describe('decide', () => {
     let decider: HashPreimageExistenceDecider
-    let preimageDB: HashPreimageDbInterface
+    let preimageDB: HashPreimageDb
     let db: DB
     let memdown: any
 
@@ -53,6 +53,27 @@ describe('HashPreimageExistenceDecider', () => {
 
     it('should decide true for valid preimage', async () => {
       await preimageDB.storePreimage(preimage, hashAlgorithm)
+      const decision: Decision = await decider.decide({ hash })
+
+      decision.outcome.should.equal(true)
+      decision.justification.length.should.equal(1)
+
+      const justification: ImplicationProofItem = decision.justification[0]
+      justification.implication.decider.should.equal(decider)
+      justification.implication.input['hash'].should.equal(hash)
+      assert(
+        justification.implicationWitness['preimage'].equals(preimage),
+        `Justification preimage should equal expected preimage [${preimage.toString()}], but got [${justification.implicationWitness[
+          'preimage'
+        ].toString()}]`
+      )
+    })
+
+    it('should decide true for valid preimage from Message', async () => {
+      await preimageDB.handleMessage({
+        channelId: Buffer.from('chan'),
+        data: { preimage },
+      })
       const decision: Decision = await decider.decide({ hash })
 
       decision.outcome.should.equal(true)

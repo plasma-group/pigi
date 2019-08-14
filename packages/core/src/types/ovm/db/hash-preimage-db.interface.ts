@@ -1,6 +1,7 @@
 import { HashAlgorithm } from '../../utils'
+import { MessageSubscriber } from '../message-subscriber.interface'
 
-export interface HashPreimageDbInterface {
+export interface HashPreimageDbInterface extends MessageSubscriber {
   /**
    * Calculates and stores the hash and provided preimage using the provided
    * HashAlgorithm for future lookup.
