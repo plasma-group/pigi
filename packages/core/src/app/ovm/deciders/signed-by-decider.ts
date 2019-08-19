@@ -1,17 +1,11 @@
 import { Decider, Decision } from '../../../types/ovm'
 import { CannotDecideError } from './utils'
-import { SignedByDb } from '../db/signed-by-db'
+import { SignedByDBInterface } from '../../../types/ovm/db/signed-by-db.interface'
 
 export interface SignedByInput {
   publicKey: Buffer
   message: Buffer
 }
-
-export type SignatureVerifier = (
-  publicKey: Buffer,
-  message: Buffer,
-  signature: Buffer
-) => Promise<boolean>
 
 /**
  * Decider that determines whether the provided witness is the provided message signed by
@@ -19,7 +13,7 @@ export type SignatureVerifier = (
  */
 export class SignedByDecider implements Decider {
   constructor(
-    private readonly signedByDb: SignedByDb,
+    private readonly signedByDb: SignedByDBInterface,
     private readonly myAddress: Buffer
   ) {}
 

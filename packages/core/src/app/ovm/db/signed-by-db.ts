@@ -1,5 +1,4 @@
-import { SignedByDbInterface } from '../../../types/ovm/db/signed-by-db.interface'
-import { MessageSubscriber } from '../../../types/ovm/message-subscriber.interface'
+import { SignedByDBInterface } from '../../../types/ovm/db/signed-by-db.interface'
 import { Message, SignedMessage } from '../../../types/serialization'
 import { DB } from '../../../types/db'
 import { decryptWithPublicKey, Md5Hash } from '../../utils'
@@ -13,7 +12,7 @@ interface Record {
 /**
  * DB to store and access message signatures.
  */
-export class SignedByDb implements SignedByDbInterface, MessageSubscriber {
+export class SignedByDB implements SignedByDBInterface {
   public constructor(private readonly db: DB) {}
 
   public async handleMessage(
@@ -36,7 +35,7 @@ export class SignedByDb implements SignedByDbInterface, MessageSubscriber {
       signerPublicKey,
       signature
     ) as Buffer
-    const serialized: Buffer = SignedByDb.serializeRecord({
+    const serialized: Buffer = SignedByDB.serializeRecord({
       signerPublicKey,
       signature,
       message,
@@ -44,7 +43,7 @@ export class SignedByDb implements SignedByDbInterface, MessageSubscriber {
 
     await this.db
       .bucket(signerPublicKey)
-      .put(SignedByDb.getKey(message), serialized)
+      .put(SignedByDB.getKey(message), serialized)
   }
 
   public async getMessageSignature(
@@ -53,13 +52,22 @@ export class SignedByDb implements SignedByDbInterface, MessageSubscriber {
   ): Promise<Buffer | undefined> {
     const recordBuffer: Buffer = await this.db
       .bucket(signerPublicKey)
-      .get(SignedByDb.getKey(message))
+      .get(SignedByDB.getKey(message))
 
     if (!recordBuffer) {
       return undefined
     }
 
-    return SignedByDb.deserializeRecord(recordBuffer).signature
+    return SignedByDB.deserializeRecord(recordBuffer).signature
+  }
+
+  public async getAllSignedBy(signerPublicKey: Buffer): Promise<Buffer[]> {
+    const signed: Buffer[] = await this.db
+      .bucket(signerPublicKey)
+      .iterator()
+      .values()
+
+    return signed.map((m) => SignedByDB.deserializeRecord(m).message)
   }
 
   private static getKey(message: Buffer): Buffer {

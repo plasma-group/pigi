@@ -1,6 +1,6 @@
 import { MessageSubscriber } from '../message-subscriber.interface'
 
-export interface SignedByDbInterface extends MessageSubscriber {
+export interface SignedByDBInterface extends MessageSubscriber {
   /**
    * Stores the signature for the provided signer.
    *
@@ -21,4 +21,12 @@ export interface SignedByDbInterface extends MessageSubscriber {
     message: Buffer,
     signerPublicKey
   ): Promise<Buffer | undefined>
+
+  /**
+   * Gets all messages signed by the provided public key.
+   *
+   * @param publicKey The public key in question
+   * @returns The messages signed by the provided public key
+   */
+  getAllSignedBy(publicKey: Buffer): Promise<Buffer[]>
 }

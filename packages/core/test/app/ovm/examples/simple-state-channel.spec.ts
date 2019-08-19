@@ -10,13 +10,19 @@ import {
   Utils,
 } from '../../../../src/app/ovm/deciders'
 import { BaseDB } from '../../../../src/app/db'
-import { BigNumber, objectsEqual, ONE } from '../../../../src/app/utils'
+import {
+  BigNumber,
+  decryptWithPublicKey,
+  objectsEqual,
+  ONE,
+} from '../../../../src/app/utils'
 import { DB } from '../../../../src/types/db'
 import {
   ImplicationProofItem,
-  StateChannelMessageDbInterface,
+  StateChannelMessageDBInterface,
 } from '../../../../src/types/ovm'
 import {
+  Message,
   ParsedMessage,
   SignedMessage,
 } from '../../../../src/types/serialization'
@@ -31,19 +37,52 @@ import {
 } from '../../../../src/app/serialization/examples'
 import * as assert from 'assert'
 import {
+  deserializeBuffer,
+  deserializeMessage,
   messageToBuffer,
+  stateChannelMessageDeserializer,
   stateChannelMessageToString,
 } from '../../../../src/app/serialization'
-import { SignedByDb } from '../../../../src/app/ovm/db/signed-by-db'
 
-class TestStateChannelMessageDB implements StateChannelMessageDbInterface {
+class TestStateChannelMessageDB implements StateChannelMessageDBInterface {
   private readonly exitedChannels: Set<string> = new Set()
   private readonly conflictingMessageStore: {} = {}
   private readonly messageStore: ParsedMessage[] = []
+  private readonly signedMessages: {} = {}
 
   public constructor(private readonly myAddress: Buffer) {}
 
+  public async handleMessage(
+    message: Message,
+    signedMessage?: SignedMessage
+  ): Promise<void> {
+    try {
+      await this.storeMessage(message.data as ParsedMessage)
+    } catch (e) {
+      // Must not have been a ParsedMessage
+    }
+  }
+
+  public async storeSignedMessage(
+    signerPublicKey: Buffer,
+    signature: Buffer
+  ): Promise<void> {
+    const keyString: string = signerPublicKey.toString()
+    if (!(keyString in this.signedMessages)) {
+      this.signedMessages[keyString] = []
+    }
+
+    this.signedMessages[keyString].push(signature)
+  }
+
   public async storeMessage(parsedMessage: ParsedMessage): Promise<void> {
+    // Save signed messages.
+    await Promise.all(
+      Object.keys(parsedMessage.signatures).map((k: string) =>
+        this.storeSignedMessage(Buffer.from(k), parsedMessage.signatures[k])
+      )
+    )
+
     // Check if conflict, and if so, store separately
     const potentialConflict: ParsedMessage = await this.getMessageByChannelIdAndNonce(
       parsedMessage.message.channelId,
@@ -78,7 +117,7 @@ class TestStateChannelMessageDB implements StateChannelMessageDbInterface {
             parsedMsg.message.nonce.eq(parsedMessage.message.nonce)))
       ) {
         this.messageStore[i] = parsedMessage
-        break
+        return
       }
     }
 
@@ -161,6 +200,31 @@ class TestStateChannelMessageDB implements StateChannelMessageDbInterface {
     }
 
     return messages
+  }
+
+  public async getAllSignedBy(publicKey: Buffer): Promise<Buffer[]> {
+    const keyString: string = publicKey.toString()
+    return keyString in this.signedMessages
+      ? this.signedMessages[keyString]
+      : []
+  }
+
+  public async getMessageSignature(
+    message: Buffer,
+    signerPublicKey
+  ): Promise<Buffer | undefined> {
+    const keyString: string = signerPublicKey.toString()
+    if (!(keyString in this.signedMessages)) {
+      return undefined
+    }
+
+    for (const signed of this.signedMessages[keyString]) {
+      if (decryptWithPublicKey(signerPublicKey, signed).equals(message)) {
+        return signed
+      }
+    }
+
+    return undefined
   }
 
   private static messageSignedBy(
@@ -294,14 +358,6 @@ class TestStateChannelMessageDB implements StateChannelMessageDbInterface {
   }
 }
 
-const equalsSignatureVerifier = async (
-  publicKey: Buffer,
-  message: Buffer,
-  signature: Buffer
-): Promise<boolean> => {
-  return message.equals(signature)
-}
-
 const checkSignedMessage = (
   signedMessage: SignedMessage,
   sender: Buffer,
@@ -388,7 +444,6 @@ describe('State Channel Tests', () => {
   let aMemdown: any
   let aDb: DB
   let aMessageDB: TestStateChannelMessageDB
-  let aSignedByDB: SignedByDb
   let aSignedByDecider: SignedByDecider
   let aSignedByQuantifier: SignedByQuantifier
 
@@ -396,7 +451,6 @@ describe('State Channel Tests', () => {
   let bMemdown: any
   let bDb: DB
   let bMessageDB: TestStateChannelMessageDB
-  let bSignedByDB: SignedByDb
   let bSignedByDecider: SignedByDecider
   let bSignedByQuantifier: SignedByQuantifier
 
@@ -404,8 +458,7 @@ describe('State Channel Tests', () => {
     aMemdown = new MemDown('a')
     aDb = new BaseDB(aMemdown, 256)
     aMessageDB = new TestStateChannelMessageDB(aAddress)
-    aSignedByDB = new SignedByDb(aDb)
-    aSignedByDecider = new SignedByDecider(aSignedByDB, aAddress)
+    aSignedByDecider = new SignedByDecider(aMessageDB, aAddress)
     aSignedByQuantifier = new SignedByQuantifier(aMessageDB, aAddress)
 
     a = new StateChannelClient(
@@ -419,8 +472,7 @@ describe('State Channel Tests', () => {
     bMemdown = new MemDown('b')
     bDb = new BaseDB(bMemdown, 256)
     bMessageDB = new TestStateChannelMessageDB(bAddress)
-    bSignedByDB = new SignedByDb(bDb)
-    bSignedByDecider = new SignedByDecider(bSignedByDB, bAddress)
+    bSignedByDecider = new SignedByDecider(bMessageDB, bAddress)
     bSignedByQuantifier = new SignedByQuantifier(bMessageDB, bAddress)
 
     b = new StateChannelClient(
@@ -712,7 +764,7 @@ describe('State Channel Tests', () => {
           input: {
             // Claim that B has signed the message to be exited (this will evaluate to true)
             left: {
-              decider: aSignedByDecider,
+              decider: bSignedByDecider,
               input: {
                 message: messageToBuffer(
                   mostRecentMessage.message,
@@ -728,13 +780,17 @@ describe('State Channel Tests', () => {
             right: {
               decider: ForAllSuchThatDecider.instance(),
               input: {
-                quantifier: aSignedByQuantifier,
+                quantifier: bSignedByQuantifier,
                 quantifierParameters: { address: aAddress },
-                propertyFactory: (message: ParsedMessage) => {
+                propertyFactory: (message: Buffer) => {
                   return {
                     decider: MessageNonceLessThanDecider.instance(),
                     input: {
-                      messageWithNonce: message,
+                      messageWithNonce: deserializeBuffer(
+                        message,
+                        deserializeMessage,
+                        stateChannelMessageDeserializer
+                      ),
                       // This will be disputed because mostRecentMessage has been signed by A
                       lessThanThis: mostRecentMessage.message.nonce,
                     },
@@ -782,18 +838,12 @@ describe('State Channel Tests', () => {
         const nonceLessThanInput: MessageNonceLessThanInput = counterClaimJustification[2]
           .implication.input as MessageNonceLessThanInput
         assert(
-          nonceLessThanInput.messageWithNonce.message.nonce.gte(
+          nonceLessThanInput.messageWithNonce.nonce.gte(
             nonceLessThanInput.lessThanThis
           ),
           `Counter-claim should be based on a message with a nonce that is NOT less than ${
             nonceLessThanInput.lessThanThis
           }, but received message: ${JSON.stringify(
-            nonceLessThanInput.messageWithNonce
-          )}`
-        )
-        assert(
-          aAddress.toString() in nonceLessThanInput.messageWithNonce.signatures,
-          `Counter-claim proof message should be signed by A, but received message: ${JSON.stringify(
             nonceLessThanInput.messageWithNonce
           )}`
         )
@@ -831,11 +881,15 @@ describe('State Channel Tests', () => {
               input: {
                 quantifier: bSignedByQuantifier,
                 quantifierParameters: { address: bAddress },
-                propertyFactory: (message: ParsedMessage) => {
+                propertyFactory: (message: Buffer) => {
                   return {
                     decider: MessageNonceLessThanDecider.instance(),
                     input: {
-                      messageWithNonce: message,
+                      messageWithNonce: deserializeBuffer(
+                        message,
+                        deserializeMessage,
+                        stateChannelMessageDeserializer
+                      ),
                       // This will be disputed because mostRecentMessage has been signed by B
                       lessThanThis: mostRecentMessage.message.nonce,
                     },
@@ -883,18 +937,12 @@ describe('State Channel Tests', () => {
         const nonceLessThanInput: MessageNonceLessThanInput = counterClaimJustification[2]
           .implication.input as MessageNonceLessThanInput
         assert(
-          nonceLessThanInput.messageWithNonce.message.nonce.gte(
+          nonceLessThanInput.messageWithNonce.nonce.gte(
             nonceLessThanInput.lessThanThis
           ),
           `Counter-claim should be based on a message with a nonce that is NOT less than ${
             nonceLessThanInput.lessThanThis
           }, but received message: ${JSON.stringify(
-            nonceLessThanInput.messageWithNonce
-          )}`
-        )
-        assert(
-          aAddress.toString() in nonceLessThanInput.messageWithNonce.signatures,
-          `Counter-claim proof message should be signed by B, but received message: ${JSON.stringify(
             nonceLessThanInput.messageWithNonce
           )}`
         )

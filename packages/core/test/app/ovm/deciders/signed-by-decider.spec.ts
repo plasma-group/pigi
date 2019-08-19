@@ -9,12 +9,9 @@ import {
 } from '../../../../src/types/ovm'
 import * as assert from 'assert'
 import { DB } from '../../../../src/types/db'
-import {
-  SignatureVerifier,
-  SignedByDecider,
-} from '../../../../src/app/ovm/deciders/signed-by-decider'
+import { SignedByDecider } from '../../../../src/app/ovm/deciders/signed-by-decider'
 import { CannotDecideError } from '../../../../src/app/ovm/deciders'
-import { SignedByDb } from '../../../../src/app/ovm/db/signed-by-db'
+import { SignedByDB } from '../../../../src/app/ovm/db'
 
 describe('SignedByDecider', () => {
   const myPublicKey: Buffer = Buffer.from('key')
@@ -26,12 +23,12 @@ describe('SignedByDecider', () => {
     let decider: Decider
     let db: DB
     let memdown: any
-    let signedByDb: SignedByDb
+    let signedByDb: SignedByDB
 
     beforeEach(() => {
       memdown = new MemDown('')
       db = new BaseDB(memdown, 256)
-      signedByDb = new SignedByDb(db)
+      signedByDb = new SignedByDB(db)
       decider = new SignedByDecider(signedByDb, myPublicKey)
     })
 
