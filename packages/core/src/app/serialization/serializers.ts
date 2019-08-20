@@ -87,7 +87,7 @@ export const deserializeBuffer = (
  */
 export const deserializeMessage = (
   message: string,
-  dataDeserializer: (string) => {}
+  dataDeserializer: (string) => {} = (d) => d
 ): Message => {
   const parsedObject = deserializeObject(message)
   return {

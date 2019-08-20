@@ -781,7 +781,7 @@ describe('State Channel Tests', () => {
               decider: ForAllSuchThatDecider.instance(),
               input: {
                 quantifier: bSignedByQuantifier,
-                quantifierParameters: { address: aAddress },
+                quantifierParameters: { address: aAddress, channelID: mostRecentMessage.message.channelId },
                 propertyFactory: (message: Buffer) => {
                   return {
                     decider: MessageNonceLessThanDecider.instance(),
@@ -863,7 +863,7 @@ describe('State Channel Tests', () => {
           input: {
             // Claim that A has signed the message to be exited (this will evaluate to true)
             left: {
-              decider: bSignedByDecider,
+              decider: aSignedByDecider,
               input: {
                 message: messageToBuffer(
                   mostRecentMessage.message,
@@ -879,8 +879,8 @@ describe('State Channel Tests', () => {
             right: {
               decider: ForAllSuchThatDecider.instance(),
               input: {
-                quantifier: bSignedByQuantifier,
-                quantifierParameters: { address: bAddress },
+                quantifier: aSignedByQuantifier,
+                quantifierParameters: { address: bAddress, channelID: mostRecentMessage.message.channelId },
                 propertyFactory: (message: Buffer) => {
                   return {
                     decider: MessageNonceLessThanDecider.instance(),
