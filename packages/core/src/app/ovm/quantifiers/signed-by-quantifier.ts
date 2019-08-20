@@ -31,7 +31,7 @@ export class SignedByQuantifier implements Quantifier {
       messages = messages.filter((m) => {
         try {
           const message: Message = deserializeBuffer(m, deserializeMessage)
-          return signerParams.channelID.equals(message.channelId)
+          return signerParams.channelID.equals(message.channelID)
         } catch (e) {
           return false
         }
