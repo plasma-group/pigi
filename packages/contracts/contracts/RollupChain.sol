@@ -5,4 +5,7 @@ pragma experimental ABIEncoderV2;
 import {DataTypes as dt} from "./DataTypes.sol";
 
 contract RollupChain {
+
+    function submitBlock(dt.Transition[] memory block) public {
+    }
 }
