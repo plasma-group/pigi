@@ -241,10 +241,42 @@ export class BigNumber {
   }
 
   /**
+   * Mods this BigNumber by the provided BigNumber and returns the result.
+   *
+   * @param other the BigNumber to mod by
+   * @returns a *new* BigNumber with the result
+   */
+  public modNum(mod: number): BigNumber {
+    assert(
+      !this.num.isNeg() || mod >= 0,
+      'Big number does not support negative mod negative.'
+    )
+    return new BigNumber(this.num.modn(mod))
+  }
+
+  /**
    * Returns the absolute value of this BigNumber as a *new* BigNumber.
    */
   public abs(): BigNumber {
     return new BigNumber(this.num.abs())
+  }
+
+  /**
+   * Bitwise left-shifts the BigNumber the provided number of places
+   *
+   * @param num the number of places to shift
+   */
+  public shiftLeft(num: number): BigNumber {
+    return new BigNumber(this.num.shln(num))
+  }
+
+  /**
+   * Bitwise right-shifts the BigNumber the provided number of places
+   *
+   * @param num the number of places to shift
+   */
+  public shiftRight(num: number): BigNumber {
+    return new BigNumber(this.num.shrn(num))
   }
 
   /***************
