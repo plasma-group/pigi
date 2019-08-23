@@ -1,3 +1,4 @@
+/* External Imports */
 import chai = require('chai')
 import {
   createMockProvider,
@@ -6,11 +7,14 @@ import {
   solidity,
 } from 'ethereum-waffle'
 
+/* Contract Imports */
 import * as Aggregator from '../build/Aggregator.json'
 
+/* Test setup */
 chai.use(solidity)
 const { expect } = chai
 
+/* Begin tests */
 describe('Aggregator', () => {
   const provider = createMockProvider()
   const [wallet] = getWallets(provider)
