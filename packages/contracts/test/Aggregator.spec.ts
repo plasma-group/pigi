@@ -37,10 +37,6 @@ describe('Aggregator', () => {
     expect(await aggregator.authenticationAddress()).to.eq(wallet.address)
   })
 
-  it('commitmentContract()', async () => {
-    expect(await aggregator.commitmentContract()).to.exist
-  })
-
   it('id()', async () => {
     expect(await aggregator.id()).to.eq(121)
   })
