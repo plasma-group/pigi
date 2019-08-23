@@ -1,13 +1,12 @@
 import './setup'
 
-import {
-  createMockProvider,
-  deployContract,
-  getWallets,
-  solidity,
-} from 'ethereum-waffle'
+/* External Imports */
+import { createMockProvider, deployContract, getWallets } from 'ethereum-waffle'
+
+/* Contract Imports */
 import * as AggregatorRegistry from '../build/AggregatorRegistry.json'
 
+/* Begin tests */
 describe('AggregatorRegistry', () => {
   const provider = createMockProvider()
   const [wallet1, wallet2] = getWallets(provider)
