@@ -8,4 +8,8 @@ pragma experimental ABIEncoderV2;
 contract DataTypes {
 
     /*** Structs ***/
+    struct Transition {
+        bytes transaction;
+        bytes32 postState;
+    }
 }
