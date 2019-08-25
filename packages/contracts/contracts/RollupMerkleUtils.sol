@@ -30,7 +30,7 @@ library RollupMerkleUtils {
         return keccak256(abi.encodePacked(left, right));
     }
 
-    function generateNextLevel(bytes32[] memory prevLevel) public pure returns(bytes32[] memory) {
+    function generateNextLevel(bytes32[] memory prevLevel) private pure returns(bytes32[] memory) {
         uint prevLevelLength = prevLevel.length;
         uint remainder = prevLevelLength % 2;
         uint nextLevelLength = (prevLevelLength / 2) + remainder;
@@ -47,5 +47,28 @@ library RollupMerkleUtils {
             nextLevel[nextLevelLength-1] = prevLevel[prevLevelLength - 1];
         }
         return nextLevel;
+    }
+
+    function getNthBitFromRight(uint self, uint8 index) public pure returns (uint8) {
+        return uint8(self >> index & 1);
+    }
+
+    /**
+     * @dev verify inclusion proof
+     */
+    function verify(uint128 _path, bytes32[] memory _siblings, bytes32 root, bytes32 leaf) public pure returns (bool) {
+        bytes32 computedNode = leaf;
+        for (uint8 i = 0; i < _siblings.length; i++) {
+            bytes32 sibling = _siblings[i];
+            uint8 isComputedRightSibling = getNthBitFromRight(_path, i);
+            if (isComputedRightSibling == 0) {
+                computedNode = parent(computedNode, sibling);
+            } else {
+                computedNode = parent(sibling, computedNode);
+            }
+        }
+
+        // Check if the computed node (root) is equal to the provided root
+        return computedNode == root;
     }
 }
