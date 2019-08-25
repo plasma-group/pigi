@@ -160,11 +160,12 @@ describe('RollupMerkleUtils', () => {
           const proof = tree.getRollupProof(leaf)
           // Actually check if the proof verifies
           const result = await rollupMerkleUtils.verify(
-            proof.path,
-            proof.siblings,
             bufToHexString(root),
-            leaf
+            leaf,
+            proof.path,
+            proof.siblings
           )
+          // Make sure the verification was successful
           result.should.equal(true)
         }
       }

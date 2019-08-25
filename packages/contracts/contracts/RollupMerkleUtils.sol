@@ -26,25 +26,37 @@ library RollupMerkleUtils {
         return leaves[0];
     }
 
-    function parent(bytes32 left, bytes32 right) internal pure returns(bytes32) {
-        return keccak256(abi.encodePacked(left, right));
+    /**
+     * @notice Get the parent of two children nodes in the tree
+     * @param _left The left child
+     * @param _right The right child
+     * @return The parent node
+     */
+    function parent(bytes32 _left, bytes32 _right) internal pure returns(bytes32) {
+        return keccak256(abi.encodePacked(_left, _right));
     }
 
-    function generateNextLevel(bytes32[] memory prevLevel) private pure returns(bytes32[] memory) {
-        uint prevLevelLength = prevLevel.length;
+    /**
+     * @notice Generate the next level of the merkle tree
+     * @param _prevLevel An array containing the hashes which make up
+                         the previous level in the merkle tree
+     * @return The next level of the tree
+     */
+    function generateNextLevel(bytes32[] memory _prevLevel) private pure returns(bytes32[] memory) {
+        uint prevLevelLength = _prevLevel.length;
         uint remainder = prevLevelLength % 2;
         uint nextLevelLength = (prevLevelLength / 2) + remainder;
         bytes32[] memory nextLevel = new bytes32[](nextLevelLength);
         // Calculate all parent nodes except the last one
         for(uint i = 0; i < nextLevelLength-1; i++) {
             uint prevLevelIndex = i*2;
-            nextLevel[i] = parent(prevLevel[prevLevelIndex], prevLevel[prevLevelIndex+1]);
+            nextLevel[i] = parent(_prevLevel[prevLevelIndex], _prevLevel[prevLevelIndex+1]);
         }
         // Set the last node to be either the hash
         if (remainder == 0) {
-            nextLevel[nextLevelLength-1] = keccak256(abi.encodePacked(prevLevel[prevLevelLength-2], prevLevel[prevLevelLength-1]));
+            nextLevel[nextLevelLength-1] = keccak256(abi.encodePacked(_prevLevel[prevLevelLength-2], _prevLevel[prevLevelLength-1]));
         } else {
-            nextLevel[nextLevelLength-1] = prevLevel[prevLevelLength - 1];
+            nextLevel[nextLevelLength-1] = _prevLevel[prevLevelLength - 1];
         }
         return nextLevel;
     }
@@ -54,10 +66,15 @@ library RollupMerkleUtils {
     }
 
     /**
-     * @dev verify inclusion proof
+     * @notice Verify an inclusion proof of an arbitrary merkle tree.
+     * @param _root The root of the tree we are verifying inclusion for.
+     * @param _leaf The leaf of the tree we are verifying inclusion for.
+     * @param _path The path from the leaf to the root.
+     * @param _siblings The sibling nodes along the way.
+     * @return The next level of the tree
      */
-    function verify(uint128 _path, bytes32[] memory _siblings, bytes32 root, bytes32 leaf) public pure returns (bool) {
-        bytes32 computedNode = leaf;
+    function verify(bytes32 _root, bytes32 _leaf, uint128 _path, bytes32[] memory _siblings) public pure returns (bool) {
+        bytes32 computedNode = _leaf;
         for (uint8 i = 0; i < _siblings.length; i++) {
             bytes32 sibling = _siblings[i];
             uint8 isComputedRightSibling = getNthBitFromRight(_path, i);
@@ -68,7 +85,7 @@ library RollupMerkleUtils {
             }
         }
 
-        // Check if the computed node (root) is equal to the provided root
-        return computedNode == root;
+        // Check if the computed node (_root) is equal to the provided root
+        return computedNode == _root;
     }
 }
