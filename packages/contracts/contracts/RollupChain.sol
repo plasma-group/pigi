@@ -28,7 +28,11 @@ contract RollupChain {
     /* Fields */
     Block[] public blocks;
 
-    /* Functions */
+    /* Methods */
+
+    /*
+     * Submits a new block which is then rolled up.
+     */
     function submitBlock(bytes[] memory _block) public returns(bytes32) {
         bytes32 root = RollupMerkleUtils.getMerkleRoot(_block);
         Block memory rollupBlock = Block({
@@ -39,6 +43,10 @@ contract RollupChain {
         return root;
     }
 
+    /*
+     * Checks if a transition is invalid and if it is records it & halt
+     * the chain.
+     */
     function proveTransitionInvalid(
         IncludedTransition memory _prestateTransition,
         IncludedTransition memory _invalidTransition,
@@ -46,6 +54,11 @@ contract RollupChain {
     ) public {
     }
 
+    /*
+     * Verifies that two transitions were included one after another.
+     * This is used to make sure we are comparing the correct
+     * prestate & poststate.
+     */
     function verifySequentialTransitions(
         IncludedTransition memory _transition0,
         IncludedTransition memory _transition1
@@ -54,6 +67,9 @@ contract RollupChain {
         require(checkTransitionInclusion(_transition1), 'The second transition must be included!');
     }
 
+    /*
+     * Check to see if a transition was indeed included.
+     */
     function checkTransitionInclusion(IncludedTransition memory _includedTransition) public view returns(bool) {
         bytes32 rootHash = blocks[_includedTransition.inclusionProof.blockNumber].rootHash;
         bytes32 transitionHash = getTransitionHash(_includedTransition.transition);
@@ -66,7 +82,12 @@ contract RollupChain {
         return isIncluded;
     }
 
+    /*
+     * Get the hash of the transition.
+     */
     function getTransitionHash(dt.Transition memory _transition) public pure returns(bytes32) {
+        // Here we don't use `abi.encode(_transition)` because it's not clear
+        // how to generate that encoding client-side.
         return keccak256(abi.encode(_transition.transaction, _transition.postState));
     }
 }

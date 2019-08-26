@@ -63,7 +63,7 @@ describe('RollupChain', () => {
     })
   })
 
-  describe('checkTransitionIncluded() ', async () => {
+  describe('checkTransitionIncluded()', async () => {
     it('should verify n included transitions for the first block', async () => {
       // Create a block from them, encoded, and calculate leaves
       const block = new RollupBlock(generateNTransitions(10), 0)
