@@ -3,6 +3,7 @@ import { keccak256, abi, hexStrToBuf, bufToHexString } from '@pigi/core'
 
 /* Export files */
 export * from './RollupMerkleTree'
+export * from './RollupBlock'
 
 /* Misc Helpers */
 export interface Transition {
@@ -17,6 +18,15 @@ export function abiEncodeTransition(transition: Transition): Buffer {
       [transition.transaction, transition.postState]
     )
   )
+}
+
+// Generates some number of dummy transitions
+export function generateNTransitions(numTransitions: number) {
+  const transitions = []
+  for (let i = 0; i < numTransitions; i++) {
+    transitions.push(getTransition('' + i))
+  }
+  return transitions
 }
 
 // Creates an encoded transition with the specified transaction

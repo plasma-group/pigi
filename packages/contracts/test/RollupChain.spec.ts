@@ -6,7 +6,9 @@ import {
   Transition,
   abiEncodeTransition,
   getEncodedTransition,
+  generateNTransitions,
   getTransition,
+  RollupBlock,
 } from './helpers'
 
 /* External Imports */
@@ -63,38 +65,18 @@ describe('RollupChain', () => {
 
   describe('checkTransitionIncluded() ', async () => {
     it('should verify some simple included transitions', async () => {
-      const numTransactions = 10
-      const transactions = []
-      // Generate a bunch of transactions
-      for (let i = 0; i < numTransactions; i++) {
-        transactions.push('' + i)
-      }
+      const numTransitions = 10
+      const transitions = generateNTransitions(numTransitions)
       // Create a block from them, encoded, and calculate leaves
-      const block = transactions.map((transaction) =>
-        getTransition(transaction)
-      )
-      const encodedBlock = transactions.map((transaction) =>
-        getEncodedTransition(transaction)
-      )
-      const leaves = encodedBlock.map((transition) =>
-        keccak256(hexStrToBuf(transition))
-      )
+      const block = new RollupBlock(transitions, 0)
       // Actually submit the block
-      await rollupChain.submitBlock(encodedBlock)
-      // Generate a local Merkle Tree based on the block
-      const tree = new RollupMerkleTree(leaves, keccak256)
-      const root: Buffer = tree.getRoot()
+      await rollupChain.submitBlock(block.encodedTransitions)
       // Now check that each one was included
-      for (let i = 0; i < numTransactions; i++) {
-        const proof = tree.getRollupProof(leaves[i])
+      for (let i = 0; i < numTransitions; i++) {
+        const inclusionProof = block.getInclusionProof(i)
         const isIncluded = await rollupChain.checkTransitionInclusion({
-          transition: block[i],
-          inclusionProof: {
-            blockNumber: 0,
-            transitionIndex: 0,
-            path: proof.path,
-            siblings: proof.siblings,
-          },
+          transition: block.transitions[i],
+          inclusionProof,
         })
         // Make sure it was included!
         isIncluded.should.equal(true)
