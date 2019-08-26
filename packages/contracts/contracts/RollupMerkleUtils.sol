@@ -8,7 +8,6 @@ import {DataTypes as dt} from "./DataTypes.sol";
  * Merkle Tree Utilities for Rollup
  */
 library RollupMerkleUtils {
-
     /**
      * @notice Get the merkle root computed from some set of data blocks.
      * @param _dataBlocks The data being used to generate the tree.
@@ -73,7 +72,7 @@ library RollupMerkleUtils {
      * @param _siblings The sibling nodes along the way.
      * @return The next level of the tree
      */
-    function verify(bytes32 _root, bytes32 _leaf, uint128 _path, bytes32[] memory _siblings) public pure returns (bool) {
+    function verify(bytes32 _root, bytes32 _leaf, uint _path, bytes32[] memory _siblings) public pure returns (bool) {
         bytes32 computedNode = _leaf;
         for (uint8 i = 0; i < _siblings.length; i++) {
             bytes32 sibling = _siblings[i];
