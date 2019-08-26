@@ -64,18 +64,34 @@ describe('RollupChain', () => {
   })
 
   describe('checkTransitionIncluded() ', async () => {
-    it('should verify some simple included transitions', async () => {
-      const numTransitions = 10
-      const transitions = generateNTransitions(numTransitions)
+    it('should verify n included transitions for the first block', async () => {
       // Create a block from them, encoded, and calculate leaves
-      const block = new RollupBlock(transitions, 0)
+      const block = new RollupBlock(generateNTransitions(10), 0)
       // Actually submit the block
       await rollupChain.submitBlock(block.encodedTransitions)
       // Now check that each one was included
-      for (let i = 0; i < numTransitions; i++) {
+      for (let i = 0; i < block.leaves.length; i++) {
         const inclusionProof = block.getInclusionProof(i)
         const isIncluded = await rollupChain.checkTransitionInclusion({
           transition: block.transitions[i],
+          inclusionProof,
+        })
+        // Make sure it was included!
+        isIncluded.should.equal(true)
+      }
+    })
+
+    it('should verify n included transitions for the second block', async () => {
+      const block0 = new RollupBlock(generateNTransitions(5), 0)
+      const block1 = new RollupBlock(generateNTransitions(5), 1)
+      // Submit the blocks
+      await rollupChain.submitBlock(block0.encodedTransitions)
+      await rollupChain.submitBlock(block1.encodedTransitions)
+      // Now check that all transitions for the 2nd block were included
+      for (let i = 0; i < block1.leaves.length; i++) {
+        const inclusionProof = block1.getInclusionProof(i)
+        const isIncluded = await rollupChain.checkTransitionInclusion({
+          transition: block1.transitions[i],
           inclusionProof,
         })
         // Make sure it was included!
