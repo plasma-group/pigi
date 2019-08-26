@@ -1,7 +1,13 @@
 import './setup'
 
 /* Internal Imports */
-import { Transition, abiEncodeTransition } from './utils'
+import {
+  RollupMerkleTree,
+  Transition,
+  abiEncodeTransition,
+  getEncodedTransition,
+  getTransition,
+} from './helpers'
 
 /* External Imports */
 import {
@@ -46,16 +52,53 @@ describe('RollupChain', () => {
   })
 
   describe('submitBlock() ', async () => {
-    const exampleTransition: Transition = {
-      transaction: '0x1234',
-      postState: '0x' + '00'.repeat(32),
-    }
-    const encodedTransition = bufToHexString(
-      abiEncodeTransition(exampleTransition)
-    )
     it('should not throw', async () => {
-      await rollupChain.submitBlock([encodedTransition, encodedTransition])
+      await rollupChain.submitBlock([
+        getEncodedTransition('0'),
+        getEncodedTransition('1'),
+      ])
       // Did not throw... success!
+    })
+  })
+
+  describe('checkTransitionIncluded() ', async () => {
+    it('should verify some simple included transitions', async () => {
+      const numTransactions = 10
+      const transactions = []
+      // Generate a bunch of transactions
+      for (let i = 0; i < numTransactions; i++) {
+        transactions.push('' + i)
+      }
+      // Create a block from them, encoded, and calculate leaves
+      const block = transactions.map((transaction) =>
+        getTransition(transaction)
+      )
+      const encodedBlock = transactions.map((transaction) =>
+        getEncodedTransition(transaction)
+      )
+      const leaves = encodedBlock.map((transition) =>
+        keccak256(hexStrToBuf(transition))
+      )
+      // Actually submit the block
+      await rollupChain.submitBlock(encodedBlock)
+      // Generate a local Merkle Tree based on the block
+      const tree = new RollupMerkleTree(leaves, keccak256)
+      const root: Buffer = tree.getRoot()
+      // Now check that each one was included
+      for (let i = 0; i < numTransactions; i++) {
+        const proof = tree.getRollupProof(leaves[i])
+        const isIncluded = await rollupChain.checkTransitionInclusion({
+          transition: block[i],
+          inclusionProof: {
+            blockNumber: 0,
+            transitionIndex: 0,
+            path: proof.path,
+            siblings: proof.siblings,
+          },
+        })
+        // Make sure it was included!
+        isIncluded.should.equal(true)
+      }
     })
   })
 })
