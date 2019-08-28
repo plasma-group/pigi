@@ -1,7 +1,7 @@
 {
-  "name": "@pigi/predicates",
+  "name": "@pigi/wallet",
   "version": "0.0.1-alpha.1",
-  "description": "Plasma Group core predicates",
+  "description": "Pigi client-side smart wallet",
   "main": "build/index.js",
   "files": [
     "build/**/.js"
@@ -17,9 +17,9 @@
     "plasma",
     "group",
     "ethereum",
-    "predicates"
+    "wallet"
   ],
-  "author": "Plasma Group",
+  "author": "PG",
   "license": "MIT",
   "repository": {
     "type": "git",
