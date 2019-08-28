@@ -263,6 +263,7 @@ export class BigNumber {
 
   /**
    * Bitwise left-shifts the BigNumber the provided number of places
+   * returning a new BigNumber as the result.
    *
    * @param num the number of places to shift
    */
@@ -272,11 +273,32 @@ export class BigNumber {
 
   /**
    * Bitwise right-shifts the BigNumber the provided number of places
+   * returning a new BigNumber as the result.
    *
    * @param num the number of places to shift
    */
   public shiftRight(num: number): BigNumber {
     return new BigNumber(this.num.shrn(num))
+  }
+
+  /**
+   * Bitwise left-shifts the BigNumber the provided number of places
+   *
+   * @param num the number of places to shift
+   */
+  public shiftLeftInPlace(num: number): BigNumber {
+    this.num.ishln(num)
+    return this
+  }
+
+  /**
+   * Bitwise right-shifts the BigNumber the provided number of places
+   *
+   * @param num the number of places to shift
+   */
+  public shiftRightInPlace(num: number): BigNumber {
+    this.num.ishrn(num)
+    return this
   }
 
   /***************
@@ -368,5 +390,6 @@ export class BigNumber {
 
 export const ZERO = new BigNumber(0)
 export const ONE = new BigNumber(1)
+export const TWO = new BigNumber(2)
 export const ONE_HALF = new BigNumber(0.5)
 export const MAX_BIG_NUM = new BigNumber('0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF')

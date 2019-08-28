@@ -1,8 +1,7 @@
 import { BigNumber } from '../number'
 
 export interface MerkleTreeNode {
-  key: BigNumber
-  level: number
+  hash: Buffer
   value: Buffer
 }
 
