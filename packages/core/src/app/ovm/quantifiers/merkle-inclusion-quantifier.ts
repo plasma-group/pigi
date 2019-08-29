@@ -29,7 +29,7 @@ export class MerkleInclusionQuantifier implements Quantifier {
   ): Promise<QuantifierResult> {
     const leafData: Buffer = await this.tree.getLeaf(input.key, input.root)
     return {
-      results: leafData ? [leafData] : [undefined], // Should this be empty?
+      results: leafData ? [leafData] : [undefined],
       allResultsQuantified: !!leafData,
     }
   }
