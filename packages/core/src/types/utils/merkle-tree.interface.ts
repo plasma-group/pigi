@@ -30,19 +30,18 @@ export interface MerkleTree {
    */
   update(key: BigNumber, value: Buffer): Promise<boolean>
 
-  /** TODO when we need it
+  /* TODO when we need it
    * getMerkleProof(key: BigNumber, value: Buffer): Promise<MerkleTreeInclusionProof>
    */
 
   /**
-   * Determines whether or not the tree contains the specified value at the
-   * specified key.
+   * Gets the leaf data at the provided key in the tree, if any exists.
    *
-   * @param key The key in question
-   * @param value The value in question
-   * @returns true if value is present at key location, false otherwise
+   * @param leafKey The key of the leaf to fetch
+   * @param rootHash: The optional root hash if root verification is desired
+   * @returns The value at the key if one exists, else undefined
    */
-  contains(key: BigNumber, value: Buffer): Promise<boolean>
+  getLeaf(leafKey: BigNumber, rootHash?: Buffer): Promise<Buffer>
 }
 
 export interface SparseMerkleTree extends MerkleTree {

@@ -52,8 +52,18 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
     return copy
   }
 
-  public async contains(key: BigNumber, value: Buffer): Promise<boolean> {
-    throw new Error("Method not implemented.");
+  public async getLeaf(leafKey: BigNumber, rootHash?: Buffer): Promise<Buffer> {
+    if (!!rootHash && !rootHash.equals(this.root.hash)) {
+      return undefined
+    }
+
+    const nodesInPath: MerkleTreeNode[] = await this.getNodesInPath(leafKey)
+    if (!nodesInPath || !nodesInPath.length) {
+      return undefined
+    }
+    const leaf: MerkleTreeNode = nodesInPath[nodesInPath.length]
+    // Will only match if we were able to traverse all the way to the leaf
+    return leaf.key.equals(leafKey) ? leaf.value : undefined
   }
 
   public async verifyAndStore(
@@ -70,7 +80,11 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
     }
 
     let intermediateZeroHashNode: boolean = true
-    let child: MerkleTreeNode = this.createNode(leafHash, inclusionProof.value, inclusionProof.key)
+    let child: MerkleTreeNode = this.createNode(
+      leafHash,
+      inclusionProof.value,
+      inclusionProof.key
+    )
     let parent: MerkleTreeNode = child
     const nodesToStore: MerkleTreeNode[] = [child]
     for (let parentDepth = this.height - 2; parentDepth >= 0; parentDepth--) {
@@ -124,12 +138,18 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
     if (!parent.hash.equals(this.root.hash)) {
       return false
     }
-    await Promise.all((await this.getNodesInPath(inclusionProof.key)).map(n => this.db.del(this.getNodeID(n))))
+    await Promise.all(
+      (await this.getNodesInPath(inclusionProof.key)).map((n) =>
+        this.db.del(this.getNodeID(n))
+      )
+    )
 
     // Root hash will not change, but it might have gone from a shortcut to regular node.
     this.root = parent
 
-    await Promise.all(nodesToStore.map((n) => this.db.put(this.getNodeID(n), n.value)))
+    await Promise.all(
+      nodesToStore.map((n) => this.db.put(this.getNodeID(n), n.value))
+    )
     return true
   }
 
@@ -242,8 +262,14 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
         case 64:
           // This is a standard node
           node = this.isLeft(leafKey, depth)
-            ? await this.getNode(node.value.subarray(0, 32), this.getNodeKey(leafKey, childDepth))
-            : await this.getNode(node.value.subarray(32), this.getNodeKey(leafKey, childDepth))
+            ? await this.getNode(
+                node.value.subarray(0, 32),
+                this.getNodeKey(leafKey, childDepth)
+              )
+            : await this.getNode(
+                node.value.subarray(32),
+                this.getNodeKey(leafKey, childDepth)
+              )
           break
         case 65:
           // This is a pointer to a leaf node hash (0x01 + key_as_buffer + node_hash)
@@ -252,12 +278,20 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
             depth
           )
 
-          if (this.isLeft(storedLeafKey, depth) !== this.isLeft(leafKey, depth)) {
+          if (
+            this.isLeft(storedLeafKey, depth) !== this.isLeft(leafKey, depth)
+          ) {
             // We want the non-shortcut child-node, which is a zero-hash
-            node = await this.getNode(this.zeroHashes[depth], this.getNodeKey(leafKey, childDepth))
+            node = await this.getNode(
+              this.zeroHashes[depth],
+              this.getNodeKey(leafKey, childDepth)
+            )
           } else {
             // skip to the leaf
-            node = await this.getNode(node.value.subarray(33), this.getNodeKey(leafKey, this.height -1))
+            node = await this.getNode(
+              node.value.subarray(33),
+              this.getNodeKey(leafKey, this.height - 1)
+            )
             depth = this.height
           }
 
@@ -366,7 +400,11 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
     if (!!node) {
       return undefined
     }
-    return this.createNode(nodeHash, OptimizedSparseMerkleTree.siblingBuffer, nodeKey)
+    return this.createNode(
+      nodeHash,
+      OptimizedSparseMerkleTree.siblingBuffer,
+      nodeKey
+    )
   }
 
   /**
@@ -376,8 +414,13 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
    * @param nodeKey The key identifying the location of the node in question
    * @returns The node, if one was found
    */
-  private async getNode(nodeHash: Buffer, nodeKey: BigNumber): Promise<MerkleTreeNode> {
-    const value: Buffer = await this.db.get(this.getNodeIDFromHashAndKey(nodeHash, nodeKey))
+  private async getNode(
+    nodeHash: Buffer,
+    nodeKey: BigNumber
+  ): Promise<MerkleTreeNode> {
+    const value: Buffer = await this.db.get(
+      this.getNodeIDFromHashAndKey(nodeHash, nodeKey)
+    )
     if (!value) {
       return undefined
     }
@@ -438,7 +481,11 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
         .copy(value)
     }
 
-    return this.createNode(this.hashFunction(value), value, this.getNodeKey(leafKey, depth))
+    return this.createNode(
+      this.hashFunction(value),
+      value,
+      this.getNodeKey(leafKey, depth)
+    )
   }
 
   /**
@@ -470,7 +517,11 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
    * @param key The key that describes how to get to this node from the tree root
    * @returns The resulting MerkleTreeNode
    */
-  private createNode(hash: Buffer, value: Buffer, key: BigNumber): MerkleTreeNode {
+  private createNode(
+    hash: Buffer,
+    value: Buffer,
+    key: BigNumber
+  ): MerkleTreeNode {
     return { hash, value, key }
   }
 
@@ -502,7 +553,10 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
     return this.getNodeIDFromHashAndKey(node.hash, node.key)
   }
 
-  private getNodeIDFromHashAndKey(nodeHash: Buffer, nodeKey: BigNumber): Buffer {
+  private getNodeIDFromHashAndKey(
+    nodeHash: Buffer,
+    nodeKey: BigNumber
+  ): Buffer {
     return this.hashFunction(
       this.hashBuffer
         .fill(nodeHash, 0, 32)
