@@ -11,6 +11,36 @@ import {
  * returning true if they are and false otherwise
  */
 
+export const areEqual = (one: any, two: any): boolean => {
+  if (!one && !two) {
+    return true
+  }
+  if (!one || !two) {
+    return false
+  }
+
+  if (Array.isArray(one) || Array.isArray(two)) {
+    if (
+      Array.isArray(one) !== Array.isArray(two) ||
+      one.length !== two.length
+    ) {
+      return false
+    }
+    for (let i = 0; i < one.length; i++) {
+      if (!areEqual(one[i], two[i])) {
+        return false
+      }
+    }
+    return true
+  }
+
+  if (typeof one === 'object') {
+    return objectsEqual(one, two)
+  }
+
+  return one === two
+}
+
 export const objectsEqual = (obj1: {}, obj2: {}): boolean => {
   if (!obj1 && !obj2) {
     return true
