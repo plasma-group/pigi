@@ -1,6 +1,7 @@
 import { BigNumber } from '../number'
 
 export interface MerkleTreeNode {
+  key: BigNumber
   hash: Buffer
   value: Buffer
 }
@@ -11,15 +12,13 @@ export interface MerkleTreeInclusionProof {
   siblings: Buffer[]
 }
 
-export interface SparseMerkleTree {
+export interface MerkleTree {
   /**
-   * Verifies that the provided inclusion proof and stores the
-   * associated siblings for future updates / calculations.
+   * Gets the root hash for this tree.
    *
-   * @param inclusionProof The inclusion proof in question
-   * @return true if the proof was valid (and thus stored), false otherwise
+   * @returns The root hash.
    */
-  verifyAndStore(inclusionProof: MerkleTreeInclusionProof): Promise<boolean>
+  getRootHash(): Promise<Buffer>
 
   /**
    * Updates the provided key in the Merkle Tree to have the value as data,
@@ -31,10 +30,28 @@ export interface SparseMerkleTree {
    */
   update(key: BigNumber, value: Buffer): Promise<boolean>
 
-  /**
-   * Gets the root hash for this tree.
-   *
-   * @returns The root hash.
+  /** TODO when we need it
+   * getMerkleProof(key: BigNumber, value: Buffer): Promise<MerkleTreeInclusionProof>
    */
-  getRootHash(): Promise<Buffer>
+
+  /**
+   * Determines whether or not the tree contains the specified value at the
+   * specified key.
+   *
+   * @param key The key in question
+   * @param value The value in question
+   * @returns true if value is present at key location, false otherwise
+   */
+  contains(key: BigNumber, value: Buffer): Promise<boolean>
+}
+
+export interface SparseMerkleTree extends MerkleTree {
+  /**
+   * Verifies that the provided inclusion proof and stores the
+   * associated siblings for future updates / calculations.
+   *
+   * @param inclusionProof The inclusion proof in question
+   * @return true if the proof was valid (and thus stored), false otherwise
+   */
+  verifyAndStore(inclusionProof: MerkleTreeInclusionProof): Promise<boolean>
 }
