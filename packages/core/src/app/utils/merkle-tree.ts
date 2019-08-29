@@ -55,6 +55,7 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
   public async verifyAndStore(
     inclusionProof: MerkleTreeInclusionProof
   ): Promise<boolean> {
+    // There should be one sibling for every node except the root.
     if (inclusionProof.siblings.length !== this.height - 1) {
       return false
     }
@@ -64,50 +65,61 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
       return true
     }
 
-    let allEmptySiblings: boolean = true
+    let intermediateZeroHashNode: boolean = true
     let child: MerkleTreeNode = this.createNode(leafHash, inclusionProof.value)
-    let node: MerkleTreeNode = child
+    let parent: MerkleTreeNode = child
     const nodesToStore: MerkleTreeNode[] = [child]
-    for (let depth = this.height - 2; depth >= 0; depth--) {
-      allEmptySiblings =
-        allEmptySiblings &&
-        inclusionProof.siblings[depth].equals(this.zeroHashes[depth + 1]) &&
-        depth !== 0
+    for (let parentDepth = this.height - 2; parentDepth >= 0; parentDepth--) {
+      child = parent
 
-      child = node
-
-      node = this.calculateParentNode(
+      const childDepth: number = parentDepth + 1
+      // Since there's no root sibling, each sibling is one index lower
+      const childSiblingHash: Buffer = inclusionProof.siblings[childDepth - 1]
+      parent = this.calculateParentNode(
         child,
-        inclusionProof.siblings[depth],
+        childSiblingHash,
         inclusionProof.key,
-        depth
+        parentDepth
       )
 
-      // Don't store nodes that can be re-calculated from key, leaf, and zeroHashes
-      if (!allEmptySiblings) {
-        // If this is the first non-zero-hash ancestor of leaf node, and we didn't persist the leaf's parent, store shortcut to leaf node
-        if (nodesToStore.length === 1 && depth < this.height - 2) {
-          node = this.createLeafShortcutNode(
-            node.hash,
-            inclusionProof.value,
-            inclusionProof.key,
-            depth
-          )
-        }
-        nodesToStore.push(node)
-        const siblingNode: MerkleTreeNode = await this.createProofSiblingNodeIfDoesntExist(
-          inclusionProof.siblings[depth]
+      intermediateZeroHashNode =
+        intermediateZeroHashNode &&
+        childSiblingHash.equals(this.zeroHashes[childDepth]) &&
+        parentDepth !== 0 &&
+        inclusionProof.siblings[parentDepth - 1].equals(
+          this.zeroHashes[parentDepth]
         )
-        // We don't want to overwrite the sibling if it's present in the db.
-        if (!!siblingNode) {
-          nodesToStore.push(siblingNode)
-        }
+
+      // Don't store nodes that can be re-calculated from key, leaf, and zeroHashes
+      if (intermediateZeroHashNode) {
+        continue
+      }
+
+      // If there were any zero-hash intermediate nodes we didn't persist, make the current node a shortcut to the leaf.
+      if (nodesToStore.length === 1 && parentDepth < this.height - 2) {
+        parent = this.createLeafShortcutNode(
+          parent.hash,
+          inclusionProof.value,
+          inclusionProof.key,
+          parentDepth
+        )
+      }
+      nodesToStore.push(parent)
+
+      // Store sibling node, but don't overwrite it if it's in the db.
+      const siblingNode: MerkleTreeNode = await this.createProofSiblingNodeIfDoesntExist(
+        childSiblingHash
+      )
+      if (!!siblingNode) {
+        nodesToStore.push(siblingNode)
       }
     }
-    if (!node.hash.equals(this.root.hash)) {
+
+    if (!parent.hash.equals(this.root.hash)) {
       return false
     }
-    this.root = node
+    // Root hash will not change, but it might have gone from a shortcut to regular node.
+    this.root = parent
 
     await Promise.all(nodesToStore.map((n) => this.db.put(n.hash, n.value)))
     return true

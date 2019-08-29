@@ -23,6 +23,7 @@ import { DB } from '../../../src/types'
 
 const hashBuffer: Buffer = new Buffer(64)
 const hashFunction: HashFunction = keccak256
+const zeroHash: Buffer = hashFunction(OptimizedSparseMerkleTree.emptyBuffer)
 
 const createAndVerifyEmptyTreeDepthWithDepth = async (
   db: DB,
@@ -36,11 +37,13 @@ const createAndVerifyEmptyTreeDepthWithDepth = async (
     hashFunction
   )
 
+  let zeroHashParent: Buffer = zeroHash
   const siblings: Buffer[] = []
-  let zeroHash = hashFunction(OptimizedSparseMerkleTree.emptyBuffer)
   for (let i = depth - 2; i >= 0; i--) {
-    siblings.push(zeroHash)
-    zeroHash = hashFunction(hashBuffer.fill(zeroHash, 0, 32).fill(zeroHash, 32))
+    siblings.push(zeroHashParent)
+    zeroHashParent = hashFunction(
+      hashBuffer.fill(zeroHashParent, 0, 32).fill(zeroHashParent, 32)
+    )
   }
 
   const inclusionProof: MerkleTreeInclusionProof = {
@@ -61,7 +64,7 @@ const getRootHashOnlyHashingWithEmptySiblings = (
   key: BigNumber,
   treeHeight: number
 ): Buffer => {
-  let zeroHash: Buffer = hashFunction(OptimizedSparseMerkleTree.emptyBuffer)
+  let zeroHashParent: Buffer = zeroHash
   let hash: Buffer = hashFunction(leafValue)
 
   for (let depth = treeHeight - 2; depth >= 0; depth--) {
@@ -71,10 +74,12 @@ const getRootHashOnlyHashingWithEmptySiblings = (
       .mod(TWO)
       .equals(ZERO)
     hash = left
-      ? hashFunction(hashBuffer.fill(hash, 0, 32).fill(zeroHash, 32))
-      : hashFunction(hashBuffer.fill(zeroHash, 0, 32).fill(hash, 32))
+      ? hashFunction(hashBuffer.fill(hash, 0, 32).fill(zeroHashParent, 32))
+      : hashFunction(hashBuffer.fill(zeroHashParent, 0, 32).fill(hash, 32))
 
-    zeroHash = hashFunction(hashBuffer.fill(zeroHash, 0, 32).fill(zeroHash, 32))
+    zeroHashParent = hashFunction(
+      hashBuffer.fill(zeroHashParent, 0, 32).fill(zeroHashParent, 32)
+    )
   }
 
   return hash
@@ -354,11 +359,10 @@ describe('OptimizedSparseMerkleTree', () => {
         'Root hashes do not match after update'
       )
 
+      // VERIFY AND UPDATE ONE
+
       // first sibling is other value, next is zero hash because parent's sibling tree is empty
       const siblings: Buffer[] = [valueHash]
-      const zeroHash: Buffer = hashFunction(
-        OptimizedSparseMerkleTree.emptyBuffer
-      )
       const zeroHashParent: Buffer = hashFunction(
         hashBuffer.fill(zeroHash, 0, 32).fill(zeroHash, 32)
       )
@@ -382,6 +386,68 @@ describe('OptimizedSparseMerkleTree', () => {
       )
       parentHash = hashFunction(
         hashBuffer.fill(parentHash, 0, 32).fill(zeroHashParent, 32)
+      )
+
+      assert(
+        parentHash.equals(await tree.getRootHash()),
+        'Root hashes do not match after update'
+      )
+    })
+
+    it('updates empty tree at key 0 and 2', async () => {
+      /*
+              zh                    C                  F
+             /  \                 /  \              /    \
+           zh    zh     ->      B    zh     ->     B      E
+          /  \  /  \           /  \  /  \        /  \    /  \
+        zh  zh  zh  zh        A  zh  zh  zh     A    zh  D  zh
+      */
+
+      const tree: SparseMerkleTree = await createAndVerifyEmptyTreeDepthWithDepth(
+        db,
+        ZERO,
+        3
+      )
+
+      const value: Buffer = Buffer.from('much better value')
+      const valueHash: Buffer = hashFunction(value)
+      assert(await tree.update(ZERO, value))
+
+      const root: Buffer = getRootHashOnlyHashingWithEmptySiblings(
+        value,
+        ZERO,
+        3
+      )
+      assert(
+        root.equals(await tree.getRootHash()),
+        'Root hashes do not match after update'
+      )
+
+      // VERIFY AND UPDATE TWO
+
+      const leftSubtreeSibling: Buffer = hashFunction(
+        hashBuffer.fill(valueHash, 0, 32).fill(zeroHash, 32)
+      )
+      const siblings: Buffer[] = [zeroHash, leftSubtreeSibling]
+
+      const inclusionProof: MerkleTreeInclusionProof = {
+        key: TWO,
+        value: OptimizedSparseMerkleTree.emptyBuffer,
+        siblings: siblings.reverse(),
+      }
+
+      assert(await tree.verifyAndStore(inclusionProof))
+
+      const secondValue: Buffer = Buffer.from('much better value 2')
+      const secondValueHash: Buffer = hashFunction(secondValue)
+
+      assert(await tree.update(TWO, secondValue))
+
+      let parentHash: Buffer = hashFunction(
+        hashBuffer.fill(secondValueHash, 0, 32).fill(zeroHash, 32)
+      )
+      parentHash = hashFunction(
+        hashBuffer.fill(leftSubtreeSibling, 0, 32).fill(parentHash, 32)
       )
 
       assert(
