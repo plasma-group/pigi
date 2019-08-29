@@ -30,4 +30,11 @@ export interface SparseMerkleTree {
    * @return true if the update succeeded, false if we're missing the intermediate nodes / siblings required for this
    */
   update(key: BigNumber, value: Buffer): Promise<boolean>
+
+  /**
+   * Gets the root hash for this tree.
+   *
+   * @returns The root hash.
+   */
+  getRootHash(): Promise<Buffer>
 }

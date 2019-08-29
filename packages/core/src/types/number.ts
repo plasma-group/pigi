@@ -391,5 +391,6 @@ export class BigNumber {
 export const ZERO = new BigNumber(0)
 export const ONE = new BigNumber(1)
 export const TWO = new BigNumber(2)
+export const THREE = new BigNumber(3)
 export const ONE_HALF = new BigNumber(0.5)
 export const MAX_BIG_NUM = new BigNumber('0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF')
