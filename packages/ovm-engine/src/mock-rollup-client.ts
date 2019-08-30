@@ -16,6 +16,8 @@ import {
   TransactionReceipt,
 } from '.'
 
+type PluginType = 'ROLLUP'
+
 export class MockRollupClient {
   public jsonRpcClient: SimpleClient
   public accounts: { Address: Storage }

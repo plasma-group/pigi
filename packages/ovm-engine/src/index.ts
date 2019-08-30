@@ -1,3 +1,3 @@
 export * from './types'
-export * from './mock-ovm'
-export * from './unipig-provider'
+export * from './mock-rollup-client'
+export * from './unipig-wallet'
