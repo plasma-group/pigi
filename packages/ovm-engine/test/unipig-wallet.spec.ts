@@ -13,44 +13,64 @@ import {
   DefaultWallet,
   DefaultWalletDB,
   BaseDB,
+  SimpleServer,
+  SimpleClient,
 } from '@pigi/core'
 import MemDown from 'memdown'
 import * as assert from 'assert'
 
 /* Internal Imports */
-import { UnipigWallet, UNI } from '../src'
+import { UnipigWallet, Address } from '../src'
 
 /***********
  * HELPERS *
  ***********/
+
+// A mocked getBalances api
+const getBalances = (address: Address) => {
+  return {
+    uni: 5,
+    pigi: 10,
+  }
+}
 
 /*********
  * TESTS *
  *********/
 
 describe('UnipigWallet', async () => {
-  let walletdb
+  let db
   let unipigWallet
   let accountAddress
+  let aggregator
 
   beforeEach(async () => {
     // Typings for MemDown are wrong so we need to cast to `any`.
-    walletdb = new DefaultWalletDB(new BaseDB(new MemDown('') as any))
-    unipigWallet = new UnipigWallet(walletdb)
+    db = new BaseDB(new MemDown('') as any)
+    unipigWallet = new UnipigWallet(db)
     // Now create a wallet account
     accountAddress = unipigWallet.createAccount('')
+    // Initialize a mock aggregator
+    aggregator = new SimpleServer(
+      {
+        getBalances,
+      },
+      'localhost',
+      3000
+    )
+    await aggregator.listen()
+    // Connect to the mock aggregator
+    unipigWallet.rollup.connect(new SimpleClient('http://127.0.0.1:3000'))
+  })
+
+  afterEach(async () => {
+    // Close the server
+    await aggregator.close()
   })
 
   describe('sendSignedTransaction()', async () => {
     it('should initalize', async () => {
-      // Create a tx
-      const swap = unipigWallet.sendSwapTransaction({
-        tokenType: 1,
-        inputAmount: new BigNumber(500),
-        minOutputAmount: new BigNumber(300),
-        timeout: Date.now() + 1000,
-      })
-      console.log(swap)
+      const balances = await unipigWallet.getBalances('0x' + '00'.repeat(32))
     })
   })
 })

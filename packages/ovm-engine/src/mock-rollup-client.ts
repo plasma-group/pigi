@@ -1,5 +1,5 @@
 /* External Imports */
-import { BigNumber, abi, KeyValueStore, Wallet, SimpleClient } from '@pigi/core'
+import { abi, KeyValueStore, Wallet, RpcClient } from '@pigi/core'
 
 /* Internal Imports */
 import {
@@ -14,12 +14,11 @@ import {
   MockedSignature,
   SignedTransaction,
   TransactionReceipt,
+  UNISWAP_ADDRESS,
 } from '.'
 
-type PluginType = 'ROLLUP'
-
 export class MockRollupClient {
-  public jsonRpcClient: SimpleClient
+  public rpcClient: RpcClient
   public accounts: { Address: Storage }
   public uniswapAddress: Address
 
@@ -28,14 +27,22 @@ export class MockRollupClient {
     readonly sign: (address: string, message: string) => Promise<string>
   ) {}
 
-  public connect(aggregatorBaseUrl: string) {
+  public connect(rpcClient: RpcClient) {
     // Create a new simple JSON rpc server for the rollup client
-    this.jsonRpcClient = new SimpleClient(aggregatorBaseUrl)
+    this.rpcClient = rpcClient
     // TODO: Persist the aggregator url
   }
 
   public async getBalances(account: Address): Promise<Balances> {
-    return this.accounts[account].balances
+    const balances = await this.rpcClient.handle<Balances>(
+      'getBalances',
+      account
+    )
+    return balances
+  }
+
+  public async getUniswapBalances(): Promise<Balances> {
+    return this.getBalances(UNISWAP_ADDRESS)
   }
 
   private ecdsaRecover(signature: MockedSignature): Address {

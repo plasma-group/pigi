@@ -19,7 +19,6 @@ import {
   Transfer,
   Transaction,
   SignatureProvider,
-  Client,
   TransactionReceipt,
   MockRollupClient,
 } from '.'

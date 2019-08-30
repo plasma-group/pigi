@@ -1,5 +1,5 @@
 /* External Imports */
-import { BigNumber, abi, KeyValueStore, Wallet, SimpleClient } from '@pigi/core'
+import { abi, KeyValueStore, Wallet, RpcClient } from '@pigi/core'
 
 /* Internal Imports */
 import {
@@ -14,26 +14,26 @@ import {
   MockedSignature,
   SignedTransaction,
   TransactionReceipt,
+  UNISWAP_ADDRESS,
 } from '.'
 
-export class MockRollupClient {
-  public jsonRpcClient: SimpleClient
-  public accounts: { Address: Storage }
-  public uniswapAddress: Address
+interface State {
+  [address: string]: Storage
+}
 
-  constructor(
-    readonly db: KeyValueStore,
-    readonly sign: (address: string, message: string) => Promise<string>
-  ) {}
+export class MockRollupStateMachine {
+  public state: State
 
-  public connect(aggregatorBaseUrl: string) {
-    // Create a new simple JSON rpc server for the rollup client
-    this.jsonRpcClient = new SimpleClient(aggregatorBaseUrl)
-    // TODO: Persist the aggregator url
+  constructor(genesisState: State) {
+    this.state = genesisState
   }
 
-  public async getBalances(account: Address): Promise<Balances> {
-    return this.accounts[account].balances
+  public getBalances(account: Address): Balances {
+    return this.state[account].balances
+  }
+
+  public getUniswapBalances(): Balances {
+    return this.state[UNISWAP_ADDRESS].balances
   }
 
   private ecdsaRecover(signature: MockedSignature): Address {
@@ -41,9 +41,9 @@ export class MockRollupClient {
     return signature
   }
 
-  public async applyTransaction(
+  public applyTransaction(
     signedTransaction: SignedTransaction
-  ): Promise<TransactionReceipt> {
+  ): TransactionReceipt {
     const sender: Address = signedTransaction.signature
     const transaction: Transaction = signedTransaction.transaction
     if (isTransferTransaction(transaction)) {

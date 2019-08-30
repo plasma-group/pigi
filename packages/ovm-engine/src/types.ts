@@ -1,7 +1,7 @@
-import { DefaultWallet, BigNumber, abi } from '@pigi/core'
+import { DefaultWallet, abi } from '@pigi/core'
 
-export type UNI = 0
-export type PIGI = 1
+export type UniTokenType = 0
+export type PigiTokenType = 1
 
 export type SUCCESS = 'SUCCESS'
 export type FAILURE = 'FAILURE'
@@ -9,13 +9,13 @@ export type FAILURE = 'FAILURE'
 export type Address = string
 
 export interface Balances {
-  [tokenType: string]: BigNumber
+  [tokenType: string]: number
 }
 
 export interface Swap {
-  tokenType: UNI | PIGI
-  inputAmount: BigNumber
-  minOutputAmount: BigNumber
+  tokenType: UniTokenType | PigiTokenType
+  inputAmount: number
+  minOutputAmount: number
   timeout: number
 }
 
@@ -27,9 +27,9 @@ export const isSwapTransaction = (
 }
 
 export interface Transfer {
-  tokenType: UNI | PIGI
+  tokenType: UniTokenType | PigiTokenType
   recipient: Address
-  amount: BigNumber
+  amount: number
 }
 
 /* Type guard for transfer transaction */
@@ -57,13 +57,6 @@ export interface Storage {
   balances: Balances
 }
 
-type Signature = Buffer
-
 export interface SignatureProvider {
   sign(address: string, message: string): Promise<string>
-}
-
-export interface Client {
-  getBalances(account: Address): Promise<Balances>
-  applyTransaction(transaction: SignedTransaction): Promise<TransactionReceipt>
 }
