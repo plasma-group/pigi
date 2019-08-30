@@ -1,7 +1,8 @@
 import { DefaultWallet, abi } from '@pigi/core'
 
-export type UniTokenType = 0
-export type PigiTokenType = 1
+export type UniTokenType = 'uni'
+export type PigiTokenType = 'pigi'
+export type TokenType = UniTokenType | PigiTokenType
 
 export type SUCCESS = 'SUCCESS'
 export type FAILURE = 'FAILURE'
@@ -23,7 +24,7 @@ export interface Swap {
 export const isSwapTransaction = (
   transaction: Transaction
 ): transaction is Swap => {
-  return 'minOutputAmoun' in transaction
+  return 'minOutputAmount' in transaction
 }
 
 export interface Transfer {
@@ -50,7 +51,7 @@ export interface SignedTransaction {
 
 export interface TransactionReceipt {
   status: SUCCESS | FAILURE
-  contents: any
+  message: any
 }
 
 export interface Storage {

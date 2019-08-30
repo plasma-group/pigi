@@ -22,11 +22,11 @@ import {
 const genesisState = {
   [UNISWAP_ADDRESS]: {
     balances: {
-      uni: 100,
-      pigi: 100,
+      uni: 50,
+      pigi: 50,
     },
   },
-  karl: {
+  alice: {
     balances: {
       uni: 50,
       pigi: 50,
@@ -37,23 +37,85 @@ const genesisState = {
 describe.only('RollupStateMachine', async () => {
   let rollupState
   beforeEach(() => {
-    rollupState = new MockRollupStateMachine(genesisState)
+    rollupState = new MockRollupStateMachine(
+      JSON.parse(JSON.stringify(genesisState))
+    )
   })
 
-  describe('transfer', async () => {
-    it('should not throw when karl sends 5 uni', () => {
-      rollupState.getBalances('karl').should.deep.equal(genesisState.karl.balances)
+  describe('applyTransfer', async () => {
+    const txAliceToBob = {
+      signature: 'alice',
+      transaction: {
+        tokenType: UNI_TOKEN_TYPE,
+        recipient: 'bob',
+        amount: 5,
+      },
+    }
+
+    it('should not throw when alice sends 5 uni from genesis', () => {
+      rollupState
+        .getBalances('alice')
+        .should.deep.equal(genesisState.alice.balances)
+      const result = rollupState.applyTransaction(txAliceToBob)
+    })
+
+    it('should update balances after transfer', () => {
+      const result = rollupState.applyTransaction(txAliceToBob)
+      rollupState
+        .getBalances('alice')
+        .uni.should.equal(genesisState.alice.balances.uni - 5)
+      rollupState.getBalances('bob').uni.should.deep.equal(5)
+    })
+
+    it('should fail if transfering too much money', () => {
       const result = rollupState.applyTransaction({
-        signature: 'karl',
+        signature: 'alice',
         transaction: {
           tokenType: UNI_TOKEN_TYPE,
-          recipient: 'alice',
-          amount: 5,
+          recipient: 'bob',
+          amount: 500,
         },
       })
-      console.log(result)
-      // rollupState.getBalances('karl').should.deep.equal(genesisState.karl-5)
-      // rollupState.getBalances('alice').should.deep.equal(genesisState.karl+5)
+      result.status.should.equal('FAILURE')
+    })
+  })
+
+  describe('applySwap', async () => {
+    const inputAmount = 25
+    const minOutputAmount = 16
+    const txAliceSwapUni = {
+      signature: 'alice',
+      transaction: {
+        tokenType: UNI_TOKEN_TYPE,
+        inputAmount,
+        minOutputAmount,
+        timeout: +new Date() + 1000,
+      },
+    }
+
+    it('should not throw when alice swaps 5 uni from genesis', () => {
+      const result = rollupState.applyTransaction(txAliceSwapUni)
+    })
+
+    it('should update balances after swap', () => {
+      const result = rollupState.applyTransaction(txAliceSwapUni)
+      rollupState
+        .getBalances('alice')
+        .uni.should.equal(genesisState.alice.balances.uni - inputAmount)
+      rollupState
+        .getBalances('alice')
+        .pigi.should.equal(genesisState.alice.balances.pigi + minOutputAmount)
+      // And we should have the opposite balances for uniswap
+      rollupState
+        .getBalances(UNISWAP_ADDRESS)
+        .uni.should.equal(
+          genesisState[UNISWAP_ADDRESS].balances.uni + inputAmount
+        )
+      rollupState
+        .getBalances(UNISWAP_ADDRESS)
+        .pigi.should.equal(
+          genesisState[UNISWAP_ADDRESS].balances.pigi - minOutputAmount
+        )
     })
   })
 })
