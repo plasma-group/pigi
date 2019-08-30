@@ -1,3 +1,7 @@
+/* External Imports */
+import { Mutex } from 'async-mutex'
+import * as assert from 'assert'
+
 import {
   BIG_ENDIAN,
   BigNumber,
@@ -10,7 +14,6 @@ import {
   ZERO,
 } from '../../types'
 import { keccak256 } from './crypto'
-import * as assert from 'assert'
 
 /**
  * SparseMerkleTree implementation built using the optimizations implemented by Vitalik
@@ -33,6 +36,7 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
 
   private root: MerkleTreeNode
   private zeroHashes: Buffer[]
+  private readonly treeMutex: Mutex = new Mutex()
   private readonly hashBuffer: Buffer = new Buffer(64)
 
   constructor(
@@ -53,17 +57,19 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
   }
 
   public async getLeaf(leafKey: BigNumber, rootHash?: Buffer): Promise<Buffer> {
-    if (!!rootHash && !rootHash.equals(this.root.hash)) {
-      return undefined
-    }
+    return this.treeMutex.runExclusive(async () => {
+      if (!!rootHash && !rootHash.equals(this.root.hash)) {
+        return undefined
+      }
 
-    const nodesInPath: MerkleTreeNode[] = await this.getNodesInPath(leafKey)
-    if (!nodesInPath || !nodesInPath.length) {
-      return undefined
-    }
-    const leaf: MerkleTreeNode = nodesInPath[nodesInPath.length]
-    // Will only match if we were able to traverse all the way to the leaf
-    return leaf.key.equals(leafKey) ? leaf.value : undefined
+      const nodesInPath: MerkleTreeNode[] = await this.getNodesInPath(leafKey)
+      if (!nodesInPath || !nodesInPath.length) {
+        return undefined
+      }
+      const leaf: MerkleTreeNode = nodesInPath[nodesInPath.length]
+      // Will only match if we were able to traverse all the way to the leaf
+      return leaf.key.equals(leafKey) ? leaf.value : undefined
+    })
   }
 
   public async verifyAndStore(
@@ -74,137 +80,141 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
       return false
     }
 
-    const leafHash: Buffer = this.hashFunction(inclusionProof.value)
-    if (!!(await this.getNode(leafHash, inclusionProof.key))) {
-      return true
-    }
-
-    let intermediateZeroHashNode: boolean = true
-    let child: MerkleTreeNode = this.createNode(
-      leafHash,
-      inclusionProof.value,
-      inclusionProof.key
-    )
-    let parent: MerkleTreeNode = child
-    const nodesToStore: MerkleTreeNode[] = [child]
-    for (let parentDepth = this.height - 2; parentDepth >= 0; parentDepth--) {
-      child = parent
-
-      const childDepth: number = parentDepth + 1
-      // Since there's no root sibling, each sibling is one index lower
-      const childSiblingHash: Buffer = inclusionProof.siblings[childDepth - 1]
-      parent = this.calculateParentNode(
-        child,
-        childSiblingHash,
-        inclusionProof.key,
-        parentDepth
-      )
-
-      intermediateZeroHashNode =
-        intermediateZeroHashNode &&
-        childSiblingHash.equals(this.zeroHashes[childDepth]) &&
-        parentDepth !== 0 &&
-        inclusionProof.siblings[parentDepth - 1].equals(
-          this.zeroHashes[parentDepth]
-        )
-
-      // Don't store nodes that can be re-calculated from key, leaf, and zeroHashes
-      if (intermediateZeroHashNode) {
-        continue
+    return this.treeMutex.runExclusive(async () => {
+      const leafHash: Buffer = this.hashFunction(inclusionProof.value)
+      if (!!(await this.getNode(leafHash, inclusionProof.key))) {
+        return true
       }
 
-      // If there were any zero-hash intermediate nodes we didn't persist, make the current node a shortcut to the leaf.
-      if (nodesToStore.length === 1 && parentDepth < this.height - 2) {
-        parent = this.createLeafShortcutNode(
-          parent.hash,
-          inclusionProof.value,
+      let intermediateZeroHashNode: boolean = true
+      let child: MerkleTreeNode = this.createNode(
+        leafHash,
+        inclusionProof.value,
+        inclusionProof.key
+      )
+      let parent: MerkleTreeNode = child
+      const nodesToStore: MerkleTreeNode[] = [child]
+      for (let parentDepth = this.height - 2; parentDepth >= 0; parentDepth--) {
+        child = parent
+
+        const childDepth: number = parentDepth + 1
+        // Since there's no root sibling, each sibling is one index lower
+        const childSiblingHash: Buffer = inclusionProof.siblings[childDepth - 1]
+        parent = this.calculateParentNode(
+          child,
+          childSiblingHash,
           inclusionProof.key,
           parentDepth
         )
+
+        intermediateZeroHashNode =
+          intermediateZeroHashNode &&
+          childSiblingHash.equals(this.zeroHashes[childDepth]) &&
+          parentDepth !== 0 &&
+          inclusionProof.siblings[parentDepth - 1].equals(
+            this.zeroHashes[parentDepth]
+          )
+
+        // Don't store nodes that can be re-calculated from key, leaf, and zeroHashes
+        if (intermediateZeroHashNode) {
+          continue
+        }
+
+        // If there were any zero-hash intermediate nodes we didn't persist, make the current node a shortcut to the leaf.
+        if (nodesToStore.length === 1 && parentDepth < this.height - 2) {
+          parent = this.createLeafShortcutNode(
+            parent.hash,
+            inclusionProof.value,
+            inclusionProof.key,
+            parentDepth
+          )
+        }
+        nodesToStore.push(parent)
+
+        // Store sibling node, but don't overwrite it if it's in the db.
+        const siblingNode: MerkleTreeNode = await this.createProofSiblingNodeIfDoesntExist(
+          childSiblingHash,
+          inclusionProof.key,
+          childDepth
+        )
+        if (!!siblingNode) {
+          nodesToStore.push(siblingNode)
+        }
       }
-      nodesToStore.push(parent)
 
-      // Store sibling node, but don't overwrite it if it's in the db.
-      const siblingNode: MerkleTreeNode = await this.createProofSiblingNodeIfDoesntExist(
-        childSiblingHash,
-        inclusionProof.key,
-        childDepth
-      )
-      if (!!siblingNode) {
-        nodesToStore.push(siblingNode)
+      if (!parent.hash.equals(this.root.hash)) {
+        return false
       }
-    }
-
-    if (!parent.hash.equals(this.root.hash)) {
-      return false
-    }
-    await Promise.all(
-      (await this.getNodesInPath(inclusionProof.key)).map((n) =>
-        this.db.del(this.getNodeID(n))
+      await Promise.all(
+        (await this.getNodesInPath(inclusionProof.key)).map((n) =>
+          this.db.del(this.getNodeID(n))
+        )
       )
-    )
 
-    // Root hash will not change, but it might have gone from a shortcut to regular node.
-    this.root = parent
+      // Root hash will not change, but it might have gone from a shortcut to regular node.
+      this.root = parent
 
-    await Promise.all(
-      nodesToStore.map((n) => this.db.put(this.getNodeID(n), n.value))
-    )
-    return true
+      await Promise.all(
+        nodesToStore.map((n) => this.db.put(this.getNodeID(n), n.value))
+      )
+      return true
+    })
   }
 
   public async update(key: BigNumber, value: Buffer): Promise<boolean> {
-    const nodesToUpdate: MerkleTreeNode[] = await this.getNodesInPath(key)
-    if (!nodesToUpdate) {
-      return false
-    }
+    return this.treeMutex.runExclusive(async () => {
+      const nodesToUpdate: MerkleTreeNode[] = await this.getNodesInPath(key)
+      if (!nodesToUpdate) {
+        return false
+      }
 
-    const leaf: MerkleTreeNode = nodesToUpdate[nodesToUpdate.length - 1]
-    const idsToDelete: Buffer[] = [this.getNodeID(leaf)]
-    leaf.hash = this.hashFunction(value)
-    leaf.value = value
+      const leaf: MerkleTreeNode = nodesToUpdate[nodesToUpdate.length - 1]
+      const idsToDelete: Buffer[] = [this.getNodeID(leaf)]
+      leaf.hash = this.hashFunction(value)
+      leaf.value = value
 
-    let updatedChild: MerkleTreeNode = leaf
-    let depth: number = nodesToUpdate.length - 2 // -2 because this array also contains the leaf
+      let updatedChild: MerkleTreeNode = leaf
+      let depth: number = nodesToUpdate.length - 2 // -2 because this array also contains the leaf
 
-    // If we're not updating all nodes, there's a shortcut node to update.
-    if (this.height !== nodesToUpdate.length) {
-      const ancestorHash: Buffer = this.getZeroHashAncestorFromLeaf(
-        key,
-        value,
-        this.height - (nodesToUpdate.length - 1)
-      )
+      // If we're not updating all nodes, there's a shortcut node to update.
+      if (this.height !== nodesToUpdate.length) {
+        const ancestorHash: Buffer = this.getZeroHashAncestorFromLeaf(
+          key,
+          value,
+          this.height - (nodesToUpdate.length - 1)
+        )
 
-      updatedChild = nodesToUpdate[depth]
-      idsToDelete.push(this.getNodeID(updatedChild))
-      // Update the node pointing to the leaf
-      updatedChild.hash = ancestorHash
-      updatedChild.value = this.createLeafShortcutNode(
-        ancestorHash,
-        value,
-        key,
-        depth--
-      ).value
-    }
+        updatedChild = nodesToUpdate[depth]
+        idsToDelete.push(this.getNodeID(updatedChild))
+        // Update the node pointing to the leaf
+        updatedChild.hash = ancestorHash
+        updatedChild.value = this.createLeafShortcutNode(
+          ancestorHash,
+          value,
+          key,
+          depth--
+        ).value
+      }
 
-    // Iteratively update all nodes from the leaf-pointer node up to the root
-    for (; depth >= 0; depth--) {
-      idsToDelete.push(this.getNodeID(nodesToUpdate[depth]))
-      updatedChild = this.updateNode(
-        nodesToUpdate[depth],
-        updatedChild,
-        key,
-        depth
-      )
-    }
+      // Iteratively update all nodes from the leaf-pointer node up to the root
+      for (; depth >= 0; depth--) {
+        idsToDelete.push(this.getNodeID(nodesToUpdate[depth]))
+        updatedChild = this.updateNode(
+          nodesToUpdate[depth],
+          updatedChild,
+          key,
+          depth
+        )
+      }
 
-    await Promise.all([
-      ...nodesToUpdate.map((n) => this.db.put(this.getNodeID(n), n.value)),
-      ...idsToDelete.map((id) => this.db.del(id)),
-    ])
+      await Promise.all([
+        ...nodesToUpdate.map((n) => this.db.put(this.getNodeID(n), n.value)),
+        ...idsToDelete.map((id) => this.db.del(id)),
+      ])
 
-    this.root = nodesToUpdate[0]
-    return true
+      this.root = nodesToUpdate[0]
+      return true
+    })
   }
 
   /**
@@ -240,6 +250,9 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
    * Gets an array of MerkleTreeNodes starting at the root and iterating down to the leaf
    * following the path in the provided key. The returned array will omit any nodes that
    * are not persisted because they can be calculated from the leaf and the zeroHashes.
+   *
+   * NOTE: If the tree is modified in parallel with a call to this function,
+   * results are non-deterministic.
    *
    * @param leafKey The key describing the path to the leaf in question
    * @returns The array of MerkleTreeNodes from root to leaf
@@ -384,6 +397,9 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
   /**
    * Creates a Merkle Proof sibling node if a node with this hash has not already been stored
    * in the DB.
+   *
+   * NOTE: If the tree is modified in parallel with a call to this function,
+   * results are non-deterministic.
    *
    * @param nodeHash The hash of the node to create if not already present.
    * @param leafKey The key detailing how to get to this node from the root
