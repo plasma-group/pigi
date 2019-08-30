@@ -12,11 +12,12 @@ import {
  */
 
 export const areEqual = (one: any, two: any): boolean => {
-  if (!one && !two) {
+  if (
+    (one === undefined && two === undefined) ||
+    (one === null && two === null) ||
+    (one === false && two === false)
+  ) {
     return true
-  }
-  if (!one || !two) {
-    return false
   }
 
   if (Array.isArray(one) || Array.isArray(two)) {
@@ -34,7 +35,7 @@ export const areEqual = (one: any, two: any): boolean => {
     return true
   }
 
-  if (typeof one === 'object') {
+  if (typeof one === 'object' && typeof two === 'object') {
     return objectsEqual(one, two)
   }
 
