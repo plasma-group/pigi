@@ -142,7 +142,7 @@ describe('MerkleTreeQuantifier', () => {
       )
     })
 
-    it('returns value on populated tree tree with a root that matches but mismatched key', async () => {
+    it('returns undefined on populated tree tree with a root that matches but mismatched key', async () => {
       const quantifier = new MerkleInclusionQuantifier(merkleTree)
       const root: Buffer = Buffer.from('some root')
       const value: Buffer = Buffer.from('VALUE')
