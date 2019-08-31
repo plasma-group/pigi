@@ -34,12 +34,22 @@ const genesisState = {
   },
 }
 
-describe.only('RollupStateMachine', async () => {
+describe('RollupStateMachine', async () => {
   let rollupState
   beforeEach(() => {
     rollupState = new MockRollupStateMachine(
       JSON.parse(JSON.stringify(genesisState))
     )
+  })
+
+  describe('getBalances', async () => {
+    it('should not throw even if the account doesnt exist', () => {
+      const response = rollupState.getBalances('this is not an address!')
+      response.should.deep.equal({
+        uni: 0,
+        pigi: 0,
+      })
+    })
   })
 
   describe('applyTransfer', async () => {

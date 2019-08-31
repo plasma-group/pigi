@@ -18,6 +18,7 @@ import {
   UNI_TOKEN_TYPE,
   PIGI_TOKEN_TYPE,
   TokenType,
+  State,
 } from '.'
 
 const DEFAULT_STORAGE = {
@@ -25,10 +26,6 @@ const DEFAULT_STORAGE = {
     uni: 0,
     pigi: 0,
   },
-}
-
-interface State {
-  [address: string]: Storage
 }
 
 export class MockRollupStateMachine {
@@ -39,6 +36,12 @@ export class MockRollupStateMachine {
   }
 
   public getBalances(account: Address): Balances {
+    if (!(account in this.state)) {
+      return {
+        uni: 0,
+        pigi: 0,
+      }
+    }
     return this.state[account].balances
   }
 
@@ -134,31 +137,20 @@ export class MockRollupStateMachine {
     if (!this.hasEnoughMoney(sender, swap.tokenType, swap.inputAmount)) {
       return this.getFailureTxReceipt('Sender does not have enough money!')
     }
-    // TODO: Check the swap hasn't expired!
+    // Check that we'll have ample time to include the swap
+    // TODO
 
-    // Swap the tokens!
-    // First let's figure out which token types are input & output
-    const inputTokenType = swap.tokenType
-    const outputTokenType =
-      swap.tokenType === UNI_TOKEN_TYPE ? PIGI_TOKEN_TYPE : UNI_TOKEN_TYPE
-    // Next let's calculate the invarient
-    const uniswapBalances = this.state[UNISWAP_ADDRESS].balances
-    const invarient = uniswapBalances.uni * uniswapBalances.pigi
-    // Now calculate the total input tokens
-    const totalInput = swap.inputAmount + uniswapBalances[inputTokenType]
-    const newOutputBalance = Math.ceil(invarient / totalInput)
-    const outputAmount = uniswapBalances[outputTokenType] - newOutputBalance
-    // Let's make sure the output amount is above the minimum
-    if (outputAmount < swap.minOutputAmount) {
-      return this.getFailureTxReceipt('Too much slippage!')
-    }
-    // Finally let's update the state!
-    // First uniswap...
-    this.state[UNISWAP_ADDRESS].balances[inputTokenType] = totalInput
-    this.state[UNISWAP_ADDRESS].balances[outputTokenType] = newOutputBalance
-    // Then the sender...
-    this.state[sender].balances[inputTokenType] -= swap.inputAmount
-    this.state[sender].balances[outputTokenType] += outputAmount
+    // Set the post swap balances
+    ;[
+      this.state[sender].balances,
+      this.state[UNISWAP_ADDRESS].balances,
+    ] = this.getPostSwapBalances(
+      swap,
+      this.state[sender].balances,
+      this.state[UNISWAP_ADDRESS].balances
+    )
+
+    // Return a succssful swap!
     return {
       status: 'SUCCESS',
       message: {
@@ -166,5 +158,37 @@ export class MockRollupStateMachine {
         uniswap: this.state[UNISWAP_ADDRESS],
       },
     }
+  }
+
+  private getPostSwapBalances(
+    swap: Swap,
+    userBalances: Balances,
+    uniswapBalances: Balances
+  ): [Balances, Balances] {
+    // First let's figure out which token types are input & output
+    const inputTokenType = swap.tokenType
+    const outputTokenType =
+      swap.tokenType === UNI_TOKEN_TYPE ? PIGI_TOKEN_TYPE : UNI_TOKEN_TYPE
+    // Next let's calculate the invarient
+    const invarient = uniswapBalances.uni * uniswapBalances.pigi
+    // Now calculate the total input tokens
+    const totalInput = swap.inputAmount + uniswapBalances[inputTokenType]
+    const newOutputBalance = Math.ceil(invarient / totalInput)
+    const outputAmount = uniswapBalances[outputTokenType] - newOutputBalance
+    // Let's make sure the output amount is above the minimum
+    if (outputAmount < swap.minOutputAmount) {
+      throw new Error('Too much slippage!')
+    }
+    // Calculate the new user & swap balances
+    const newUserBalances = {
+      [inputTokenType]: userBalances[inputTokenType] - swap.inputAmount,
+      [outputTokenType]: userBalances[outputTokenType] + outputAmount,
+    }
+    const newUniswapBalances = {
+      [inputTokenType]: totalInput,
+      [outputTokenType]: newOutputBalance,
+    }
+    // And return them!
+    return [newUserBalances, newUniswapBalances]
   }
 }

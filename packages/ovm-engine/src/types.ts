@@ -61,3 +61,7 @@ export interface Storage {
 export interface SignatureProvider {
   sign(address: string, message: string): Promise<string>
 }
+
+export interface State {
+  [address: string]: Storage
+}
