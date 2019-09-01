@@ -50,8 +50,8 @@ export interface SignedTransaction {
 }
 
 export interface TransactionReceipt {
-  status: SUCCESS | FAILURE
-  message: any
+  aggregatorSignature: MockedSignature
+  stateUpdate: any
 }
 
 export interface Storage {

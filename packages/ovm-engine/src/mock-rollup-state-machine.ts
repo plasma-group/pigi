@@ -28,6 +28,33 @@ const DEFAULT_STORAGE = {
   },
 }
 
+/*
+ * Errors
+ */
+export class SlippageError extends Error {
+  constructor() {
+    super('Too much slippage in swap tx!')
+  }
+}
+
+export class InsufficientBalanceError extends Error {
+  constructor() {
+    super('Insufficient balance for transfer or swap!')
+  }
+}
+
+export class NegativeAmountError extends Error {
+  constructor() {
+    super('Amounts transferred or swapped cannot be negative!')
+  }
+}
+
+export class InvalidTransactionTypeError extends Error {
+  constructor() {
+    super('Invalid transaction type!')
+  }
+}
+
 export class MockRollupStateMachine {
   public state: State
 
@@ -64,20 +91,13 @@ export class MockRollupStateMachine {
     } else if (isSwapTransaction(transaction)) {
       return this.applySwap(sender, transaction)
     }
-    throw new Error('Transaction type not recognized')
+    throw new InvalidTransactionTypeError()
   }
 
-  private getFailureTxReceipt(message: any): TransactionReceipt {
+  private getTxReceipt(stateUpdate: any): TransactionReceipt {
     return {
-      status: 'FAILURE',
-      message,
-    }
-  }
-
-  private getSuccessTxReceipt(message: any): TransactionReceipt {
-    return {
-      status: 'SUCCESS',
-      message,
+      aggregatorSignature: 'MOCKED',
+      stateUpdate,
     }
   }
 
@@ -102,11 +122,11 @@ export class MockRollupStateMachine {
   ): TransactionReceipt {
     // Make sure the amount is above zero
     if (transfer.amount < 1) {
-      return this.getFailureTxReceipt('Cannot send negative numbers!')
+      throw new NegativeAmountError()
     }
     // Check that the sender has enough money
     if (!this.hasEnoughMoney(sender, transfer.tokenType, transfer.amount)) {
-      return this.getFailureTxReceipt('Sender does not have enough money!')
+      throw new InsufficientBalanceError()
     }
     // Make sure we've got a record for the recipient
     if (!(transfer.recipient in this.state)) {
@@ -122,7 +142,7 @@ export class MockRollupStateMachine {
     this.state[sender].balances[transfer.tokenType] -= transfer.amount
     this.state[transfer.recipient].balances[transfer.tokenType] +=
       transfer.amount
-    return this.getSuccessTxReceipt({
+    return this.getTxReceipt({
       sender: this.state[sender],
       recipient: this.state[transfer.recipient],
     })
@@ -131,11 +151,11 @@ export class MockRollupStateMachine {
   private applySwap(sender: Address, swap: Swap): TransactionReceipt {
     // Make sure the amount is above zero
     if (swap.inputAmount < 1) {
-      return this.getFailureTxReceipt('Cannot send negative numbers!')
+      throw new NegativeAmountError()
     }
     // Check that the sender has enough money
     if (!this.hasEnoughMoney(sender, swap.tokenType, swap.inputAmount)) {
-      return this.getFailureTxReceipt('Sender does not have enough money!')
+      throw new InsufficientBalanceError()
     }
     // Check that we'll have ample time to include the swap
     // TODO
@@ -151,13 +171,10 @@ export class MockRollupStateMachine {
     )
 
     // Return a succssful swap!
-    return {
-      status: 'SUCCESS',
-      message: {
-        sender: this.state[sender],
-        uniswap: this.state[UNISWAP_ADDRESS],
-      },
-    }
+    return this.getTxReceipt({
+      sender: this.state[sender],
+      uniswap: this.state[UNISWAP_ADDRESS],
+    })
   }
 
   private getPostSwapBalances(
@@ -177,7 +194,7 @@ export class MockRollupStateMachine {
     const outputAmount = uniswapBalances[outputTokenType] - newOutputBalance
     // Let's make sure the output amount is above the minimum
     if (outputAmount < swap.minOutputAmount) {
-      throw new Error('Too much slippage!')
+      throw new SlippageError()
     }
     // Calculate the new user & swap balances
     const newUserBalances = {

@@ -9,6 +9,7 @@ import {
   Address,
   MockRollupStateMachine,
   UNISWAP_ADDRESS,
+  InsufficientBalanceError,
 } from '../src'
 
 /***********
@@ -77,16 +78,17 @@ describe('RollupStateMachine', async () => {
       rollupState.getBalances('bob').uni.should.deep.equal(5)
     })
 
-    it('should fail if transfering too much money', () => {
-      const result = rollupState.applyTransaction({
-        signature: 'alice',
-        transaction: {
-          tokenType: UNI_TOKEN_TYPE,
-          recipient: 'bob',
-          amount: 500,
-        },
-      })
-      result.status.should.equal('FAILURE')
+    it('should throw if transfering too much money', () => {
+      const invalidTxApply = () =>
+        rollupState.applyTransaction({
+          signature: 'alice',
+          transaction: {
+            tokenType: UNI_TOKEN_TYPE,
+            recipient: 'bob',
+            amount: 500,
+          },
+        })
+      invalidTxApply.should.throw(InsufficientBalanceError)
     })
   })
 

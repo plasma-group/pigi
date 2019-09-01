@@ -43,7 +43,8 @@ export class JsonRpcServer extends ExpressHttpServer implements RpcServer {
       let result: any
       try {
         result = await this.methods[request.method](request.params)
-      } catch {
+      } catch (err) {
+        console.log(err)
         return res.json(buildJsonRpcError('INTERNAL_ERROR', request.id))
       }
 
