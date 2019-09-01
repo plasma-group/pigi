@@ -1,5 +1,5 @@
 /* External Imports */
-import { abi, KeyValueStore, Wallet, RpcClient } from '@pigi/core'
+import { KeyValueStore, Wallet, RpcClient, serializeObject } from '@pigi/core'
 
 /* Internal Imports */
 import {
@@ -19,7 +19,6 @@ import {
 
 export class MockRollupClient {
   public rpcClient: RpcClient
-  public accounts: { Address: Storage }
   public uniswapAddress: Address
 
   constructor(
@@ -43,6 +42,21 @@ export class MockRollupClient {
 
   public async getUniswapBalances(): Promise<Balances> {
     return this.getBalances(UNISWAP_ADDRESS)
+  }
+
+  public async sendTransaction(
+    transaction: Transaction,
+    account: Address
+  ): Promise<Balances> {
+    const signature = await this.sign(account, serializeObject(transaction))
+    const result = await this.rpcClient.handle<TransactionReceipt>(
+      'applyTransaction',
+      {
+        signature,
+        transaction,
+      }
+    )
+    return result.stateUpdate
   }
 
   private ecdsaRecover(signature: MockedSignature): Address {

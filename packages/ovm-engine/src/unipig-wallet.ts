@@ -48,6 +48,11 @@ export class UnipigWallet extends DefaultWallet {
     this.db = db
   }
 
+  public async sign(address: string, message: string): Promise<string> {
+    // Mock the signature for now
+    return address
+  }
+
   public async getBalances(account: Address): Promise<Balances> {
     // For now we only have one client so just get the rollup balance
     return this.rollup.getBalances(account)

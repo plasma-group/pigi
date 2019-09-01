@@ -17,9 +17,12 @@ export class MockAggregator extends SimpleServer {
   constructor(genesisState: State, hostname: string, port: number) {
     const rollupStateMachine = new MockRollupStateMachine(genesisState)
     const methods = {
+      // Get the balance for some account
       getBalances: (account: Address) =>
         rollupStateMachine.getBalances(account),
+      // Get the balance for Uniswap
       getUniswapBalances: () => rollupStateMachine.getUniswapBalances(),
+      // Apply a transaction
       applyTransaction: (transaction: SignedTransaction) =>
         rollupStateMachine.applyTransaction(transaction),
     }
