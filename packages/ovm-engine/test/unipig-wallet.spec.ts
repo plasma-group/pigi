@@ -20,7 +20,7 @@ import MemDown from 'memdown'
 import * as assert from 'assert'
 
 /* Internal Imports */
-import { UnipigWallet, Address } from '../src'
+import { UnipigWallet, Address, SignedTransaction } from '../src'
 
 /***********
  * HELPERS *
@@ -32,6 +32,11 @@ const getBalances = (address: Address) => {
     uni: 5,
     pigi: 10,
   }
+}
+
+// A mocked applyTransaction function
+const applyTransaction = (transaction: SignedTransaction) => {
+  // TODO
 }
 
 /*********
@@ -68,9 +73,10 @@ describe('UnipigWallet', async () => {
     await aggregator.close()
   })
 
-  describe('sendSignedTransaction()', async () => {
-    it('should initalize', async () => {
+  describe('getBalance()', async () => {
+    it('should return the correct balance based on our mocked aggregator', async () => {
       const balances = await unipigWallet.getBalances('0x' + '00'.repeat(32))
+      balances.should.deep.equal(getBalances(''))
     })
   })
 })

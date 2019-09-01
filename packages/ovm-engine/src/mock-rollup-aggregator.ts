@@ -11,10 +11,6 @@ import {
   UNISWAP_ADDRESS,
 } from '../src'
 
-const getBalances = (address: Address) => {
-  return { uni: 5, pigi: 10 }
-}
-
 export class MockAggregator extends SimpleServer {
   public rollupStateMachine: MockRollupStateMachine
 
