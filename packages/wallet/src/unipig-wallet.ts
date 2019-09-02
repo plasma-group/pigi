@@ -13,7 +13,7 @@ const ROLLUP_BUCKET = 1
  */
 export class UnipigWallet extends DefaultWallet {
   private db: BaseDB
-  private rollup: MockRollupClient
+  public rollup: MockRollupClient
 
   constructor(db: BaseDB) {
     // Set up the keystore db
