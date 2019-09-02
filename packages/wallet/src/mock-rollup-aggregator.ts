@@ -15,8 +15,13 @@ import {
   AGGREGATOR_ADDRESS,
   TokenType,
   generateTransferTx,
+  AGGREGATOR_API,
 } from '.'
 
+/*
+ * Generate two transactions which together send the user some UNI
+ * & some PIGI
+ */
 const generateFaucetTxs = (
   recipient: Address,
   amount: number
@@ -33,23 +38,43 @@ const generateFaucetTxs = (
   ]
 }
 
+/*
+ * A mock aggregator implementation which allows for transfers, swaps,
+ * balance queries, & faucet requests
+ */
 export class MockAggregator extends SimpleServer {
   public rollupStateMachine: MockRollupStateMachine
 
   constructor(genesisState: State, hostname: string, port: number) {
     const rollupStateMachine = new MockRollupStateMachine(genesisState)
+
+    // REST API for our aggregator
     const methods = {
-      // Get the balance for some account
-      getBalances: (account: Address): Balances =>
+      /*
+       * Get balances for some account
+       */
+      [AGGREGATOR_API.getBalances]: (account: Address): Balances =>
         rollupStateMachine.getBalances(account),
-      // Get the balance for Uniswap
-      getUniswapBalances: (): Balances =>
+
+      /*
+       * Get balances for Uniswap
+       */
+      [AGGREGATOR_API.getUniswapBalances]: (): Balances =>
         rollupStateMachine.getUniswapBalances(),
-      // Apply a transaction
-      applyTransaction: (transaction: SignedTransaction): TransactionReceipt =>
-        rollupStateMachine.applyTransaction(transaction),
-      // Request faucet funds
-      requestFaucetFunds: (params: [Address, number]): Balances => {
+
+      /*
+       * Apply either a transfer or swap transaction
+       */
+      [AGGREGATOR_API.applyTransaction]: (
+        transaction: SignedTransaction
+      ): TransactionReceipt => rollupStateMachine.applyTransaction(transaction),
+
+      /*
+       * Request money from a faucet
+       */
+      [AGGREGATOR_API.requestFaucetFunds]: (
+        params: [Address, number]
+      ): Balances => {
         const [recipient, amount] = params
         // Generate the faucet txs (one sending uni the other pigi)
         const faucetTxs = generateFaucetTxs(recipient, amount)

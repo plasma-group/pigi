@@ -4,37 +4,13 @@ import './setup'
 import { SimpleClient } from '@pigi/core'
 
 /* Internal Imports */
+import { getGenesisState } from './helpers'
 import {
   UNISWAP_ADDRESS,
   UNI_TOKEN_TYPE,
   AGGREGATOR_ADDRESS,
   MockAggregator,
 } from '../src'
-
-/***********
- * HELPERS *
- ***********/
-
-const genesisState = {
-  [UNISWAP_ADDRESS]: {
-    balances: {
-      uni: 50,
-      pigi: 50,
-    },
-  },
-  alice: {
-    balances: {
-      uni: 50,
-      pigi: 50,
-    },
-  },
-  [AGGREGATOR_ADDRESS]: {
-    balances: {
-      uni: 1000000,
-      pigi: 1000000,
-    },
-  },
-}
 
 /*********
  * TESTS *
@@ -46,7 +22,7 @@ describe('MockAggregator', async () => {
 
   beforeEach(async () => {
     aggregator = new MockAggregator(
-      JSON.parse(JSON.stringify(genesisState)),
+      getGenesisState(),
       'localhost',
       3000
     )

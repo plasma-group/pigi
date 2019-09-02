@@ -3,6 +3,7 @@ import './setup'
 /* External Imports */
 
 /* Internal Imports */
+import { getGenesisState } from './helpers'
 import {
   UNI_TOKEN_TYPE,
   Address,
@@ -11,34 +12,15 @@ import {
   InsufficientBalanceError,
 } from '../src'
 
-/***********
- * HELPERS *
- ***********/
-
 /*********
  * TESTS *
  *********/
-
-const genesisState = {
-  [UNISWAP_ADDRESS]: {
-    balances: {
-      uni: 50,
-      pigi: 50,
-    },
-  },
-  alice: {
-    balances: {
-      uni: 50,
-      pigi: 50,
-    },
-  },
-}
 
 describe('RollupStateMachine', async () => {
   let rollupState
   beforeEach(() => {
     rollupState = new MockRollupStateMachine(
-      JSON.parse(JSON.stringify(genesisState))
+      getGenesisState()
     )
   })
 
@@ -65,7 +47,7 @@ describe('RollupStateMachine', async () => {
     it('should not throw when alice sends 5 uni from genesis', () => {
       rollupState
         .getBalances('alice')
-        .should.deep.equal(genesisState.alice.balances)
+        .should.deep.equal(getGenesisState().alice.balances)
       const result = rollupState.applyTransaction(txAliceToBob)
     })
 
@@ -73,7 +55,7 @@ describe('RollupStateMachine', async () => {
       const result = rollupState.applyTransaction(txAliceToBob)
       rollupState
         .getBalances('alice')
-        .uni.should.equal(genesisState.alice.balances.uni - 5)
+        .uni.should.equal(getGenesisState().alice.balances.uni - 5)
       rollupState.getBalances('bob').uni.should.deep.equal(5)
     })
 
@@ -112,20 +94,20 @@ describe('RollupStateMachine', async () => {
       const result = rollupState.applyTransaction(txAliceSwapUni)
       rollupState
         .getBalances('alice')
-        .uni.should.equal(genesisState.alice.balances.uni - inputAmount)
+        .uni.should.equal(getGenesisState().alice.balances.uni - inputAmount)
       rollupState
         .getBalances('alice')
-        .pigi.should.equal(genesisState.alice.balances.pigi + minOutputAmount)
+        .pigi.should.equal(getGenesisState().alice.balances.pigi + minOutputAmount)
       // And we should have the opposite balances for uniswap
       rollupState
         .getBalances(UNISWAP_ADDRESS)
         .uni.should.equal(
-          genesisState[UNISWAP_ADDRESS].balances.uni + inputAmount
+          getGenesisState()[UNISWAP_ADDRESS].balances.uni + inputAmount
         )
       rollupState
         .getBalances(UNISWAP_ADDRESS)
         .pigi.should.equal(
-          genesisState[UNISWAP_ADDRESS].balances.pigi - minOutputAmount
+          getGenesisState()[UNISWAP_ADDRESS].balances.pigi - minOutputAmount
         )
     })
   })

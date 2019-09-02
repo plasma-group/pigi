@@ -5,6 +5,7 @@ import { SimpleClient, BaseDB } from '@pigi/core'
 import MemDown from 'memdown'
 
 /* Internal Imports */
+import { getGenesisState } from './helpers'
 import {
   UnipigWallet,
   Address,
@@ -12,25 +13,6 @@ import {
   MockAggregator,
   UNI_TOKEN_TYPE,
 } from '../src'
-
-/***********
- * HELPERS *
- ***********/
-
-const genesisState = {
-  [UNISWAP_ADDRESS]: {
-    balances: {
-      uni: 50,
-      pigi: 50,
-    },
-  },
-  alice: {
-    balances: {
-      uni: 50,
-      pigi: 50,
-    },
-  },
-}
 
 /*********
  * TESTS *
@@ -47,10 +29,10 @@ describe('Mock Client/Aggregator Integration', async () => {
     db = new BaseDB(new MemDown('') as any)
     unipigWallet = new UnipigWallet(db)
     // Now create a wallet account
-    accountAddress = unipigWallet.createAccount('')
+    accountAddress = 'mocked account'
     // Initialize a mock aggregator
     aggregator = new MockAggregator(
-      JSON.parse(JSON.stringify(genesisState)),
+      getGenesisState(),
       'localhost',
       3000
     )
@@ -97,6 +79,24 @@ describe('Mock Client/Aggregator Integration', async () => {
         accountAddress
       )
       response.recipient.balances.uni.should.equal(10)
+    }).timeout(8000)
+
+    it('should successfully transfer if first faucet is requested', async () => {
+      // First collect some funds from the faucet
+      const faucetRes = await unipigWallet.rollup.requestFaucetFunds(accountAddress, 10)
+      faucetRes.should.deep.equal({
+        uni: 10,
+        pigi: 10,
+      })
+      const transferRes = await unipigWallet.rollup.sendTransaction(
+        {
+          tokenType: UNI_TOKEN_TYPE,
+          recipient: 'testing123',
+          amount: 10,
+        },
+        accountAddress
+      )
+      transferRes.recipient.balances.uni.should.equal(10)
     }).timeout(8000)
   })
 })
