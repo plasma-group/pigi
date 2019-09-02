@@ -58,9 +58,9 @@ describe('UnipigWallet', async () => {
     await aggregator.close()
   })
 
-  describe('getBalance()', async () => {
-    it('should return the correct balance based on our mocked aggregator', async () => {
-      const balances = await unipigWallet.getBalances('0x' + '00'.repeat(32))
+  describe.only('getBalance()', async () => {
+    it('should return an empty balance after initialized', async () => {
+      const balances = await unipigWallet.getBalances(accountAddress)
       balances.should.deep.equal(getBalances(''))
     })
   })
