@@ -8,6 +8,7 @@ import {
   State,
   MockRollupStateMachine,
   Balances,
+  TransactionReceipt,
   UNISWAP_ADDRESS,
   UNI_TOKEN_TYPE,
   PIGI_TOKEN_TYPE,
@@ -39,15 +40,16 @@ export class MockAggregator extends SimpleServer {
     const rollupStateMachine = new MockRollupStateMachine(genesisState)
     const methods = {
       // Get the balance for some account
-      getBalances: (account: Address) =>
+      getBalances: (account: Address): Balances =>
         rollupStateMachine.getBalances(account),
       // Get the balance for Uniswap
-      getUniswapBalances: () => rollupStateMachine.getUniswapBalances(),
+      getUniswapBalances: (): Balances =>
+        rollupStateMachine.getUniswapBalances(),
       // Apply a transaction
-      applyTransaction: (transaction: SignedTransaction) =>
+      applyTransaction: (transaction: SignedTransaction): TransactionReceipt =>
         rollupStateMachine.applyTransaction(transaction),
       // Request faucet funds
-      requestFaucetFunds: (params: [Address, number]) => {
+      requestFaucetFunds: (params: [Address, number]): Balances => {
         const [recipient, amount] = params
         // Generate the faucet txs (one sending uni the other pigi)
         const faucetTxs = generateFaucetTxs(recipient, amount)

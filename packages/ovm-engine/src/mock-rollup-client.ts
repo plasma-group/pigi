@@ -1,18 +1,12 @@
 /* External Imports */
-import { KeyValueStore, Wallet, RpcClient, serializeObject } from '@pigi/core'
+import { KeyValueStore, RpcClient, serializeObject } from '@pigi/core'
 
 /* Internal Imports */
 import {
   Address,
   Balances,
-  Swap,
-  isSwapTransaction,
-  Transfer,
-  isTransferTransaction,
-  Storage,
   Transaction,
   MockedSignature,
-  SignedTransaction,
   TransactionReceipt,
   UNISWAP_ADDRESS,
 } from '.'

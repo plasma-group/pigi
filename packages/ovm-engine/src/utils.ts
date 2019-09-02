@@ -1,13 +1,4 @@
-import {
-  Address,
-  SignedTransaction,
-  State,
-  MockRollupStateMachine,
-  Balances,
-  UNISWAP_ADDRESS,
-  TokenType,
-  Transaction,
-} from '.'
+import { Address, TokenType, Transaction } from '.'
 
 /* Utilities */
 export const generateTransferTx = (

@@ -2,13 +2,9 @@ import './setup'
 
 /* External Imports */
 import { SimpleClient } from '@pigi/core'
-import MemDown from 'memdown'
-import * as assert from 'assert'
 
 /* Internal Imports */
 import {
-  UnipigWallet,
-  Address,
   UNISWAP_ADDRESS,
   UNI_TOKEN_TYPE,
   AGGREGATOR_ADDRESS,

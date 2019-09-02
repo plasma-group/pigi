@@ -4,7 +4,6 @@ import './setup'
 
 /* Internal Imports */
 import {
-  UnipigWallet,
   UNI_TOKEN_TYPE,
   Address,
   MockRollupStateMachine,

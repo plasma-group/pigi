@@ -1,27 +1,8 @@
 /* External Imports */
-import {
-  DefaultWallet,
-  DefaultWalletDB,
-  BaseDB,
-  WalletDB,
-  BigNumber,
-  abi,
-  serializeObject,
-  deserializeObject,
-} from '@pigi/core'
-import MemDown from 'memdown'
+import { DefaultWallet, DefaultWalletDB, BaseDB, WalletDB } from '@pigi/core'
 
 /* Internal Imports */
-import {
-  Address,
-  Balances,
-  Swap,
-  Transfer,
-  Transaction,
-  SignatureProvider,
-  TransactionReceipt,
-  MockRollupClient,
-} from '.'
+import { Address, Balances, TransactionReceipt, MockRollupClient } from '.'
 
 const KEYSTORE_BUCKET = 0
 const ROLLUP_BUCKET = 1

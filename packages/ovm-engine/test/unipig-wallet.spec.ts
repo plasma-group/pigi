@@ -1,23 +1,8 @@
 import './setup'
 
 /* External Imports */
-import {
-  ONE,
-  OwnershipBody,
-  Range,
-  StateObject,
-  StateUpdate,
-  Transaction,
-  stateObjectsEqual,
-  BigNumber,
-  DefaultWallet,
-  DefaultWalletDB,
-  BaseDB,
-  SimpleServer,
-  SimpleClient,
-} from '@pigi/core'
+import { BaseDB, SimpleServer, SimpleClient } from '@pigi/core'
 import MemDown from 'memdown'
-import * as assert from 'assert'
 
 /* Internal Imports */
 import { UnipigWallet, Address, SignedTransaction } from '../src'

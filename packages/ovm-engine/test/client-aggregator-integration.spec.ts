@@ -3,7 +3,6 @@ import './setup'
 /* External Imports */
 import { SimpleClient, BaseDB } from '@pigi/core'
 import MemDown from 'memdown'
-import * as assert from 'assert'
 
 /* Internal Imports */
 import {
