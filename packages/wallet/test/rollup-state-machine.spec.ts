@@ -19,9 +19,7 @@ import {
 describe('RollupStateMachine', async () => {
   let rollupState
   beforeEach(() => {
-    rollupState = new MockRollupStateMachine(
-      getGenesisState()
-    )
+    rollupState = new MockRollupStateMachine(getGenesisState())
   })
 
   describe('getBalances', async () => {
@@ -97,7 +95,9 @@ describe('RollupStateMachine', async () => {
         .uni.should.equal(getGenesisState().alice.balances.uni - inputAmount)
       rollupState
         .getBalances('alice')
-        .pigi.should.equal(getGenesisState().alice.balances.pigi + minOutputAmount)
+        .pigi.should.equal(
+          getGenesisState().alice.balances.pigi + minOutputAmount
+        )
       // And we should have the opposite balances for uniswap
       rollupState
         .getBalances(UNISWAP_ADDRESS)

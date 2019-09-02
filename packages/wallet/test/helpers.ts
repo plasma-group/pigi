@@ -2,11 +2,7 @@
  * HELPERS *
  ***********/
 
-import {
-  State,
-  UNISWAP_ADDRESS,
-  AGGREGATOR_ADDRESS,
-} from '../src'
+import { State, UNISWAP_ADDRESS, AGGREGATOR_ADDRESS } from '../src'
 
 export const getGenesisState = (): State => {
   return {

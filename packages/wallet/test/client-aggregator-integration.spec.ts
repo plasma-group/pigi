@@ -31,11 +31,7 @@ describe('Mock Client/Aggregator Integration', async () => {
     // Now create a wallet account
     accountAddress = 'mocked account'
     // Initialize a mock aggregator
-    aggregator = new MockAggregator(
-      getGenesisState(),
-      'localhost',
-      3000
-    )
+    aggregator = new MockAggregator(getGenesisState(), 'localhost', 3000)
     await aggregator.listen()
     // Connect to the mock aggregator
     unipigWallet.rollup.connect(new SimpleClient('http://127.0.0.1:3000'))
@@ -83,7 +79,10 @@ describe('Mock Client/Aggregator Integration', async () => {
 
     it('should successfully transfer if first faucet is requested', async () => {
       // First collect some funds from the faucet
-      const faucetRes = await unipigWallet.rollup.requestFaucetFunds(accountAddress, 10)
+      const faucetRes = await unipigWallet.rollup.requestFaucetFunds(
+        accountAddress,
+        10
+      )
       faucetRes.should.deep.equal({
         uni: 10,
         pigi: 10,
