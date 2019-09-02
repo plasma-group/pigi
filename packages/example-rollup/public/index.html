@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8">
     <title>Title of the document</title>
-    <script src="bundle.js"></script>
   </head>
   
   <body>
@@ -33,6 +32,14 @@
     </div>
     <div>
       <h4>
+        Request money!
+      </h4>
+      <div>
+        <input id="send-button" type="submit" value="Request!">
+      </div>
+    </div>
+    <div>
+      <h4>
         Send Money!
       </h4>
       <div>
@@ -44,6 +51,19 @@
         - <input id="send-button" type="submit" value="Send!">
       </div>
     </div>
+
+    <script>
+      // Set some functions that we will use to change the ui
+      window.updateAccountAddress = function(address) {
+        document.getElementById('account-address').textContent = address
+      }
+
+      window.updateBalances = function(balances) {
+        document.getElementById('uni-balance').textContent = balances.uni
+        document.getElementById('pigi-balance').textContent = balances.pigi
+      }
+    </script>
+    <script src="bundle.js"></script>
   </body>
 
 </html>
