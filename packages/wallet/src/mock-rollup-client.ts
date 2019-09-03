@@ -5,6 +5,7 @@ import { KeyValueStore, RpcClient, serializeObject } from '@pigi/core'
 import {
   Address,
   Balances,
+  State,
   Transaction,
   MockedSignature,
   TransactionReceipt,
@@ -60,7 +61,7 @@ export class MockRollupClient {
   public async sendTransaction(
     transaction: Transaction,
     account: Address
-  ): Promise<Balances> {
+  ): Promise<State> {
     const signature = await this.sign(account, serializeObject(transaction))
     const result = await this.rpcClient.handle<TransactionReceipt>(
       AGGREGATOR_API.applyTransaction,

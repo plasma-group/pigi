@@ -11,7 +11,7 @@
         Unipig
       </h1>
       <p>
-        A beautiful step forward.
+        A beautiful step forward into layer 2.
       </p>
     </div>
     <div>
@@ -35,7 +35,7 @@
         Request money!
       </h4>
       <div>
-        <input id="send-button" type="submit" value="Request!">
+        <input id="request-funds-button" type="submit" value="Request!">
       </div>
     </div>
     <div>
@@ -43,12 +43,37 @@
         Send Money!
       </h4>
       <div>
-        <select>
+        <select id="send-token-type">
           <option value="uni">Uni</option>
           <option value="pigi">Pigi</option>
         </select>
-        Amount: <input id="send-amount" type="text" value="0">
+        Recipient: <input id="send-recipient" type="text" value="0xdeadbeef">
+        - Amount: <input id="send-amount" type="text" value="0">
         - <input id="send-button" type="submit" value="Send!">
+      </div>
+    </div>
+    <div>
+      <h4>
+        Swap Money!
+      </h4>
+      <div>
+        <h4>
+          Uniswap Balance:
+        </h4>
+        <p>
+          Uni: <span id="uniswap-uni-balance">0</span>
+        </p>
+        <p>
+          Pigi: <span id="uniswap-pigi-balance">0</span>
+        </p>
+      </div>
+      <div>
+        <select id="swap-token-type">
+          <option value="uni">Uni</option>
+          <option value="pigi">Pigi</option>
+        </select>
+        Amount: <input id="swap-amount" type="text" value="0">
+        - <input id="swap-button" type="submit" value="Swap!">
       </div>
     </div>
 
@@ -61,6 +86,15 @@
       window.updateBalances = function(balances) {
         document.getElementById('uni-balance').textContent = balances.uni
         document.getElementById('pigi-balance').textContent = balances.pigi
+      }
+
+      // Set some functions which will be used to register listeners
+      window.registerRequestFundsListener = function(requestFundsListener) {
+        window.requestFundsListener = requestFundsListener
+      }
+
+      window.registerTransferListener = function(transferListener) {
+        window.transferListener = transferListener
       }
     </script>
     <script src="bundle.js"></script>
