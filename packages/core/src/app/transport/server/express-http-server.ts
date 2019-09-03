@@ -17,14 +17,20 @@ export class ExpressHttpServer implements HttpServer {
    * @param port Port to listen on.
    * @param hostname Hostname to listen on.
    */
-  constructor(private port: number, private hostname: string, middleware?: Function[]) {
+  constructor(
+    private port: number,
+    private hostname: string,
+    middleware?: Function[]
+  ) {
     const express = require('express')
     this.app = express()
     // By default use bodyParser
     this.app.use(bodyParser.json())
     // Add any other middleware desired
-    for (const m of middleware) {
-      this.app.use(m())
+    if (typeof middleware !== 'undefined') {
+      for (const m of middleware) {
+        this.app.use(m())
+      }
     }
     this.initRoutes()
   }
