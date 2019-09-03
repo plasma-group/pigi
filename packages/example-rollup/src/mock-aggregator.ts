@@ -1,9 +1,11 @@
+/* External Imports */
 import {
   State,
   UNISWAP_ADDRESS,
   AGGREGATOR_ADDRESS,
   MockAggregator,
 } from '@pigi/wallet'
+import cors = require('cors')
 
 /* Set the initial balances/state */
 export const genesisState: State = {
@@ -24,7 +26,7 @@ export const genesisState: State = {
 // Create a new aggregator... and then...
 const host = 'localhost'
 const port = 3000
-const aggregator = new MockAggregator(genesisState, host, port)
+const aggregator = new MockAggregator(genesisState, host, port, [cors])
 // Just listen for requests!
 aggregator.listen()
 

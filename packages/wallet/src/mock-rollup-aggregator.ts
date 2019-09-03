@@ -45,7 +45,7 @@ const generateFaucetTxs = (
 export class MockAggregator extends SimpleServer {
   public rollupStateMachine: MockRollupStateMachine
 
-  constructor(genesisState: State, hostname: string, port: number) {
+  constructor(genesisState: State, hostname: string, port: number, middleware?: Function[]) {
     const rollupStateMachine = new MockRollupStateMachine(genesisState)
 
     // REST API for our aggregator
@@ -85,7 +85,7 @@ export class MockAggregator extends SimpleServer {
         return rollupStateMachine.getBalances(recipient)
       },
     }
-    super(methods, hostname, port)
+    super(methods, hostname, port, middleware)
     this.rollupStateMachine = rollupStateMachine
   }
 }
