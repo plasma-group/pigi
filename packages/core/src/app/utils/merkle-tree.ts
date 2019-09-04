@@ -9,6 +9,7 @@ import {
   HashFunction,
   MerkleTreeInclusionProof,
   MerkleTreeNode,
+  ONE,
   SparseMerkleTree,
   TWO,
   ZERO,
@@ -161,17 +162,17 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
     })
   }
 
-  public async update(key: BigNumber, value: Buffer): Promise<boolean> {
+  public async update(leafKey: BigNumber, leafValue: Buffer): Promise<boolean> {
     return this.treeMutex.runExclusive(async () => {
-      const nodesToUpdate: MerkleTreeNode[] = await this.getNodesInPath(key)
+      const nodesToUpdate: MerkleTreeNode[] = await this.getNodesInPath(leafKey)
       if (!nodesToUpdate) {
         return false
       }
 
       const leaf: MerkleTreeNode = nodesToUpdate[nodesToUpdate.length - 1]
       const idsToDelete: Buffer[] = [this.getNodeID(leaf)]
-      leaf.hash = this.hashFunction(value)
-      leaf.value = value
+      leaf.hash = this.hashFunction(leafValue)
+      leaf.value = leafValue
 
       let updatedChild: MerkleTreeNode = leaf
       let depth: number = nodesToUpdate.length - 2 // -2 because this array also contains the leaf
@@ -179,8 +180,8 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
       // If we're not updating all nodes, there's a shortcut node to update.
       if (this.height !== nodesToUpdate.length) {
         const ancestorHash: Buffer = this.getZeroHashAncestorFromLeaf(
-          key,
-          value,
+          leafKey,
+          leafValue,
           this.height - (nodesToUpdate.length - 1)
         )
 
@@ -190,8 +191,8 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
         updatedChild.hash = ancestorHash
         updatedChild.value = this.createLeafShortcutNode(
           ancestorHash,
-          value,
-          key,
+          leafValue,
+          leafKey,
           depth--
         ).value
       }
@@ -202,7 +203,7 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
         updatedChild = this.updateNode(
           nodesToUpdate[depth],
           updatedChild,
-          key,
+          leafKey,
           depth
         )
       }
@@ -214,6 +215,46 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
 
       this.root = nodesToUpdate[0]
       return true
+    })
+  }
+
+  public async getMerkleProof(
+    leafKey: BigNumber,
+    leafValue: Buffer
+  ): Promise<MerkleTreeInclusionProof> {
+    return this.treeMutex.runExclusive(async () => {
+      if (!this.root || !this.root.hash || !this.root.value) {
+        return undefined
+      }
+
+      let node: MerkleTreeNode = this.root
+      const siblings: Buffer[] = []
+      let depth = 0
+      while (depth < this.height && node.value.length === 64) {
+        const isLeft: boolean = this.isLeft(leafKey, depth)
+        const childSibling: Buffer = isLeft
+          ? node.value.subarray(32)
+          : node.value.subarray(0, 32)
+        siblings.push(childSibling)
+
+        const childIndex: number = isLeft ? 0 : 32
+        const childHash: Buffer = node.value.subarray(
+          childIndex,
+          childIndex + 32
+        )
+        node = await this.getNode(childHash, this.getNodeKey(leafKey, ++depth))
+      }
+
+      if (++depth < this.height) {
+        siblings.push(...this.zeroHashes.slice(depth))
+      }
+
+      return {
+        rootHash: this.root.hash,
+        key: leafKey,
+        value: leafValue,
+        siblings,
+      }
     })
   }
 
@@ -411,7 +452,8 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
     leafKey: BigNumber,
     depth: number
   ): Promise<MerkleTreeNode> {
-    const nodeKey: BigNumber = this.getNodeKey(leafKey, depth)
+    // Need to XOR with 1 because this represents a sibling.
+    const nodeKey: BigNumber = this.getNodeKey(leafKey, depth).xor(ONE)
     const node: MerkleTreeNode = await this.getNode(nodeHash, nodeKey)
     if (!!node) {
       return undefined
