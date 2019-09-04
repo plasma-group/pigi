@@ -29,7 +29,7 @@ export class MockRollupClient {
    */
   constructor(
     private readonly db: KeyValueStore,
-    readonly sign: (address: string, message: string) => Promise<string>,
+    readonly sign: (address: string, message: string) => Promise<string>
   ) {}
 
   /**

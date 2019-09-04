@@ -65,8 +65,8 @@ export class MockRollupStateMachine {
       this.state[account] = {
         balances: {
           uni: 0,
-          pigi: 0
-        }
+          pigi: 0,
+        },
       }
     }
     return this.state[account].balances
@@ -101,11 +101,7 @@ export class MockRollupStateMachine {
     }
   }
 
-  private hasBalance(
-    account: Address,
-    tokenType: TokenType,
-    balance: number
-  ) {
+  private hasBalance(account: Address, tokenType: TokenType, balance: number) {
     // Check that the account has more than some amount of pigi/uni
     return this.getBalances(account)[tokenType] >= balance
   }
@@ -164,7 +160,8 @@ export class MockRollupStateMachine {
     // Next let's calculate the invariant
     const invariant = uniswapBalances.uni * uniswapBalances.pigi
     // Now calculate the total input tokens
-    const totalInput = swap.inputAmount + uniswapBalances[inputTokenType]
+    const totalInput =
+      this.assessSwapFee(swap.inputAmount) + uniswapBalances[inputTokenType]
     const newOutputBalance = Math.ceil(invariant / totalInput)
     const outputAmount = uniswapBalances[outputTokenType] - newOutputBalance
     // Let's make sure the output amount is above the minimum
@@ -177,7 +174,20 @@ export class MockRollupStateMachine {
     userBalances[inputTokenType] -= swap.inputAmount
     userBalances[outputTokenType] += outputAmount
 
-    uniswapBalances[inputTokenType] = totalInput
+    uniswapBalances[inputTokenType] += swap.inputAmount
     uniswapBalances[outputTokenType] = newOutputBalance
+  }
+
+  /**
+   * Assesses the fee charged for a swap.
+   *
+   * @param amountBeforeFee The amount of the swap
+   * @return the amount, accounting for the fee
+   */
+  private assessSwapFee(amountBeforeFee: number): number {
+    if (this.swapFeeBasisPoints === 0) {
+      return amountBeforeFee
+    }
+    return amountBeforeFee * ((10_000.0 - this.swapFeeBasisPoints) / 10_000.0)
   }
 }
