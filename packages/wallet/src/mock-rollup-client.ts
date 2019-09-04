@@ -28,8 +28,8 @@ export class MockRollupClient {
    *             TODO: replace sign(...) with a reference to the keystore.
    */
   constructor(
-    readonly db: KeyValueStore,
-    readonly sign: (address: string, message: string) => Promise<string>
+    private readonly db: KeyValueStore,
+    readonly sign: (address: string, message: string) => Promise<string>,
   ) {}
 
   /**

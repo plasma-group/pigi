@@ -56,22 +56,24 @@ export class InvalidTransactionTypeError extends Error {
 export class MockRollupStateMachine {
   public state: State
 
-  constructor(genesisState: State) {
+  constructor(genesisState: State, private swapFeeBasisPoints: number = 30) {
     this.state = genesisState
   }
 
   public getBalances(account: Address): Balances {
     if (!(account in this.state)) {
-      return {
-        uni: 0,
-        pigi: 0,
+      this.state[account] = {
+        balances: {
+          uni: 0,
+          pigi: 0
+        }
       }
     }
     return this.state[account].balances
   }
 
   public getUniswapBalances(): Balances {
-    return this.state[UNISWAP_ADDRESS].balances
+    return this.getBalances(UNISWAP_ADDRESS)
   }
 
   private ecdsaRecover(signature: MockedSignature): Address {
@@ -99,19 +101,13 @@ export class MockRollupStateMachine {
     }
   }
 
-  private hasEnoughMoney(
-    account: string,
+  private hasBalance(
+    account: Address,
     tokenType: TokenType,
-    greaterThanAmount: number
+    balance: number
   ) {
     // Check that the account has more than some amount of pigi/uni
-    if (
-      !(account in this.state) ||
-      this.state[account].balances[tokenType] < greaterThanAmount
-    ) {
-      return false
-    }
-    return true
+    return this.getBalances(account)[tokenType] >= balance
   }
 
   private applyTransfer(
@@ -123,23 +119,14 @@ export class MockRollupStateMachine {
       throw new NegativeAmountError()
     }
     // Check that the sender has enough money
-    if (!this.hasEnoughMoney(sender, transfer.tokenType, transfer.amount)) {
+    if (!this.hasBalance(sender, transfer.tokenType, transfer.amount)) {
       throw new InsufficientBalanceError()
     }
-    // Make sure we've got a record for the recipient
-    if (!(transfer.recipient in this.state)) {
-      // If not, make a record
-      this.state[transfer.recipient] = {
-        balances: {
-          uni: 0,
-          pigi: 0,
-        },
-      }
-    }
+
     // Update the balances
-    this.state[sender].balances[transfer.tokenType] -= transfer.amount
-    this.state[transfer.recipient].balances[transfer.tokenType] +=
-      transfer.amount
+    this.getBalances(sender)[transfer.tokenType] -= transfer.amount
+    this.getBalances(transfer.recipient)[transfer.tokenType] += transfer.amount
+
     return this.getTxReceipt({
       sender: this.state[sender],
       recipient: this.state[transfer.recipient],
@@ -152,21 +139,14 @@ export class MockRollupStateMachine {
       throw new NegativeAmountError()
     }
     // Check that the sender has enough money
-    if (!this.hasEnoughMoney(sender, swap.tokenType, swap.inputAmount)) {
+    if (!this.hasBalance(sender, swap.tokenType, swap.inputAmount)) {
       throw new InsufficientBalanceError()
     }
     // Check that we'll have ample time to include the swap
     // TODO
 
     // Set the post swap balances
-    ;[
-      this.state[sender].balances,
-      this.state[UNISWAP_ADDRESS].balances,
-    ] = this.getPostSwapBalances(
-      swap,
-      this.state[sender].balances,
-      this.state[UNISWAP_ADDRESS].balances
-    )
+    this.updateBalancesFromSwap(swap, sender)
 
     // Return a succssful swap!
     return this.getTxReceipt({
@@ -175,35 +155,29 @@ export class MockRollupStateMachine {
     })
   }
 
-  private getPostSwapBalances(
-    swap: Swap,
-    userBalances: Balances,
-    uniswapBalances: Balances
-  ): [Balances, Balances] {
+  private updateBalancesFromSwap(swap: Swap, sender: Address): void {
+    const uniswapBalances: Balances = this.getUniswapBalances()
     // First let's figure out which token types are input & output
     const inputTokenType = swap.tokenType
     const outputTokenType =
       swap.tokenType === UNI_TOKEN_TYPE ? PIGI_TOKEN_TYPE : UNI_TOKEN_TYPE
-    // Next let's calculate the invarient
-    const invarient = uniswapBalances.uni * uniswapBalances.pigi
+    // Next let's calculate the invariant
+    const invariant = uniswapBalances.uni * uniswapBalances.pigi
     // Now calculate the total input tokens
     const totalInput = swap.inputAmount + uniswapBalances[inputTokenType]
-    const newOutputBalance = Math.ceil(invarient / totalInput)
+    const newOutputBalance = Math.ceil(invariant / totalInput)
     const outputAmount = uniswapBalances[outputTokenType] - newOutputBalance
     // Let's make sure the output amount is above the minimum
     if (outputAmount < swap.minOutputAmount) {
       throw new SlippageError()
     }
+
+    const userBalances: Balances = this.getBalances(sender)
     // Calculate the new user & swap balances
-    const newUserBalances = {
-      [inputTokenType]: userBalances[inputTokenType] - swap.inputAmount,
-      [outputTokenType]: userBalances[outputTokenType] + outputAmount,
-    }
-    const newUniswapBalances = {
-      [inputTokenType]: totalInput,
-      [outputTokenType]: newOutputBalance,
-    }
-    // And return them!
-    return [newUserBalances, newUniswapBalances]
+    userBalances[inputTokenType] -= swap.inputAmount
+    userBalances[outputTokenType] += outputAmount
+
+    uniswapBalances[inputTokenType] = totalInput
+    uniswapBalances[outputTokenType] = newOutputBalance
   }
 }
