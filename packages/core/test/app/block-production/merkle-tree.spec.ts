@@ -20,7 +20,7 @@ import {
   SparseMerkleTree,
 } from '../../../src/types/utils'
 import { DB } from '../../../src/types'
-import {SparseMerkleTreeImpl} from "../../../src/app/block-production";
+import { SparseMerkleTreeImpl } from '../../../src/app/block-production'
 
 const hashBuffer: Buffer = Buffer.alloc(64)
 const hashFunction: HashFunction = keccak256
