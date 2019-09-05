@@ -130,7 +130,6 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
     return this.treeMutex.runExclusive(async () => {
       const nodesToUpdate: MerkleTreeNode[] = await this.getNodesInPath(leafKey)
       if (!nodesToUpdate || nodesToUpdate.length !== this.height) {
-        console.log(`Nodes in path length: ${nodesToUpdate.length}`)
         return false
       }
 
@@ -175,7 +174,7 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
       let node: MerkleTreeNode = this.root
       const siblings: Buffer[] = []
       let depth = 0
-      while (depth < this.height && node && node.value.length == 64) {
+      while (depth < this.height && node && node.value.length === 64) {
         const isLeft: boolean = this.isLeft(leafKey, depth)
         const childSibling: Buffer = isLeft
           ? node.value.subarray(32)
@@ -190,7 +189,7 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
         node = await this.getNode(childHash, this.getNodeKey(leafKey, ++depth))
       }
 
-      if (siblings.length !== this.height -1 ) {
+      if (siblings.length !== this.height - 1) {
         return undefined
       }
 
@@ -237,13 +236,13 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
         // This is a standard node
         node = this.isLeft(leafKey, depth)
           ? await this.getNode(
-            node.value.subarray(0, 32),
-            this.getNodeKey(leafKey, childDepth)
-          )
+              node.value.subarray(0, 32),
+              this.getNodeKey(leafKey, childDepth)
+            )
           : await this.getNode(
-            node.value.subarray(32),
-            this.getNodeKey(leafKey, childDepth)
-          )
+              node.value.subarray(32),
+              this.getNodeKey(leafKey, childDepth)
+            )
       } else {
         // This is malformed or a disconnected sibling node
         return nodesToUpdate
