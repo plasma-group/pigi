@@ -17,23 +17,11 @@ import {
 import { keccak256 } from './crypto'
 
 /**
- * SparseMerkleTree implementation built using the optimizations implemented by Vitalik
- * here: https://github.com/ethereum/research/blob/master/sparse_merkle_tree/new_bintrie_optimized.py
- *
- * Namely, no intermediate nodes are persisted between a leaf node and its first ancestor
- * with a non-zero-hash sibling. In order to not store these intermediate nodes but
- * still make the leaf reachable through traversal, this ancestor node's value is
- * stored as its leaf node descendent's hash as well as the key that represents
- * the path to the leaf starting from this ancestor.
- *
- * To indicate that a node's value is a pointer to a leaf node instead of the typical
- * value of (leftChildHash + rightChildHash), the value is stored as 65 bytes instead
- * of the typical 64 bytes, with the first byte being a dummy byte.
+ * SparseMerkleTree implementation assuming a 256-bit hash algorithm is used.
  */
-export class OptimizedSparseMerkleTree implements SparseMerkleTree {
+export class SparseMerkleTreeImpl implements SparseMerkleTree {
   public static readonly emptyBuffer: Buffer = new Buffer(32).fill('\x00')
   private static readonly siblingBuffer: Buffer = new Buffer(1).fill('\x00')
-  private static readonly leafPointerByte: string = '\x01'
 
   private root: MerkleTreeNode
   private zeroHashes: Buffer[]
@@ -87,7 +75,6 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
         return true
       }
 
-      let intermediateZeroHashNode: boolean = true
       let child: MerkleTreeNode = this.createNode(
         leafHash,
         inclusionProof.value,
@@ -107,29 +94,6 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
           inclusionProof.key,
           parentDepth
         )
-
-        intermediateZeroHashNode =
-          intermediateZeroHashNode &&
-          childSiblingHash.equals(this.zeroHashes[childDepth]) &&
-          parentDepth !== 0 &&
-          inclusionProof.siblings[parentDepth - 1].equals(
-            this.zeroHashes[parentDepth]
-          )
-
-        // Don't store nodes that can be re-calculated from key, leaf, and zeroHashes
-        if (intermediateZeroHashNode) {
-          continue
-        }
-
-        // If there were any zero-hash intermediate nodes we didn't persist, make the current node a shortcut to the leaf.
-        if (nodesToStore.length === 1 && parentDepth < this.height - 2) {
-          parent = this.createLeafShortcutNode(
-            parent.hash,
-            inclusionProof.value,
-            inclusionProof.key,
-            parentDepth
-          )
-        }
         nodesToStore.push(parent)
 
         // Store sibling node, but don't overwrite it if it's in the db.
@@ -165,7 +129,8 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
   public async update(leafKey: BigNumber, leafValue: Buffer): Promise<boolean> {
     return this.treeMutex.runExclusive(async () => {
       const nodesToUpdate: MerkleTreeNode[] = await this.getNodesInPath(leafKey)
-      if (!nodesToUpdate) {
+      if (!nodesToUpdate || nodesToUpdate.length !== this.height) {
+        console.log(`Nodes in path length: ${nodesToUpdate.length}`)
         return false
       }
 
@@ -176,26 +141,6 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
 
       let updatedChild: MerkleTreeNode = leaf
       let depth: number = nodesToUpdate.length - 2 // -2 because this array also contains the leaf
-
-      // If we're not updating all nodes, there's a shortcut node to update.
-      if (this.height !== nodesToUpdate.length) {
-        const ancestorHash: Buffer = this.getZeroHashAncestorFromLeaf(
-          leafKey,
-          leafValue,
-          this.height - (nodesToUpdate.length - 1)
-        )
-
-        updatedChild = nodesToUpdate[depth]
-        idsToDelete.push(this.getNodeID(updatedChild))
-        // Update the node pointing to the leaf
-        updatedChild.hash = ancestorHash
-        updatedChild.value = this.createLeafShortcutNode(
-          ancestorHash,
-          leafValue,
-          leafKey,
-          depth--
-        ).value
-      }
 
       // Iteratively update all nodes from the leaf-pointer node up to the root
       for (; depth >= 0; depth--) {
@@ -230,7 +175,7 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
       let node: MerkleTreeNode = this.root
       const siblings: Buffer[] = []
       let depth = 0
-      while (depth < this.height && node.value.length === 64) {
+      while (depth < this.height && node && node.value.length == 64) {
         const isLeft: boolean = this.isLeft(leafKey, depth)
         const childSibling: Buffer = isLeft
           ? node.value.subarray(32)
@@ -245,8 +190,13 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
         node = await this.getNode(childHash, this.getNodeKey(leafKey, ++depth))
       }
 
-      if (++depth < this.height) {
-        siblings.push(...this.zeroHashes.slice(depth))
+      if (siblings.length !== this.height -1 ) {
+        return undefined
+      }
+
+      if (!node.hash.equals(this.hashFunction(leafValue))) {
+        // Provided leaf doesn't match stored leaf
+        return undefined
       }
 
       return {
@@ -256,35 +206,6 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
         siblings,
       }
     })
-  }
-
-  /**
-   * Gets the hash of the ancestor from the provided leaf value up numberOfZeroHashes levels.
-   * all node hashes will be calculated as hash(last_calculated_hash + zero_hashes[depth]) or
-   * hash(zero_hashes[depth] + last_calculated_hash) depending on the bit in the key
-   * associated with the depth in question.
-   *
-   * @param key The full path to the leaf node
-   * @param leafValue The leaf node value
-   * @param numberOfZeroHashes The number of times to iterate
-   * @returns the resulting ancestor hash
-   */
-  private getZeroHashAncestorFromLeaf(
-    key: BigNumber,
-    leafValue: Buffer,
-    numberOfZeroHashes: number
-  ): Buffer {
-    let nodeHash: Buffer = this.hashFunction(leafValue)
-    for (let i = numberOfZeroHashes; i > 0; i--) {
-      const depth = this.height - 1 - (numberOfZeroHashes - i)
-      nodeHash = this.calculateParentHash(
-        nodeHash,
-        this.zeroHashes[depth],
-        key,
-        depth - 1 // Since it's the parent depth
-      )
-    }
-    return nodeHash
   }
 
   /**
@@ -312,49 +233,19 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
     let depth
     for (depth = 0; depth < this.height - 1; depth++) {
       const childDepth: number = depth + 1
-      switch (node.value.length) {
-        case 64:
-          // This is a standard node
-          node = this.isLeft(leafKey, depth)
-            ? await this.getNode(
-                node.value.subarray(0, 32),
-                this.getNodeKey(leafKey, childDepth)
-              )
-            : await this.getNode(
-                node.value.subarray(32),
-                this.getNodeKey(leafKey, childDepth)
-              )
-          break
-        case 65:
-          // This is a pointer to a leaf node hash (0x01 + key_as_buffer + node_hash)
-          const storedLeafKey: BigNumber = OptimizedSparseMerkleTree.bufferToKey(
-            node.value.subarray(1, 33),
-            depth
+      if (node.value.length === 64) {
+        // This is a standard node
+        node = this.isLeft(leafKey, depth)
+          ? await this.getNode(
+            node.value.subarray(0, 32),
+            this.getNodeKey(leafKey, childDepth)
           )
-
-          if (
-            this.isLeft(storedLeafKey, depth) !== this.isLeft(leafKey, depth)
-          ) {
-            // We want the non-shortcut child-node, which is a zero-hash
-            node = await this.getNode(
-              this.zeroHashes[depth],
-              this.getNodeKey(leafKey, childDepth)
-            )
-          } else {
-            // skip to the leaf
-            node = await this.getNode(
-              node.value.subarray(33),
-              this.getNodeKey(leafKey, this.height - 1)
-            )
-            depth = this.height
-          }
-
-          break
-        default:
-          // This is malformed or a disconnected sibling node
-          return undefined
-      }
-      if (!node || !node.value) {
+          : await this.getNode(
+            node.value.subarray(32),
+            this.getNodeKey(leafKey, childDepth)
+          )
+      } else {
+        // This is malformed or a disconnected sibling node
         return nodesToUpdate
       }
       nodesToUpdate.push(node)
@@ -388,54 +279,6 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
   }
 
   /**
-   * Gets the portion of the provided key that describes the path at and below
-   * the provided depth as a buffer.
-   *
-   * @param key The key
-   * @param depth The depth
-   * @returns The resulting buffer of the key
-   */
-  private static keyToBuffer(key: BigNumber, depth: number): Buffer {
-    return key.shiftLeft(depth).toBuffer(BIG_ENDIAN, 32)
-  }
-
-  /**
-   * Converts the provided buffer to a key specifying how to reach a specific
-   * leaf in a sub-tree of the provided depth.
-   *
-   * @param buffer The buffer that contains key information
-   * @param depth The depth
-   * @returns the key.
-   */
-  private static bufferToKey(buffer: Buffer, depth: number): BigNumber {
-    return new BigNumber(buffer).shiftRightInPlace(depth)
-  }
-
-  /**
-   * Creates a shortcut node that has a hash that results from a single leaf-node
-   * iteratively hashed up the tree with the zero hashes values up to the provided depth,
-   * and a value that contains the leaf hash for quick look-up.
-   *
-   * @param nodeHash The hash identifying the node to store.
-   * @param leafValue The leaf value that this is a shortcut to
-   * @param leafKey The key associated with the leaf
-   * @param depth The depth of the node to create
-   * @returns The MerkleTreeNode
-   */
-  private createLeafShortcutNode(
-    nodeHash: Buffer,
-    leafValue: Buffer,
-    leafKey: BigNumber,
-    depth: number
-  ): MerkleTreeNode {
-    const value: Buffer = new Buffer(65)
-      .fill(OptimizedSparseMerkleTree.leafPointerByte, 0, 1)
-      .fill(OptimizedSparseMerkleTree.keyToBuffer(leafKey, depth), 1, 33)
-      .fill(this.hashFunction(leafValue), 33)
-    return this.createNode(nodeHash, value, this.getNodeKey(leafKey, depth))
-  }
-
-  /**
    * Creates a Merkle Proof sibling node if a node with this hash has not already been stored
    * in the DB.
    *
@@ -460,7 +303,7 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
     }
     return this.createNode(
       nodeHash,
-      OptimizedSparseMerkleTree.siblingBuffer,
+      SparseMerkleTreeImpl.siblingBuffer,
       nodeKey
     )
   }
@@ -483,31 +326,6 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
       return undefined
     }
     return this.createNode(nodeHash, value, nodeKey)
-  }
-
-  /**
-   * Calculates the parent hash from the provided node and sibling, using the key and depth
-   * to determine whether the node is the left node or the sibling is the left node.
-   *
-   * @param nodeHash The node hash used as 1/2 input to parent calculation
-   * @param siblingHash The sibling node hash used as 1/2 input to parent calculation
-   * @param key The key representing the path to this node
-   * @param depth The depth of this node
-   * @returns The parent hash
-   */
-  private calculateParentHash(
-    nodeHash: Buffer,
-    siblingHash: Buffer,
-    key: BigNumber,
-    depth: number
-  ): Buffer {
-    return this.isLeft(key, depth)
-      ? this.hashFunction(
-          this.hashBuffer.fill(nodeHash, 0, 32).fill(siblingHash, 32)
-        )
-      : this.hashFunction(
-          this.hashBuffer.fill(siblingHash, 0, 32).fill(nodeHash, 32)
-        )
   }
 
   /**
@@ -554,7 +372,7 @@ export class OptimizedSparseMerkleTree implements SparseMerkleTree {
    */
   private populateZeroHashesAndRoot(rootHash?: Buffer): void {
     const hashes: Buffer[] = [
-      this.hashFunction(OptimizedSparseMerkleTree.emptyBuffer),
+      this.hashFunction(SparseMerkleTreeImpl.emptyBuffer),
     ]
 
     for (let i = 1; i < this.height; i++) {

@@ -8,7 +8,7 @@ import {
   BigNumber,
   keccak256,
   ONE,
-  OptimizedSparseMerkleTree,
+  SparseMerkleTreeImpl,
   THREE,
   TWO,
   ZERO,
@@ -24,7 +24,7 @@ import { DB } from '../../../src/types'
 
 const hashBuffer: Buffer = new Buffer(64)
 const hashFunction: HashFunction = keccak256
-const zeroHash: Buffer = hashFunction(OptimizedSparseMerkleTree.emptyBuffer)
+const zeroHash: Buffer = hashFunction(SparseMerkleTreeImpl.emptyBuffer)
 
 const verifyEmptyTreeWithDepth = async (
   tree: SparseMerkleTree,
@@ -43,7 +43,7 @@ const verifyEmptyTreeWithDepth = async (
   const inclusionProof: MerkleTreeInclusionProof = {
     rootHash: await tree.getRootHash(),
     key,
-    value: OptimizedSparseMerkleTree.emptyBuffer,
+    value: SparseMerkleTreeImpl.emptyBuffer,
     siblings: siblings.reverse(),
   }
 
@@ -58,7 +58,7 @@ const createAndVerifyEmptyTreeDepthWithDepth = async (
   key: BigNumber,
   depth: number
 ): Promise<SparseMerkleTree> => {
-  const tree: SparseMerkleTree = new OptimizedSparseMerkleTree(
+  const tree: SparseMerkleTree = new SparseMerkleTreeImpl(
     db,
     undefined,
     depth,
@@ -110,22 +110,22 @@ describe('OptimizedSparseMerkleTree', () => {
 
   describe('Constructor', () => {
     it('should construct without error', async () => {
-      new OptimizedSparseMerkleTree(db)
+      new SparseMerkleTreeImpl(db)
     })
 
     it('accepts a non-empty root hash', async () => {
-      new OptimizedSparseMerkleTree(db, new Buffer(32).fill('root', 0))
+      new SparseMerkleTreeImpl(db, new Buffer(32).fill('root', 0))
     })
 
     it('throws if root is not 32 bytes', async () => {
       TestUtils.assertThrows(() => {
-        new OptimizedSparseMerkleTree(db, new Buffer(31).fill('root', 0))
+        new SparseMerkleTreeImpl(db, new Buffer(31).fill('root', 0))
       }, assert.AssertionError)
     })
 
     it('throws if height is < 0', async () => {
       TestUtils.assertThrows(() => {
-        new OptimizedSparseMerkleTree(db, undefined, -1)
+        new SparseMerkleTreeImpl(db, undefined, -1)
       }, assert.AssertionError)
     })
   })
@@ -154,7 +154,7 @@ describe('OptimizedSparseMerkleTree', () => {
     })
 
     it('fails on invalid proof for empty root', async () => {
-      const tree: SparseMerkleTree = new OptimizedSparseMerkleTree(
+      const tree: SparseMerkleTree = new SparseMerkleTreeImpl(
         db,
         undefined,
         2,
@@ -165,7 +165,7 @@ describe('OptimizedSparseMerkleTree', () => {
         rootHash: await tree.getRootHash(),
         key: ZERO,
         value: Buffer.from('this will fail.'),
-        siblings: [hashFunction(OptimizedSparseMerkleTree.emptyBuffer)],
+        siblings: [hashFunction(SparseMerkleTreeImpl.emptyBuffer)],
       }
 
       assert(
@@ -179,10 +179,10 @@ describe('OptimizedSparseMerkleTree', () => {
       const root: Buffer = hashFunction(
         hashBuffer
           .fill(hashFunction(value), 0, 32)
-          .fill(hashFunction(OptimizedSparseMerkleTree.emptyBuffer), 32)
+          .fill(hashFunction(SparseMerkleTreeImpl.emptyBuffer), 32)
       )
 
-      const tree: SparseMerkleTree = new OptimizedSparseMerkleTree(
+      const tree: SparseMerkleTree = new SparseMerkleTreeImpl(
         db,
         root,
         2,
@@ -193,7 +193,7 @@ describe('OptimizedSparseMerkleTree', () => {
         rootHash: await tree.getRootHash(),
         key: ZERO,
         value,
-        siblings: [hashFunction(OptimizedSparseMerkleTree.emptyBuffer)],
+        siblings: [hashFunction(SparseMerkleTreeImpl.emptyBuffer)],
       }
 
       assert(
@@ -206,11 +206,11 @@ describe('OptimizedSparseMerkleTree', () => {
       const value: Buffer = new Buffer('non-empty')
       const root: Buffer = hashFunction(
         hashBuffer
-          .fill(hashFunction(OptimizedSparseMerkleTree.emptyBuffer), 0, 32)
+          .fill(hashFunction(SparseMerkleTreeImpl.emptyBuffer), 0, 32)
           .fill(hashFunction(value), 32)
       )
 
-      const tree: SparseMerkleTree = new OptimizedSparseMerkleTree(
+      const tree: SparseMerkleTree = new SparseMerkleTreeImpl(
         db,
         root,
         2,
@@ -221,7 +221,7 @@ describe('OptimizedSparseMerkleTree', () => {
         rootHash: await tree.getRootHash(),
         key: ONE,
         value,
-        siblings: [hashFunction(OptimizedSparseMerkleTree.emptyBuffer)],
+        siblings: [hashFunction(SparseMerkleTreeImpl.emptyBuffer)],
       }
 
       assert(
@@ -235,10 +235,10 @@ describe('OptimizedSparseMerkleTree', () => {
       const root: Buffer = hashFunction(
         hashBuffer
           .fill(hashFunction(value), 0, 32)
-          .fill(hashFunction(OptimizedSparseMerkleTree.emptyBuffer), 32)
+          .fill(hashFunction(SparseMerkleTreeImpl.emptyBuffer), 32)
       )
 
-      const tree: SparseMerkleTree = new OptimizedSparseMerkleTree(
+      const tree: SparseMerkleTree = new SparseMerkleTreeImpl(
         db,
         root,
         2,
@@ -249,7 +249,7 @@ describe('OptimizedSparseMerkleTree', () => {
         rootHash: await tree.getRootHash(),
         key: ZERO,
         value: Buffer.from('not the right value'),
-        siblings: [hashFunction(OptimizedSparseMerkleTree.emptyBuffer)],
+        siblings: [hashFunction(SparseMerkleTreeImpl.emptyBuffer)],
       }
 
       assert(
@@ -385,7 +385,7 @@ describe('OptimizedSparseMerkleTree', () => {
       const inclusionProof: MerkleTreeInclusionProof = {
         rootHash: await tree.getRootHash(),
         key: ONE,
-        value: OptimizedSparseMerkleTree.emptyBuffer,
+        value: SparseMerkleTreeImpl.emptyBuffer,
         siblings: siblings.reverse(),
       }
 
@@ -448,7 +448,7 @@ describe('OptimizedSparseMerkleTree', () => {
       const inclusionProof: MerkleTreeInclusionProof = {
         rootHash: await tree.getRootHash(),
         key: TWO,
-        value: OptimizedSparseMerkleTree.emptyBuffer,
+        value: SparseMerkleTreeImpl.emptyBuffer,
         siblings: siblings.reverse(),
       }
 
@@ -482,10 +482,10 @@ describe('OptimizedSparseMerkleTree', () => {
       )
       const proof: MerkleTreeInclusionProof = await tree.getMerkleProof(
         ZERO,
-        OptimizedSparseMerkleTree.emptyBuffer
+        SparseMerkleTreeImpl.emptyBuffer
       )
 
-      assert(proof.value.equals(OptimizedSparseMerkleTree.emptyBuffer))
+      assert(proof.value.equals(SparseMerkleTreeImpl.emptyBuffer))
       assert(proof.key.equals(ZERO))
       assert(proof.siblings.length === 2)
 
@@ -508,10 +508,10 @@ describe('OptimizedSparseMerkleTree', () => {
 
       const proof: MerkleTreeInclusionProof = await tree.getMerkleProof(
         ZERO,
-        OptimizedSparseMerkleTree.emptyBuffer
+        data
       )
 
-      assert(proof.value.equals(OptimizedSparseMerkleTree.emptyBuffer))
+      assert(proof.value.equals(data))
       assert(proof.key.equals(ZERO))
       assert(proof.siblings.length === 2)
 
@@ -540,7 +540,7 @@ describe('OptimizedSparseMerkleTree', () => {
       assert(
         await tree.verifyAndStore({
           rootHash: await tree.getRootHash(),
-          value: OptimizedSparseMerkleTree.emptyBuffer,
+          value: SparseMerkleTreeImpl.emptyBuffer,
           key: ONE,
           siblings: sibs.reverse(),
         }),
@@ -601,7 +601,7 @@ describe('OptimizedSparseMerkleTree', () => {
       assert(
         await tree.verifyAndStore({
           rootHash: await tree.getRootHash(),
-          value: OptimizedSparseMerkleTree.emptyBuffer,
+          value: SparseMerkleTreeImpl.emptyBuffer,
           key: TWO,
           siblings: sibs.reverse(),
         }),
