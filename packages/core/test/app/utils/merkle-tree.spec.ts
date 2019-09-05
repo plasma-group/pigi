@@ -648,4 +648,52 @@ describe('OptimizedSparseMerkleTree', () => {
       assert(proof.rootHash.equals(await tree.getRootHash()))
     })
   })
+
+  describe('benchmarks', () => {
+    const runUpdateTest = async (
+      treeHeight: number,
+      numUpdates: number,
+      keyRange: number
+    ): Promise<void> => {
+      const tree: SparseMerkleTree = new SparseMerkleTreeImpl(
+        db,
+        undefined,
+        treeHeight,
+        hashFunction
+      )
+
+      const startTime = +new Date()
+
+      const dataToStore: Buffer = Buffer.from('yo what is gucci')
+      const promises: Array<Promise<boolean>> = []
+      for (let i = 0; i < numUpdates; i++) {
+        const key = new BigNumber(Math.floor(Math.random() * keyRange))
+        promises.push(tree.update(key, dataToStore))
+      }
+
+      await Promise.all(promises)
+
+      const finishTime = +new Date()
+      const durationInMiliseconds = finishTime - startTime
+      // tslint:disable-next-line:no-console
+      console.log(
+        'Duration:',
+        durationInMiliseconds,
+        ', TPS: ',
+        numUpdates / (durationInMiliseconds / 1_000.0)
+      )
+    }
+
+    it.only('updates: 100, treeHeight: 24, keyRange: 50000', async () => {
+      await runUpdateTest(24, 100, 50_000)
+    }).timeout(9000)
+
+    it.only('updates: 100, treeHeight: 160, keyRange: 50000', async () => {
+      await runUpdateTest(160, 100, 50_000)
+    }).timeout(9000)
+
+    it.only('updates: 1000, treeHeight: 160, keyRange: 50000', async () => {
+      await runUpdateTest(160, 1000, 50_000)
+    }).timeout(9000)
+  })
 })
