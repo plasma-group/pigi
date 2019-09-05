@@ -22,7 +22,7 @@ import {
 } from '../../../src/types/utils'
 import { DB } from '../../../src/types'
 
-const hashBuffer: Buffer = new Buffer(64)
+const hashBuffer: Buffer = Buffer.alloc(64)
 const hashFunction: HashFunction = keccak256
 const zeroHash: Buffer = hashFunction(SparseMerkleTreeImpl.emptyBuffer)
 
@@ -114,12 +114,12 @@ describe('OptimizedSparseMerkleTree', () => {
     })
 
     it('accepts a non-empty root hash', async () => {
-      new SparseMerkleTreeImpl(db, new Buffer(32).fill('root', 0))
+      new SparseMerkleTreeImpl(db, Buffer.alloc(32).fill('root', 0))
     })
 
     it('throws if root is not 32 bytes', async () => {
       TestUtils.assertThrows(() => {
-        new SparseMerkleTreeImpl(db, new Buffer(31).fill('root', 0))
+        new SparseMerkleTreeImpl(db, Buffer.alloc(31).fill('root', 0))
       }, assert.AssertionError)
     })
 
@@ -175,7 +175,7 @@ describe('OptimizedSparseMerkleTree', () => {
     })
 
     it('verifies non-empty root', async () => {
-      const value: Buffer = new Buffer('non-empty')
+      const value: Buffer = Buffer.from('non-empty')
       const root: Buffer = hashFunction(
         hashBuffer
           .fill(hashFunction(value), 0, 32)
@@ -203,7 +203,7 @@ describe('OptimizedSparseMerkleTree', () => {
     })
 
     it('verifies non-empty root with key of 1', async () => {
-      const value: Buffer = new Buffer('non-empty')
+      const value: Buffer = Buffer.from('non-empty')
       const root: Buffer = hashFunction(
         hashBuffer
           .fill(hashFunction(SparseMerkleTreeImpl.emptyBuffer), 0, 32)
@@ -231,7 +231,7 @@ describe('OptimizedSparseMerkleTree', () => {
     })
 
     it('fails verifying invalid non-empty root', async () => {
-      const value: Buffer = new Buffer('non-empty')
+      const value: Buffer = Buffer.from('non-empty')
       const root: Buffer = hashFunction(
         hashBuffer
           .fill(hashFunction(value), 0, 32)
@@ -684,15 +684,15 @@ describe('OptimizedSparseMerkleTree', () => {
       )
     }
 
-    it.only('updates: 100, treeHeight: 24, keyRange: 50000', async () => {
+    it.only('updates: 100, treeHeight: 24, keyRange: 50,000', async () => {
       await runUpdateTest(24, 100, 50_000)
     }).timeout(9000)
 
-    it.only('updates: 100, treeHeight: 160, keyRange: 50000', async () => {
+    it.only('updates: 100, treeHeight: 160, keyRange: 50,000', async () => {
       await runUpdateTest(160, 100, 50_000)
     }).timeout(9000)
 
-    it.only('updates: 1000, treeHeight: 160, keyRange: 50000', async () => {
+    it.only('updates: 1000, treeHeight: 160, keyRange: 50,000', async () => {
       await runUpdateTest(160, 1000, 50_000)
     }).timeout(9000)
   })
