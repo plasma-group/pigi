@@ -127,23 +127,33 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
   }
 
   public async update(leafKey: BigNumber, leafValue: Buffer): Promise<boolean> {
-    let nodesToUpdate: MerkleTreeNode[] = await this.treeMutex.runExclusive( () => {
-      return this.getNodesInPath(leafKey)
-    })
+    let nodesToUpdate: MerkleTreeNode[] = await this.treeMutex.runExclusive(
+      () => {
+        return this.getNodesInPath(leafKey)
+      }
+    )
 
     if (!nodesToUpdate) {
       return false
     } else if (nodesToUpdate.length !== this.height) {
-      if (!(await this.verifyAndStorePartiallyEmptyPath(leafKey, nodesToUpdate.length))) {
+      if (
+        !(await this.verifyAndStorePartiallyEmptyPath(
+          leafKey,
+          nodesToUpdate.length
+        ))
+      ) {
         return false
       }
       nodesToUpdate = await this.getNodesInPath(leafKey)
     }
 
-    return this.treeMutex.runExclusive( async () => {
+    return this.treeMutex.runExclusive(async () => {
       // Have to check to make sure nodesToUpdate didn't change while we didn't have the lock.
-      let prevLeaf = nodesToUpdate[nodesToUpdate.length -1]
-      let leafStillExists: MerkleTreeNode = await this.getNode(prevLeaf.hash, prevLeaf.key)
+      const prevLeaf = nodesToUpdate[nodesToUpdate.length - 1]
+      const leafStillExists: MerkleTreeNode = await this.getNode(
+        prevLeaf.hash,
+        prevLeaf.key
+      )
       if (!leafStillExists) {
         nodesToUpdate = await this.getNodesInPath(leafKey)
       }
@@ -188,7 +198,11 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
 
       let node: MerkleTreeNode = this.root
       const siblings: Buffer[] = []
-      for (let depth = 0; depth < this.height && node && node.value.length === 64; depth++) {
+      for (
+        let depth = 0;
+        depth < this.height && node && node.value.length === 64;
+        depth++
+      ) {
         siblings.push(this.getChildSiblingHash(node, depth, leafKey))
         node = await this.getChild(node, depth, leafKey)
       }
@@ -218,31 +232,32 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
    * @param numExistingNodes The number of existing nodes, if known
    * @returns True if verified, false otherwise
    */
-  private async verifyAndStorePartiallyEmptyPath(leafKey: BigNumber, numExistingNodes?: number): Promise<boolean> {
+  private async verifyAndStorePartiallyEmptyPath(
+    leafKey: BigNumber,
+    numExistingNodes?: number
+  ): Promise<boolean> {
     if (numExistingNodes === undefined) {
       numExistingNodes = (await this.getNodesInPath(leafKey)).length
     }
-    const existingChildren: number = Math.max(numExistingNodes-1, 0)
+    const existingChildren: number = Math.max(numExistingNodes - 1, 0)
 
     const siblings: Buffer[] = []
     let node: MerkleTreeNode = this.root
     for (let i = 0; i < this.height - 1; i++) {
       if (i >= existingChildren) {
         siblings.push(...this.zeroHashes.slice(i + 1))
-        break;
+        break
       }
 
       siblings.push(this.getChildSiblingHash(node, i, leafKey))
       node = await this.getChild(node, i, leafKey)
     }
 
-    console.log(`VERIFYING AND STORING. Sibs length: ${siblings.length}`)
-
     return this.verifyAndStore({
       rootHash: this.root.hash,
       key: leafKey,
       value: SparseMerkleTreeImpl.emptyBuffer,
-      siblings
+      siblings,
     })
   }
 
@@ -256,7 +271,11 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
    * @param leafKey The leaf key helping determine the sibling.
    * @returns The child sibling hash.
    */
-  private getChildSiblingHash(parent: MerkleTreeNode, parentDepth: number, leafKey: BigNumber): Buffer {
+  private getChildSiblingHash(
+    parent: MerkleTreeNode,
+    parentDepth: number,
+    leafKey: BigNumber
+  ): Buffer {
     const isLeft: boolean = this.isLeft(leafKey, parentDepth)
     return isLeft ? parent.value.subarray(32) : parent.value.subarray(0, 32)
   }
@@ -270,12 +289,13 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
    * @param leafKey The leaf key specifying the path to the child.
    * @returns The child if one is present.
    */
-  private async getChild(parent: MerkleTreeNode, parentDepth: number, leafKey: BigNumber): Promise<MerkleTreeNode> {
+  private async getChild(
+    parent: MerkleTreeNode,
+    parentDepth: number,
+    leafKey: BigNumber
+  ): Promise<MerkleTreeNode> {
     const childIndex: number = this.isLeft(leafKey, parentDepth) ? 0 : 32
-    const childHash: Buffer = parent.value.subarray(
-      childIndex,
-      childIndex + 32
-    )
+    const childHash: Buffer = parent.value.subarray(childIndex, childIndex + 32)
     return this.getNode(childHash, this.getNodeKey(leafKey, ++parentDepth))
   }
 
