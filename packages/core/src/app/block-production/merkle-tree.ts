@@ -14,7 +14,7 @@ import {
   TWO,
   ZERO,
 } from '../../types'
-import { keccak256 } from './crypto'
+import { keccak256 } from '../utils/crypto'
 
 /**
  * SparseMerkleTree implementation assuming a 256-bit hash algorithm is used.

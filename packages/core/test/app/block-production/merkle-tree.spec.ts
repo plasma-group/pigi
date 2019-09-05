@@ -8,12 +8,11 @@ import {
   BigNumber,
   keccak256,
   ONE,
-  SparseMerkleTreeImpl,
   THREE,
   TWO,
   ZERO,
 } from '../../../src/app/utils'
-import { TestUtils } from './test-utils'
+import { TestUtils } from '../utils/test-utils'
 import {
   HashFunction,
   MerkleTree,
@@ -21,6 +20,7 @@ import {
   SparseMerkleTree,
 } from '../../../src/types/utils'
 import { DB } from '../../../src/types'
+import {SparseMerkleTreeImpl} from "../../../src/app/block-production";
 
 const hashBuffer: Buffer = Buffer.alloc(64)
 const hashFunction: HashFunction = keccak256
