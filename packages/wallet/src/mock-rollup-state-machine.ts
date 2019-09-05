@@ -60,20 +60,31 @@ export class MockRollupStateMachine {
     this.state = genesisState
   }
 
-  public getBalances(account: Address): Balances {
-    if (!(account in this.state)) {
-      this.state[account] = {
-        balances: {
-          uni: 0,
-          pigi: 0,
-        },
-      }
-    }
-    return this.state[account].balances
+  public getBalances(account: Address) {
+    return this._getBalances(account, false)
   }
 
   public getUniswapBalances(): Balances {
-    return this.getBalances(UNISWAP_ADDRESS)
+    return this._getBalances(UNISWAP_ADDRESS)
+  }
+
+  private _getBalances(
+    account: Address,
+    createIfAbsent: boolean = true
+  ): Balances {
+    if (!(account in this.state)) {
+      const balances = {
+        uni: 0,
+        pigi: 0,
+      }
+
+      if (!createIfAbsent) {
+        return balances
+      }
+
+      this.state[account] = { balances }
+    }
+    return this.state[account].balances
   }
 
   private ecdsaRecover(signature: MockedSignature): Address {
@@ -103,7 +114,8 @@ export class MockRollupStateMachine {
 
   private hasBalance(account: Address, tokenType: TokenType, balance: number) {
     // Check that the account has more than some amount of pigi/uni
-    return this.getBalances(account)[tokenType] >= balance
+    const balances = this._getBalances(account, false)
+    return balances[tokenType] >= balance
   }
 
   private applyTransfer(
@@ -120,8 +132,8 @@ export class MockRollupStateMachine {
     }
 
     // Update the balances
-    this.getBalances(sender)[transfer.tokenType] -= transfer.amount
-    this.getBalances(transfer.recipient)[transfer.tokenType] += transfer.amount
+    this._getBalances(sender)[transfer.tokenType] -= transfer.amount
+    this._getBalances(transfer.recipient)[transfer.tokenType] += transfer.amount
 
     return this.getTxReceipt({
       sender: this.state[sender],
@@ -169,7 +181,7 @@ export class MockRollupStateMachine {
       throw new SlippageError()
     }
 
-    const userBalances: Balances = this.getBalances(sender)
+    const userBalances: Balances = this._getBalances(sender)
     // Calculate the new user & swap balances
     userBalances[inputTokenType] -= swap.inputAmount
     userBalances[outputTokenType] += outputAmount
