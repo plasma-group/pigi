@@ -14,19 +14,19 @@ import {
   TWO,
   ZERO,
 } from '../../types'
-import { keccak256 } from './crypto'
+import { keccak256 } from '../utils/crypto'
 
 /**
  * SparseMerkleTree implementation assuming a 256-bit hash algorithm is used.
  */
 export class SparseMerkleTreeImpl implements SparseMerkleTree {
-  public static readonly emptyBuffer: Buffer = new Buffer(32).fill('\x00')
-  private static readonly siblingBuffer: Buffer = new Buffer(1).fill('\x00')
+  public static readonly emptyBuffer: Buffer = Buffer.alloc(32).fill('\x00')
+  private static readonly siblingBuffer: Buffer = Buffer.alloc(1).fill('\x00')
 
   private root: MerkleTreeNode
   private zeroHashes: Buffer[]
   private readonly treeMutex: Mutex = new Mutex()
-  private readonly hashBuffer: Buffer = new Buffer(64)
+  private readonly hashBuffer: Buffer = Buffer.alloc(64)
 
   constructor(
     private readonly db: DB,
@@ -40,7 +40,7 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
   }
 
   public async getRootHash(): Promise<Buffer> {
-    const copy: Buffer = new Buffer(this.root.hash.length)
+    const copy: Buffer = Buffer.alloc(this.root.hash.length)
     this.root.hash.copy(copy)
     return copy
   }
@@ -335,11 +335,16 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
               node.value.subarray(32),
               this.getNodeKey(leafKey, childDepth)
             )
+        if (node) {
+          nodesToUpdate.push(node)
+        } else {
+          break
+        }
       } else {
         // This is malformed or a disconnected sibling node
-        return nodesToUpdate
+        break
       }
-      nodesToUpdate.push(node)
+
     }
     return nodesToUpdate
   }
@@ -435,7 +440,7 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
     leafKey: BigNumber,
     depth: number
   ): MerkleTreeNode {
-    const value = new Buffer(64)
+    const value = Buffer.alloc(64)
     if (this.isLeft(leafKey, depth)) {
       this.hashBuffer
         .fill(node.hash, 0, 32)
