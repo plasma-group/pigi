@@ -19,6 +19,11 @@ interface TransitionInclusionProof {
   siblings: string[]
 }
 
+interface IncludedTransition {
+  transition: Transition
+  inclusionProof: TransitionInclusionProof
+}
+
 /*
  * Helper class which provides all information requried for a particular
  * Rollup block. This includes all of the tranisitions in readable form
@@ -41,6 +46,14 @@ export class RollupBlock {
     )
     this.blockNumber = blockNumber
     this.tree = new RollupMerkleTree(this.leaves, keccak256)
+  }
+
+  public getIncludedTransition(transitionIndex: number): IncludedTransition {
+    const inclusionProof = this.getInclusionProof(transitionIndex)
+    return {
+      transition: this.transitions[transitionIndex],
+      inclusionProof,
+    }
   }
 
   public getInclusionProof(transitionIndex: number): TransitionInclusionProof {

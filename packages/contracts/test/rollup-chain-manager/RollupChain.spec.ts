@@ -26,7 +26,7 @@ import * as RollupChain from '../../build/RollupChain.json'
 import * as RollupMerkleUtils from '../../build/RollupMerkleUtils.json'
 
 /* Begin tests */
-describe('RollupChain', () => {
+describe.only('RollupChain', () => {
   const provider = createMockProvider()
   const [wallet1] = getWallets(provider)
   let rollupChain
@@ -63,10 +63,33 @@ describe('RollupChain', () => {
     })
   })
 
+  describe('verifySequentialTransitions()', async () => {
+    let blocks = []
+    // Before each test let's submit a couple blocks
+    beforeEach(async () => {
+      // Create two blocks from some default transitions
+      blocks = [
+        new RollupBlock(generateNTransitions(10), 0),
+        new RollupBlock(generateNTransitions(10), 1),
+      ]
+      // Submit the blocks
+      await rollupChain.submitBlock(blocks[0].encodedTransitions)
+      await rollupChain.submitBlock(blocks[1].encodedTransitions)
+    })
+
+    it('should not throw', async () => {
+      const includedTransitions = [
+        blocks[0].getIncludedTransition(0),
+        blocks[0].getIncludedTransition(1),
+      ]
+      await rollupChain.verifySequentialTransitions(includedTransitions[0], includedTransitions[0])
+    })
+  })
+
   // TODO: Enable these tests once we have a working SMT implementation
   describe.skip('checkTransitionIncluded()', async () => {
     it('should verify n included transitions for the first block', async () => {
-      // Create a block from them, encoded, and calculate leaves
+      // Create a block from some default transitions
       const block = new RollupBlock(generateNTransitions(10), 0)
       // Actually submit the block
       await rollupChain.submitBlock(block.encodedTransitions)
@@ -83,6 +106,7 @@ describe('RollupChain', () => {
     })
 
     it('should verify n included transitions for the second block', async () => {
+      // Create two blocks from some default transitions
       const block0 = new RollupBlock(generateNTransitions(5), 0)
       const block1 = new RollupBlock(generateNTransitions(5), 1)
       // Submit the blocks
@@ -101,6 +125,7 @@ describe('RollupChain', () => {
     })
 
     it('should fail to verify inclusion for a transition which is not included', async () => {
+      // Create a block from some default transitions
       const block0 = new RollupBlock(generateNTransitions(5), 0)
       // Submit the blocks
       await rollupChain.submitBlock(block0.encodedTransitions)
