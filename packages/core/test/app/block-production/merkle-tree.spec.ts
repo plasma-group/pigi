@@ -665,6 +665,5 @@ describe('OptimizedSparseMerkleTree', () => {
     it('updates: 100, treeHeight: 160, keyRange: 50,000', async () => {
       await runUpdateTest(160, 100, 50_000)
     }).timeout(9000)
-
   })
 })

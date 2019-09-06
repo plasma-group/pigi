@@ -344,7 +344,6 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
         // This is malformed or a disconnected sibling node
         break
       }
-
     }
     return nodesToUpdate
   }
