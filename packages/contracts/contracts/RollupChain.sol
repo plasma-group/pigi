@@ -62,9 +62,31 @@ contract RollupChain {
     function verifySequentialTransitions(
         IncludedTransition memory _transition0,
         IncludedTransition memory _transition1
-    ) public {
+    ) public returns(bool) {
+        // Verify inclusion
         require(checkTransitionInclusion(_transition0), 'The first transition must be included!');
         require(checkTransitionInclusion(_transition1), 'The second transition must be included!');
+
+        // Verify that the two transitions are one after another
+
+        // Start by checking if they are in the same block
+        if (_transition0.inclusionProof.blockNumber == _transition1.inclusionProof.blockNumber) {
+            // If the blocknumber is the same, simply check that transition0 preceeds transition1
+            require(_transition0.inclusionProof.transitionIndex == _transition1.inclusionProof.transitionIndex - 1, 'Transitions must be sequential!');
+            // Hurray! The transition is valid!
+            return true;
+        }
+
+        // If not in the same block, we check that:
+        // 0) the blocks are one after another
+        require(_transition0.inclusionProof.blockNumber == _transition1.inclusionProof.blockNumber - 1, 'Blocks must be one after another or equal.');
+        // 1) the transitionIndex of transition0 is the last in the block; and
+        require(_transition0.inclusionProof.transitionIndex == blocks[_transition0.inclusionProof.blockNumber].blockSize - 1, '_transition0 must be last in its block.');
+        // 2) the transitionIndex of transition1 is the first in the block
+        require(_transition1.inclusionProof.transitionIndex == 0, '_transition0 must be first in its block.');
+
+        // Success!
+        return true;
     }
 
     /*

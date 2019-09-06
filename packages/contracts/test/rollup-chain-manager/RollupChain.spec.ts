@@ -63,7 +63,7 @@ describe.only('RollupChain', () => {
     })
   })
 
-  describe('verifySequentialTransitions()', async () => {
+  describe.only('verifySequentialTransitions()', async () => {
     let blocks = []
     // Before each test let's submit a couple blocks
     beforeEach(async () => {
@@ -77,12 +77,66 @@ describe.only('RollupChain', () => {
       await rollupChain.submitBlock(blocks[1].encodedTransitions)
     })
 
-    it('should not throw', async () => {
-      const includedTransitions = [
-        blocks[0].getIncludedTransition(0),
-        blocks[0].getIncludedTransition(1),
-      ]
-      await rollupChain.verifySequentialTransitions(includedTransitions[0], includedTransitions[0])
+    describe('same block', async () => {
+      it('should not throw if the transitions are sequential in the same block', async () => {
+        const includedTransitions = [
+          blocks[0].getIncludedTransition(0),
+          blocks[0].getIncludedTransition(1),
+        ]
+        await rollupChain.verifySequentialTransitions(
+          includedTransitions[0],
+          includedTransitions[1]
+        )
+      })
+
+      it('should throw if they are not sequential in the same block', async () => {
+        const includedTransitions = [
+          blocks[0].getIncludedTransition(0),
+          blocks[0].getIncludedTransition(2),
+        ]
+        try {
+          await rollupChain.verifySequentialTransitions(
+            includedTransitions[0],
+            includedTransitions[1]
+          )
+        } catch (err) {
+          // Success we threw an error!
+          return
+        }
+        throw new Error('Verify sequential should throw when not sequential!')
+      })
+    })
+
+    describe('different blocks', async () => {
+      it('should NOT throw if the transitions are last of prev block & first of next block', async () => {
+        const includedTransitions = [
+          // Last transition of the first block
+          blocks[0].getIncludedTransition(blocks[0].transitions.length - 1),
+          // First transition of the next block
+          blocks[1].getIncludedTransition(0),
+        ]
+        await rollupChain.verifySequentialTransitions(
+          includedTransitions[0],
+          includedTransitions[1]
+        )
+      })
+
+      it('should throw if the transitions are NOT last of prev block & first of next block', async () => {
+        const includedTransitions = [
+          blocks[0].getIncludedTransition(0),
+          blocks[1].getIncludedTransition(0),
+        ]
+        try {
+          await rollupChain.verifySequentialTransitions(
+            includedTransitions[0],
+            includedTransitions[1]
+          )
+        } catch (err) {
+          // Success we threw an error!
+          return
+        }
+        throw new Error('Verify sequential should throw when not sequential!')
+      })
     })
   })
 
@@ -138,7 +192,7 @@ describe.only('RollupChain', () => {
           transitionIndex: 0,
           path: 0,
           siblings: ['0x' + '00'.repeat(32)],
-        }
+        },
       })
       res.should.equal(false)
     })
