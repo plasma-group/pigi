@@ -71,15 +71,18 @@ contract RollupChain {
      * Check to see if a transition was indeed included.
      */
     function checkTransitionInclusion(IncludedTransition memory _includedTransition) public view returns(bool) {
-        bytes32 rootHash = blocks[_includedTransition.inclusionProof.blockNumber].rootHash;
-        bytes32 transitionHash = getTransitionHash(_includedTransition.transition);
-        bool isIncluded =  RollupMerkleUtils.verify(
-            rootHash,
-            transitionHash,
-            _includedTransition.inclusionProof.path,
-            _includedTransition.inclusionProof.siblings
-        );
-        return isIncluded;
+        // bytes32 rootHash = blocks[_includedTransition.inclusionProof.blockNumber].rootHash;
+        // bytes32 transitionHash = getTransitionHash(_includedTransition.transition);
+        // bool isIncluded =  RollupMerkleUtils.verify(
+        //     rootHash,
+        //     transitionHash,
+        //     _includedTransition.inclusionProof.path,
+        //     _includedTransition.inclusionProof.siblings
+        // );
+        // return isIncluded;
+
+        // TODO: Actually check inclusion. Mock this until we build an SMT inclusion proof checker.
+        return true;
     }
 
     /*
