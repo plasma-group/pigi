@@ -1,4 +1,4 @@
-import './setup'
+import '../setup'
 
 /* Internal Imports */
 import {
@@ -9,7 +9,7 @@ import {
   generateNTransitions,
   getTransition,
   RollupBlock,
-} from './helpers'
+} from '../helpers'
 
 /* External Imports */
 import {
@@ -22,8 +22,8 @@ import { MerkleTree } from 'merkletreejs'
 import { keccak256, abi, hexStrToBuf, bufToHexString } from '@pigi/core'
 
 /* Contract Imports */
-import * as RollupChain from '../build/RollupChain.json'
-import * as RollupMerkleUtils from '../build/RollupMerkleUtils.json'
+import * as RollupChain from '../../build/RollupChain.json'
+import * as RollupMerkleUtils from '../../build/RollupMerkleUtils.json'
 
 /* Begin tests */
 describe('RollupChain', () => {

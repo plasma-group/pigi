@@ -1,10 +1,10 @@
-import './setup'
+import '../setup'
 
 /* External Imports */
 import { createMockProvider, deployContract, getWallets } from 'ethereum-waffle'
 
 /* Contract Imports */
-import * as AggregatorRegistry from '../build/AggregatorRegistry.json'
+import * as AggregatorRegistry from '../../build/AggregatorRegistry.json'
 
 /* Begin tests */
 describe('AggregatorRegistry', () => {

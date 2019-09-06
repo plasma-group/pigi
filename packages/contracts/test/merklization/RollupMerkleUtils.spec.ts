@@ -1,4 +1,4 @@
-import './setup'
+import '../setup'
 
 /* Internal Imports */
 import {
@@ -6,7 +6,7 @@ import {
   Transition,
   abiEncodeTransition,
   getEncodedTransition,
-} from './helpers'
+} from '../helpers'
 
 /* External Imports */
 import {
@@ -24,7 +24,7 @@ import {
 } from '@pigi/core'
 
 /* Contract Imports */
-import * as RollupMerkleUtils from '../build/RollupMerkleUtils.json'
+import * as RollupMerkleUtils from '../../build/RollupMerkleUtils.json'
 
 /* Begin tests */
 describe('RollupMerkleUtils', () => {

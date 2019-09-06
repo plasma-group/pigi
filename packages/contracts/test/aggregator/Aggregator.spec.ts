@@ -8,7 +8,7 @@ import {
 } from 'ethereum-waffle'
 
 /* Contract Imports */
-import * as Aggregator from '../build/Aggregator.json'
+import * as Aggregator from '../../build/Aggregator.json'
 
 /* Test setup */
 chai.use(solidity)
