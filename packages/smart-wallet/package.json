@@ -1,5 +1,5 @@
 {
-  "name": "@pigi/wallet",
+  "name": "smart-wallet",
   "version": "0.0.1-alpha.1",
   "description": "Pigi client-side smart wallet",
   "main": "build/index.js",

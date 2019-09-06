@@ -8,7 +8,7 @@ import {
   PIGI_TOKEN_TYPE,
   AGGREGATOR_ADDRESS,
   UnipigWallet,
-} from '@pigi/wallet'
+} from 'smart-wallet'
 
 /* Global declarations */
 declare var document: any

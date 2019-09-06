@@ -4,7 +4,7 @@ import {
   UNISWAP_ADDRESS,
   AGGREGATOR_ADDRESS,
   MockAggregator,
-} from '@pigi/wallet'
+} from 'smart-wallet'
 import cors = require('cors')
 
 /* Set the initial balances/state */
