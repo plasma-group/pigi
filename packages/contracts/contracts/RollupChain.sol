@@ -3,30 +3,14 @@ pragma experimental ABIEncoderV2;
 
 /* Internal Imports */
 import {DataTypes as dt} from "./DataTypes.sol";
-import {RollupMerkleUtils} from "./RollupMerkleUtils.sol";
+import {SparseMerkleTreeLib} from "./SparseMerkleTreeLib.sol";
 
 contract RollupChain {
-    /* Structs */
-    struct Block {
-        bytes32 rootHash;
-        uint blockSize;
-    }
-    struct TransitionInclusionProof {
-        uint blockNumber;
-        uint transitionIndex;
-        uint path;
-        bytes32[] siblings;
-    }
-    struct IncludedTransition {
-        dt.Transition transition;
-        TransitionInclusionProof inclusionProof;
-    }
-    struct IncludedStorage {
-        bytes value;
-        bytes32[] inclusionProof;
-    }
     /* Fields */
-    Block[] public blocks;
+    dt.Block[] public blocks;
+    /* We need to keep a tree in storage which we will use for proving invalid transitions */
+    using SparseMerkleTreeLib for SparseMerkleTreeLib.SparseMerkleTree;
+    SparseMerkleTreeLib.SparseMerkleTree fraudTree;
 
     /* Methods */
 
@@ -34,8 +18,8 @@ contract RollupChain {
      * Submits a new block which is then rolled up.
      */
     function submitBlock(bytes[] memory _block) public returns(bytes32) {
-        bytes32 root = RollupMerkleUtils.getMerkleRoot(_block);
-        Block memory rollupBlock = Block({
+        bytes32 root = SparseMerkleTreeLib.getMerkleRoot(_block);
+        dt.Block memory rollupBlock = dt.Block({
             rootHash: root,
             blockSize: _block.length
         });
@@ -48,10 +32,42 @@ contract RollupChain {
      * the chain.
      */
     function proveTransitionInvalid(
-        IncludedTransition memory _prestateTransition,
-        IncludedTransition memory _invalidTransition,
-        IncludedStorage[] memory _inputStorage
-    ) public {
+        dt.IncludedTransition memory _preStateTransition,
+        dt.IncludedTransition memory _invalidTransition,
+        dt.IncludedStorage[2] memory _inputStorage
+    ) public returns(bool) {
+        verifySequentialTransitions(_preStateTransition, _invalidTransition);
+        bytes32 preStateRoot = _preStateTransition.transition.postState;
+        bytes32 postStateRoot = _invalidTransition.transition.postState;
+        fraudTree.root = preStateRoot;
+        // Verify inclusion proofs for each input
+        for (uint i = 0; i < _inputStorage.length; i++) {
+            fraudTree.verifyAndStore(
+                _preStateTransition.transition.transaction,
+                getStorageHash(_inputStorage[i].value),
+                _inputStorage[i].inclusionProof.path,
+                _inputStorage[i].inclusionProof.siblings
+            );
+        }
+
+
+        /*
+        verifyIncludedSequentialTransitions(_prestateTransition, _invalidTransition)
+        preStateRoot = _prestateTransition.transition.postState
+        transaction = _invalidTransition.transaction
+        postStateRoot = _invalidTransition.postState
+        const partialState = new SMT(preStateRoot)
+        for (const i = 0; i < transaction.inputs.length) {
+            txInput = transaction.inputs[i]
+            SMTInclusionProof inputProof = {
+                key: txInput.account,
+                value: inputStorage[i],
+                siblings: _inputInclusionProofs[i]
+            }
+            require(partialState.verifyAndStore(inputProof), 'each tx input must be included in the preState')
+        }
+        */
+        return true;
     }
 
     /*
@@ -60,8 +76,8 @@ contract RollupChain {
      * prestate & poststate.
      */
     function verifySequentialTransitions(
-        IncludedTransition memory _transition0,
-        IncludedTransition memory _transition1
+        dt.IncludedTransition memory _transition0,
+        dt.IncludedTransition memory _transition1
     ) public returns(bool) {
         // Verify inclusion
         require(checkTransitionInclusion(_transition0), 'The first transition must be included!');
@@ -92,10 +108,10 @@ contract RollupChain {
     /*
      * Check to see if a transition was indeed included.
      */
-    function checkTransitionInclusion(IncludedTransition memory _includedTransition) public view returns(bool) {
+    function checkTransitionInclusion(dt.IncludedTransition memory _includedTransition) public view returns(bool) {
         // bytes32 rootHash = blocks[_includedTransition.inclusionProof.blockNumber].rootHash;
         // bytes32 transitionHash = getTransitionHash(_includedTransition.transition);
-        // bool isIncluded =  RollupMerkleUtils.verify(
+        // bool isIncluded =  SparseMerkleTreeLib.verify(
         //     rootHash,
         //     transitionHash,
         //     _includedTransition.inclusionProof.path,
@@ -111,8 +127,17 @@ contract RollupChain {
      * Get the hash of the transition.
      */
     function getTransitionHash(dt.Transition memory _transition) public pure returns(bytes32) {
-        // Here we don't use `abi.encode(_transition)` because it's not clear
+        // Here we don't use `abi.encode([struct])` because it's not clear
         // how to generate that encoding client-side.
         return keccak256(abi.encode(_transition.transaction, _transition.postState));
+    }
+
+    /*
+     * Get the hash of the storage value.
+     */
+    function getStorageHash(dt.Storage memory _storage) public pure returns(bytes32) {
+        // Here we don't use `abi.encode([struct])` because it's not clear
+        // how to generate that encoding client-side.
+        return keccak256(abi.encode(_storage.pubkey, _storage.uniBalance, _storage.pigiBalance));
     }
 }

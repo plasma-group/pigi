@@ -23,26 +23,26 @@ import { keccak256, abi, hexStrToBuf, bufToHexString } from '@pigi/core'
 
 /* Contract Imports */
 import * as RollupChain from '../../build/RollupChain.json'
-import * as RollupMerkleUtils from '../../build/RollupMerkleUtils.json'
+import * as SparseMerkleTreeLib from '../../build/SparseMerkleTreeLib.json'
 
 /* Begin tests */
 describe.only('RollupChain', () => {
   const provider = createMockProvider()
   const [wallet1] = getWallets(provider)
   let rollupChain
-  let rollupMerkleUtils
+  let sparseMerkleTree
 
   /* Link libraries before tests */
   before(async () => {
-    rollupMerkleUtils = await deployContract(wallet1, RollupMerkleUtils, [], {
+    sparseMerkleTree = await deployContract(wallet1, SparseMerkleTreeLib, [], {
       gasLimit: 6700000,
     })
     // Link attaches the library to the RollupChain contract.
     link(
       RollupChain,
       // NOTE: This path is in relation to `waffle-config.json`
-      'contracts/RollupMerkleUtils.sol:RollupMerkleUtils',
-      rollupMerkleUtils.address
+      'contracts/SparseMerkleTreeLib.sol:SparseMerkleTreeLib',
+      sparseMerkleTree.address
     )
   })
 
@@ -53,6 +53,9 @@ describe.only('RollupChain', () => {
     })
   })
 
+  /*
+   * Test submitBlock()
+   */
   describe('submitBlock() ', async () => {
     it('should not throw', async () => {
       await rollupChain.submitBlock([
@@ -63,7 +66,10 @@ describe.only('RollupChain', () => {
     })
   })
 
-  describe.only('verifySequentialTransitions()', async () => {
+  /*
+   * Test verifySequentialTransitions()
+   */
+  describe('verifySequentialTransitions()', async () => {
     let blocks = []
     // Before each test let's submit a couple blocks
     beforeEach(async () => {
@@ -140,7 +146,47 @@ describe.only('RollupChain', () => {
     })
   })
 
-  // TODO: Enable these tests once we have a working SMT implementation
+  /*
+   * Test proveTransitionInvalid()
+   */
+  describe.only('proveTransitionInvalid() ', async () => {
+    it('should not throw', async () => {
+      // Create a rollup block
+      const block = new RollupBlock(generateNTransitions(5), 0)
+      // Get two included transitions
+      const includedTransitions = [
+        block.getIncludedTransition(0),
+        block.getIncludedTransition(1),
+      ]
+      // Generate a dummy storage inclusion proof
+      const dummyStorageInclusionProof = {
+        siblings: Array(160).fill('0x' + '99'.repeat(32)),
+        path: 5
+      }
+      // Generate Dummy IncludedStorage
+      const dummyInputStorage = {
+        value: {
+          pubkey: '0x' + '00'.repeat(20),
+          uniBalance: 20,
+          pigiBalance: 120,
+        },
+        inclusionProof: dummyStorageInclusionProof
+      }
+      // Call the function and see if it works!
+      const res = await rollupChain.proveTransitionInvalid(
+        includedTransitions[0],
+        includedTransitions[1],
+        [dummyInputStorage, dummyInputStorage],
+      )
+      // Did not throw... success!
+    })
+  })
+
+  /*
+   * Test verifySequentialTransitions()
+   *
+   * TODO: Enable these tests once we have a working SMT implementation
+   */
   describe.skip('checkTransitionIncluded()', async () => {
     it('should verify n included transitions for the first block', async () => {
       // Create a block from some default transitions
