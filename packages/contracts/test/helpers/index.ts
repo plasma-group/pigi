@@ -7,15 +7,18 @@ export * from './RollupBlock'
 
 /* Misc Helpers */
 export interface Transition {
-  transaction: string
+  signedTransaction: {
+    signature: string,
+    transaction: string
+  }
   postState: string
 }
 
 export function abiEncodeTransition(transition: Transition): Buffer {
   return hexStrToBuf(
     abi.encode(
-      ['bytes', 'bytes32'],
-      [transition.transaction, transition.postState]
+      ['bytes', 'bytes', 'bytes32'],
+      [transition.signedTransaction.signature, transition.signedTransaction.transaction, transition.postState]
     )
   )
 }
@@ -32,7 +35,10 @@ export function generateNTransitions(numTransitions: number) {
 // Creates an encoded transition with the specified transaction
 export function getTransition(transaction: string): Transition {
   return {
-    transaction: '0x' + transaction,
+    signedTransaction: {
+      signature: '0x1234',
+      transaction: '0x' + transaction,
+    },
     postState: '0x' + '00'.repeat(32),
   }
 }

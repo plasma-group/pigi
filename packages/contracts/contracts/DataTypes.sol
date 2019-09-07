@@ -13,8 +13,13 @@ contract DataTypes {
         uint blockSize;
     }
 
-    struct Transition {
+    struct SignedTransaction {
+        bytes signature;
         bytes transaction;
+    }
+
+    struct Transition {
+        SignedTransaction signedTransaction;
         bytes32 postState;
     }
 

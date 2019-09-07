@@ -43,7 +43,7 @@ contract RollupChain {
         // Verify inclusion proofs for each input
         for (uint i = 0; i < _inputStorage.length; i++) {
             fraudTree.verifyAndStore(
-                _preStateTransition.transition.transaction,
+                _preStateTransition.transition.signedTransaction.transaction,
                 getStorageHash(_inputStorage[i].value),
                 _inputStorage[i].inclusionProof.path,
                 _inputStorage[i].inclusionProof.siblings
@@ -129,7 +129,13 @@ contract RollupChain {
     function getTransitionHash(dt.Transition memory _transition) public pure returns(bytes32) {
         // Here we don't use `abi.encode([struct])` because it's not clear
         // how to generate that encoding client-side.
-        return keccak256(abi.encode(_transition.transaction, _transition.postState));
+        return keccak256(
+            abi.encode(
+                _transition.signedTransaction.signature,
+                _transition.signedTransaction.transaction,
+                _transition.postState
+            )
+        );
     }
 
     /*
