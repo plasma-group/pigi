@@ -149,7 +149,7 @@ describe.only('RollupChain', () => {
   /*
    * Test proveTransitionInvalid()
    */
-  describe('proveTransitionInvalid() ', async () => {
+  describe.only('proveTransitionInvalid() ', async () => {
     it('should not throw', async () => {
       // Create a rollup block
       const block = new RollupBlock(generateNTransitions(5), 0)
@@ -173,11 +173,13 @@ describe.only('RollupChain', () => {
         inclusionProof: dummyStorageInclusionProof
       }
       // Call the function and see if it works!
-      const res = await rollupChain.proveTransitionInvalid(
+      await rollupChain.proveTransitionInvalid(
         includedTransitions[0],
         includedTransitions[1],
         [dummyInputStorage, dummyInputStorage],
       )
+      const res = await rollupChain.isHalted()
+      console.log(res)
       // Did not throw... success!
     })
   })

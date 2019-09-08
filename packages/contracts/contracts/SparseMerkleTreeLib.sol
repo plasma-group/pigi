@@ -10,7 +10,11 @@ library SparseMerkleTreeLib {
         mapping (bytes32 => bytes) nodes;
     }
 
-    function verifyAndStore(SparseMerkleTree storage _tree, bytes memory _key, bytes32 _leaf, uint _path, bytes32[] memory _siblings) public {
+    function verifyAndStore(SparseMerkleTree storage _tree, uint _key, bytes32 _leaf, bytes32[] memory _siblings) public {
+        // TODO: Implement
+    }
+
+    function update(SparseMerkleTree storage _tree, uint _key, bytes32 _leaf) public {
         // TODO: Implement
     }
 

@@ -8,11 +8,16 @@ import {SparseMerkleTreeLib} from "./SparseMerkleTreeLib.sol";
 contract RollupChain {
     /* Fields */
     dt.Block[] public blocks;
+    bytes32 public ZERO_BYTES32 = 0x0000000000000000000000000000000000000000000000000000000000000000;
+    bool public halted = false;
     /* We need to keep a tree in storage which we will use for proving invalid transitions */
     using SparseMerkleTreeLib for SparseMerkleTreeLib.SparseMerkleTree;
-    SparseMerkleTreeLib.SparseMerkleTree fraudTree;
+    SparseMerkleTreeLib.SparseMerkleTree partialState;
 
     /* Methods */
+    function isHalted() public view returns(bool) {
+        return halted;
+    }
 
     /*
      * Submits a new block which is then rolled up.
@@ -27,6 +32,20 @@ contract RollupChain {
         return root;
     }
 
+    function mockExecuteTransaction(
+        uint _storageNonce,
+        dt.IncludedStorage[2] memory _storage,
+        dt.SignedTransaction memory _transaction
+    ) public view returns(bytes32[3] memory) {
+        bytes32[3] memory outputs;
+        // Set the output values. For now it's mocked & we just hash the storage slots
+        outputs[0] = getStorageHash(_storage[0].value);
+        outputs[1] = getStorageHash(_storage[1].value);
+        outputs[2] = 0x0000000000000000000000000000000000000000000000000000000000000005;
+        // Return the output!
+        return outputs;
+    }
+
     /*
      * Checks if a transition is invalid and if it is records it & halt
      * the chain.
@@ -35,39 +54,39 @@ contract RollupChain {
         dt.IncludedTransition memory _preStateTransition,
         dt.IncludedTransition memory _invalidTransition,
         dt.IncludedStorage[2] memory _inputStorage
-    ) public returns(bool) {
+    ) public {
         verifySequentialTransitions(_preStateTransition, _invalidTransition);
         bytes32 preStateRoot = _preStateTransition.transition.postState;
         bytes32 postStateRoot = _invalidTransition.transition.postState;
-        fraudTree.root = preStateRoot;
+        partialState.root = preStateRoot;
+        // The storage nonce is always the last sibling
+        uint storageNonce = uint(_inputStorage[0].inclusionProof.siblings[_inputStorage[0].inclusionProof.siblings.length - 1]);
         // Verify inclusion proofs for each input
         for (uint i = 0; i < _inputStorage.length; i++) {
-            fraudTree.verifyAndStore(
-                _preStateTransition.transition.signedTransaction.transaction,
-                getStorageHash(_inputStorage[i].value),
+            partialState.verifyAndStore(
                 _inputStorage[i].inclusionProof.path,
+                getStorageHash(_inputStorage[i].value),
                 _inputStorage[i].inclusionProof.siblings
             );
         }
 
-
-        /*
-        verifyIncludedSequentialTransitions(_prestateTransition, _invalidTransition)
-        preStateRoot = _prestateTransition.transition.postState
-        transaction = _invalidTransition.transaction
-        postStateRoot = _invalidTransition.postState
-        const partialState = new SMT(preStateRoot)
-        for (const i = 0; i < transaction.inputs.length) {
-            txInput = transaction.inputs[i]
-            SMTInclusionProof inputProof = {
-                key: txInput.account,
-                value: inputStorage[i],
-                siblings: _inputInclusionProofs[i]
-            }
-            require(partialState.verifyAndStore(inputProof), 'each tx input must be included in the preState')
+        // Now that we've initialized our state tree, lets apply the transaction
+        bytes32[3] memory outputs = mockExecuteTransaction(storageNonce, _inputStorage, _invalidTransition.transition.signedTransaction);
+        // First lets verify that the tx was successful. If it wasn't then our accountNonce will equal zero
+        if (outputs[2] == ZERO_BYTES32) {
+            halted = true;
+            return;
         }
-        */
-        return true;
+
+        // The transaction succeeded, now we need to check if the state root is incorrect
+        for (uint i = 0; i < _inputStorage.length; i++) {
+            partialState.update(_inputStorage[i].inclusionProof.path, outputs[i]);
+        }
+        // The state root MUST be incorrect for us to proceed in halting the chain!
+        require(postStateRoot != partialState.root, 'postStateRoot must be different than the transaction result to be invalid.');
+
+        // Halt the chain because we found an invalid post state root! Cryptoeconomic validity ftw!
+        halted = true;
     }
 
     /*
