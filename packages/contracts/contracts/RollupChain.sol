@@ -47,7 +47,7 @@ contract RollupChain {
     }
 
     /*
-     * Checks if a transition is invalid and if it is records it & halt
+     * Checks if a transition is invalid and if it is records it & halts
      * the chain.
      */
     function proveTransitionInvalid(
