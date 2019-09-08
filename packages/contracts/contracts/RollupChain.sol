@@ -19,7 +19,7 @@ contract RollupChain {
         return halted;
     }
 
-    /*
+    /**
      * Submits a new block which is then rolled up.
      */
     function submitBlock(bytes[] memory _block) public returns(bytes32) {
@@ -46,7 +46,7 @@ contract RollupChain {
         return outputs;
     }
 
-    /*
+    /**
      * Checks if a transition is invalid and if it is records it & halts
      * the chain.
      */
@@ -89,7 +89,7 @@ contract RollupChain {
         halted = true;
     }
 
-    /*
+    /**
      * Verifies that two transitions were included one after another.
      * This is used to make sure we are comparing the correct
      * prestate & poststate.
@@ -124,7 +124,7 @@ contract RollupChain {
         return true;
     }
 
-    /*
+    /**
      * Check to see if a transition was indeed included.
      */
     function checkTransitionInclusion(dt.IncludedTransition memory _includedTransition) public view returns(bool) {
@@ -142,7 +142,7 @@ contract RollupChain {
         return true;
     }
 
-    /*
+    /**
      * Get the hash of the transition.
      */
     function getTransitionHash(dt.Transition memory _transition) public pure returns(bytes32) {
@@ -157,7 +157,7 @@ contract RollupChain {
         );
     }
 
-    /*
+    /**
      * Get the hash of the storage value.
      */
     function getStorageHash(dt.Storage memory _storage) public pure returns(bytes32) {
