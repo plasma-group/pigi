@@ -19,7 +19,13 @@ import {
   getWallets,
 } from 'ethereum-waffle'
 import { MerkleTree } from 'merkletreejs'
-import { keccak256, abi, hexStrToBuf, bufToHexString } from '@pigi/core'
+import {
+  keccak256,
+  abi,
+  hexStrToBuf,
+  bufToHexString,
+  BigNumber,
+} from '@pigi/core'
 
 /* Contract Imports */
 import * as RollupChain from '../../build/RollupChain.json'
@@ -147,38 +153,68 @@ describe.only('RollupChain', () => {
   })
 
   /*
-   * Test proveTransitionInvalid()
+   * Test inferTransactionType()
    */
-  describe('proveTransitionInvalid() ', async () => {
-    it('should not throw', async () => {
-      // Create a rollup block
-      const block = new RollupBlock(generateNTransitions(5), 0)
-      // Get two included transitions
-      const includedTransitions = [
-        block.getIncludedTransition(0),
-        block.getIncludedTransition(1),
-      ]
-      // Generate a dummy storage inclusion proof
-      const dummyStorageInclusionProof = {
-        siblings: Array(160).fill('0x' + '99'.repeat(32)),
-        path: 5
+  describe('inferTransactionType() ', async () => {
+    const transactionTypes = {
+      NEW_ACCOUNT_TRANSFER_TYPE: 0,
+      STORED_ACCOUNT_TRANSFER_TYPE: 1,
+      SWAP_TYPE: 2,
+    }
+
+    it('should infer a transfer transaction to a new account', async () => {
+      // Create a transaction which we will infer the type of
+      const tx = {
+        tokenType: 1,
+        recipient: '0x' + '01'.repeat(20), // address type
+        amount: '0x0000000000003232', // some bytes8 value
       }
-      // Generate Dummy IncludedStorage
-      const dummyInputStorage = {
-        value: {
-          pubkey: '0x' + '00'.repeat(20),
-          uniBalance: 20,
-          pigiBalance: 120,
-        },
-        inclusionProof: dummyStorageInclusionProof
-      }
-      // Call the function and see if it works!
-      await rollupChain.proveTransitionInvalid(
-        includedTransitions[0],
-        includedTransitions[1],
-        [dummyInputStorage, dummyInputStorage],
+      // Encode!
+      const encoded = abi.encode(
+        ['bool', 'address', 'bytes8'],
+        [tx.tokenType, tx.recipient, tx.amount]
       )
-      // Did not throw... success!
+      // Attempt to infer the transaction type
+      const res = await rollupChain.inferTransactionType(encoded)
+      // Check that it's the correct type
+      res.should.equal(transactionTypes.NEW_ACCOUNT_TRANSFER_TYPE)
+    })
+
+    it('should infer a transfer transaction to a stored account', async () => {
+      // Create a transaction which we will infer the type of
+      const tx = {
+        tokenType: 1,
+        recipient: '0x0000000000000003', // some bytes8 representing a storage slot
+        amount: '0x0000000000003232', // some bytes8 value
+      }
+      // Encode!
+      const encoded = abi.encode(
+        ['bool', 'bytes8', 'bytes8'],
+        [tx.tokenType, tx.recipient, tx.amount]
+      )
+      // Attempt to infer the transaction type
+      const res = await rollupChain.inferTransactionType(encoded)
+      // Check that it's the correct type
+      res.should.equal(transactionTypes.STORED_ACCOUNT_TRANSFER_TYPE)
+    })
+
+    it('should infer a transfer transaction to a swap', async () => {
+      // Create a transaction which we will infer the type of
+      const tx = {
+        tokenType: 1,
+        inputAmount: '0x0000000000004353',
+        minOutputAmount: '0x0000000000004353',
+        timeout: '0x' + '08'.repeat(32),
+      }
+      // Encode!
+      const encoded = abi.encode(
+        ['bool', 'bytes8', 'bytes8', 'bytes32'],
+        [tx.tokenType, tx.inputAmount, tx.minOutputAmount, tx.timeout]
+      )
+      // Attempt to infer the transaction type
+      const res = await rollupChain.inferTransactionType(encoded)
+      // Check that it's the correct type
+      res.should.equal(transactionTypes.SWAP_TYPE)
     })
   })
 
@@ -241,6 +277,42 @@ describe.only('RollupChain', () => {
         },
       })
       res.should.equal(false)
+    })
+  })
+
+  /*
+   * Test proveTransitionInvalid()
+   */
+  describe('proveTransitionInvalid() ', async () => {
+    it('should not throw', async () => {
+      // Create a rollup block
+      const block = new RollupBlock(generateNTransitions(5), 0)
+      // Get two included transitions
+      const includedTransitions = [
+        block.getIncludedTransition(0),
+        block.getIncludedTransition(1),
+      ]
+      // Generate a dummy storage inclusion proof
+      const dummyStorageInclusionProof = {
+        siblings: Array(160).fill('0x' + '99'.repeat(32)),
+        path: 5,
+      }
+      // Generate Dummy IncludedStorage
+      const dummyInputStorage = {
+        value: {
+          pubkey: '0x' + '00'.repeat(20),
+          uniBalance: 20,
+          pigiBalance: 120,
+        },
+        inclusionProof: dummyStorageInclusionProof,
+      }
+      // Call the function and see if it works!
+      await rollupChain.proveTransitionInvalid(
+        includedTransitions[0],
+        includedTransitions[1],
+        [dummyInputStorage, dummyInputStorage]
+      )
+      // Did not throw... success!
     })
   })
 })

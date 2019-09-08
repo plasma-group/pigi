@@ -10,6 +10,11 @@ contract RollupChain {
     dt.Block[] public blocks;
     bytes32 public ZERO_BYTES32 = 0x0000000000000000000000000000000000000000000000000000000000000000;
     bool public halted = false;
+    // Transaction types
+    uint NEW_ACCOUNT_TRANSFER_TYPE = 0;
+    uint STORED_ACCOUNT_TRANSFER_TYPE = 1;
+    uint SWAP_TYPE = 2;
+
     /* We need to keep a tree in storage which we will use for proving invalid transitions */
     using SparseMerkleTreeLib for SparseMerkleTreeLib.SparseMerkleTree;
     SparseMerkleTreeLib.SparseMerkleTree partialState;
@@ -32,6 +37,45 @@ contract RollupChain {
         return root;
     }
 
+    /**
+     * Helper function which checks if a given value fits in a uint8
+     */
+    function isUint8(bytes32 value) private pure returns(bool) {
+        // To check if something is a uint8 we will just check to see that
+        // it has no values past the 8th byte. Note this checks "does this value fit in a uint8"
+        // not if it was intended to be a uint8 or not
+        bytes32 mask = 0x0000000000000000111111111111111111111111111111111111111111111111;
+        bytes32 resultingValue = value & mask;
+        return resultingValue == 0;
+    }
+
+    /**
+     * Cast bytes to the a specific transaction type
+     */
+    function inferTransactionType(
+        bytes memory transaction
+    ) public view returns(uint) {
+        // 128 is the length of a transfer tx
+        if (transaction.length == 128) {
+            // We're a swap for sure
+            return SWAP_TYPE;
+        }
+        // Otherwise we're a transfer for sure... but which kind?
+        (bytes32 tokenType, bytes32 account, bytes32 amount) = abi.decode(transaction, (bytes32, bytes32, bytes32));
+        // Now we need to check if the account is a uint8 or if it's a real address
+        if (isUint8(account)) {
+            // If it is that means we're referencing a stored value.
+            // Note you can fool this check if you have an account that fit into a uint8.
+            // Long term we will want to stop padding our encoded values to remove this possibility.
+            return STORED_ACCOUNT_TRANSFER_TYPE;
+        }
+        // Otherwise we must be dealing with a new account!
+        return NEW_ACCOUNT_TRANSFER_TYPE;
+    }
+
+    /**
+     * Mock the execution of a transaction
+     */
     function mockExecuteTransaction(
         uint _storageNonce,
         dt.IncludedStorage[2] memory _storage,

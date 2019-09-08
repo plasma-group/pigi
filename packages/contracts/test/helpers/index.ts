@@ -8,7 +8,7 @@ export * from './RollupBlock'
 /* Misc Helpers */
 export interface Transition {
   signedTransaction: {
-    signature: string,
+    signature: string
     transaction: string
   }
   postState: string
@@ -18,7 +18,11 @@ export function abiEncodeTransition(transition: Transition): Buffer {
   return hexStrToBuf(
     abi.encode(
       ['bytes', 'bytes', 'bytes32'],
-      [transition.signedTransaction.signature, transition.signedTransaction.transaction, transition.postState]
+      [
+        transition.signedTransaction.signature,
+        transition.signedTransaction.transaction,
+        transition.postState,
+      ]
     )
   )
 }

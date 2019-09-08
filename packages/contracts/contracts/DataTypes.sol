@@ -7,10 +7,30 @@ pragma experimental ABIEncoderV2;
  */
 contract DataTypes {
 
-    /*** Structs ***/
+    /*** Blocks ***/
     struct Block {
         bytes32 rootHash;
         uint blockSize;
+    }
+
+    /*** Transactions ***/
+    struct SwapTransaction {
+        bool tokenType;
+        uint8 inputAmount;
+        uint8 minOutputAmount;
+        uint timeout;
+    }
+
+    struct TransferTransaction {
+        bool tokenType;
+        uint8 recipient;
+        uint8 amount;
+    }
+
+    struct TransferNewAddressTransaction {
+        bool tokenType;
+        address recipient;
+        uint8 amount;
     }
 
     struct SignedTransaction {
@@ -18,6 +38,7 @@ contract DataTypes {
         bytes transaction;
     }
 
+    /*** Transitions ***/
     struct Transition {
         SignedTransaction signedTransaction;
         bytes32 postState;
@@ -35,6 +56,7 @@ contract DataTypes {
         TransitionInclusionProof inclusionProof;
     }
 
+    /*** Storage ***/
     struct Storage {
         address pubkey;
         uint8 uniBalance;
