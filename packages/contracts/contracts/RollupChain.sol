@@ -107,6 +107,24 @@ contract RollupChain {
         return outputs;
     }
 
+    function verifyAndStoreStorageInclusionProof(dt.IncludedStorage memory _includedStorage) private {
+        // First check if the storage is empty
+        if (_includedStorage.value.pubkey == 0x0000000000000000000000000000000000000000) {
+            // Verify and store an empty hash
+            partialState.verifyAndStore(
+                _includedStorage.inclusionProof.path,
+                ZERO_BYTES32,
+                _includedStorage.inclusionProof.siblings
+            );
+        } else {
+            partialState.verifyAndStore(
+                _includedStorage.inclusionProof.path,
+                getStorageHash(_includedStorage.value),
+                _includedStorage.inclusionProof.siblings
+            );
+        }
+    }
+
     /**
      * Checks if a transition is invalid and if it is records it & halts
      * the chain.
@@ -122,16 +140,13 @@ contract RollupChain {
         partialState.root = preStateRoot;
         // The storage nonce is always the last sibling
         uint storageNonce = uint(_inputStorage[0].inclusionProof.siblings[_inputStorage[0].inclusionProof.siblings.length - 1]);
-        // Verify inclusion proofs for each input
+
+        // First we must verify and store the storage inclusion proofs
         for (uint i = 0; i < _inputStorage.length; i++) {
-            partialState.verifyAndStore(
-                _inputStorage[i].inclusionProof.path,
-                getStorageHash(_inputStorage[i].value),
-                _inputStorage[i].inclusionProof.siblings
-            );
+            verifyAndStoreStorageInclusionProof(_inputStorage[i]);
         }
 
-        // Now that we've initialized our state tree, lets apply the transaction
+        // Now that we've verified and stored our storage in the state tree, lets apply the transaction
         dt.Storage memory storage0 = _inputStorage[0].value;
         dt.Storage memory storage1 = _inputStorage[1].value;
         dt.Storage[2] memory storageSlots = [storage0, storage1];
