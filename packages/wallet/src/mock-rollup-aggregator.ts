@@ -1,5 +1,10 @@
 /* External Imports */
-import { SimpleServer } from '@pigi/core'
+import {
+  SignatureVerifier,
+  DefaultSignatureVerifier,
+  SimpleServer,
+  serializeObject,
+} from '@pigi/core'
 
 /* Internal Imports */
 import {
@@ -49,9 +54,13 @@ export class MockAggregator extends SimpleServer {
     genesisState: State,
     hostname: string,
     port: number,
-    middleware?: Function[]
+    middleware?: Function[],
+    signatureVerifier: SignatureVerifier = DefaultSignatureVerifier.instance()
   ) {
-    const rollupStateMachine = new MockRollupStateMachine(genesisState)
+    const rollupStateMachine = new MockRollupStateMachine(
+      genesisState,
+      signatureVerifier
+    )
 
     // REST API for our aggregator
     const methods = {

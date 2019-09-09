@@ -4,7 +4,7 @@
 
 import { State, UNISWAP_ADDRESS, AGGREGATOR_ADDRESS } from '../src'
 
-export const getGenesisState = (): State => {
+export const getGenesisState = (aliceAddress: string = 'alice'): State => {
   return {
     [UNISWAP_ADDRESS]: {
       balances: {
@@ -12,7 +12,7 @@ export const getGenesisState = (): State => {
         pigi: 50,
       },
     },
-    alice: {
+    [aliceAddress]: {
       balances: {
         uni: 50,
         pigi: 50,

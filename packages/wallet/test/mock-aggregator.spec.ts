@@ -10,6 +10,7 @@ import {
   UNI_TOKEN_TYPE,
   AGGREGATOR_ADDRESS,
   MockAggregator,
+  IdentityVerifier,
 } from '../src'
 
 /*********
@@ -21,7 +22,13 @@ describe('MockAggregator', async () => {
   let client
 
   beforeEach(async () => {
-    aggregator = new MockAggregator(getGenesisState(), 'localhost', 3000)
+    aggregator = new MockAggregator(
+      getGenesisState(),
+      'localhost',
+      3000,
+      undefined,
+      IdentityVerifier.instance()
+    )
     await aggregator.listen()
     // Connect to the mock aggregator
     client = new SimpleClient('http://127.0.0.1:3000')
