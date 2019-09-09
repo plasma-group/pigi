@@ -73,18 +73,35 @@ contract RollupChain {
         return NEW_ACCOUNT_TRANSFER_TYPE;
     }
 
+
+    /**
+     * Apply a transfer transaction to an already stored storage slot
+     */
+    function applyStoredAccountTransfer(
+        uint _storageNonce,
+        dt.Storage[2] memory _storage,
+        dt.SignedTransaction memory _transaction
+    ) public view returns(bytes32[3] memory) {
+        bytes32[3] memory outputs;
+        // Update the outputs
+
+        // We already know the storage nonce value
+        outputs[2] = bytes32(_storageNonce);
+        return outputs;
+    }
+
     /**
      * Mock the execution of a transaction
      */
     function mockExecuteTransaction(
         uint _storageNonce,
-        dt.IncludedStorage[2] memory _storage,
+        dt.Storage[2] memory _storage,
         dt.SignedTransaction memory _transaction
     ) public view returns(bytes32[3] memory) {
         bytes32[3] memory outputs;
         // Set the output values. For now it's mocked & we just hash the storage slots
-        outputs[0] = getStorageHash(_storage[0].value);
-        outputs[1] = getStorageHash(_storage[1].value);
+        outputs[0] = getStorageHash(_storage[0]);
+        outputs[1] = getStorageHash(_storage[1]);
         outputs[2] = 0x0000000000000000000000000000000000000000000000000000000000000005;
         // Return the output!
         return outputs;
@@ -115,7 +132,10 @@ contract RollupChain {
         }
 
         // Now that we've initialized our state tree, lets apply the transaction
-        bytes32[3] memory outputs = mockExecuteTransaction(storageNonce, _inputStorage, _invalidTransition.transition.signedTransaction);
+        dt.Storage memory storage0 = _inputStorage[0].value;
+        dt.Storage memory storage1 = _inputStorage[1].value;
+        dt.Storage[2] memory storageSlots = [storage0, storage1];
+        bytes32[3] memory outputs = mockExecuteTransaction(storageNonce, storageSlots, _invalidTransition.transition.signedTransaction);
         // First lets verify that the tx was successful. If it wasn't then our accountNonce will equal zero
         if (outputs[2] == ZERO_BYTES32) {
             halted = true;
