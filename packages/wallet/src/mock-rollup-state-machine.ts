@@ -102,17 +102,13 @@ export class MockRollupStateMachine {
   ): TransactionReceipt {
     let sender: Address
 
-    if (signedTransaction.signature !== AGGREGATOR_ADDRESS) {
-      try {
-        sender = this.signatureVerifier.verifyMessage(
-          serializeObject(signedTransaction.transaction),
-          signedTransaction.signature
-        )
-      } catch (e) {
-        throw e
-      }
-    } else {
-      sender = AGGREGATOR_ADDRESS
+    try {
+      sender = this.signatureVerifier.verifyMessage(
+        serializeObject(signedTransaction.transaction),
+        signedTransaction.signature
+      )
+    } catch (e) {
+      throw e
     }
 
     const transaction: Transaction = signedTransaction.transaction

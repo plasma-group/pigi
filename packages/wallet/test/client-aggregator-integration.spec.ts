@@ -5,14 +5,8 @@ import { SimpleClient, BaseDB } from '@pigi/core'
 import MemDown from 'memdown'
 
 /* Internal Imports */
-import { getGenesisState } from './helpers'
-import {
-  UnipigWallet,
-  Address,
-  UNISWAP_ADDRESS,
-  MockAggregator,
-  UNI_TOKEN_TYPE,
-} from '../src'
+import { AGGREGATOR_MNEMONIC, getGenesisState } from './helpers'
+import { UnipigWallet, MockAggregator, UNI_TOKEN_TYPE } from '../src'
 
 /*********
  * TESTS *
@@ -40,7 +34,8 @@ describe('Mock Client/Aggregator Integration', async () => {
     aggregator = new MockAggregator(
       getGenesisState(accountAddress),
       'localhost',
-      3000
+      3000,
+      AGGREGATOR_MNEMONIC
     )
 
     await aggregator.listen()

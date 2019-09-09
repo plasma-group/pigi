@@ -15,3 +15,11 @@ export class DefaultSignatureVerifier implements SignatureVerifier {
     return ethers.utils.verifyMessage(message, signature)
   }
 }
+
+export class DefaultSignatureProvider implements SignatureProvider {
+  public constructor(private readonly wallet: ethers.Wallet) {}
+
+  public async sign(_address: string, message: string): Promise<string> {
+    return this.wallet.signMessage(message)
+  }
+}

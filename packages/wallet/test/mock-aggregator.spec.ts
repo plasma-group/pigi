@@ -4,14 +4,9 @@ import './setup'
 import { SimpleClient } from '@pigi/core'
 
 /* Internal Imports */
-import { getGenesisState } from './helpers'
-import {
-  UNISWAP_ADDRESS,
-  UNI_TOKEN_TYPE,
-  AGGREGATOR_ADDRESS,
-  MockAggregator,
-  IdentityVerifier,
-} from '../src'
+import { AGGREGATOR_MNEMONIC, getGenesisState } from './helpers'
+import { UNI_TOKEN_TYPE, MockAggregator } from '../src'
+import { ethers } from 'ethers'
 
 /*********
  * TESTS *
@@ -21,13 +16,16 @@ describe('MockAggregator', async () => {
   let aggregator
   let client
 
+  let aliceWallet
+
   beforeEach(async () => {
+    aliceWallet = ethers.Wallet.createRandom()
+
     aggregator = new MockAggregator(
-      getGenesisState(),
+      getGenesisState(aliceWallet.address),
       'localhost',
       3000,
-      undefined,
-      IdentityVerifier.instance()
+      AGGREGATOR_MNEMONIC
     )
     await aggregator.listen()
     // Connect to the mock aggregator
@@ -41,7 +39,7 @@ describe('MockAggregator', async () => {
 
   describe('getBalances', async () => {
     it('should allow the balance to be queried', async () => {
-      const response = await client.handle('getBalances', 'alice')
+      const response = await client.handle('getBalances', aliceWallet.address)
       response.should.deep.equal({
         uni: 50,
         pigi: 50,
@@ -51,13 +49,17 @@ describe('MockAggregator', async () => {
 
   describe('applyTransaction', async () => {
     it('should update bobs balance using applyTransaction to send 5 tokens', async () => {
+      const transaction = {
+        tokenType: UNI_TOKEN_TYPE,
+        recipient: 'bob',
+        amount: 5,
+      }
+      const signature = await aliceWallet.signMessage(
+        JSON.stringify(transaction)
+      )
       const txAliceToBob = {
-        signature: 'alice',
-        transaction: {
-          tokenType: UNI_TOKEN_TYPE,
-          recipient: 'bob',
-          amount: 5,
-        },
+        signature,
+        transaction,
       }
       // Send some money to bob
       await client.handle('applyTransaction', txAliceToBob)

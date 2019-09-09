@@ -4,6 +4,9 @@
 
 import { State, UNISWAP_ADDRESS, AGGREGATOR_ADDRESS } from '../src'
 
+export const AGGREGATOR_MNEMONIC: string =
+  'rebel talent argue catalog maple duty file taxi dust hire funny steak'
+
 export const getGenesisState = (aliceAddress: string = 'alice'): State => {
   return {
     [UNISWAP_ADDRESS]: {
