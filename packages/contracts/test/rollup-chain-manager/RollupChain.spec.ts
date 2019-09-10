@@ -31,6 +31,39 @@ import {
 import * as RollupChain from '../../build/RollupChain.json'
 import * as SparseMerkleTreeLib from '../../build/SparseMerkleTreeLib.json'
 
+/* Helpers */
+// Create a byte string of some length in bytes. It repeats the value provided until the
+// string hits that length
+function makeRepeatedBytes(value: string, length: number): string {
+  const result = value.repeat(length * 2 / value.length).slice(0, length * 2)
+  return '0x' + result
+}
+
+// Make padded bytes. Bytes are right padded.
+function makePaddedBytes(value: string, length: number): string {
+  if (value.length > length) {
+    throw new Error('Value too large to fit in ' + length + ' byte string')
+  }
+  const targetLength = length * 2
+  while (value.length < (targetLength || 2)) {value = value + '0'}
+  return '0x' + value
+}
+
+// Make a padded uint. Uints are left padded.
+function makePaddedUint(value: string, length: number): string {
+  if (value.length > length) {
+    throw new Error('Value too large to fit in ' + length + ' byte string')
+  }
+  const targetLength = length * 2
+  while (value.length < (targetLength || 2)) {value = '0' + value}
+  return '0x' + value
+}
+
+const ZERO_BYTES32 = makeRepeatedBytes('0', 32)
+const ZERO_ADDRESS = makeRepeatedBytes('0', 20)
+const ZERO_UINT32 = makeRepeatedBytes('0', 4)
+const ZERO_SIGNATURE = makeRepeatedBytes('0', 65)
+
 /* Begin tests */
 describe.only('RollupChain', () => {
   const provider = createMockProvider()
@@ -166,7 +199,7 @@ describe.only('RollupChain', () => {
       // Create a transaction which we will infer the type of
       const tx = {
         tokenType: 1,
-        recipient: '0x' + '01'.repeat(20), // address type
+        recipient: makeRepeatedBytes('01', 20), // address type
         amount: '0x0003232', // some uint32 value
       }
       // Encode!
@@ -204,7 +237,7 @@ describe.only('RollupChain', () => {
         tokenType: 1,
         inputAmount: '0x0000000000004353',
         minOutputAmount: '0x0000000000004353',
-        timeout: '0x' + '08'.repeat(32),
+        timeout: makeRepeatedBytes('08', 32),
       }
       // Encode!
       const encoded = abi.encode(
@@ -273,7 +306,7 @@ describe.only('RollupChain', () => {
           blockNumber: 0,
           transitionIndex: 0,
           path: 0,
-          siblings: ['0x' + '00'.repeat(32)],
+          siblings: [ZERO_BYTES32],
         },
       })
       res.should.equal(false)
@@ -285,13 +318,18 @@ describe.only('RollupChain', () => {
    */
   describe('applyStoredAccountTransfer() ', async () => {
     const sampleStorage = {
-      pubkey: '0x' + '48'.repeat(20),
+      pubkey: makeRepeatedBytes('48', 20),
       balances: [1000, 1000],
     }
     const emptyStorage = {
-      pubkey: '0x' + '00'.repeat(20),
+      pubkey: ZERO_ADDRESS,
       balances: [0, 0],
     }
+
+    // SKIP: Test invalid storage slot (storage slot pubkey != sender signature)
+    // TODO: Test that it fails if the recipient != to the path of the provided storage slot
+    // TODO: Test fails if not enough money.
+    // TODO: Test that it returns the correct updated storage slots (with the hash and all that)
 
     it('should not throw', async () => {
       // Create a transaction which we will infer the type of
@@ -306,33 +344,35 @@ describe.only('RollupChain', () => {
         [tx.tokenType, tx.recipient, tx.amount]
       )
       const signedTx = {
-        signature: '0x' + '00'.repeat(65),
+        signature: ZERO_SIGNATURE,
         transaction: encoded
       }
       // Attempt to apply the transaction
-      const res = await rollupChain.applyStoredAccountTransfer(500, [
+      const res = await rollupChain.mockExecuteTransaction(500, [
         {
           value: sampleStorage,
           inclusionProof: {
-            path: '0x' + '00'.repeat(4),
-            siblings: ['0x' + '00'.repeat(32)],
+            path: ZERO_UINT32,
+            siblings: [ZERO_BYTES32],
           },
         },{
           value: sampleStorage,
           inclusionProof: {
             path: tx.recipient,
-            siblings: ['0x' + '00'.repeat(32)],
+            siblings: [ZERO_BYTES32],
           },
         }
       ], signedTx)
-      console.log(res)
+      const isHalted = await rollupChain.isHalted()
+      console.log(isHalted)
     })
   })
 
   /*
    * Test proveTransitionInvalid()
+   * Currently skipping this because we don't have the right tools to generate this cleanly.
    */
-  describe('proveTransitionInvalid() ', async () => {
+  describe.skip('proveTransitionInvalid() ', async () => {
     it('should not throw', async () => {
       // Create a rollup block
       const block = new RollupBlock(generateNTransitions(5), 0)
@@ -343,13 +383,13 @@ describe.only('RollupChain', () => {
       ]
       // Generate a dummy storage inclusion proof
       const dummyStorageInclusionProof = {
-        siblings: Array(160).fill('0x' + '99'.repeat(32)),
+        siblings: Array(160).fill(makeRepeatedBytes('99', 32)),
         path: 5,
       }
       // Generate Dummy IncludedStorage
       const dummyInputStorage = {
         value: {
-          pubkey: '0x' + '00'.repeat(20),
+          pubkey: ZERO_ADDRESS,
           balances: [20, 120],
         },
         inclusionProof: dummyStorageInclusionProof,

@@ -9,6 +9,7 @@ contract RollupChain {
     /* Fields */
     dt.Block[] public blocks;
     bytes32 public ZERO_BYTES32 = 0x0000000000000000000000000000000000000000000000000000000000000000;
+    bytes32[3] private FAILED_TX_OUTPUT = [ZERO_BYTES32, ZERO_BYTES32, ZERO_BYTES32];
     bool public halted = false;
     // Transaction types
     uint NEW_ACCOUNT_TRANSFER_TYPE = 0;
@@ -83,14 +84,14 @@ contract RollupChain {
      */
     function mockExecuteTransaction(
         uint _storageNonce,
-        dt.Storage[2] memory _storage,
-        dt.SignedTransaction memory _transaction
-    ) public view returns(bytes32[3] memory) {
-        bytes32[3] memory outputs;
-        // Set the output values. For now it's mocked & we just hash the storage slots
-        outputs[0] = getStorageHash(_storage[0]);
-        outputs[1] = getStorageHash(_storage[1]);
-        outputs[2] = 0x0000000000000000000000000000000000000000000000000000000000000005;
+        dt.IncludedStorage[2] memory _includedStorage,
+        dt.SignedTransaction memory _signedTransaction
+    ) public returns(bytes32[3] memory) {
+        bytes32[3] memory outputs = applyStoredAccountTransfer(_storageNonce, _includedStorage, _signedTransaction);
+        // Check if we returned a fail
+        if (outputs[2] == FAILED_TX_OUTPUT[2]) {
+            halted = true;
+        }
         // Return the output!
         return outputs;
     }
@@ -109,14 +110,19 @@ contract RollupChain {
     ) public view returns(bytes32[3] memory) {
         // First decode the transaction into a transfer transaction
         dt.TransferTransaction memory transaction = abi.decode(_signedTransaction.transaction, (dt.TransferTransaction));
-        // Assert that the 1st storage slot matches the sender's signature
-        require(verifyEcdsaSignature(_signedTransaction.signature, _includedStorage[0].value.pubkey), "Signature must match the 1st storage slot pubkey");
-        // Assert that the 2nd storage slot matches the recipient
-        require(transaction.recipient == uint32(_includedStorage[1].inclusionProof.path), "Recipient must equal the path (key) of the 2nd storage slot");
-        // Assert that the sender can afford the transaction
         uint32 maxSendable = _includedStorage[0].value.balances[transaction.tokenType];
-        require(transaction.amount < maxSendable, "Transaction is attempting to send more money than they have!");
-        // Update the balances
+        if (
+            // Assert that the 1st storage slot matches the sender's signature
+            !verifyEcdsaSignature(_signedTransaction.signature, _includedStorage[0].value.pubkey) ||
+            // Assert that the 2nd storage slot matches the recipient
+            transaction.recipient != uint32(_includedStorage[1].inclusionProof.path) ||
+            // Assert that the sender can afford the transaction
+            transaction.amount > maxSendable
+        ) {
+            // If any of these checks fail, then return a failed tx output
+            return FAILED_TX_OUTPUT;
+        }
+        // The tx seems to be valid, so let's update the balances
         _includedStorage[0].value.balances[transaction.tokenType] -= transaction.amount;
         _includedStorage[1].value.balances[transaction.tokenType] += transaction.amount;
         // Return the outputes -- the storage hashes & storage nonce
@@ -176,10 +182,7 @@ contract RollupChain {
         }
 
         // Now that we've verified and stored our storage in the state tree, lets apply the transaction
-        dt.Storage memory storage0 = _inputStorage[0].value;
-        dt.Storage memory storage1 = _inputStorage[1].value;
-        dt.Storage[2] memory storageSlots = [storage0, storage1];
-        bytes32[3] memory outputs = mockExecuteTransaction(storageNonce, storageSlots, _invalidTransition.transition.signedTransaction);
+        bytes32[3] memory outputs = mockExecuteTransaction(storageNonce, _inputStorage, _invalidTransition.transition.signedTransaction);
         // First lets verify that the tx was successful. If it wasn't then our accountNonce will equal zero
         if (outputs[2] == ZERO_BYTES32) {
             halted = true;
