@@ -6,6 +6,9 @@ pragma experimental ABIEncoderV2;
  * @notice TODO
  */
 contract DataTypes {
+    /*** Constants ***/
+    uint UNI_TOKEN_TYPE = 0;
+    uint PIGI_TOKEN_TYPE = 1;
 
     /*** Blocks ***/
     struct Block {
@@ -15,22 +18,22 @@ contract DataTypes {
 
     /*** Transactions ***/
     struct SwapTransaction {
-        bool tokenType;
-        uint8 inputAmount;
-        uint8 minOutputAmount;
+        uint tokenType;
+        uint32 inputAmount;
+        uint32 minOutputAmount;
         uint timeout;
     }
 
     struct TransferTransaction {
-        bool tokenType;
-        uint8 recipient;
-        uint8 amount;
+        uint tokenType;
+        uint32 recipient;
+        uint32 amount;
     }
 
     struct TransferNewAddressTransaction {
-        bool tokenType;
+        uint tokenType;
         address recipient;
-        uint8 amount;
+        uint32 amount;
     }
 
     struct SignedTransaction {
@@ -59,8 +62,7 @@ contract DataTypes {
     /*** Storage ***/
     struct Storage {
         address pubkey;
-        uint8 uniBalance;
-        uint8 pigiBalance;
+        uint32[2] balances;
     }
 
     struct StorageInclusionProof {

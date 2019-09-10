@@ -40,11 +40,11 @@ contract RollupChain {
     /**
      * Helper function which checks if a given value fits in a uint8
      */
-    function isUint8(bytes32 value) private pure returns(bool) {
+    function isUint32(bytes32 value) private pure returns(bool) {
         // To check if something is a uint8 we will just check to see that
         // it has no values past the 8th byte. Note this checks "does this value fit in a uint8"
         // not if it was intended to be a uint8 or not
-        bytes32 mask = 0x0000000000000000111111111111111111111111111111111111111111111111;
+        bytes32 mask = 0x1111111111111111111111111111111111111111111111111111111100000000;
         bytes32 resultingValue = value & mask;
         return resultingValue == 0;
     }
@@ -63,7 +63,7 @@ contract RollupChain {
         // Otherwise we're a transfer for sure... but which kind?
         (bytes32 tokenType, bytes32 account, bytes32 amount) = abi.decode(transaction, (bytes32, bytes32, bytes32));
         // Now we need to check if the account is a uint8 or if it's a real address
-        if (isUint8(account)) {
+        if (isUint32(account)) {
             // If it is that means we're referencing a stored value.
             // Note you can fool this check if you have an account that fit into a uint8.
             // Long term we will want to stop padding our encoded values to remove this possibility.
@@ -74,21 +74,9 @@ contract RollupChain {
     }
 
 
-    /**
-     * Apply a transfer transaction to an already stored storage slot
-     */
-    function applyStoredAccountTransfer(
-        uint _storageNonce,
-        dt.Storage[2] memory _storage,
-        dt.SignedTransaction memory _transaction
-    ) public view returns(bytes32[3] memory) {
-        bytes32[3] memory outputs;
-        // Update the outputs
-
-        // We already know the storage nonce value
-        outputs[2] = bytes32(_storageNonce);
-        return outputs;
-    }
+    /*******************************
+     * Transaction Execution Logic *
+     ******************************/
 
     /**
      * Mock the execution of a transaction
@@ -107,10 +95,51 @@ contract RollupChain {
         return outputs;
     }
 
+    function verifyEcdsaSignature(bytes memory _signature, address _pubkey) private pure returns(bool) {
+        return true;
+    }
+
+    /**
+     * Apply a transfer transaction to an already stored storage slot
+     */
+    function applyStoredAccountTransfer(
+        uint _storageNonce,
+        dt.IncludedStorage[2] memory _includedStorage,
+        dt.SignedTransaction memory _signedTransaction
+    ) public view returns(bytes32[3] memory) {
+        // First decode the transaction into a transfer transaction
+        dt.TransferTransaction memory transaction = abi.decode(_signedTransaction.transaction, (dt.TransferTransaction));
+        // Assert that the 1st storage slot matches the sender's signature
+        require(verifyEcdsaSignature(_signedTransaction.signature, _includedStorage[0].value.pubkey), "Signature must match the 1st storage slot pubkey");
+        // Assert that the 2nd storage slot matches the recipient
+        require(transaction.recipient == uint32(_includedStorage[1].inclusionProof.path), "Recipient must equal the path (key) of the 2nd storage slot");
+        // Assert that the sender can afford the transaction
+        uint32 maxSendable = _includedStorage[0].value.balances[transaction.tokenType];
+        require(transaction.amount < maxSendable, "Transaction is attempting to send more money than they have!");
+        // Update the balances
+        _includedStorage[0].value.balances[transaction.tokenType] -= transaction.amount;
+        _includedStorage[1].value.balances[transaction.tokenType] += transaction.amount;
+        // Return the outputes -- the storage hashes & storage nonce
+        bytes32[3] memory outputs;
+        outputs[0] = getStorageHash(_includedStorage[0].value);
+        outputs[1] = getStorageHash(_includedStorage[1].value);
+        outputs[2] = bytes32(_storageNonce);
+        return outputs;
+    }
+
+    /**********************
+     * Proving Invalidity *
+     *********************/
+
+    /**
+     * Verify inclusion of the claimed includedStorage & store their results.
+     * Note the complexity here is we need to store an empty storage slot as being 32 bytes of zeros
+     * to be what the sparse merkle tree expects.
+     */
     function verifyAndStoreStorageInclusionProof(dt.IncludedStorage memory _includedStorage) private {
         // First check if the storage is empty
         if (_includedStorage.value.pubkey == 0x0000000000000000000000000000000000000000) {
-            // Verify and store an empty hash
+            // Verify and store an empty hash because the storage is empty
             partialState.verifyAndStore(
                 _includedStorage.inclusionProof.path,
                 ZERO_BYTES32,
@@ -242,6 +271,6 @@ contract RollupChain {
     function getStorageHash(dt.Storage memory _storage) public pure returns(bytes32) {
         // Here we don't use `abi.encode([struct])` because it's not clear
         // how to generate that encoding client-side.
-        return keccak256(abi.encode(_storage.pubkey, _storage.uniBalance, _storage.pigiBalance));
+        return keccak256(abi.encode(_storage.pubkey, _storage.balances[0], _storage.balances[1]));
     }
 }

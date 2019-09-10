@@ -167,11 +167,11 @@ describe.only('RollupChain', () => {
       const tx = {
         tokenType: 1,
         recipient: '0x' + '01'.repeat(20), // address type
-        amount: '0x0000000000003232', // some bytes8 value
+        amount: '0x0003232', // some uint32 value
       }
       // Encode!
       const encoded = abi.encode(
-        ['bool', 'address', 'bytes8'],
+        ['uint', 'address', 'uint32'],
         [tx.tokenType, tx.recipient, tx.amount]
       )
       // Attempt to infer the transaction type
@@ -184,12 +184,12 @@ describe.only('RollupChain', () => {
       // Create a transaction which we will infer the type of
       const tx = {
         tokenType: 1,
-        recipient: '0x0000000000000003', // some bytes8 representing a storage slot
-        amount: '0x0000000000003232', // some bytes8 value
+        recipient: '0x00000003', // some uint32 representing a storage slot
+        amount: '0x0003232', // some uint32 value
       }
       // Encode!
       const encoded = abi.encode(
-        ['bool', 'bytes8', 'bytes8'],
+        ['uint', 'uint32', 'uint32'],
         [tx.tokenType, tx.recipient, tx.amount]
       )
       // Attempt to infer the transaction type
@@ -208,7 +208,7 @@ describe.only('RollupChain', () => {
       }
       // Encode!
       const encoded = abi.encode(
-        ['bool', 'bytes8', 'bytes8', 'bytes32'],
+        ['uint', 'bytes8', 'bytes8', 'bytes32'],
         [tx.tokenType, tx.inputAmount, tx.minOutputAmount, tx.timeout]
       )
       // Attempt to infer the transaction type
@@ -281,6 +281,55 @@ describe.only('RollupChain', () => {
   })
 
   /*
+   * Test applyStoredAccountTransfer()
+   */
+  describe('applyStoredAccountTransfer() ', async () => {
+    const sampleStorage = {
+      pubkey: '0x' + '48'.repeat(20),
+      balances: [1000, 1000],
+    }
+    const emptyStorage = {
+      pubkey: '0x' + '00'.repeat(20),
+      balances: [0, 0],
+    }
+
+    it('should not throw', async () => {
+      // Create a transaction which we will infer the type of
+      const tx = {
+        tokenType: 1,
+        recipient: '0x00000003', // some uint32 representing a storage slot
+        amount: '0x0000200', // some uint32 value
+      }
+      // Encode!
+      const encoded = abi.encode(
+        ['uint', 'uint32', 'uint32'],
+        [tx.tokenType, tx.recipient, tx.amount]
+      )
+      const signedTx = {
+        signature: '0x' + '00'.repeat(65),
+        transaction: encoded
+      }
+      // Attempt to apply the transaction
+      const res = await rollupChain.applyStoredAccountTransfer(500, [
+        {
+          value: sampleStorage,
+          inclusionProof: {
+            path: '0x' + '00'.repeat(4),
+            siblings: ['0x' + '00'.repeat(32)],
+          },
+        },{
+          value: sampleStorage,
+          inclusionProof: {
+            path: tx.recipient,
+            siblings: ['0x' + '00'.repeat(32)],
+          },
+        }
+      ], signedTx)
+      console.log(res)
+    })
+  })
+
+  /*
    * Test proveTransitionInvalid()
    */
   describe('proveTransitionInvalid() ', async () => {
@@ -301,8 +350,7 @@ describe.only('RollupChain', () => {
       const dummyInputStorage = {
         value: {
           pubkey: '0x' + '00'.repeat(20),
-          uniBalance: 20,
-          pigiBalance: 120,
+          balances: [20, 120],
         },
         inclusionProof: dummyStorageInclusionProof,
       }
