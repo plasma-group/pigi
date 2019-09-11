@@ -1,13 +1,21 @@
-import '../setup'
-import { IdentityVerifier, MockRollupStateMachine } from '../../src/mock'
+import MemDown from 'memdown'
+import './setup'
+
 import {
   assertThrowsAsync,
   calculateSwapWithFees,
   getGenesisState,
   getGenesisStateLargeEnoughForFees,
-} from '../helpers'
-import { UNI_TOKEN_TYPE, UNISWAP_ADDRESS } from '../../src'
-import { InsufficientBalanceError } from '../../src/types'
+} from './helpers'
+import {
+  UNI_TOKEN_TYPE,
+  UNISWAP_ADDRESS,
+  InsufficientBalanceError,
+  IdentityVerifier,
+  DefaultRollupStateMachine,
+  SignedTransaction,
+} from '../src'
+import { DB, BaseDB } from '@pigi/core'
 
 /* External Imports */
 
@@ -19,11 +27,19 @@ import { InsufficientBalanceError } from '../../src/types'
 
 describe('RollupStateMachine', async () => {
   let rollupState
-  beforeEach(() => {
-    rollupState = new MockRollupStateMachine(
+  let db: DB
+
+  beforeEach(async () => {
+    db = new BaseDB(new MemDown('') as any, 256)
+    rollupState = await DefaultRollupStateMachine.create(
       getGenesisState(),
+      db,
       IdentityVerifier.instance()
     )
+  })
+
+  afterEach(async () => {
+    await db.close()
   })
 
   describe('getBalances', async () => {
@@ -37,7 +53,7 @@ describe('RollupStateMachine', async () => {
   })
 
   describe('applyTransfer', async () => {
-    const txAliceToBob = {
+    const txAliceToBob: SignedTransaction = {
       signature: 'alice',
       transaction: {
         tokenType: UNI_TOKEN_TYPE,
@@ -128,10 +144,10 @@ describe('RollupStateMachine', async () => {
 
     it('should update balances after swap including fee', async () => {
       const feeBasisPoints = 30
-      rollupState = new MockRollupStateMachine(
+      rollupState = await DefaultRollupStateMachine.create(
         getGenesisStateLargeEnoughForFees(),
-        IdentityVerifier.instance(),
-        feeBasisPoints
+        db,
+        IdentityVerifier.instance()
       )
 
       uniInput = 2500

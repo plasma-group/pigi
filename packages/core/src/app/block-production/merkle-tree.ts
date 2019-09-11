@@ -46,6 +46,10 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
     this.populateZeroHashesAndRoot(rootHash)
   }
 
+  public getHeight(): number {
+    return this.height
+  }
+
   public async getRootHash(): Promise<Buffer> {
     const copy: Buffer = Buffer.alloc(this.root.hash.length)
     this.root.hash.copy(copy)
@@ -274,7 +278,10 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
     const siblings: Buffer[] = []
     let node: MerkleTreeNode = this.root
     for (let i = 0; i < this.height - 1; i++) {
-      if (i >= existingChildren) {
+      if (
+        i > existingChildren ||
+        (i === existingChildren && (!node.value || node.value.length !== 64))
+      ) {
         siblings.push(...this.zeroHashes.slice(i + 1))
         break
       }

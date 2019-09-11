@@ -1,11 +1,6 @@
-import { DefaultWallet, abi } from '@pigi/core/build/index'
-
 export type UniTokenType = 'uni'
 export type PigiTokenType = 'pigi'
 export type TokenType = UniTokenType | PigiTokenType
-
-export type SUCCESS = 'SUCCESS'
-export type FAILURE = 'FAILURE'
 
 export type Address = string
 

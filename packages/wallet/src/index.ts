@@ -1,9 +1,7 @@
-export * from './types/types'
-export * from './mock/mock-rollup-client'
-export * from './mock/mock-rollup-aggregator'
-export * from './mock/mock-rollup-state-machine'
+export * from './rollup-state-machine'
 export * from './unipig-wallet'
-export * from './mock/utils'
+export * from './mock'
+export * from './types'
 
 /* Constants */
 export const AGGREGATOR_ADDRESS = '0xAc001762c6424F4959852A516368DBf970C835a7'

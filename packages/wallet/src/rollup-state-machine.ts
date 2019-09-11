@@ -11,6 +11,7 @@ import {
   deserializeObject,
   objectToBuffer,
   deserializeBuffer,
+  ONE,
 } from '@pigi/core'
 
 /* Internal Imports */
@@ -53,13 +54,15 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       swapFeeBasisPoints
     )
 
-    const promises: Array<Promise<boolean>> = []
-    for (const key of Object.keys(genesisState)) {
-      promises.push(
-        stateMachine.setAddressState(key, genesisState[key].balances)
-      )
+    if (!!Object.keys(genesisState).length) {
+      const promises: Array<Promise<boolean>> = []
+      for (const key of Object.keys(genesisState)) {
+        promises.push(
+          stateMachine.setAddressState(key, genesisState[key].balances)
+        )
+      }
+      await Promise.all(promises)
     }
-    await Promise.all(promises)
 
     return stateMachine
   }
@@ -73,7 +76,19 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
   }
 
   public async getBalances(account: Address): Promise<Balances> {
-    return this._getBalances(account, false)
+    const key: BigNumber = this.getAddressKey(account)
+    const accountState: Buffer = await this.tree.getLeaf(key)
+
+    let balances: Balances
+    if (!accountState) {
+      balances = {
+        uni: 0,
+        pigi: 0,
+      }
+    } else {
+      balances = this.deserializeBalances(account, accountState)
+    }
+    return balances
   }
 
   public async applyTransaction(
@@ -103,40 +118,15 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     address: string,
     balances: Balances
   ): Promise<boolean> {
-    return this.tree.update(
-      this.getAddressKey(address),
-      this.serializeBalances(address, balances)
+    const addressKey: BigNumber = this.getAddressKey(address)
+    const serializedBalances: Buffer = this.serializeBalances(address, balances)
+
+    const result: boolean = await this.tree.update(
+      addressKey,
+      serializedBalances
     )
-  }
 
-  private async _getBalances(
-    account: Address,
-    createIfAbsent: boolean = true
-  ): Promise<Balances> {
-    const key: BigNumber = this.getAddressKey(account)
-    const accountState: Buffer = await this.tree.getLeaf(key)
-
-    let balances: Balances
-    if (accountState.equals(SparseMerkleTreeImpl.emptyBuffer)) {
-      balances = {
-        uni: 0,
-        pigi: 0,
-      }
-
-      if (createIfAbsent) {
-        await this.setAddressState(account, balances)
-      }
-    } else {
-      balances = this.deserializeBalances(account, accountState)
-    }
-    return balances
-  }
-
-  private async getTxReceipt(stateUpdate: any): Promise<TransactionReceipt> {
-    return {
-      aggregatorSignature: 'MOCKED',
-      stateUpdate,
-    }
+    return result
   }
 
   private async hasBalance(
@@ -145,7 +135,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     balance: number
   ): Promise<boolean> {
     // Check that the account has more than some amount of pigi/uni
-    const balances = await this._getBalances(account, false)
+    const balances = await this.getBalances(account)
     return tokenType in balances && balances[tokenType] >= balance
   }
 
@@ -163,8 +153,8 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       throw new InsufficientBalanceError()
     }
 
-    const senderBalances = await this._getBalances(sender)
-    const recipientBalances = await this._getBalances(transfer.recipient)
+    const senderBalances = await this.getBalances(sender)
+    const recipientBalances = await this.getBalances(transfer.recipient)
 
     // Update the balances
     senderBalances[transfer.tokenType] -= transfer.amount
@@ -202,7 +192,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     swap: Swap,
     sender: Address
   ): Promise<State> {
-    const uniswapBalances: Balances = await this._getBalances(UNISWAP_ADDRESS)
+    const uniswapBalances: Balances = await this.getBalances(UNISWAP_ADDRESS)
     // First let's figure out which token types are input & output
     const inputTokenType = swap.tokenType
     const outputTokenType =
@@ -219,7 +209,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       throw new SlippageError()
     }
 
-    const senderBalances: Balances = await this._getBalances(sender)
+    const senderBalances: Balances = await this.getBalances(sender)
     // Calculate the new user & swap balances
     senderBalances[inputTokenType] -= swap.inputAmount
     senderBalances[outputTokenType] += outputAmount
@@ -253,7 +243,9 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
   }
 
   private getAddressKey(address: string): BigNumber {
-    return new BigNumber(keccak256(Buffer.from(address)))
+    // TODO: This makes sure the key has all 0s for bits > tree height -- should be in merkle-tree.ts
+    const andMask: BigNumber = ONE.shiftLeft(this.tree.getHeight() - 1).sub(ONE)
+    return new BigNumber(keccak256(Buffer.from(address))).and(andMask)
   }
 
   private serializeBalances(address: string, balances: Balances): Buffer {

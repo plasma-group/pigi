@@ -4,7 +4,7 @@ import {
   RpcClient,
   serializeObject,
   SignatureProvider,
-} from '@pigi/core/build/index'
+} from '@pigi/core'
 
 /* Internal Imports */
 import {

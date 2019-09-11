@@ -5,14 +5,14 @@ import {
   SimpleServer,
   serializeObject,
   DefaultSignatureProvider,
-} from '@pigi/core/build/index'
+  DB,
+} from '@pigi/core'
 
 /* Internal Imports */
 import {
   Address,
   SignedTransaction,
   State,
-  MockRollupStateMachine,
   Balances,
   TransactionReceipt,
   UNI_TOKEN_TYPE,
@@ -26,6 +26,7 @@ import {
 } from '../index'
 import { ethers } from 'ethers'
 import { RollupStateMachine } from '../types'
+import { DefaultRollupStateMachine } from '../rollup-state-machine'
 
 /*
  * Generate two transactions which together send the user some UNI
@@ -71,21 +72,16 @@ const generateFaucetTxs = async (
  * balance queries, & faucet requests
  */
 export class MockAggregator extends SimpleServer {
-  public rollupStateMachine: RollupStateMachine
+  private readonly rollupStateMachine: RollupStateMachine
 
   constructor(
-    genesisState: State,
+    rollupStateMachine: RollupStateMachine,
     hostname: string,
     port: number,
     mnemonic: string,
     signatureVerifier: SignatureVerifier = DefaultSignatureVerifier.instance(),
     middleware?: Function[]
   ) {
-    const rollupStateMachine: RollupStateMachine = new MockRollupStateMachine(
-      genesisState,
-      signatureVerifier
-    )
-
     const wallet: ethers.Wallet = ethers.Wallet.fromMnemonic(mnemonic)
     const signatureProvider: SignatureProvider = new DefaultSignatureProvider(
       wallet
@@ -140,7 +136,9 @@ export class MockAggregator extends SimpleServer {
           signatureProvider
         )
         // Apply the two txs
-        faucetTxs.forEach((tx) => rollupStateMachine.applyTransaction(tx))
+        for (const tx of faucetTxs) {
+          await rollupStateMachine.applyTransaction(tx)
+        }
 
         // Return our new account balance
         return rollupStateMachine.getBalances(recipient)
