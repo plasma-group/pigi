@@ -12,6 +12,8 @@ import { UnipigWallet, MockAggregator, UNI_TOKEN_TYPE } from '../src'
  * TESTS *
  *********/
 
+const timeout = 20_000
+
 describe('Mock Client/Aggregator Integration', async () => {
   let db
   let accountAddress
@@ -20,7 +22,7 @@ describe('Mock Client/Aggregator Integration', async () => {
   const walletPassword = 'Really great password'
 
   beforeEach(async function() {
-    this.timeout(20_000)
+    this.timeout(timeout)
 
     // Typings for MemDown are wrong so we need to cast to `any`.
     db = new BaseDB(new MemDown('') as any)
@@ -54,7 +56,7 @@ describe('Mock Client/Aggregator Integration', async () => {
     it('should be able to query the aggregators balances', async () => {
       const response = await unipigWallet.getBalances(accountAddress)
       response.should.deep.equal({ uni: 50, pigi: 50 })
-    }).timeout(8000)
+    }).timeout(timeout)
 
     it('should return an error if the wallet tries to transfer money it doesnt have', async () => {
       try {
@@ -69,7 +71,7 @@ describe('Mock Client/Aggregator Integration', async () => {
       } catch (err) {
         // Success!
       }
-    }).timeout(8000)
+    }).timeout(timeout)
 
     it('should successfully transfer if alice sends money', async () => {
       // Set "sign" to instead sign for alice
@@ -82,7 +84,7 @@ describe('Mock Client/Aggregator Integration', async () => {
         accountAddress
       )
       response.recipient.balances.uni.should.equal(10)
-    }).timeout(8000)
+    }).timeout(timeout)
 
     it('should successfully transfer if first faucet is requested', async () => {
       const newPassword = 'new address password'
@@ -107,6 +109,6 @@ describe('Mock Client/Aggregator Integration', async () => {
         newAddress
       )
       transferRes.recipient.balances.uni.should.equal(10)
-    }).timeout(8000)
+    }).timeout(timeout)
   })
 })
