@@ -14,7 +14,6 @@ import {
   Transfer,
   isTransferTransaction,
   Transaction,
-  MockedSignature,
   SignedTransaction,
   TransactionReceipt,
   UNISWAP_ADDRESS,
