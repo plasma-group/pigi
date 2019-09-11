@@ -14,7 +14,6 @@ import {
   Transfer,
   isTransferTransaction,
   Transaction,
-  MockedSignature,
   SignedTransaction,
   TransactionReceipt,
   UNISWAP_ADDRESS,
@@ -22,7 +21,6 @@ import {
   PIGI_TOKEN_TYPE,
   TokenType,
   State,
-  AGGREGATOR_ADDRESS,
 } from '.'
 
 const DEFAULT_STORAGE = {

@@ -20,7 +20,7 @@ describe('Mock Client/Aggregator Integration', async () => {
   const walletPassword = 'Really great password'
 
   beforeEach(async function() {
-    this.timeout(8000)
+    this.timeout(20_000)
 
     // Typings for MemDown are wrong so we need to cast to `any`.
     db = new BaseDB(new MemDown('') as any)
