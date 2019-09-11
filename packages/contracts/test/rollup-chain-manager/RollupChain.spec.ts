@@ -186,18 +186,18 @@ describe.only('RollupChain', () => {
   })
 
   /*
-   * Test inferTransactionType()
+   * Test inferTxType()
    */
-  describe('inferTransactionType() ', async () => {
-    const transactionTypes = {
+  describe('inferTxType() ', async () => {
+    const txTypes = {
       NEW_ACCOUNT_TRANSFER_TYPE: 0,
       STORED_ACCOUNT_TRANSFER_TYPE: 1,
       SWAP_TYPE: 2,
     }
 
-    it('should infer a transfer transaction to a new account', async () => {
-      // Create a transaction which we will infer the type of
-      const tx = {
+    it('should infer a transfer tx to a new account', async () => {
+      // Create a tx which we will infer the type of
+      const unsignedTx = {
         tokenType: 1,
         recipient: makeRepeatedBytes('01', 20), // address type
         amount: '0x0003232', // some uint32 value
@@ -205,12 +205,12 @@ describe.only('RollupChain', () => {
       // Encode!
       const encoded = abi.encode(
         ['uint', 'address', 'uint32'],
-        [tx.tokenType, tx.recipient, tx.amount]
+        [unsignedTx.tokenType, unsignedTx.recipient, unsignedTx.amount]
       )
       // Attempt to infer the transaction type
-      const res = await rollupChain.inferTransactionType(encoded)
+      const res = await rollupChain.inferTxType(encoded)
       // Check that it's the correct type
-      res.should.equal(transactionTypes.NEW_ACCOUNT_TRANSFER_TYPE)
+      res.should.equal(txTypes.NEW_ACCOUNT_TRANSFER_TYPE)
     })
 
     it('should infer a transfer transaction to a stored account', async () => {
@@ -226,9 +226,9 @@ describe.only('RollupChain', () => {
         [tx.tokenType, tx.recipient, tx.amount]
       )
       // Attempt to infer the transaction type
-      const res = await rollupChain.inferTransactionType(encoded)
+      const res = await rollupChain.inferTxType(encoded)
       // Check that it's the correct type
-      res.should.equal(transactionTypes.STORED_ACCOUNT_TRANSFER_TYPE)
+      res.should.equal(txTypes.STORED_ACCOUNT_TRANSFER_TYPE)
     })
 
     it('should infer a transfer transaction to a swap', async () => {
@@ -245,9 +245,9 @@ describe.only('RollupChain', () => {
         [tx.tokenType, tx.inputAmount, tx.minOutputAmount, tx.timeout]
       )
       // Attempt to infer the transaction type
-      const res = await rollupChain.inferTransactionType(encoded)
+      const res = await rollupChain.inferTxType(encoded)
       // Check that it's the correct type
-      res.should.equal(transactionTypes.SWAP_TYPE)
+      res.should.equal(txTypes.SWAP_TYPE)
     })
   })
 
@@ -345,10 +345,10 @@ describe.only('RollupChain', () => {
       )
       const signedTx = {
         signature: ZERO_SIGNATURE,
-        transaction: encoded
+        body: encoded
       }
       // Attempt to apply the transaction
-      const res = await rollupChain.mockExecuteTransaction(500, [
+      const res = await rollupChain.mockExecuteTx(500, [
         {
           value: sampleStorage,
           inclusionProof: {

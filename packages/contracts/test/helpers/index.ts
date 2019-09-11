@@ -7,9 +7,9 @@ export * from './RollupBlock'
 
 /* Misc Helpers */
 export interface Transition {
-  signedTransaction: {
+  signedTx: {
     signature: string
-    transaction: string
+    body: string
   }
   postState: string
 }
@@ -19,8 +19,8 @@ export function abiEncodeTransition(transition: Transition): Buffer {
     abi.encode(
       ['bytes', 'bytes', 'bytes32'],
       [
-        transition.signedTransaction.signature,
-        transition.signedTransaction.transaction,
+        transition.signedTx.signature,
+        transition.signedTx.body,
         transition.postState,
       ]
     )
@@ -36,10 +36,10 @@ export function generateNTransitions(numTransitions: number) {
   return transitions
 }
 
-// Creates an encoded transition with the specified transaction
-export function getTransition(transaction: string): Transition {
-  // Generate post state based on the transaction
-  let postState = transaction
+// Creates an encoded transition with the specified tx (transaction)
+export function getTransition(tx: string): Transition {
+  // Generate post state based on the tx
+  let postState = tx
   // If the postState length is less than two, add zeros to it!
   while (postState.length < 2) {
     postState += '0'
@@ -47,14 +47,14 @@ export function getTransition(transaction: string): Transition {
   postState = '0x' + postState.slice(0, 2).repeat(32)
   // Return the Transition!
   return {
-    signedTransaction: {
+    signedTx: {
       signature: '0x1234',
-      transaction: '0x' + transaction,
+      body: '0x' + tx,
     },
     postState,
   }
 }
 
-export function getEncodedTransition(transaction: string): string {
-  return bufToHexString(abiEncodeTransition(getTransition(transaction)))
+export function getEncodedTransition(tx: string): string {
+  return bufToHexString(abiEncodeTransition(getTransition(tx)))
 }

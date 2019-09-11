@@ -16,34 +16,34 @@ contract DataTypes {
         uint blockSize;
     }
 
-    /*** Transactions ***/
-    struct SwapTransaction {
+    /*** Txs ***/
+    struct SwapTx {
         uint tokenType;
         uint32 inputAmount;
         uint32 minOutputAmount;
         uint timeout;
     }
 
-    struct TransferTransaction {
+    struct TransferTx {
         uint tokenType;
         uint32 recipient;
         uint32 amount;
     }
 
-    struct TransferNewAddressTransaction {
+    struct TransferNewAddressTx {
         uint tokenType;
         address recipient;
         uint32 amount;
     }
 
-    struct SignedTransaction {
+    struct SignedTx {
         bytes signature;
-        bytes transaction;
+        bytes body;
     }
 
     /*** Transitions ***/
     struct Transition {
-        SignedTransaction signedTransaction;
+        SignedTx signedTx;
         bytes32 postState;
     }
 

@@ -11,7 +11,7 @@ contract RollupChain {
     bytes32 public ZERO_BYTES32 = 0x0000000000000000000000000000000000000000000000000000000000000000;
     bytes32[3] private FAILED_TX_OUTPUT = [ZERO_BYTES32, ZERO_BYTES32, ZERO_BYTES32];
     bool public halted = false;
-    // Transaction types
+    // Tx types
     uint NEW_ACCOUNT_TRANSFER_TYPE = 0;
     uint STORED_ACCOUNT_TRANSFER_TYPE = 1;
     uint SWAP_TYPE = 2;
@@ -51,18 +51,18 @@ contract RollupChain {
     }
 
     /**
-     * Cast bytes to the a specific transaction type
+     * Cast bytes to the a specific tx type
      */
-    function inferTransactionType(
-        bytes memory transaction
+    function inferTxType(
+        bytes memory _tx
     ) public view returns(uint) {
         // 128 is the length of a transfer tx
-        if (transaction.length == 128) {
+        if (_tx.length == 128) {
             // We're a swap for sure
             return SWAP_TYPE;
         }
         // Otherwise we're a transfer for sure... but which kind?
-        (bytes32 tokenType, bytes32 account, bytes32 amount) = abi.decode(transaction, (bytes32, bytes32, bytes32));
+        (bytes32 tokenType, bytes32 account, bytes32 amount) = abi.decode(_tx, (bytes32, bytes32, bytes32));
         // Now we need to check if the account is a uint8 or if it's a real address
         if (isUint32(account)) {
             // If it is that means we're referencing a stored value.
@@ -80,14 +80,14 @@ contract RollupChain {
      ******************************/
 
     /**
-     * Mock the execution of a transaction
+     * Mock the execution of a tx
      */
-    function mockExecuteTransaction(
+    function mockExecuteTx(
         uint _storageNonce,
         dt.IncludedStorage[2] memory _includedStorage,
-        dt.SignedTransaction memory _signedTransaction
+        dt.SignedTx memory _signedTx
     ) public returns(bytes32[3] memory) {
-        bytes32[3] memory outputs = applyStoredAccountTransfer(_storageNonce, _includedStorage, _signedTransaction);
+        bytes32[3] memory outputs = applyStoredAccountTransfer(_storageNonce, _includedStorage, _signedTx);
         // Check if we returned a fail
         if (outputs[2] == FAILED_TX_OUTPUT[2]) {
             halted = true;
@@ -101,30 +101,30 @@ contract RollupChain {
     }
 
     /**
-     * Apply a transfer transaction to an already stored storage slot
+     * Apply a transfer tx to an already stored storage slot
      */
     function applyStoredAccountTransfer(
         uint _storageNonce,
         dt.IncludedStorage[2] memory _includedStorage,
-        dt.SignedTransaction memory _signedTransaction
+        dt.SignedTx memory _signedTx
     ) public view returns(bytes32[3] memory) {
-        // First decode the transaction into a transfer transaction
-        dt.TransferTransaction memory transaction = abi.decode(_signedTransaction.transaction, (dt.TransferTransaction));
-        uint32 maxSendable = _includedStorage[0].value.balances[transaction.tokenType];
+        // First decode the tx into a transfer tx
+        dt.TransferTx memory transferTx = abi.decode(_signedTx.body, (dt.TransferTx));
+        uint32 maxSendable = _includedStorage[0].value.balances[transferTx.tokenType];
         if (
             // Assert that the 1st storage slot matches the sender's signature
-            !verifyEcdsaSignature(_signedTransaction.signature, _includedStorage[0].value.pubkey) ||
+            !verifyEcdsaSignature(_signedTx.signature, _includedStorage[0].value.pubkey) ||
             // Assert that the 2nd storage slot matches the recipient
-            transaction.recipient != uint32(_includedStorage[1].inclusionProof.path) ||
+            transferTx.recipient != uint32(_includedStorage[1].inclusionProof.path) ||
             // Assert that the sender can afford the transaction
-            transaction.amount > maxSendable
+            transferTx.amount > maxSendable
         ) {
             // If any of these checks fail, then return a failed tx output
             return FAILED_TX_OUTPUT;
         }
         // The tx seems to be valid, so let's update the balances
-        _includedStorage[0].value.balances[transaction.tokenType] -= transaction.amount;
-        _includedStorage[1].value.balances[transaction.tokenType] += transaction.amount;
+        _includedStorage[0].value.balances[transferTx.tokenType] -= transferTx.amount;
+        _includedStorage[1].value.balances[transferTx.tokenType] += transferTx.amount;
         // Return the outputes -- the storage hashes & storage nonce
         bytes32[3] memory outputs;
         outputs[0] = getStorageHash(_includedStorage[0].value);
@@ -182,7 +182,7 @@ contract RollupChain {
         }
 
         // Now that we've verified and stored our storage in the state tree, lets apply the transaction
-        bytes32[3] memory outputs = mockExecuteTransaction(storageNonce, _inputStorage, _invalidTransition.transition.signedTransaction);
+        bytes32[3] memory outputs = mockExecuteTx(storageNonce, _inputStorage, _invalidTransition.transition.signedTx);
         // First lets verify that the tx was successful. If it wasn't then our accountNonce will equal zero
         if (outputs[2] == ZERO_BYTES32) {
             halted = true;
@@ -261,8 +261,8 @@ contract RollupChain {
         // how to generate that encoding client-side.
         return keccak256(
             abi.encode(
-                _transition.signedTransaction.signature,
-                _transition.signedTransaction.transaction,
+                _transition.signedTx.signature,
+                _transition.signedTx.body,
                 _transition.postState
             )
         );

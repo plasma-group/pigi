@@ -10,7 +10,7 @@ import {
 /* External Imports */
 import { keccak256, abi, hexStrToBuf, bufToHexString } from '@pigi/core'
 
-type Transaction = string
+type Tx = string
 
 interface TransitionInclusionProof {
   blockNumber: number
