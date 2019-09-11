@@ -21,8 +21,14 @@ import {
   PIGI_TOKEN_TYPE,
   TokenType,
   State,
-  AGGREGATOR_ADDRESS,
-} from '.'
+} from '../index'
+import {
+  InsufficientBalanceError,
+  InvalidTransactionTypeError,
+  NegativeAmountError,
+  RollupStateMachine,
+  SlippageError,
+} from '../types'
 
 const DEFAULT_STORAGE = {
   balances: {
@@ -31,35 +37,8 @@ const DEFAULT_STORAGE = {
   },
 }
 
-/*
- * Errors
- */
-export class SlippageError extends Error {
-  constructor() {
-    super('Too much slippage in swap tx!')
-  }
-}
-
-export class InsufficientBalanceError extends Error {
-  constructor() {
-    super('Insufficient balance for transfer or swap!')
-  }
-}
-
-export class NegativeAmountError extends Error {
-  constructor() {
-    super('Amounts transferred or swapped cannot be negative!')
-  }
-}
-
-export class InvalidTransactionTypeError extends Error {
-  constructor() {
-    super('Invalid transaction type!')
-  }
-}
-
-export class MockRollupStateMachine {
-  public state: State
+export class MockRollupStateMachine implements RollupStateMachine {
+  private readonly state: State
 
   constructor(
     genesisState: State,
@@ -69,12 +48,31 @@ export class MockRollupStateMachine {
     this.state = genesisState
   }
 
-  public getBalances(account: Address) {
+  public async getBalances(account: Address): Promise<Balances> {
     return this._getBalances(account, false)
   }
 
-  public getUniswapBalances(): Balances {
-    return this._getBalances(UNISWAP_ADDRESS)
+  public async applyTransaction(
+    signedTransaction: SignedTransaction
+  ): Promise<State> {
+    let sender: Address
+
+    try {
+      sender = this.signatureVerifier.verifyMessage(
+        serializeObject(signedTransaction.transaction),
+        signedTransaction.signature
+      )
+    } catch (e) {
+      throw e
+    }
+
+    const transaction: Transaction = signedTransaction.transaction
+    if (isTransferTransaction(transaction)) {
+      return this.applyTransfer(sender, transaction)
+    } else if (isSwapTransaction(transaction)) {
+      return this.applySwap(sender, transaction)
+    }
+    throw new InvalidTransactionTypeError()
   }
 
   private _getBalances(
@@ -96,29 +94,6 @@ export class MockRollupStateMachine {
     return this.state[account].balances
   }
 
-  public applyTransaction(
-    signedTransaction: SignedTransaction
-  ): TransactionReceipt {
-    let sender: Address
-
-    try {
-      sender = this.signatureVerifier.verifyMessage(
-        serializeObject(signedTransaction.transaction),
-        signedTransaction.signature
-      )
-    } catch (e) {
-      throw e
-    }
-
-    const transaction: Transaction = signedTransaction.transaction
-    if (isTransferTransaction(transaction)) {
-      return this.applyTransfer(sender, transaction)
-    } else if (isSwapTransaction(transaction)) {
-      return this.applySwap(sender, transaction)
-    }
-    throw new InvalidTransactionTypeError()
-  }
-
   private getTxReceipt(stateUpdate: any): TransactionReceipt {
     return {
       aggregatorSignature: 'MOCKED',
@@ -132,10 +107,7 @@ export class MockRollupStateMachine {
     return balances[tokenType] >= balance
   }
 
-  private applyTransfer(
-    sender: Address,
-    transfer: Transfer
-  ): TransactionReceipt {
+  private applyTransfer(sender: Address, transfer: Transfer): State {
     // Make sure the amount is above zero
     if (transfer.amount < 1) {
       throw new NegativeAmountError()
@@ -150,13 +122,13 @@ export class MockRollupStateMachine {
     this._getBalances(sender)[transfer.tokenType] -= transfer.amount
     this._getBalances(transfer.recipient)[transfer.tokenType] += transfer.amount
 
-    return this.getTxReceipt({
-      sender: this.state[sender],
-      recipient: this.state[transfer.recipient],
-    })
+    return {
+      [sender]: this.state[sender],
+      [transfer.recipient]: this.state[transfer.recipient],
+    }
   }
 
-  private applySwap(sender: Address, swap: Swap): TransactionReceipt {
+  private applySwap(sender: Address, swap: Swap): State {
     // Make sure the amount is above zero
     if (swap.inputAmount < 1) {
       throw new NegativeAmountError()
@@ -172,14 +144,14 @@ export class MockRollupStateMachine {
     this.updateBalancesFromSwap(swap, sender)
 
     // Return a succssful swap!
-    return this.getTxReceipt({
-      sender: this.state[sender],
-      uniswap: this.state[UNISWAP_ADDRESS],
-    })
+    return {
+      [sender]: this.state[sender],
+      [UNISWAP_ADDRESS]: this.state[UNISWAP_ADDRESS],
+    }
   }
 
   private updateBalancesFromSwap(swap: Swap, sender: Address): void {
-    const uniswapBalances: Balances = this.getUniswapBalances()
+    const uniswapBalances: Balances = this._getBalances(UNISWAP_ADDRESS)
     // First let's figure out which token types are input & output
     const inputTokenType = swap.tokenType
     const outputTokenType =

@@ -1,12 +1,13 @@
-import './setup'
+import '../setup'
 
 /* External Imports */
 import { SimpleClient } from '@pigi/core'
 
 /* Internal Imports */
-import { AGGREGATOR_MNEMONIC, getGenesisState } from './helpers'
-import { UNI_TOKEN_TYPE, MockAggregator } from '../src'
 import { ethers } from 'ethers'
+import { MockAggregator } from '../../src/mock'
+import { AGGREGATOR_MNEMONIC, getGenesisState } from '../helpers'
+import { UNI_TOKEN_TYPE } from '../../src'
 
 /*********
  * TESTS *

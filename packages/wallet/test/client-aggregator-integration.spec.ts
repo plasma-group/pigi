@@ -75,18 +75,20 @@ describe('Mock Client/Aggregator Integration', async () => {
 
     it('should successfully transfer if alice sends money', async () => {
       // Set "sign" to instead sign for alice
+      const recipient = 'testing123'
       const response = await unipigWallet.rollup.sendTransaction(
         {
           tokenType: UNI_TOKEN_TYPE,
-          recipient: 'testing123',
+          recipient,
           amount: 10,
         },
         accountAddress
       )
-      response.recipient.balances.uni.should.equal(10)
+      response[recipient].balances.uni.should.equal(10)
     }).timeout(timeout)
 
     it('should successfully transfer if first faucet is requested', async () => {
+      const recipient = 'testing123'
       const newPassword = 'new address password'
       const newAddress = await unipigWallet.createAccount(newPassword)
       await unipigWallet.unlockAccount(newAddress, newPassword)
@@ -103,12 +105,12 @@ describe('Mock Client/Aggregator Integration', async () => {
       const transferRes = await unipigWallet.rollup.sendTransaction(
         {
           tokenType: UNI_TOKEN_TYPE,
-          recipient: 'testing123',
+          recipient,
           amount: 10,
         },
         newAddress
       )
-      transferRes.recipient.balances.uni.should.equal(10)
+      transferRes[recipient].balances.uni.should.equal(10)
     }).timeout(timeout)
   })
 })

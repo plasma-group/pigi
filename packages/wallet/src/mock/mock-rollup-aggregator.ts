@@ -5,7 +5,7 @@ import {
   SimpleServer,
   serializeObject,
   DefaultSignatureProvider,
-} from '@pigi/core'
+} from '@pigi/core/build/index'
 
 /* Internal Imports */
 import {
@@ -17,13 +17,15 @@ import {
   TransactionReceipt,
   UNI_TOKEN_TYPE,
   PIGI_TOKEN_TYPE,
-  AGGREGATOR_ADDRESS,
   generateTransferTx,
   AGGREGATOR_API,
   Transaction,
   SignatureProvider,
-} from '.'
+  UNISWAP_ADDRESS,
+  AGGREGATOR_ADDRESS,
+} from '../index'
 import { ethers } from 'ethers'
+import { RollupStateMachine } from '../types'
 
 /*
  * Generate two transactions which together send the user some UNI
@@ -69,7 +71,7 @@ const generateFaucetTxs = async (
  * balance queries, & faucet requests
  */
 export class MockAggregator extends SimpleServer {
-  public rollupStateMachine: MockRollupStateMachine
+  public rollupStateMachine: RollupStateMachine
 
   constructor(
     genesisState: State,
@@ -79,7 +81,7 @@ export class MockAggregator extends SimpleServer {
     signatureVerifier: SignatureVerifier = DefaultSignatureVerifier.instance(),
     middleware?: Function[]
   ) {
-    const rollupStateMachine = new MockRollupStateMachine(
+    const rollupStateMachine: RollupStateMachine = new MockRollupStateMachine(
       genesisState,
       signatureVerifier
     )
@@ -94,21 +96,34 @@ export class MockAggregator extends SimpleServer {
       /*
        * Get balances for some account
        */
-      [AGGREGATOR_API.getBalances]: (account: Address): Balances =>
-        rollupStateMachine.getBalances(account),
+      [AGGREGATOR_API.getBalances]: async (
+        account: Address
+      ): Promise<Balances> => rollupStateMachine.getBalances(account),
 
       /*
        * Get balances for Uniswap
        */
-      [AGGREGATOR_API.getUniswapBalances]: (): Balances =>
-        rollupStateMachine.getUniswapBalances(),
+      [AGGREGATOR_API.getUniswapBalances]: async (): Promise<Balances> =>
+        rollupStateMachine.getBalances(UNISWAP_ADDRESS),
 
       /*
        * Apply either a transfer or swap transaction
        */
-      [AGGREGATOR_API.applyTransaction]: (
+      [AGGREGATOR_API.applyTransaction]: async (
         transaction: SignedTransaction
-      ): TransactionReceipt => rollupStateMachine.applyTransaction(transaction),
+      ): Promise<TransactionReceipt> => {
+        const stateUpdate: State = await rollupStateMachine.applyTransaction(
+          transaction
+        )
+        const aggregatorSignature: string = await signatureProvider.sign(
+          AGGREGATOR_ADDRESS,
+          serializeObject(stateUpdate)
+        )
+        return {
+          aggregatorSignature,
+          stateUpdate,
+        }
+      },
 
       /*
        * Request money from a faucet

@@ -4,7 +4,7 @@ import {
   RpcClient,
   serializeObject,
   SignatureProvider,
-} from '@pigi/core'
+} from '@pigi/core/build/index'
 
 /* Internal Imports */
 import {
@@ -12,11 +12,10 @@ import {
   Balances,
   State,
   Transaction,
-  MockedSignature,
   TransactionReceipt,
   UNISWAP_ADDRESS,
   AGGREGATOR_API,
-} from '.'
+} from '../index'
 
 /**
  * Simple Rollup Client enabling getting balances & sending transactions.

@@ -1,4 +1,4 @@
-import { DefaultWallet, abi } from '@pigi/core'
+import { DefaultWallet, abi } from '@pigi/core/build/index'
 
 export type UniTokenType = 'uni'
 export type PigiTokenType = 'pigi'
@@ -51,7 +51,7 @@ export interface SignedTransaction {
 }
 
 export interface TransactionReceipt {
-  aggregatorSignature: MockedSignature
+  aggregatorSignature: Signature
   stateUpdate: any
 }
 

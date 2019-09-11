@@ -1,5 +1,5 @@
-import { Address, TokenType, Transaction } from '.'
-import { SignatureProvider, SignatureVerifier } from '@pigi/core'
+import { Address, TokenType, Transaction } from '../index'
+import { SignatureProvider, SignatureVerifier } from '@pigi/core/build/index'
 
 /* Utilities */
 export const generateTransferTx = (
