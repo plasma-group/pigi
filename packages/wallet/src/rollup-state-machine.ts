@@ -1,4 +1,5 @@
 /* External Imports */
+import * as AsyncLock from 'async-lock'
 import {
   DefaultSignatureVerifier,
   serializeObject,
@@ -8,7 +9,6 @@ import {
   SparseMerkleTreeImpl,
   BigNumber,
   keccak256,
-  deserializeObject,
   objectToBuffer,
   deserializeBuffer,
   ONE,
@@ -24,7 +24,6 @@ import {
   isTransferTransaction,
   Transaction,
   SignedTransaction,
-  TransactionReceipt,
   UNISWAP_ADDRESS,
   UNI_TOKEN_TYPE,
   PIGI_TOKEN_TYPE,
@@ -40,7 +39,10 @@ import {
 } from './types'
 
 export class DefaultRollupStateMachine implements RollupStateMachine {
+  private static readonly lockKey: string = 'lock'
+
   private readonly tree: SparseMerkleTree
+  private readonly lock: AsyncLock = new AsyncLock()
 
   public static async create(
     genesisState: State,
@@ -105,13 +107,15 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       throw e
     }
 
-    const transaction: Transaction = signedTransaction.transaction
-    if (isTransferTransaction(transaction)) {
-      return this.applyTransfer(sender, transaction)
-    } else if (isSwapTransaction(transaction)) {
-      return this.applySwap(sender, transaction)
-    }
-    throw new InvalidTransactionTypeError()
+    return this.lock.acquire(DefaultRollupStateMachine.lockKey, async () => {
+      const transaction: Transaction = signedTransaction.transaction
+      if (isTransferTransaction(transaction)) {
+        return this.applyTransfer(sender, transaction)
+      } else if (isSwapTransaction(transaction)) {
+        return this.applySwap(sender, transaction)
+      }
+      throw new InvalidTransactionTypeError()
+    })
   }
 
   private async setAddressState(
