@@ -18,32 +18,28 @@ contract DataTypes {
 
     /*** Txs ***/
     struct SwapTx {
+        bytes signature;
         uint tokenType;
-        uint32 inputAmount;
-        uint32 minOutputAmount;
+        uint40 inputAmount;
+        uint40 minOutputAmount;
         uint timeout;
     }
 
     struct TransferTx {
-        uint tokenType;
-        uint32 recipient;
-        uint32 amount;
-    }
-
-    struct TransferNewAddressTx {
-        uint tokenType;
-        address recipient;
-        uint32 amount;
-    }
-
-    struct SignedTx {
         bytes signature;
-        bytes body;
+        uint tokenType;
+        uint40 recipient;
+        uint40 amount;
+    }
+
+    struct CreateNewStorageSlotTx {
+        uint40 storageSlot;
+        address pubkey;
     }
 
     /*** Transitions ***/
     struct Transition {
-        SignedTx signedTx;
+        bytes tx;
         bytes32 postState;
     }
 
@@ -61,7 +57,7 @@ contract DataTypes {
     /*** Storage ***/
     struct Storage {
         address pubkey;
-        uint32[2] balances;
+        uint40[2] balances;
     }
 
     struct StorageSlot {

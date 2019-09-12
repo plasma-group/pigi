@@ -38,10 +38,17 @@ import {
 import debug from 'debug'
 const log = debug('test:info:unipig-transition-evaluator')
 
-
 /* Contract Imports */
 import * as UnipigTransitionEvaluator from '../../build/UnipigTransitionEvaluator.json'
 import * as SparseMerkleTreeLib from '../../build/SparseMerkleTreeLib.json'
+
+/* Helpers */
+const STORAGE_TREE_HEIGHT = 5
+const AMOUNT_BYTES = 5
+const getSlot = (storageSlot: string) => makePaddedUint(storageSlot, STORAGE_TREE_HEIGHT)
+const getAmount = (amount: string) => makePaddedUint(amount, AMOUNT_BYTES)
+const getAddress = (address: string) => makeRepeatedBytes(address, 20)
+const getSignature = (sig: string) => makeRepeatedBytes(sig, 65)
 
 /* Begin tests */
 describe.only('UnipigTransitionEvaluator', () => {
@@ -59,42 +66,42 @@ describe.only('UnipigTransitionEvaluator', () => {
   /*
    * Test inferTxType()
    */
-  describe('inferTxType() ', async () => {
+  describe.only('inferTxType() ', async () => {
     const txTypes = {
-      NEW_ACCOUNT_TRANSFER_TYPE: 0,
+      NEW_STORAGE_SLOT_TYPE: 0,
       STORED_ACCOUNT_TRANSFER_TYPE: 1,
       SWAP_TYPE: 2,
     }
 
     it('should infer a transfer tx to a new account', async () => {
       // Create a tx which we will infer the type of
-      const unsignedTx = {
-        tokenType: 1,
-        recipient: makeRepeatedBytes('01', 20), // address type
-        amount: '0x0003232', // some uint32 value
+      const tx = {
+        storageSlot: getSlot('555'),
+        pubkey: getAddress('01'),
       }
       // Encode!
       const encoded = abi.encode(
-        ['uint', 'address', 'uint32'],
-        [unsignedTx.tokenType, unsignedTx.recipient, unsignedTx.amount]
+        ['uint', 'address'],
+        [tx.storageSlot, tx.pubkey]
       )
       // Attempt to infer the transaction type
       const res = await unipigEvaluator.inferTxType(encoded)
       // Check that it's the correct type
-      res.should.equal(txTypes.NEW_ACCOUNT_TRANSFER_TYPE)
+      res.should.equal(txTypes.NEW_STORAGE_SLOT_TYPE)
     })
 
-    it('should infer a transfer transaction to a stored account', async () => {
+    it('should infer a transfer transaction', async () => {
       // Create a transaction which we will infer the type of
       const tx = {
+        signature: getSignature('0'),
         tokenType: 1,
-        recipient: '0x00000003', // some uint32 representing a storage slot
-        amount: '0x0003232', // some uint32 value
+        recipient: getSlot('555'),
+        amount: getAmount('3'),
       }
       // Encode!
       const encoded = abi.encode(
-        ['uint', 'uint32', 'uint32'],
-        [tx.tokenType, tx.recipient, tx.amount]
+        ['bytes', 'uint', 'uint40', 'uint40'],
+        [tx.signature, tx.tokenType, tx.recipient, tx.amount]
       )
       // Attempt to infer the transaction type
       const res = await unipigEvaluator.inferTxType(encoded)
@@ -105,20 +112,32 @@ describe.only('UnipigTransitionEvaluator', () => {
     it('should infer a transfer transaction to a swap', async () => {
       // Create a transaction which we will infer the type of
       const tx = {
+        signature: getSignature('0'),
         tokenType: 1,
-        inputAmount: '0x0000000000004353',
-        minOutputAmount: '0x0000000000004353',
+        inputAmount: getAmount('1010'),
+        minOutputAmount: getAmount('1000'),
         timeout: makeRepeatedBytes('08', 32),
       }
       // Encode!
       const encoded = abi.encode(
-        ['uint', 'bytes8', 'bytes8', 'bytes32'],
-        [tx.tokenType, tx.inputAmount, tx.minOutputAmount, tx.timeout]
+        ['bytes', 'uint', 'uint40', 'uint40', 'bytes32'],
+        [tx.signature, tx.tokenType, tx.inputAmount, tx.minOutputAmount, tx.timeout]
       )
       // Attempt to infer the transaction type
       const res = await unipigEvaluator.inferTxType(encoded)
       // Check that it's the correct type
       res.should.equal(txTypes.SWAP_TYPE)
+    })
+
+    it('should revert if a tx has the wrong number of bytes', async () => {
+      try {
+        // Attempt to infer a faulty tx type
+        const res = await unipigEvaluator.inferTxType('0x1234')
+      } catch (err) {
+        // Success we threw an error!
+        return
+      }
+      throw new Error('Revert expected on invalid tx type length')
     })
   })
 

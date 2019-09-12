@@ -186,8 +186,7 @@ contract RollupChain {
         // how to generate that encoding client-side.
         return keccak256(
             abi.encode(
-                _transition.signedTx.signature,
-                _transition.signedTx.body,
+                _transition.tx,
                 _transition.postState
             )
         );

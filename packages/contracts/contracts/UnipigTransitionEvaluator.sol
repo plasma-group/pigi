@@ -7,11 +7,29 @@ import {TransitionEvaluator} from "./TransitionEvaluator.sol";
 
 contract UnipigTransitionEvaluator is TransitionEvaluator {
     function evaluateTransition(
-        dt.SignedTx calldata _signedTx,
-        dt.StorageSlot[] calldata storageSlots
+        bytes calldata _tx,
+        dt.IncludedStorage[] calldata storageSlots
     ) external returns(bytes32[2] memory) {
         bytes32[2] memory outputs;
         return outputs;
+    }
+
+    /**
+     * Return the tx type inferred by the length of bytes
+     */
+    function inferTxType(
+        bytes memory _tx
+    ) public view returns(uint) {
+        if (_tx.length == 64) {
+            return 0;
+        }
+        if (_tx.length == 256) {
+            return 1;
+        }
+        if (_tx.length == 288) {
+            return 2;
+        }
+        revert("Tx type not recognized!");
     }
 }
 
@@ -27,29 +45,6 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
     //     return resultingValue == 0;
     // }
 
-    // /**
-    //  * Cast bytes to the a specific tx type
-    //  */
-    // function inferTxType(
-    //     bytes memory _tx
-    // ) public view returns(uint) {
-    //     // 128 is the length of a transfer tx
-    //     if (_tx.length == 128) {
-    //         // We're a swap for sure
-    //         return SWAP_TYPE;
-    //     }
-    //     // Otherwise we're a transfer for sure... but which kind?
-    //     (bytes32 tokenType, bytes32 account, bytes32 amount) = abi.decode(_tx, (bytes32, bytes32, bytes32));
-    //     // Now we need to check if the account is a uint8 or if it's a real address
-    //     if (isUint32(account)) {
-    //         // If it is that means we're referencing a stored value.
-    //         // Note you can fool this check if you have an account that fit into a uint8.
-    //         // Long term we will want to stop padding our encoded values to remove this possibility.
-    //         return STORED_ACCOUNT_TRANSFER_TYPE;
-    //     }
-    //     // Otherwise we must be dealing with a new account!
-    //     return NEW_ACCOUNT_TRANSFER_TYPE;
-    // }
 
 
     // /*******************************

@@ -18,7 +18,7 @@ export function makeRepeatedBytes(value: string, length: number): string {
 
 // Make padded bytes. Bytes are right padded.
 export function makePaddedBytes(value: string, length: number): string {
-  if (value.length > length) {
+  if (value.length > length*2) {
     throw new Error('Value too large to fit in ' + length + ' byte string')
   }
   const targetLength = length * 2
@@ -28,7 +28,7 @@ export function makePaddedBytes(value: string, length: number): string {
 
 // Make a padded uint. Uints are left padded.
 export function makePaddedUint(value: string, length: number): string {
-  if (value.length > length) {
+  if (value.length > length*2) {
     throw new Error('Value too large to fit in ' + length + ' byte string')
   }
   const targetLength = length * 2
