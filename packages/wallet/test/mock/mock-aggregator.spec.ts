@@ -2,37 +2,39 @@ import '../setup'
 import MemDown from 'memdown'
 
 /* External Imports */
-import { BaseDB, SimpleClient } from '@pigi/core'
+import { BaseDB, DB, SimpleClient } from '@pigi/core'
 
 /* Internal Imports */
 import { ethers } from 'ethers'
 import { MockAggregator } from '../../src/mock'
 import { AGGREGATOR_MNEMONIC, getGenesisState } from '../helpers'
-import { UNI_TOKEN_TYPE } from '../../src'
+import { UNI_TOKEN_TYPE, DefaultRollupStateMachine } from '../../src'
 import { RollupStateMachine } from '../../src/types'
-import { DefaultRollupStateMachine } from '../../src/rollup-state-machine'
 
 /*********
  * TESTS *
  *********/
 
 describe('MockAggregator', async () => {
-  let aggregator
   let client
-  let db
+  let aggregator: MockAggregator
+  let stateDB: DB
+  let blockDB: DB
 
-  let aliceWallet
+  let aliceWallet: ethers.Wallet
 
   beforeEach(async () => {
     aliceWallet = ethers.Wallet.createRandom()
-    db = new BaseDB(new MemDown('') as any)
+    stateDB = new BaseDB(new MemDown('state') as any)
+    blockDB = new BaseDB(new MemDown('block') as any)
 
     const rollupStateMachine: RollupStateMachine = await DefaultRollupStateMachine.create(
       getGenesisState(aliceWallet.address),
-      db
+      stateDB
     )
 
     aggregator = new MockAggregator(
+      blockDB,
       rollupStateMachine,
       'localhost',
       3000,
@@ -46,7 +48,8 @@ describe('MockAggregator', async () => {
   afterEach(async () => {
     // Close the server
     await aggregator.close()
-    await db.close()
+    await stateDB.close()
+    await blockDB.close()
   })
 
   describe('getBalances', async () => {

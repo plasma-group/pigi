@@ -72,13 +72,14 @@ export interface StateUpdate {
 
 export interface RollupBlock {
   number: number
-  transaction: SignedTransaction
+  transactions: SignedTransaction[]
   startRoot: string
   endRoot: string
 }
 
 export interface TransactionReceipt {
-  guaranteedBlockNumber: number
+  blockNumber: number
+  transactionIndex: number
   transaction: SignedTransaction
   startRoot: string
   endRoot: string

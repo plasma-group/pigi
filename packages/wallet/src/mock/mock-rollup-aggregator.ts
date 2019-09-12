@@ -5,6 +5,8 @@ import {
   SimpleServer,
   serializeObject,
   DefaultSignatureProvider,
+  DB,
+  objectToBuffer,
 } from '@pigi/core'
 
 /* Internal Imports */
@@ -73,12 +75,14 @@ const generateFaucetTxs = async (
  * balance queries, & faucet requests
  */
 export class MockAggregator extends SimpleServer {
+  private readonly db: DB
   private blockNumber: number
   private readonly pendingRollupBlocks: RollupBlock[]
   private readonly rollupStateMachine: RollupStateMachine
   private readonly signatureProvider: SignatureProvider
 
   constructor(
+    db: DB,
     rollupStateMachine: RollupStateMachine,
     hostname: string,
     port: number,
@@ -138,7 +142,7 @@ export class MockAggregator extends SimpleServer {
           faucetTxs
         )
 
-        // TODO: I'm sure this will be initiated by a signed transaction
+        //TODO: I'm sure this will be initiated by a signed transaction
         // When the signature gets updated to reflect that, pass it to respond(...)
         return this.respond(stateUpdate, undefined)
       },
@@ -146,6 +150,7 @@ export class MockAggregator extends SimpleServer {
     super(methods, hostname, port, middleware)
     this.rollupStateMachine = rollupStateMachine
     this.signatureProvider = signatureProvider
+    this.db = db
     this.blockNumber = 1
     this.pendingRollupBlocks = []
   }
@@ -162,10 +167,14 @@ export class MockAggregator extends SimpleServer {
     stateUpdate: StateUpdate,
     transaction: SignedTransaction
   ): Promise<SignedTransactionReceipt> {
-    const block: RollupBlock = this.addPendingBlock(stateUpdate, transaction)
+    const block: RollupBlock = await this.addToPendingBlock(
+      stateUpdate,
+      transaction
+    )
 
     const transactionReceipt: TransactionReceipt = {
-      guaranteedBlockNumber: block.number,
+      blockNumber: block.number,
+      transactionIndex: 0, //TODO: change when we allow multiple per block
       transaction,
       startRoot: block.startRoot,
       endRoot: block.endRoot,
@@ -190,19 +199,30 @@ export class MockAggregator extends SimpleServer {
    * @param transaction The signed transaction received as input
    * @returns The rollup block
    */
-  private addPendingBlock(
+  private async addToPendingBlock(
     update: StateUpdate,
     transaction: SignedTransaction
-  ): RollupBlock {
+  ): Promise<RollupBlock> {
+    //TODO: Since it's async, blocks might not be in order of startRoot / endRoot
+    // do we want to enforce that?
     const rollupBlock: RollupBlock = {
       number: this.blockNumber++,
-      transaction,
+      transactions: [transaction],
       startRoot: update.startRoot,
       endRoot: update.endRoot,
     }
 
-    this.pendingRollupBlocks.push(rollupBlock)
+    await this.db.put(
+      this.getBlockKey(rollupBlock.number),
+      objectToBuffer(rollupBlock)
+    )
 
     return rollupBlock
+  }
+
+  private getBlockKey(blockNum: number): Buffer {
+    const buff = Buffer.alloc(256)
+    buff.writeUInt32BE(blockNum, 0)
+    return buff
   }
 }

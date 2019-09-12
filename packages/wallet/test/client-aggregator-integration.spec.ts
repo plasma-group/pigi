@@ -17,31 +17,36 @@ import { DefaultRollupStateMachine } from '../src/rollup-state-machine'
 const timeout = 20_000
 
 describe('Mock Client/Aggregator Integration', async () => {
-  let db: DB
+  let stateDB: DB
+  let blockDB: DB
   let accountAddress: string
   let aggregator: MockAggregator
   let unipigWallet: UnipigWallet
-  let memdown: any
+  let stateMemdown: any
+  let blockMemdown: any
   const walletPassword = 'Really great password'
 
   beforeEach(async function() {
     this.timeout(timeout)
 
-    memdown = new MemDown('') as any
-    db = new BaseDB(memdown)
-    unipigWallet = new UnipigWallet(db)
+    stateMemdown = new MemDown('state') as any
+    stateDB = new BaseDB(stateMemdown)
+    blockMemdown = new MemDown('block') as any
+    blockDB = new BaseDB(blockMemdown)
+    unipigWallet = new UnipigWallet(stateDB)
 
     // Now create a wallet account
     accountAddress = await unipigWallet.createAccount(walletPassword)
 
     const rollupStateMachine: RollupStateMachine = await DefaultRollupStateMachine.create(
       getGenesisState(accountAddress),
-      db
+      stateDB
     )
 
     // Initialize a mock aggregator
     await unipigWallet.unlockAccount(accountAddress, walletPassword)
     aggregator = new MockAggregator(
+      blockDB,
       rollupStateMachine,
       'localhost',
       3000,
@@ -58,8 +63,10 @@ describe('Mock Client/Aggregator Integration', async () => {
       // Close the server
       await aggregator.close()
     }
-    await db.close()
-    memdown = undefined
+    await stateDB.close()
+    stateMemdown = undefined
+    await blockDB.close()
+    blockMemdown = undefined
   })
 
   describe('UnipigWallet', async () => {
