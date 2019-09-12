@@ -37,7 +37,19 @@ export const isTransferTransaction = (
   return 'recipient' in transaction
 }
 
-export type Transaction = Swap | Transfer
+export interface FaucetRequest {
+  requester: Address
+  // Todo: might want to change this to token -> amount map
+  amount: number
+}
+
+export const isFaucetTransaction = (
+  transaction: Transaction
+): transaction is FaucetRequest => {
+  return 'requester' in transaction
+}
+
+export type Transaction = Swap | Transfer | FaucetRequest
 
 export type Signature = string
 
@@ -70,16 +82,22 @@ export interface StateUpdate {
   updatedStateInclusionProof: StateInclusionProof
 }
 
-export interface RollupBlock {
+export interface RollupTransition {
   number: number
+  blockNumber: number
   transactions: SignedTransaction[]
   startRoot: string
   endRoot: string
 }
 
+export interface RollupBlock {
+  number: number
+  transitions: RollupTransition[]
+}
+
 export interface TransactionReceipt {
   blockNumber: number
-  transactionIndex: number
+  transitionIndex: number
   transaction: SignedTransaction
   startRoot: string
   endRoot: string

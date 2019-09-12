@@ -6,7 +6,13 @@ import MemDown from 'memdown'
 
 /* Internal Imports */
 import { AGGREGATOR_MNEMONIC, getGenesisState } from './helpers'
-import { UnipigWallet, MockAggregator, UNI_TOKEN_TYPE } from '../src'
+import {
+  UnipigWallet,
+  MockAggregator,
+  UNI_TOKEN_TYPE,
+  FaucetRequest,
+  SignedTransaction,
+} from '../src'
 import { RollupStateMachine } from '../src/types'
 import { DefaultRollupStateMachine } from '../src/rollup-state-machine'
 
@@ -32,7 +38,7 @@ describe('Mock Client/Aggregator Integration', async () => {
     stateMemdown = new MemDown('state') as any
     stateDB = new BaseDB(stateMemdown)
     blockMemdown = new MemDown('block') as any
-    blockDB = new BaseDB(blockMemdown)
+    blockDB = new BaseDB(blockMemdown, 256)
     unipigWallet = new UnipigWallet(stateDB)
 
     // Now create a wallet account
@@ -110,10 +116,16 @@ describe('Mock Client/Aggregator Integration', async () => {
       const newAddress = await unipigWallet.createAccount(newPassword)
       await unipigWallet.unlockAccount(newAddress, newPassword)
 
+      // Request some money for new wallet
+      const transaction: FaucetRequest = {
+        requester: newAddress,
+        amount: 10,
+      }
+
       // First collect some funds from the faucet
       const faucetRes = await unipigWallet.rollup.requestFaucetFunds(
-        newAddress,
-        10
+        transaction,
+        newAddress
       )
       faucetRes.should.deep.equal({
         uni: 10,

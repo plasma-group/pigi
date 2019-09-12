@@ -80,12 +80,19 @@ export class MockRollupClient {
   }
 
   public async requestFaucetFunds(
-    account: Address,
-    amount: number
+    transaction: Transaction,
+    account: Address
   ): Promise<Balances> {
+    const signature = await this.signatureProvider.sign(
+      account,
+      serializeObject(transaction)
+    )
     const result = await this.rpcClient.handle<SignedTransactionReceipt>(
       AGGREGATOR_API.requestFaucetFunds,
-      [account, amount]
+      {
+        signature,
+        transaction,
+      }
     )
     // TODO: Probably want too check aggregator sig and store some stuff
     return result.updatedState[account].balances

@@ -1,4 +1,6 @@
 /* External Imports */
+import * as AsyncLock from 'async-lock'
+
 import {
   SignatureVerifier,
   DefaultSignatureVerifier,
@@ -7,13 +9,13 @@ import {
   DefaultSignatureProvider,
   DB,
   objectToBuffer,
+  SparseMerkleTree,
 } from '@pigi/core'
 
 /* Internal Imports */
 import {
   Address,
   SignedTransaction,
-  State,
   Balances,
   TransactionReceipt,
   UNI_TOKEN_TYPE,
@@ -24,9 +26,11 @@ import {
   SignatureProvider,
   UNISWAP_ADDRESS,
   AGGREGATOR_ADDRESS,
-  RollupBlock,
+  RollupTransition,
   StateUpdate,
   SignedTransactionReceipt,
+  isFaucetTransaction,
+  RollupBlock,
 } from '../index'
 import { ethers } from 'ethers'
 import { RollupStateMachine } from '../types'
@@ -75,9 +79,13 @@ const generateFaucetTxs = async (
  * balance queries, & faucet requests
  */
 export class MockAggregator extends SimpleServer {
+  private static readonly lockKey: string = 'lock'
+
   private readonly db: DB
+  private readonly lock: AsyncLock
   private blockNumber: number
-  private readonly pendingRollupBlocks: RollupBlock[]
+  private transitionNumber: number
+  private pendingBlock: RollupBlock
   private readonly rollupStateMachine: RollupStateMachine
   private readonly signatureProvider: SignatureProvider
 
@@ -114,70 +122,105 @@ export class MockAggregator extends SimpleServer {
        * Apply either a transfer or swap transaction
        */
       [AGGREGATOR_API.applyTransaction]: async (
-        transaction: SignedTransaction
+        signedTransaction: SignedTransaction
       ): Promise<SignedTransactionReceipt> => {
-        const stateUpdate: StateUpdate = await rollupStateMachine.applyTransaction(
-          transaction
+        const [stateUpdate, transition] = await this.lock.acquire(
+          MockAggregator.lockKey,
+          async () => {
+            const update: StateUpdate = await rollupStateMachine.applyTransaction(
+              signedTransaction
+            )
+            const trans: RollupTransition = await this.addToPendingBlock(
+              update,
+              signedTransaction
+            )
+            return [update, trans]
+          }
         )
 
-        return this.respond(stateUpdate, transaction)
+        return this.respond(stateUpdate, transition, signedTransaction)
       },
 
       /*
        * Request money from a faucet
        */
       [AGGREGATOR_API.requestFaucetFunds]: async (
-        params: [Address, number]
+        signedTransaction: SignedTransaction
       ): Promise<SignedTransactionReceipt> => {
-        const [recipient, amount] = params
+        if (!isFaucetTransaction(signedTransaction.transaction)) {
+          throw Error('Cannot handle non-Faucet Request in faucet endpoint')
+        }
+        const messageSigner: Address = signatureVerifier.verifyMessage(
+          serializeObject(signedTransaction.transaction),
+          signedTransaction.signature
+        )
+        if (messageSigner !== signedTransaction.transaction.requester) {
+          throw Error('Faucet requests must be signed by the request address')
+        }
+
+        // TODO: Probably need to check amount before blindly giving them this amount
+
+        const { requester, amount } = signedTransaction.transaction
         // Generate the faucet txs (one sending uni the other pigi)
         const faucetTxs = await generateFaucetTxs(
-          recipient,
+          requester,
           amount,
           wallet.address,
           signatureProvider
         )
-        // Apply the two txs
-        const stateUpdate: StateUpdate = await rollupStateMachine.applyTransactions(
-          faucetTxs
+
+        const [stateUpdate, transition] = await this.lock.acquire(
+          MockAggregator.lockKey,
+          async () => {
+            // Apply the two txs
+            const update: StateUpdate = await rollupStateMachine.applyTransactions(
+              faucetTxs
+            )
+
+            const trans: RollupTransition = await this.addToPendingBlock(
+              update,
+              signedTransaction
+            )
+            return [update, trans]
+          }
         )
 
-        //TODO: I'm sure this will be initiated by a signed transaction
-        // When the signature gets updated to reflect that, pass it to respond(...)
-        return this.respond(stateUpdate, undefined)
+        return this.respond(stateUpdate, transition, signedTransaction)
       },
     }
     super(methods, hostname, port, middleware)
     this.rollupStateMachine = rollupStateMachine
     this.signatureProvider = signatureProvider
     this.db = db
-    this.blockNumber = 1
-    this.pendingRollupBlocks = []
+    this.transitionNumber = 0
+    this.blockNumber = 0
+    this.pendingBlock = {
+      number: ++this.blockNumber,
+      transitions: [],
+    }
+    this.lock = new AsyncLock()
   }
 
   /**
-   * Creates a pending block for the provided StateUpdate and responds to the
-   * provided Transaction accordingly.
+   * Responds to the provided Transaction according to the provided resulting state
+   * update and rollup transition.
    *
    * @param stateUpdate The state update that resulted from this transaction
+   * @param transition The rollup transition for this transaction
    * @param transaction The transaction
    * @returns The signed transaction response
    */
   private async respond(
     stateUpdate: StateUpdate,
+    transition: RollupTransition,
     transaction: SignedTransaction
   ): Promise<SignedTransactionReceipt> {
-    const block: RollupBlock = await this.addToPendingBlock(
-      stateUpdate,
-      transaction
-    )
-
     const transactionReceipt: TransactionReceipt = {
-      blockNumber: block.number,
-      transactionIndex: 0, //TODO: change when we allow multiple per block
+      blockNumber: transition.blockNumber,
+      transitionIndex: transition.number,
       transaction,
-      startRoot: block.startRoot,
-      endRoot: block.endRoot,
+      startRoot: transition.startRoot,
+      endRoot: transition.endRoot,
       updatedState: stateUpdate.updatedState,
       updatedStateInclusionProof: stateUpdate.updatedStateInclusionProof,
     }
@@ -193,36 +236,55 @@ export class MockAggregator extends SimpleServer {
   }
 
   /**
-   * Adds and returns the pending block resulting from the provided StateUpdate.
+   * Adds and returns the pending transition resulting from the provided StateUpdate.
    *
    * @param update The state update in question
    * @param transaction The signed transaction received as input
-   * @returns The rollup block
+   * @returns The rollup transition
    */
   private async addToPendingBlock(
     update: StateUpdate,
     transaction: SignedTransaction
-  ): Promise<RollupBlock> {
-    //TODO: Since it's async, blocks might not be in order of startRoot / endRoot
-    // do we want to enforce that?
-    const rollupBlock: RollupBlock = {
-      number: this.blockNumber++,
+  ): Promise<RollupTransition> {
+    const transition: RollupTransition = {
+      number: this.transitionNumber++,
+      blockNumber: this.pendingBlock.number,
       transactions: [transaction],
       startRoot: update.startRoot,
       endRoot: update.endRoot,
     }
 
-    await this.db.put(
-      this.getBlockKey(rollupBlock.number),
-      objectToBuffer(rollupBlock)
-    )
+    await this.db
+      .bucket(this.getDBKeyFromNumber(this.pendingBlock.number))
+      .put(
+        this.getDBKeyFromNumber(transition.number),
+        objectToBuffer(transition)
+      )
 
-    return rollupBlock
+    return transition
   }
 
-  private getBlockKey(blockNum: number): Buffer {
+  /**
+   * Submits a block to the main chain, creating a new pending block for future
+   * transitions.
+   */
+  private async submitBlock(): Promise<void> {
+    return this.lock.acquire(MockAggregator.lockKey, async () => {
+      const toSubmit = this.pendingBlock
+
+      // TODO: submit block here
+
+      this.pendingBlock = {
+        number: ++this.blockNumber,
+        transitions: [],
+      }
+      this.transitionNumber = 0
+    })
+  }
+
+  private getDBKeyFromNumber(num: number): Buffer {
     const buff = Buffer.alloc(256)
-    buff.writeUInt32BE(blockNum, 0)
+    buff.writeUInt32BE(num, 0)
     return buff
   }
 }

@@ -2,13 +2,18 @@ import '../setup'
 import MemDown from 'memdown'
 
 /* External Imports */
-import { BaseDB, DB, SimpleClient } from '@pigi/core'
+import { BaseDB, DB, serializeObject, SimpleClient } from '@pigi/core'
 
 /* Internal Imports */
 import { ethers } from 'ethers'
 import { MockAggregator } from '../../src/mock'
 import { AGGREGATOR_MNEMONIC, getGenesisState } from '../helpers'
-import { UNI_TOKEN_TYPE, DefaultRollupStateMachine } from '../../src'
+import {
+  UNI_TOKEN_TYPE,
+  DefaultRollupStateMachine,
+  FaucetRequest,
+  SignedTransaction,
+} from '../../src'
 import { RollupStateMachine } from '../../src/types'
 
 /*********
@@ -26,7 +31,7 @@ describe('MockAggregator', async () => {
   beforeEach(async () => {
     aliceWallet = ethers.Wallet.createRandom()
     stateDB = new BaseDB(new MemDown('state') as any)
-    blockDB = new BaseDB(new MemDown('block') as any)
+    blockDB = new BaseDB(new MemDown('block') as any, 256)
 
     const rollupStateMachine: RollupStateMachine = await DefaultRollupStateMachine.create(
       getGenesisState(aliceWallet.address),
@@ -86,12 +91,29 @@ describe('MockAggregator', async () => {
 
   describe('requestFaucetFunds', async () => {
     it('should send money to the account who requested', async () => {
-      // Request some money for bob
-      await client.handle('requestFaucetFunds', ['bob', 10])
-      // Make sure bob got the money!
-      const bobBalances = await client.handle('getBalances', 'bob')
-      bobBalances.uni.should.equal(10)
-      bobBalances.pigi.should.equal(10)
+      const newWallet: ethers.Wallet = ethers.Wallet.createRandom()
+
+      // Request some money for new wallet
+      const transaction: FaucetRequest = {
+        requester: newWallet.address,
+        amount: 10,
+      }
+      const signature = await newWallet.signMessage(
+        serializeObject(transaction)
+      )
+      const signedRequest: SignedTransaction = {
+        signature,
+        transaction,
+      }
+
+      await client.handle('requestFaucetFunds', signedRequest)
+      // Make sure new wallet got the money!
+      const newWalletBalances = await client.handle(
+        'getBalances',
+        newWallet.address
+      )
+      newWalletBalances.uni.should.equal(10)
+      newWalletBalances.pigi.should.equal(10)
     })
   })
 })

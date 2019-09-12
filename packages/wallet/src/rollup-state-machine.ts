@@ -1,6 +1,5 @@
 /* External Imports */
 import * as AsyncLock from 'async-lock'
-import * as domain from 'domain'
 
 import {
   DefaultSignatureVerifier,
