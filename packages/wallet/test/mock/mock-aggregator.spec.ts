@@ -21,6 +21,8 @@ import {
   SignedTransaction,
   SignedTransactionReceipt,
   AGGREGATOR_ADDRESS,
+  AGGREGATOR_API,
+  SignedStateReceipt,
 } from '../../src'
 import { RollupStateMachine } from '../../src/types'
 
@@ -68,7 +70,10 @@ describe('MockAggregator', () => {
   const sendFromAliceToBob = async (
     amount
   ): Promise<SignedTransactionReceipt> => {
-    const bobBeforeBalances = await client.handle('getBalances', 'bob')
+    const beforeState: SignedStateReceipt = await client.handle(
+      AGGREGATOR_API.getState,
+      'bob'
+    )
     const transaction = {
       tokenType: UNI_TOKEN_TYPE,
       recipient: 'bob',
@@ -81,21 +86,35 @@ describe('MockAggregator', () => {
     }
     // Send some money to bob
     const receipt: SignedTransactionReceipt = await client.handle(
-      'applyTransaction',
+      AGGREGATOR_API.applyTransaction,
       txAliceToBob
     )
     // Make sure bob got the money!
-    const bobAfterBalances = await client.handle('getBalances', 'bob')
-    const uniDiff = bobAfterBalances.uni - bobBeforeBalances.uni
-    uniDiff.should.equal(amount)
+    const afterState: SignedStateReceipt = await client.handle(
+      AGGREGATOR_API.getState,
+      'bob'
+    )
+    if (!!beforeState.stateReceipt.state) {
+      const uniDiff =
+        afterState.stateReceipt.state['bob'].balances.uni -
+        beforeState.stateReceipt.state['bob'].balances.uni
+      uniDiff.should.equal(amount)
+    } else {
+      afterState.stateReceipt.state['bob'].balances.uni.should.equal(amount)
+    }
 
     return receipt
   }
 
-  describe('getBalances', () => {
+  describe('getState', () => {
     it('should allow the balance to be queried', async () => {
-      const response = await client.handle('getBalances', aliceWallet.address)
-      response.should.deep.equal({
+      const response: SignedStateReceipt = await client.handle(
+        AGGREGATOR_API.getState,
+        aliceWallet.address
+      )
+      response.stateReceipt.state[
+        aliceWallet.address
+      ].balances.should.deep.equal({
         uni: 50,
         pigi: 50,
       })
@@ -125,14 +144,18 @@ describe('MockAggregator', () => {
         transaction,
       }
 
-      await client.handle('requestFaucetFunds', signedRequest)
+      await client.handle(AGGREGATOR_API.requestFaucetFunds, signedRequest)
       // Make sure new wallet got the money!
-      const newWalletBalances = await client.handle(
-        'getBalances',
+      const newWalletState: SignedStateReceipt = await client.handle(
+        AGGREGATOR_API.getState,
         newWallet.address
       )
-      newWalletBalances.uni.should.equal(10)
-      newWalletBalances.pigi.should.equal(10)
+      newWalletState.stateReceipt.state[
+        newWallet.address
+      ].balances.uni.should.equal(10)
+      newWalletState.stateReceipt.state[
+        newWallet.address
+      ].balances.pigi.should.equal(10)
     })
   })
 
@@ -141,7 +164,7 @@ describe('MockAggregator', () => {
       const receipt: SignedTransactionReceipt = await sendFromAliceToBob(5)
       const signer: string = DefaultSignatureVerifier.instance().verifyMessage(
         serializeObject(receipt.transactionReceipt),
-        receipt.aggregatorSignature
+        receipt.signature
       )
 
       signer.should.equal(AGGREGATOR_ADDRESS)

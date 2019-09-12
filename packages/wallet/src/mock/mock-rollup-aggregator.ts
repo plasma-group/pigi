@@ -31,6 +31,9 @@ import {
   SignedTransactionReceipt,
   isFaucetTransaction,
   RollupBlock,
+  SignedStateReceipt,
+  StateReceipt,
+  Signature,
 } from '../index'
 import { ethers } from 'ethers'
 import { RollupStateMachine } from '../types'
@@ -108,15 +111,15 @@ export class MockAggregator extends SimpleServer {
       /*
        * Get balances for some account
        */
-      [AGGREGATOR_API.getBalances]: async (
+      [AGGREGATOR_API.getState]: async (
         account: Address
-      ): Promise<Balances> => rollupStateMachine.getBalances(account),
+      ): Promise<SignedStateReceipt> => this.getState(account),
 
       /*
        * Get balances for Uniswap
        */
-      [AGGREGATOR_API.getUniswapBalances]: async (): Promise<Balances> =>
-        rollupStateMachine.getBalances(UNISWAP_ADDRESS),
+      [AGGREGATOR_API.getUniswapState]: async (): Promise<SignedStateReceipt> =>
+        this.getState(UNISWAP_ADDRESS),
 
       /*
        * Apply either a transfer or swap transaction
@@ -201,6 +204,21 @@ export class MockAggregator extends SimpleServer {
     this.lock = new AsyncLock()
   }
 
+  private async getState(address: string): Promise<SignedStateReceipt> {
+    const stateReceipt: StateReceipt = await this.rollupStateMachine.getState(
+      address
+    )
+    const signature: Signature = await this.signatureProvider.sign(
+      AGGREGATOR_ADDRESS,
+      serializeObject(stateReceipt)
+    )
+
+    return {
+      stateReceipt,
+      signature,
+    }
+  }
+
   /**
    * Responds to the provided Transaction according to the provided resulting state
    * update and rollup transition.
@@ -225,12 +243,12 @@ export class MockAggregator extends SimpleServer {
       updatedStateInclusionProof: stateUpdate.updatedStateInclusionProof,
     }
 
-    const aggregatorSignature: string = await this.signatureProvider.sign(
+    const signature: string = await this.signatureProvider.sign(
       AGGREGATOR_ADDRESS,
       serializeObject(transactionReceipt)
     )
     return {
-      aggregatorSignature,
+      signature,
       transactionReceipt,
     }
   }

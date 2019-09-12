@@ -1,5 +1,3 @@
-import { InclusionProof } from '@pigi/core'
-
 export type UniTokenType = 'uni'
 export type PigiTokenType = 'pigi'
 export type TokenType = UniTokenType | PigiTokenType
@@ -70,8 +68,10 @@ export interface State {
   [address: string]: Storage
 }
 
+export type InclusionProof = string[]
+
 export interface StateInclusionProof {
-  [address: string]: string[]
+  [address: string]: InclusionProof
 }
 
 export interface StateUpdate {
@@ -106,6 +106,18 @@ export interface TransactionReceipt {
 }
 
 export interface SignedTransactionReceipt {
-  aggregatorSignature: Signature
   transactionReceipt: TransactionReceipt
+  signature: Signature
+}
+
+export interface StateReceipt {
+  address: string
+  state: State
+  stateRoot: string
+  inclusionProof: InclusionProof
+}
+
+export interface SignedStateReceipt {
+  stateReceipt: StateReceipt
+  signature: Signature
 }

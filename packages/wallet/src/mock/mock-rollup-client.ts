@@ -16,6 +16,7 @@ import {
   UNISWAP_ADDRESS,
   AGGREGATOR_API,
   SignedTransactionReceipt,
+  SignedStateReceipt,
 } from '../index'
 
 /**
@@ -50,11 +51,17 @@ export class MockRollupClient {
    * @param rpcClient the rpcClient to use -- normally it's a SimpleClient
    */
   public async getBalances(account: Address): Promise<Balances> {
-    const balances = await this.rpcClient.handle<Balances>(
-      AGGREGATOR_API.getBalances,
+    const signedStateReceipt = await this.rpcClient.handle<SignedStateReceipt>(
+      AGGREGATOR_API.getState,
       account
     )
-    return balances
+    // TODO: Check aggregator receipt
+
+    if (!signedStateReceipt.stateReceipt.state) {
+      return undefined
+    }
+
+    return signedStateReceipt.stateReceipt.state[account].balances
   }
 
   public async getUniswapBalances(): Promise<Balances> {

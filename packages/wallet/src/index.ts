@@ -11,8 +11,8 @@ export const PIGI_TOKEN_TYPE = 'pigi'
 
 /* Aggregator API */
 export const AGGREGATOR_API = {
-  getBalances: 'getBalances',
-  getUniswapBalances: 'getUniswapBalances',
+  getState: 'getState',
+  getUniswapState: 'getUniswapBalances',
   applyTransaction: 'applyTransaction',
   requestFaucetFunds: 'requestFaucetFunds',
 }
