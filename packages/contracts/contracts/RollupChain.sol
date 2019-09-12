@@ -4,9 +4,12 @@ pragma experimental ABIEncoderV2;
 /* Internal Imports */
 import {DataTypes as dt} from "./DataTypes.sol";
 import {SparseMerkleTreeLib} from "./SparseMerkleTreeLib.sol";
+import {TransitionVerifier} from "./TransitionVerifier.sol";
 
 contract RollupChain {
     /* Fields */
+    // The verifier for our STF
+    TransitionVerifier transitionVerifier;
     dt.Block[] public blocks;
     bytes32 public ZERO_BYTES32 = 0x0000000000000000000000000000000000000000000000000000000000000000;
     bytes32[3] private FAILED_TX_OUTPUT = [ZERO_BYTES32, ZERO_BYTES32, ZERO_BYTES32];
@@ -19,6 +22,13 @@ contract RollupChain {
     /* We need to keep a tree in storage which we will use for proving invalid transitions */
     using SparseMerkleTreeLib for SparseMerkleTreeLib.SparseMerkleTree;
     SparseMerkleTreeLib.SparseMerkleTree partialState;
+
+    /***************
+     * Constructor *
+     **************/
+    constructor() public {
+        // TODO: Initialize a transition verifier for this chain
+    }
 
     /* Methods */
     function isHalted() public view returns(bool) {
@@ -173,6 +183,7 @@ contract RollupChain {
         bytes32 preStateRoot = _preStateTransition.transition.postState;
         bytes32 postStateRoot = _invalidTransition.transition.postState;
         partialState.root = preStateRoot;
+
         // The storage nonce is always the last sibling
         uint storageNonce = uint(_inputStorage[0].inclusionProof.siblings[_inputStorage[0].inclusionProof.siblings.length - 1]);
 
@@ -244,7 +255,7 @@ contract RollupChain {
         // bool isIncluded =  SparseMerkleTreeLib.verify(
         //     rootHash,
         //     transitionHash,
-        //     _includedTransition.inclusionProof.path,
+        //     _includedTransition.inclusionProof.transitionIndex,
         //     _includedTransition.inclusionProof.siblings
         // );
         // return isIncluded;

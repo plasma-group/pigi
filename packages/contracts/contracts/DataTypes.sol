@@ -50,7 +50,6 @@ contract DataTypes {
     struct TransitionInclusionProof {
         uint blockNumber;
         uint transitionIndex;
-        uint path;
         bytes32[] siblings;
     }
 

@@ -27,6 +27,11 @@ import {
   BigNumber,
 } from '@pigi/core'
 
+/* Logging */
+import debug from 'debug'
+const log = debug('test:info:rollup-chain-manager')
+
+
 /* Contract Imports */
 import * as RollupChain from '../../build/RollupChain.json'
 import * as SparseMerkleTreeLib from '../../build/SparseMerkleTreeLib.json'
