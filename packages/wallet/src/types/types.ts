@@ -1,3 +1,5 @@
+import { InclusionProof } from '@pigi/core'
+
 export type UniTokenType = 'uni'
 export type PigiTokenType = 'pigi'
 export type TokenType = UniTokenType | PigiTokenType
@@ -37,17 +39,11 @@ export const isTransferTransaction = (
 
 export type Transaction = Swap | Transfer
 
-export type MockedSignature = Address
-export type Signature = MockedSignature | string
+export type Signature = string
 
 export interface SignedTransaction {
   signature: Signature
   transaction: Transaction
-}
-
-export interface TransactionReceipt {
-  aggregatorSignature: Signature
-  stateUpdate: any
 }
 
 export interface Storage {
@@ -60,4 +56,36 @@ export interface SignatureProvider {
 
 export interface State {
   [address: string]: Storage
+}
+
+export interface StateInclusionProof {
+  [address: string]: string[]
+}
+
+export interface StateUpdate {
+  transactions: SignedTransaction[]
+  startRoot: string
+  endRoot: string
+  updatedState: State
+  updatedStateInclusionProof: StateInclusionProof
+}
+
+export interface RollupBlock {
+  number: number
+  transaction: SignedTransaction
+  startRoot: string
+  endRoot: string
+}
+
+export interface TransactionReceipt {
+  guaranteedBlockNumber: number
+  transaction: SignedTransaction
+  startRoot: string
+  endRoot: string
+  updatedState: State
+  updatedStateInclusionProof: StateInclusionProof
+}
+
+export interface SignedTransactionReceipt extends TransactionReceipt {
+  aggregatorSignature: Signature
 }

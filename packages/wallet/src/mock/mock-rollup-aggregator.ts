@@ -5,7 +5,6 @@ import {
   SimpleServer,
   serializeObject,
   DefaultSignatureProvider,
-  DB,
 } from '@pigi/core'
 
 /* Internal Imports */
@@ -23,10 +22,12 @@ import {
   SignatureProvider,
   UNISWAP_ADDRESS,
   AGGREGATOR_ADDRESS,
+  RollupBlock,
+  StateUpdate,
+  SignedTransactionReceipt,
 } from '../index'
 import { ethers } from 'ethers'
 import { RollupStateMachine } from '../types'
-import { DefaultRollupStateMachine } from '../rollup-state-machine'
 
 /*
  * Generate two transactions which together send the user some UNI
@@ -72,7 +73,10 @@ const generateFaucetTxs = async (
  * balance queries, & faucet requests
  */
 export class MockAggregator extends SimpleServer {
+  private blockNumber: number
+  private readonly pendingRollupBlocks: RollupBlock[]
   private readonly rollupStateMachine: RollupStateMachine
+  private readonly signatureProvider: SignatureProvider
 
   constructor(
     rollupStateMachine: RollupStateMachine,
@@ -107,18 +111,12 @@ export class MockAggregator extends SimpleServer {
        */
       [AGGREGATOR_API.applyTransaction]: async (
         transaction: SignedTransaction
-      ): Promise<TransactionReceipt> => {
-        const stateUpdate: State = await rollupStateMachine.applyTransaction(
+      ): Promise<SignedTransactionReceipt> => {
+        const stateUpdate: StateUpdate = await rollupStateMachine.applyTransaction(
           transaction
         )
-        const aggregatorSignature: string = await signatureProvider.sign(
-          AGGREGATOR_ADDRESS,
-          serializeObject(stateUpdate)
-        )
-        return {
-          aggregatorSignature,
-          stateUpdate,
-        }
+
+        return this.respond(stateUpdate, transaction)
       },
 
       /*
@@ -126,7 +124,7 @@ export class MockAggregator extends SimpleServer {
        */
       [AGGREGATOR_API.requestFaucetFunds]: async (
         params: [Address, number]
-      ): Promise<Balances> => {
+      ): Promise<SignedTransactionReceipt> => {
         const [recipient, amount] = params
         // Generate the faucet txs (one sending uni the other pigi)
         const faucetTxs = await generateFaucetTxs(
@@ -136,15 +134,75 @@ export class MockAggregator extends SimpleServer {
           signatureProvider
         )
         // Apply the two txs
-        for (const tx of faucetTxs) {
-          await rollupStateMachine.applyTransaction(tx)
-        }
+        const stateUpdate: StateUpdate = await rollupStateMachine.applyTransactions(
+          faucetTxs
+        )
 
-        // Return our new account balance
-        return rollupStateMachine.getBalances(recipient)
+        // TODO: I'm sure this will be initiated by a signed transaction
+        // When the signature gets updated to reflect that, pass it to respond(...)
+        return this.respond(stateUpdate, undefined)
       },
     }
     super(methods, hostname, port, middleware)
     this.rollupStateMachine = rollupStateMachine
+    this.signatureProvider = signatureProvider
+    this.blockNumber = 1
+    this.pendingRollupBlocks = []
+  }
+
+  /**
+   * Creates a pending block for the provided StateUpdate and responds to the
+   * provided Transaction accordingly.
+   *
+   * @param stateUpdate The state update that resulted from this transaction
+   * @param transaction The transaction
+   * @returns The signed transaction response
+   */
+  private async respond(
+    stateUpdate: StateUpdate,
+    transaction: SignedTransaction
+  ): Promise<SignedTransactionReceipt> {
+    const block: RollupBlock = this.addPendingBlock(stateUpdate, transaction)
+
+    const transactionReceipt: TransactionReceipt = {
+      guaranteedBlockNumber: block.number,
+      transaction,
+      startRoot: block.startRoot,
+      endRoot: block.endRoot,
+      updatedState: stateUpdate.updatedState,
+      updatedStateInclusionProof: stateUpdate.updatedStateInclusionProof,
+    }
+
+    const aggregatorSignature: string = await this.signatureProvider.sign(
+      AGGREGATOR_ADDRESS,
+      serializeObject(transactionReceipt)
+    )
+    return {
+      aggregatorSignature,
+      ...transactionReceipt,
+    }
+  }
+
+  /**
+   * Adds and returns the pending block resulting from the provided StateUpdate.
+   *
+   * @param update The state update in question
+   * @param transaction The signed transaction received as input
+   * @returns The rollup block
+   */
+  private addPendingBlock(
+    update: StateUpdate,
+    transaction: SignedTransaction
+  ): RollupBlock {
+    const rollupBlock: RollupBlock = {
+      number: this.blockNumber++,
+      transaction,
+      startRoot: update.startRoot,
+      endRoot: update.endRoot,
+    }
+
+    this.pendingRollupBlocks.push(rollupBlock)
+
+    return rollupBlock
   }
 }
