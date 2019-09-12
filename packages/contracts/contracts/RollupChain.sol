@@ -4,12 +4,12 @@ pragma experimental ABIEncoderV2;
 /* Internal Imports */
 import {DataTypes as dt} from "./DataTypes.sol";
 import {SparseMerkleTreeLib} from "./SparseMerkleTreeLib.sol";
-import {TransitionVerifier} from "./TransitionVerifier.sol";
+import {TransitionEvaluator} from "./TransitionEvaluator.sol";
 
 contract RollupChain {
     /* Fields */
-    // The verifier for our STF
-    TransitionVerifier transitionVerifier;
+    // The Evaluator for our STF
+    TransitionEvaluator transitionEvaluator;
     dt.Block[] public blocks;
     bytes32 public ZERO_BYTES32 = 0x0000000000000000000000000000000000000000000000000000000000000000;
     bytes32[3] private FAILED_TX_OUTPUT = [ZERO_BYTES32, ZERO_BYTES32, ZERO_BYTES32];
@@ -27,7 +27,7 @@ contract RollupChain {
      * Constructor *
      **************/
     constructor() public {
-        // TODO: Initialize a transition verifier for this chain
+        // TODO: Initialize a transition Evaluator for this chain
     }
 
     /* Methods */

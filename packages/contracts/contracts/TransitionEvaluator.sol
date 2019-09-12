@@ -5,10 +5,9 @@ pragma experimental ABIEncoderV2;
 import {DataTypes as dt} from "./DataTypes.sol";
 import {SparseMerkleTreeLib} from "./SparseMerkleTreeLib.sol";
 
-interface TransitionVerifier {
-    function verifyTransition(
-        bytes32 preStateRoot,
-        dt.Transition calldata transition,
+interface TransitionEvaluator {
+    function evaluateTransition(
+        dt.SignedTx calldata _signedTx,
         dt.IncludedStorage[] calldata storageSlots
-    ) external returns(bool);
+    ) external returns(bytes32[2] memory);
 }

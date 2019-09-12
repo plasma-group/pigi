@@ -9,6 +9,13 @@ import {
   generateNTransitions,
   getTransition,
   RollupBlock,
+  makeRepeatedBytes,
+  makePaddedBytes,
+  makePaddedUint,
+  ZERO_BYTES32,
+  ZERO_ADDRESS,
+  ZERO_UINT32,
+  ZERO_SIGNATURE,
 } from '../helpers'
 
 /* External Imports */
@@ -36,41 +43,9 @@ const log = debug('test:info:rollup-chain-manager')
 import * as RollupChain from '../../build/RollupChain.json'
 import * as SparseMerkleTreeLib from '../../build/SparseMerkleTreeLib.json'
 
-/* Helpers */
-// Create a byte string of some length in bytes. It repeats the value provided until the
-// string hits that length
-function makeRepeatedBytes(value: string, length: number): string {
-  const result = value.repeat(length * 2 / value.length).slice(0, length * 2)
-  return '0x' + result
-}
-
-// Make padded bytes. Bytes are right padded.
-function makePaddedBytes(value: string, length: number): string {
-  if (value.length > length) {
-    throw new Error('Value too large to fit in ' + length + ' byte string')
-  }
-  const targetLength = length * 2
-  while (value.length < (targetLength || 2)) {value = value + '0'}
-  return '0x' + value
-}
-
-// Make a padded uint. Uints are left padded.
-function makePaddedUint(value: string, length: number): string {
-  if (value.length > length) {
-    throw new Error('Value too large to fit in ' + length + ' byte string')
-  }
-  const targetLength = length * 2
-  while (value.length < (targetLength || 2)) {value = '0' + value}
-  return '0x' + value
-}
-
-const ZERO_BYTES32 = makeRepeatedBytes('0', 32)
-const ZERO_ADDRESS = makeRepeatedBytes('0', 20)
-const ZERO_UINT32 = makeRepeatedBytes('0', 4)
-const ZERO_SIGNATURE = makeRepeatedBytes('0', 65)
 
 /* Begin tests */
-describe.only('RollupChain', () => {
+describe('RollupChain', () => {
   const provider = createMockProvider()
   const [wallet1] = getWallets(provider)
   let rollupChain
