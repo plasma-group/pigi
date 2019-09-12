@@ -64,13 +64,13 @@ contract DataTypes {
         uint32[2] balances;
     }
 
-    struct StorageInclusionProof {
-        uint path;
-        bytes32[] siblings;
+    struct StorageSlot {
+        uint slotIndex;
+        Storage value;
     }
 
     struct IncludedStorage {
-        Storage value;
-        StorageInclusionProof inclusionProof;
+        StorageSlot storageSlot;
+        bytes32[] siblings;
     }
 }
