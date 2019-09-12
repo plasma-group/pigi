@@ -3,7 +3,6 @@ pragma experimental ABIEncoderV2;
 
 /* Internal Imports */
 import {DataTypes as dt} from "./DataTypes.sol";
-import {SparseMerkleTreeLib} from "./SparseMerkleTreeLib.sol";
 
 interface TransitionEvaluator {
     function evaluateTransition(

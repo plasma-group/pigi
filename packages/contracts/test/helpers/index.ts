@@ -46,20 +46,16 @@ export const ZERO_SIGNATURE = makeRepeatedBytes('0', 65)
  * Transition Encoding Helpers *
  ******************************/
 export interface Transition {
-  signedTx: {
-    signature: string
-    body: string
-  }
+  tx: string
   postState: string
 }
 
 export function abiEncodeTransition(transition: Transition): Buffer {
   return hexStrToBuf(
     abi.encode(
-      ['bytes', 'bytes', 'bytes32'],
+      ['bytes', 'bytes32'],
       [
-        transition.signedTx.signature,
-        transition.signedTx.body,
+        transition.tx,
         transition.postState,
       ]
     )
@@ -86,10 +82,7 @@ export function getTransition(tx: string): Transition {
   postState = '0x' + postState.slice(0, 2).repeat(32)
   // Return the Transition!
   return {
-    signedTx: {
-      signature: '0x1234',
-      body: '0x' + tx,
-    },
+    tx: '0x' + tx,
     postState,
   }
 }
