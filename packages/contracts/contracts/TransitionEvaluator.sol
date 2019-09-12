@@ -8,6 +8,6 @@ import {SparseMerkleTreeLib} from "./SparseMerkleTreeLib.sol";
 interface TransitionEvaluator {
     function evaluateTransition(
         bytes calldata _tx,
-        dt.IncludedStorage[] calldata storageSlots
+        dt.StorageSlot[] calldata storageSlots
     ) external returns(bytes32[2] memory);
 }

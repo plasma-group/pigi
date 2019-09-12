@@ -51,7 +51,7 @@ const getAddress = (address: string) => makeRepeatedBytes(address, 20)
 const getSignature = (sig: string) => makeRepeatedBytes(sig, 65)
 
 /* Begin tests */
-describe.only('UnipigTransitionEvaluator', () => {
+describe('UnipigTransitionEvaluator', () => {
   const provider = createMockProvider()
   const [wallet1] = getWallets(provider)
   let unipigEvaluator
@@ -66,50 +66,32 @@ describe.only('UnipigTransitionEvaluator', () => {
   /*
    * Test inferTxType()
    */
-  describe.only('inferTxType() ', async () => {
+  describe('inferTxType() ', async () => {
     const txTypes = {
-      NEW_STORAGE_SLOT_TYPE: 0,
-      STORED_ACCOUNT_TRANSFER_TYPE: 1,
-      SWAP_TYPE: 2,
+      TRANSFER_TYPE: 0,
+      SWAP_TYPE: 1,
     }
-
-    it('should infer a transfer tx to a new account', async () => {
-      // Create a tx which we will infer the type of
-      const tx = {
-        storageSlot: getSlot('555'),
-        pubkey: getAddress('01'),
-      }
-      // Encode!
-      const encoded = abi.encode(
-        ['uint', 'address'],
-        [tx.storageSlot, tx.pubkey]
-      )
-      // Attempt to infer the transaction type
-      const res = await unipigEvaluator.inferTxType(encoded)
-      // Check that it's the correct type
-      res.should.equal(txTypes.NEW_STORAGE_SLOT_TYPE)
-    })
 
     it('should infer a transfer transaction', async () => {
       // Create a transaction which we will infer the type of
       const tx = {
         signature: getSignature('0'),
         tokenType: 1,
-        recipient: getSlot('555'),
+        recipient: getAddress('01'),
         amount: getAmount('3'),
       }
       // Encode!
       const encoded = abi.encode(
-        ['bytes', 'uint', 'uint40', 'uint40'],
+        ['bytes', 'uint', 'address', 'uint32'],
         [tx.signature, tx.tokenType, tx.recipient, tx.amount]
       )
       // Attempt to infer the transaction type
       const res = await unipigEvaluator.inferTxType(encoded)
       // Check that it's the correct type
-      res.should.equal(txTypes.STORED_ACCOUNT_TRANSFER_TYPE)
+      res.should.equal(txTypes.TRANSFER_TYPE)
     })
 
-    it('should infer a transfer transaction to a swap', async () => {
+    it('should infer a swap transaction', async () => {
       // Create a transaction which we will infer the type of
       const tx = {
         signature: getSignature('0'),
@@ -120,7 +102,7 @@ describe.only('UnipigTransitionEvaluator', () => {
       }
       // Encode!
       const encoded = abi.encode(
-        ['bytes', 'uint', 'uint40', 'uint40', 'bytes32'],
+        ['bytes', 'uint', 'uint32', 'uint32', 'bytes32'],
         [tx.signature, tx.tokenType, tx.inputAmount, tx.minOutputAmount, tx.timeout]
       )
       // Attempt to infer the transaction type
@@ -142,50 +124,44 @@ describe.only('UnipigTransitionEvaluator', () => {
   })
 
   /*
-   * Test applyStoredAccountTransfer()
+   * Test applyTransferTx()
    */
-  describe('applyStoredAccountTransfer() ', async () => {
-    const sampleStorage = {
-      pubkey: makeRepeatedBytes('48', 20),
+  describe('applyTransferTx() ', async () => {
+    const sampleStorage= {
       balances: [1000, 1000],
     }
     const emptyStorage = {
-      pubkey: ZERO_ADDRESS,
       balances: [0, 0],
     }
 
-    // SKIP: Test invalid storage slot (storage slot pubkey != sender signature)
-    // TODO: Test that it fails if the recipient != to the path of the provided storage slot
-    // TODO: Test fails if not enough money.
-    // TODO: Test that it returns the correct updated storage slots (with the hash and all that)
-
-    it('should not throw', async () => {
+    it('should return the correct storage leaf nodes after a successful send', async () => {
+      const senderAddress = getAddress('48')
+      const recipientAddress = getAddress('38')
+      const senderStorageSlot = {
+        slotIndex: senderAddress,
+        value: {...sampleStorage},
+      }
+      const recipientStorageSlot = {
+        slotIndex: recipientAddress,
+        value: {...sampleStorage},
+      }
       // Create a transaction which we will infer the type of
       const tx = {
+        signature: getSignature('00'),
         tokenType: 1,
-        recipient: '0x00000003', // some uint32 representing a storage slot
-        amount: '0x0000200', // some uint32 value
+        recipient: recipientAddress,
+        amount: getAmount('3'),
       }
       // Encode!
       const encoded = abi.encode(
-        ['uint', 'uint32', 'uint32'],
-        [tx.tokenType, tx.recipient, tx.amount]
+        ['bytes', 'uint', 'address', 'uint32'],
+        [tx.signature, tx.tokenType, tx.recipient, tx.amount]
       )
-      const signedTx = {
-        signature: ZERO_SIGNATURE,
-        body: encoded
-      }
       // Attempt to apply the transaction
-      const res = await unipigEvaluator.evaluateTransition(signedTx, [
-        {
-          slotIndex: '0x00000003',
-          value: sampleStorage,
-        },{
-          slotIndex: '0x00000003',
-          value: sampleStorage,
-        },
+      const res = await unipigEvaluator.applyTransferTx(tx, [
+        senderStorageSlot, recipientStorageSlot,
       ])
-      log('did we make it?')
+      log('Heres our response:', res)
     })
   })
 })

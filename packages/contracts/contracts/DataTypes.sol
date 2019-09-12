@@ -20,21 +20,16 @@ contract DataTypes {
     struct SwapTx {
         bytes signature;
         uint tokenType;
-        uint40 inputAmount;
-        uint40 minOutputAmount;
+        uint32 inputAmount;
+        uint32 minOutputAmount;
         uint timeout;
     }
 
     struct TransferTx {
         bytes signature;
         uint tokenType;
-        uint40 recipient;
-        uint40 amount;
-    }
-
-    struct CreateNewStorageSlotTx {
-        uint40 storageSlot;
-        address pubkey;
+        address recipient;
+        uint32 amount;
     }
 
     /*** Transitions ***/
@@ -56,12 +51,11 @@ contract DataTypes {
 
     /*** Storage ***/
     struct Storage {
-        address pubkey;
-        uint40[2] balances;
+        uint32[2] balances;
     }
 
     struct StorageSlot {
-        uint slotIndex;
+        address slotIndex;
         Storage value;
     }
 

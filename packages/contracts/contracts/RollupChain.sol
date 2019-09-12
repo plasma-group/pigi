@@ -59,21 +59,11 @@ contract RollupChain {
      * to be what the sparse merkle tree expects.
      */
     function verifyAndStoreStorageSlotInclusionProof(dt.IncludedStorage memory _includedStorage) private {
-        // First check if the storage is empty
-        if (_includedStorage.storageSlot.value.pubkey == 0x0000000000000000000000000000000000000000) {
-            // Verify and store an empty hash because the storage is empty
-            partialState.verifyAndStore(
-                _includedStorage.storageSlot.slotIndex,
-                ZERO_BYTES32,
-                _includedStorage.siblings
-            );
-        } else {
-            partialState.verifyAndStore(
-                _includedStorage.storageSlot.slotIndex,
-                getStorageHash(_includedStorage.storageSlot.value),
-                _includedStorage.siblings
-            );
-        }
+        partialState.verifyAndStore(
+            uint(_includedStorage.storageSlot.slotIndex),
+            getStorageHash(_includedStorage.storageSlot.value),
+            _includedStorage.siblings
+        );
     }
 
     /**
@@ -104,8 +94,10 @@ contract RollupChain {
         bytes32[3] memory outputs;
         bool txSuccessful = true;
 
-        // This is going to return the outputs & a sucess/fail.  we're going to first check if the thing failed (that's a problem)
-        // and then check the outputs.
+        // Here we're going to check
+        // 1) did calling evaluateTx throw? if so... well we should throw. THIS MEANS THERE WAS SOMETHING WRONG WITH THE INPUTS
+        // 2) did we get the right input but the TX failed? THIS MEANS WE NEED TO HALT
+        // Otherwise... we check the outputs to see if they are correctly attributed
 
 
         // First lets verify that the tx was successful. If it wasn't then our accountNonce will equal zero
@@ -116,7 +108,7 @@ contract RollupChain {
 
         // The transaction succeeded, now we need to check if the state root is incorrect
         for (uint i = 0; i < _inputStorage.length; i++) {
-            partialState.update(_inputStorage[i].storageSlot.slotIndex, outputs[i]);
+            partialState.update(uint(_inputStorage[i].storageSlot.slotIndex), outputs[i]);
         }
         // The state root MUST be incorrect for us to proceed in halting the chain!
         require(postStateRoot != partialState.root, 'postStateRoot must be different than the transaction result to be invalid.');
@@ -195,9 +187,13 @@ contract RollupChain {
     /**
      * Get the hash of the storage value.
      */
-    function getStorageHash(dt.Storage memory _storage) public pure returns(bytes32) {
+    function getStorageHash(dt.Storage memory _storage) public view returns(bytes32) {
+        // If the storage is empty, we return all zeros
+        if (_storage.balances[0] == 0 && _storage.balances[1] == 0) {
+            return ZERO_BYTES32;
+        }
         // Here we don't use `abi.encode([struct])` because it's not clear
         // how to generate that encoding client-side.
-        return keccak256(abi.encode(_storage.pubkey, _storage.balances[0], _storage.balances[1]));
+        return keccak256(abi.encode(_storage.balances[0], _storage.balances[1]));
     }
 }
