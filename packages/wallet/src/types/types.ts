@@ -105,6 +105,7 @@ export interface TransactionReceipt {
   updatedStateInclusionProof: StateInclusionProof
 }
 
-export interface SignedTransactionReceipt extends TransactionReceipt {
+export interface SignedTransactionReceipt {
   aggregatorSignature: Signature
+  transactionReceipt: TransactionReceipt
 }

@@ -22,7 +22,7 @@ import { DefaultRollupStateMachine } from '../src/rollup-state-machine'
 
 const timeout = 20_000
 
-describe('Mock Client/Aggregator Integration', async () => {
+describe('Mock Client/Aggregator Integration', () => {
   let stateDB: DB
   let blockDB: DB
   let accountAddress: string
@@ -75,7 +75,7 @@ describe('Mock Client/Aggregator Integration', async () => {
     blockMemdown = undefined
   })
 
-  describe('UnipigWallet', async () => {
+  describe('UnipigWallet', () => {
     it('should be able to query the aggregators balances', async () => {
       const response = await unipigWallet.getBalances(accountAddress)
       response.should.deep.equal({ uni: 50, pigi: 50 })

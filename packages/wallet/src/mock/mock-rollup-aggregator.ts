@@ -231,7 +231,7 @@ export class MockAggregator extends SimpleServer {
     )
     return {
       aggregatorSignature,
-      ...transactionReceipt,
+      transactionReceipt,
     }
   }
 

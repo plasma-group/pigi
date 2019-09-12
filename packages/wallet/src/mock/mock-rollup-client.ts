@@ -76,7 +76,7 @@ export class MockRollupClient {
       transaction,
     })
     // TODO: Probably want too check aggregator sig and store some stuff
-    return result.updatedState
+    return result.transactionReceipt.updatedState
   }
 
   public async requestFaucetFunds(
@@ -95,6 +95,6 @@ export class MockRollupClient {
       }
     )
     // TODO: Probably want too check aggregator sig and store some stuff
-    return result.updatedState[account].balances
+    return result.transactionReceipt.updatedState[account].balances
   }
 }

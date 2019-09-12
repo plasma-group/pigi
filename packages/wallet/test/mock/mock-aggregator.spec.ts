@@ -2,7 +2,13 @@ import '../setup'
 import MemDown from 'memdown'
 
 /* External Imports */
-import { BaseDB, DB, serializeObject, SimpleClient } from '@pigi/core'
+import {
+  BaseDB,
+  DB,
+  DefaultSignatureVerifier,
+  serializeObject,
+  SimpleClient,
+} from '@pigi/core'
 
 /* Internal Imports */
 import { ethers } from 'ethers'
@@ -13,6 +19,8 @@ import {
   DefaultRollupStateMachine,
   FaucetRequest,
   SignedTransaction,
+  SignedTransactionReceipt,
+  AGGREGATOR_ADDRESS,
 } from '../../src'
 import { RollupStateMachine } from '../../src/types'
 
@@ -20,7 +28,7 @@ import { RollupStateMachine } from '../../src/types'
  * TESTS *
  *********/
 
-describe('MockAggregator', async () => {
+describe('MockAggregator', () => {
   let client
   let aggregator: MockAggregator
   let stateDB: DB
@@ -57,7 +65,34 @@ describe('MockAggregator', async () => {
     await blockDB.close()
   })
 
-  describe('getBalances', async () => {
+  const sendFromAliceToBob = async (
+    amount
+  ): Promise<SignedTransactionReceipt> => {
+    const bobBeforeBalances = await client.handle('getBalances', 'bob')
+    const transaction = {
+      tokenType: UNI_TOKEN_TYPE,
+      recipient: 'bob',
+      amount,
+    }
+    const signature = await aliceWallet.signMessage(JSON.stringify(transaction))
+    const txAliceToBob = {
+      signature,
+      transaction,
+    }
+    // Send some money to bob
+    const receipt: SignedTransactionReceipt = await client.handle(
+      'applyTransaction',
+      txAliceToBob
+    )
+    // Make sure bob got the money!
+    const bobAfterBalances = await client.handle('getBalances', 'bob')
+    const uniDiff = bobAfterBalances.uni - bobBeforeBalances.uni
+    uniDiff.should.equal(amount)
+
+    return receipt
+  }
+
+  describe('getBalances', () => {
     it('should allow the balance to be queried', async () => {
       const response = await client.handle('getBalances', aliceWallet.address)
       response.should.deep.equal({
@@ -67,29 +102,13 @@ describe('MockAggregator', async () => {
     })
   })
 
-  describe('applyTransaction', async () => {
+  describe('applyTransaction', () => {
     it('should update bobs balance using applyTransaction to send 5 tokens', async () => {
-      const transaction = {
-        tokenType: UNI_TOKEN_TYPE,
-        recipient: 'bob',
-        amount: 5,
-      }
-      const signature = await aliceWallet.signMessage(
-        JSON.stringify(transaction)
-      )
-      const txAliceToBob = {
-        signature,
-        transaction,
-      }
-      // Send some money to bob
-      await client.handle('applyTransaction', txAliceToBob)
-      // Make sure bob got the money!
-      const bobBalances = await client.handle('getBalances', 'bob')
-      bobBalances.uni.should.equal(5)
+      await sendFromAliceToBob(5)
     })
   })
 
-  describe('requestFaucetFunds', async () => {
+  describe('requestFaucetFunds', () => {
     it('should send money to the account who requested', async () => {
       const newWallet: ethers.Wallet = ethers.Wallet.createRandom()
 
@@ -114,6 +133,35 @@ describe('MockAggregator', async () => {
       )
       newWalletBalances.uni.should.equal(10)
       newWalletBalances.pigi.should.equal(10)
+    })
+  })
+
+  describe('Transaction Receipt Tests', () => {
+    it('should receive a transaction receipt signed by the aggregator', async () => {
+      const receipt: SignedTransactionReceipt = await sendFromAliceToBob(5)
+      const signer: string = DefaultSignatureVerifier.instance().verifyMessage(
+        serializeObject(receipt.transactionReceipt),
+        receipt.aggregatorSignature
+      )
+
+      signer.should.equal(AGGREGATOR_ADDRESS)
+    })
+
+    it('should have subsequent transactions that build on one another', async () => {
+      const receiptOne: SignedTransactionReceipt = await sendFromAliceToBob(5)
+      const receiptTwo: SignedTransactionReceipt = await sendFromAliceToBob(5)
+
+      const blockOne = receiptOne.transactionReceipt.blockNumber
+      const blockTwo = receiptTwo.transactionReceipt.blockNumber
+      blockOne.should.equal(blockTwo)
+
+      const indexOne = receiptOne.transactionReceipt.transitionIndex
+      const indexTwo = receiptTwo.transactionReceipt.transitionIndex
+      indexOne.should.equal(indexTwo - 1)
+
+      const oneEnd = receiptOne.transactionReceipt.endRoot
+      const twoStart = receiptTwo.transactionReceipt.startRoot
+      oneEnd.should.equal(twoStart)
     })
   })
 })

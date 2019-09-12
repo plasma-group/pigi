@@ -150,7 +150,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     }
 
     return this.lock.acquire(DefaultRollupStateMachine.lockKey, async () => {
-      const startRoot: Buffer = await this.tree.getRootHash()
+      const startRoot: string = (await this.tree.getRootHash()).toString('hex')
       const transaction: Transaction = signedTransaction.transaction
       let updatedState: State
       if (isTransferTransaction(transaction)) {
