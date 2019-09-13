@@ -1,3 +1,5 @@
+import { InclusionProof } from '@pigi/core'
+
 export type UniTokenType = 'uni'
 export type PigiTokenType = 'pigi'
 export type TokenType = UniTokenType | PigiTokenType
