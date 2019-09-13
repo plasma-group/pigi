@@ -70,43 +70,80 @@ describe('RollupAggregator', () => {
     await blockDB.close()
   })
 
-  const sendFromAliceToBob = async (
-    amount
-  ): Promise<SignedTransactionReceipt> => {
-    const beforeState: SignedStateReceipt = await client.handle(
-      AGGREGATOR_API.getState,
-      'bob'
-    )
+  const sendFromAToB = async (senderWallet: ethers.Wallet, recipient: string, amount: number): Promise<SignedTransactionReceipt> => {
     const transaction = {
       tokenType: UNI_TOKEN_TYPE,
-      recipient: 'bob',
+      recipient,
       amount,
     }
-    const signature = await aliceWallet.signMessage(JSON.stringify(transaction))
-    const txAliceToBob = {
+    const signature = await senderWallet.signMessage(JSON.stringify(transaction))
+    const tx = {
       signature,
       transaction,
     }
-    // Send some money to bob
-    const receipt: SignedTransactionReceipt = await client.handle(
+    return client.handle(
       AGGREGATOR_API.applyTransaction,
-      txAliceToBob
+      tx
     )
+  }
+
+  const sendFromAliceToBob = async (
+    amount
+  ): Promise<SignedTransactionReceipt> => {
+    const bobAddress: string = 'bob'
+    const beforeState: SignedStateReceipt = await client.handle(
+      AGGREGATOR_API.getState,
+      bobAddress
+    )
+    const receipt = await sendFromAToB(aliceWallet, bobAddress, amount)
+
     // Make sure bob got the money!
     const afterState: SignedStateReceipt = await client.handle(
       AGGREGATOR_API.getState,
-      'bob'
+      bobAddress
     )
     if (!!beforeState.stateReceipt.state) {
       const uniDiff =
-        afterState.stateReceipt.state['bob'].balances.uni -
-        beforeState.stateReceipt.state['bob'].balances.uni
+        afterState.stateReceipt.state[bobAddress].balances.uni -
+        beforeState.stateReceipt.state[bobAddress].balances.uni
       uniDiff.should.equal(amount)
     } else {
-      afterState.stateReceipt.state['bob'].balances.uni.should.equal(amount)
+      afterState.stateReceipt.state[bobAddress].balances.uni.should.equal(amount)
     }
 
     return receipt
+  }
+
+  const requestFaucetFundsForNewWallet = async (amount: number): Promise<ethers.Wallet> => {
+    const newWallet: ethers.Wallet = ethers.Wallet.createRandom()
+
+    // Request some money for new wallet
+    const transaction: FaucetRequest = {
+      requester: newWallet.address,
+      amount,
+    }
+    const signature = await newWallet.signMessage(
+      serializeObject(transaction)
+    )
+    const signedRequest: SignedTransaction = {
+      signature,
+      transaction,
+    }
+
+    await client.handle(AGGREGATOR_API.requestFaucetFunds, signedRequest)
+    // Make sure new wallet got the money!
+    const newWalletState: SignedStateReceipt = await client.handle(
+      AGGREGATOR_API.getState,
+      newWallet.address
+    )
+    newWalletState.stateReceipt.state[
+      newWallet.address
+      ].balances.uni.should.equal(amount)
+    newWalletState.stateReceipt.state[
+      newWallet.address
+      ].balances.pigi.should.equal(amount)
+
+    return newWallet
   }
 
   describe('getState', () => {
@@ -132,33 +169,7 @@ describe('RollupAggregator', () => {
 
   describe('requestFaucetFunds', () => {
     it('should send money to the account who requested', async () => {
-      const newWallet: ethers.Wallet = ethers.Wallet.createRandom()
-
-      // Request some money for new wallet
-      const transaction: FaucetRequest = {
-        requester: newWallet.address,
-        amount: 10,
-      }
-      const signature = await newWallet.signMessage(
-        serializeObject(transaction)
-      )
-      const signedRequest: SignedTransaction = {
-        signature,
-        transaction,
-      }
-
-      await client.handle(AGGREGATOR_API.requestFaucetFunds, signedRequest)
-      // Make sure new wallet got the money!
-      const newWalletState: SignedStateReceipt = await client.handle(
-        AGGREGATOR_API.getState,
-        newWallet.address
-      )
-      newWalletState.stateReceipt.state[
-        newWallet.address
-      ].balances.uni.should.equal(10)
-      newWalletState.stateReceipt.state[
-        newWallet.address
-      ].balances.pigi.should.equal(10)
+      await requestFaucetFundsForNewWallet(10)
     })
   })
 
@@ -190,4 +201,35 @@ describe('RollupAggregator', () => {
       oneEnd.should.equal(twoStart)
     })
   })
+
+
+
+  // describe('benchmarks', () => {
+  //   const runTransactionTest = async (numTxs: number): Promise<void> => {
+  //     const wallet: ethers.Wallet = await requestFaucetFundsForNewWallet(numTxs)
+  //     const promises: Array<Promise<SignedTransactionReceipt>> = []
+  //
+  //     const startTime = +new Date()
+  //
+  //     for (let i = 0; i < numTxs; i++) {
+  //       promises.push(sendFromAToB(wallet, 'does not matter', 1))
+  //     }
+  //
+  //     await Promise.all(promises)
+  //
+  //     const finishTime = +new Date()
+  //     const durationInMiliseconds = finishTime - startTime
+  //     // tslint:disable-next-line:no-console
+  //     console.log(
+  //       'Duration:',
+  //       durationInMiliseconds,
+  //       ', Aggregator TPS: ',
+  //       numTxs / (durationInMiliseconds / 1_000.0)
+  //     )
+  //   }
+  //
+  //   it('Applies 100 Aggregator Transactions', async () => {
+  //     await runTransactionTest(100)
+  //   }).timeout(20_000)
+  // })
 })
