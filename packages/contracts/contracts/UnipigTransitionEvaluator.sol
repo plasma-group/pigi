@@ -7,7 +7,8 @@ import {TransitionEvaluator} from "./TransitionEvaluator.sol";
 
 contract UnipigTransitionEvaluator is TransitionEvaluator {
     bytes32 ZERO_BYTES32 = 0x0000000000000000000000000000000000000000000000000000000000000000;
-    bytes32[2] FAILED_TX_OUTPUT = [ZERO_BYTES32, ZERO_BYTES32];
+    uint FAILED_TX = 0;
+    uint SUCCESSFUL_TX = 1;
 
     function evaluateTransition(
         bytes calldata _tx,
@@ -42,26 +43,27 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
     function applyTransferTx(
         dt.TransferTx memory _tx,
         dt.StorageSlot[2] memory _storageSlots
-    ) public view returns(bytes32[2] memory) {
+    ) public view returns(uint, dt.Storage[2] memory) {
         // Make sure that the provided storage slots are the correct ones
         require(verifyEcdsaSignature(_tx.signature, _storageSlots[0].slotIndex), "Signer address must equal sender!");
         require(_tx.recipient == _storageSlots[1].slotIndex, "Storage slot must match the recipient!");
+        // Create an array to store our output storage slots
+        dt.Storage[2] memory outputStorage;
         // Now we know the storage slots are correct, let's compute the output of the transaction
         uint senderBalance = _storageSlots[0].value.balances[_tx.tokenType];
         // First let's make sure the sender has enough money
         if (senderBalance < _tx.amount) {
             // If not we return a failed tx
-            return FAILED_TX_OUTPUT;
+            return (FAILED_TX, outputStorage);
         }
         // Update the storage slots with the new balances
         _storageSlots[0].value.balances[_tx.tokenType] -= _tx.amount;
         _storageSlots[1].value.balances[_tx.tokenType] += _tx.amount;
         // Calculate the outputs
-        bytes32[2] memory outputs;
-        outputs[0] = getStorageHash(_storageSlots[0].value);
-        outputs[1] = getStorageHash(_storageSlots[1].value);
+        outputStorage[0] = _storageSlots[0].value;
+        outputStorage[1] = _storageSlots[1].value;
         // Return the outputs!
-        return outputs;
+        return (SUCCESSFUL_TX, outputStorage);
     }
 
     /**
