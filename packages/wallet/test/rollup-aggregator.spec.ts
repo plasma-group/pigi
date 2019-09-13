@@ -70,21 +70,24 @@ describe('RollupAggregator', () => {
     await blockDB.close()
   })
 
-  const sendFromAToB = async (senderWallet: ethers.Wallet, recipient: string, amount: number): Promise<SignedTransactionReceipt> => {
+  const sendFromAToB = async (
+    senderWallet: ethers.Wallet,
+    recipient: string,
+    amount: number
+  ): Promise<SignedTransactionReceipt> => {
     const transaction = {
       tokenType: UNI_TOKEN_TYPE,
       recipient,
       amount,
     }
-    const signature = await senderWallet.signMessage(JSON.stringify(transaction))
+    const signature = await senderWallet.signMessage(
+      JSON.stringify(transaction)
+    )
     const tx = {
       signature,
       transaction,
     }
-    return client.handle(
-      AGGREGATOR_API.applyTransaction,
-      tx
-    )
+    return client.handle(AGGREGATOR_API.applyTransaction, tx)
   }
 
   const sendFromAliceToBob = async (
@@ -108,13 +111,17 @@ describe('RollupAggregator', () => {
         beforeState.stateReceipt.state[bobAddress].balances.uni
       uniDiff.should.equal(amount)
     } else {
-      afterState.stateReceipt.state[bobAddress].balances.uni.should.equal(amount)
+      afterState.stateReceipt.state[bobAddress].balances.uni.should.equal(
+        amount
+      )
     }
 
     return receipt
   }
 
-  const requestFaucetFundsForNewWallet = async (amount: number): Promise<ethers.Wallet> => {
+  const requestFaucetFundsForNewWallet = async (
+    amount: number
+  ): Promise<ethers.Wallet> => {
     const newWallet: ethers.Wallet = ethers.Wallet.createRandom()
 
     // Request some money for new wallet
@@ -122,9 +129,7 @@ describe('RollupAggregator', () => {
       requester: newWallet.address,
       amount,
     }
-    const signature = await newWallet.signMessage(
-      serializeObject(transaction)
-    )
+    const signature = await newWallet.signMessage(serializeObject(transaction))
     const signedRequest: SignedTransaction = {
       signature,
       transaction,
@@ -138,10 +143,10 @@ describe('RollupAggregator', () => {
     )
     newWalletState.stateReceipt.state[
       newWallet.address
-      ].balances.uni.should.equal(amount)
+    ].balances.uni.should.equal(amount)
     newWalletState.stateReceipt.state[
       newWallet.address
-      ].balances.pigi.should.equal(amount)
+    ].balances.pigi.should.equal(amount)
 
     return newWallet
   }
@@ -201,8 +206,6 @@ describe('RollupAggregator', () => {
       oneEnd.should.equal(twoStart)
     })
   })
-
-
 
   // describe('benchmarks', () => {
   //   const runTransactionTest = async (numTxs: number): Promise<void> => {
