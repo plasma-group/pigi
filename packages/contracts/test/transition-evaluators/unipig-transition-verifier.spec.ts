@@ -52,6 +52,7 @@ const getSignature = (sig: string) => makeRepeatedBytes(sig, 65)
 
 const FAILED_TX = 0
 const SUCCESSFUL_TX = 1
+const UNISWAP_ADDRESS = '0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF'
 
 /* Begin tests */
 describe('UnipigTransitionEvaluator', () => {
@@ -130,11 +131,8 @@ describe('UnipigTransitionEvaluator', () => {
    * Test applyTransferTx()
    */
   describe('applyTransferTx() ', async () => {
-    const emptyStorage = {
-      balances: [0, 0],
-    }
 
-    it('should return the correct storage leaf nodes after a successful send', async () => {
+    it('should return the correct storage slots after a successful send', async () => {
       // Set initialization variables
       const sentAmount = 5
       const initialBalance = 1000
@@ -195,10 +193,11 @@ describe('UnipigTransitionEvaluator', () => {
       ])
       // Make sure the tx result is FAILED
       res[0].toNumber().should.equal(FAILED_TX)
+      // Success! We failed! :D :D :D
     })
 
     // TODO: Enable this test once we add real signature verification to the contract
-    it.skip('should throw if the signature does not match the sender', async () => {
+    it.skip('should throw if the signature for the transfer does not match the sender', async () => {
       // Set initialization variables
       const sentAmount = 10
       const initialBalance = 1000
@@ -230,7 +229,7 @@ describe('UnipigTransitionEvaluator', () => {
         // Good we failed! Let's return
         return
       }
-      throw new Error('Invalid signature did not cause tx to fail!')
+      throw new Error('Invalid signature did not cause transfer tx to fail!')
     })
 
     it('should throw if the 2nd storage slot doesnt match the recipient address', async () => {
@@ -265,7 +264,183 @@ describe('UnipigTransitionEvaluator', () => {
         // Good we failed! Let's return
         return
       }
-      throw new Error('Invalid recipient storage slot did not cause tx to fail!')
+      throw new Error('Invalid recipient storage slot did not cause transfer tx to fail!')
+    })
+  })
+
+  /*
+   * Test applySwapTx()
+   */
+  describe('applySwapTx() ', async () => {
+    const senderAddress = getAddress('48')
+    const timeout = makePaddedUint('00', 32)
+
+    it('should return the correct storage slots after a successful swap', async () => {
+      // Set initialization variables
+      const inputAmount = 5
+      const minOutputAmount = 4
+      const initialBalance = 1000
+      const initialStorage = { balances: [initialBalance, initialBalance] }
+      const senderStorageSlot = {
+        slotIndex: senderAddress,
+        value: {...initialStorage},
+      }
+      const uniswapStorageSlot = {
+        slotIndex: UNISWAP_ADDRESS,
+        value: {...initialStorage},
+      }
+      // Create a transaction which we will infer the type of
+      const tx = {
+        signature: getSignature('00'),
+        tokenType: 1,
+        inputAmount,
+        minOutputAmount,
+        timeout,
+      }
+      // Attempt to apply the transaction
+      const res = await unipigEvaluator.applySwapTx(tx, [
+        senderStorageSlot, uniswapStorageSlot,
+      ])
+      // Check to see that the result was successful
+      res[0].toNumber().should.equal(SUCCESSFUL_TX)
+      res[1].should.deep.equal([[[1004,995]],[[996,1005]]])
+      // Success!
+    })
+
+    it('should fail if the min output amount is too high', async () => {
+      // Set initialization variables
+      const inputAmount = 5
+      // We're setting the output amount to 5 -- this won't be what is returned because we have a fee!
+      // 1000 + (5 + FEE) = 1000 - OUTPUT          -- note here OUTPUT will have to be less than 5 if FEE > 0.
+      const minOutputAmount = 5
+      const initialBalance = 1000
+      const initialStorage = { balances: [initialBalance, initialBalance] }
+      const senderStorageSlot = {
+        slotIndex: senderAddress,
+        value: {...initialStorage},
+      }
+      const uniswapStorageSlot = {
+        slotIndex: UNISWAP_ADDRESS,
+        value: {...initialStorage},
+      }
+      // Create a transaction which we will infer the type of
+      const tx = {
+        signature: getSignature('00'),
+        tokenType: 1,
+        inputAmount,
+        minOutputAmount,
+        timeout,
+      }
+      // Attempt to apply the transaction
+      const res = await unipigEvaluator.applySwapTx(tx, [
+        senderStorageSlot, uniswapStorageSlot,
+      ])
+      // Check to see that the result was successful
+      res[0].toNumber().should.equal(FAILED_TX)
+      // Success! We failed! :D :D :D
+    })
+
+    it('should fail if the sender cant afford the swap', async () => {
+      // Set initialization variables
+      const initialBalance = 1000
+      // NOTE: We're setting the input amount above the initial balances!
+      const inputAmount = initialBalance + 1
+      const minOutputAmount = 5
+      const initialStorage = { balances: [initialBalance, initialBalance] }
+      const senderStorageSlot = {
+        slotIndex: senderAddress,
+        value: {...initialStorage},
+      }
+      const uniswapStorageSlot = {
+        slotIndex: UNISWAP_ADDRESS,
+        value: {...initialStorage},
+      }
+      // Create a transaction which we will infer the type of
+      const tx = {
+        signature: getSignature('00'),
+        tokenType: 1,
+        inputAmount,
+        minOutputAmount,
+        timeout,
+      }
+      // Attempt to apply the transaction
+      const res = await unipigEvaluator.applySwapTx(tx, [
+        senderStorageSlot, uniswapStorageSlot,
+      ])
+      // Check to see that the result was successful
+      res[0].toNumber().should.equal(FAILED_TX)
+      // Success! We failed! :D :D :D
+    })
+
+    it.skip('should throw if the signature for the swap does not match the sender', async () => {
+      // Set initialization variables
+      const inputAmount = 5
+      const minOutputAmount = 4
+      const initialBalance = 1000
+      const initialStorage = { balances: [initialBalance, initialBalance] }
+      const senderStorageSlot = {
+        slotIndex: senderAddress,
+        value: {...initialStorage},
+      }
+      const uniswapStorageSlot = {
+        slotIndex: UNISWAP_ADDRESS,
+        value: {...initialStorage},
+      }
+      // Create a transaction which we will infer the type of
+      const tx = {
+        // WRONG SIGNATURE!
+        signature: getSignature('deadbeef'),
+        tokenType: 1,
+        inputAmount,
+        minOutputAmount,
+        timeout,
+      }
+      try {
+        // Attempt to apply the transaction
+        const res = await unipigEvaluator.applySwapTx(tx, [
+          senderStorageSlot, uniswapStorageSlot,
+        ])
+      } catch(err) {
+        // Good we failed! Let's return
+        return
+      }
+      throw new Error('Invalid signature did not cause swap tx to fail!')
+    })
+
+    it('should throw if the 2nd storage slot doesnt match the Uniswap address', async () => {
+      // Set initialization variables
+      const inputAmount = 5
+      const minOutputAmount = 4
+      const initialBalance = 1000
+      const initialStorage = { balances: [initialBalance, initialBalance] }
+      const senderStorageSlot = {
+        slotIndex: senderAddress,
+        value: {...initialStorage},
+      }
+      const NOT_UNISWAP_ADDRESS = getAddress('deadbeef')
+      const uniswapStorageSlot = {
+        slotIndex: NOT_UNISWAP_ADDRESS,
+        value: {...initialStorage},
+      }
+      // Create a transaction which we will infer the type of
+      const tx = {
+        // WRONG SIGNATURE!
+        signature: getSignature('deadbeef'),
+        tokenType: 1,
+        inputAmount,
+        minOutputAmount,
+        timeout,
+      }
+      try {
+        // Attempt to apply the transaction
+        const res = await unipigEvaluator.applySwapTx(tx, [
+          senderStorageSlot, uniswapStorageSlot,
+        ])
+      } catch(err) {
+        // Good we failed! Let's return
+        return
+      }
+      throw new Error('Invalid Uniswap storage slot address did not cause swap tx to fail!')
     })
   })
 })
