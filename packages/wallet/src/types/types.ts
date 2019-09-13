@@ -112,11 +112,16 @@ export interface SignedTransactionReceipt {
   signature: Signature
 }
 
-export interface StateReceipt {
+export interface StateSnapshot {
   address: string
   state: State
   stateRoot: string
   inclusionProof: InclusionProof
+}
+
+export interface StateReceipt extends StateSnapshot {
+  blockNumber: number
+  transitionIndex: number
 }
 
 export interface SignedStateReceipt {

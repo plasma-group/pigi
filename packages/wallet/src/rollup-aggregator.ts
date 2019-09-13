@@ -32,8 +32,9 @@ import {
   isFaucetTransaction,
   RollupBlock,
   SignedStateReceipt,
-  StateReceipt,
+  StateSnapshot,
   Signature,
+  StateReceipt,
 } from './index'
 import { ethers } from 'ethers'
 import { RollupStateMachine } from './types'
@@ -92,7 +93,7 @@ export class RollupAggregator extends SimpleServer {
   private readonly signatureVerifier: SignatureVerifier
 
   private blockNumber: number
-  private transitionNumber: number
+  private transitionIndex: number
   private pendingBlock: RollupBlock
 
   constructor(
@@ -129,7 +130,7 @@ export class RollupAggregator extends SimpleServer {
     this.signatureVerifier = signatureVerifier
     this.signatureProvider = new DefaultSignatureProvider(this.wallet)
     this.db = db
-    this.transitionNumber = 0
+    this.transitionIndex = 0
     this.blockNumber = 0
     this.pendingBlock = {
       number: ++this.blockNumber,
@@ -147,9 +148,20 @@ export class RollupAggregator extends SimpleServer {
    * aggregator guarantee that it does not exist.
    */
   private async getState(address: string): Promise<SignedStateReceipt> {
-    const stateReceipt: StateReceipt = await this.rollupStateMachine.getState(
-      address
+    const stateReceipt: StateReceipt = await this.lock.acquire(
+      RollupAggregator.lockKey,
+      async () => {
+        const snapshot: StateSnapshot = await this.rollupStateMachine.getState(
+          address
+        )
+        return {
+          blockNumber: this.blockNumber,
+          transitionIndex: this.transitionIndex,
+          ...snapshot,
+        }
+      }
     )
+
     const signature: Signature = await this.signatureProvider.sign(
       AGGREGATOR_ADDRESS,
       serializeObject(stateReceipt)
@@ -286,7 +298,7 @@ export class RollupAggregator extends SimpleServer {
     transaction: SignedTransaction
   ): Promise<RollupTransition> {
     const transition: RollupTransition = {
-      number: this.transitionNumber++,
+      number: this.transitionIndex++,
       blockNumber: this.pendingBlock.number,
       transactions: [transaction],
       startRoot: update.startRoot,
@@ -317,7 +329,7 @@ export class RollupAggregator extends SimpleServer {
         number: ++this.blockNumber,
         transitions: [],
       }
-      this.transitionNumber = 0
+      this.transitionIndex = 0
     })
   }
 

@@ -34,7 +34,7 @@ import {
   State,
   StateUpdate,
   StateInclusionProof,
-  StateReceipt,
+  StateSnapshot,
   InclusionProof,
 } from './index'
 import {
@@ -86,7 +86,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     this.tree = new SparseMerkleTreeImpl(db)
   }
 
-  public async getState(account: Address): Promise<StateReceipt> {
+  public async getState(account: Address): Promise<StateSnapshot> {
     const key: BigNumber = this.getAddressKey(account)
 
     const [accountState, proof, stateRoot]: [

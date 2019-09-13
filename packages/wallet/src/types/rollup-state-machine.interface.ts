@@ -3,7 +3,7 @@ import {
   Balances,
   SignedTransaction,
   State,
-  StateReceipt,
+  StateSnapshot,
   StateUpdate,
 } from './types'
 
@@ -12,9 +12,9 @@ export interface RollupStateMachine {
    * Gets the state for the provided address, if one exists.
    *
    * @param account The account in question
-   * @returns The StateReceipt object with the state and the inclusion proof
+   * @returns The StateSnapshot object with the state and the inclusion proof
    */
-  getState(account: Address): Promise<StateReceipt>
+  getState(account: Address): Promise<StateSnapshot>
 
   /**
    * Applies the provided signed transaction, adjusting balances accordingly.

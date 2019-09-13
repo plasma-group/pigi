@@ -4,10 +4,13 @@ import MemDown from 'memdown'
 /* External Imports */
 import {
   BaseDB,
+  BigNumber,
   DB,
   DefaultSignatureVerifier,
   serializeObject,
   SimpleClient,
+  SparseMerkleTree,
+  SparseMerkleTreeImpl,
 } from '@pigi/core'
 
 /* Internal Imports */

@@ -29,6 +29,8 @@ const getState = (address: Address): SignedStateReceipt => {
       address,
       stateRoot: 'mocked',
       inclusionProof: [],
+      blockNumber: 1,
+      transitionIndex: 0,
       state: {
         [address]: {
           balances,
