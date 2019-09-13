@@ -1,4 +1,4 @@
-import '../setup'
+import './setup'
 import MemDown from 'memdown'
 
 /* External Imports */
@@ -12,8 +12,7 @@ import {
 
 /* Internal Imports */
 import { ethers } from 'ethers'
-import { MockAggregator } from '../../src/mock'
-import { AGGREGATOR_MNEMONIC, getGenesisState } from '../helpers'
+import { AGGREGATOR_MNEMONIC, getGenesisState } from './helpers'
 import {
   UNI_TOKEN_TYPE,
   DefaultRollupStateMachine,
@@ -23,16 +22,17 @@ import {
   AGGREGATOR_ADDRESS,
   AGGREGATOR_API,
   SignedStateReceipt,
-} from '../../src'
-import { RollupStateMachine } from '../../src/types'
+  RollupAggregator,
+  RollupStateMachine,
+} from '../src'
 
 /*********
  * TESTS *
  *********/
 
-describe('MockAggregator', () => {
+describe('RollupAggregator', () => {
   let client
-  let aggregator: MockAggregator
+  let aggregator: RollupAggregator
   let stateDB: DB
   let blockDB: DB
 
@@ -48,7 +48,7 @@ describe('MockAggregator', () => {
       stateDB
     )
 
-    aggregator = new MockAggregator(
+    aggregator = new RollupAggregator(
       blockDB,
       rollupStateMachine,
       'localhost',
