@@ -51,6 +51,7 @@ contract DataTypes {
 
     /*** Storage ***/
     struct Storage {
+        address pubkey;
         uint32[2] balances;
     }
 

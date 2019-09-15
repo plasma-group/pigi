@@ -7,7 +7,7 @@ import {TransitionEvaluator} from "./TransitionEvaluator.sol";
 
 contract UnipigTransitionEvaluator is TransitionEvaluator {
     bytes32 ZERO_BYTES32 = 0x0000000000000000000000000000000000000000000000000000000000000000;
-    address UNISWAP_ADDRESS = 0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF;
+    address UNISWAP_ADDRESS = 0x0000000000000000000000000000000000000000;
     uint UNISWAP_FEE_IN_BIPS = 30;
     uint FAILED_TX = 0;
     uint SUCCESSFUL_TX = 1;
@@ -30,11 +30,17 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
     function inferTxType(
         bytes memory _tx
     ) public view returns(uint) {
-        if (_tx.length == 256) {
+        if (_tx.length == 320) {
+            // Transfer new account
             return 0;
         }
         if (_tx.length == 288) {
+            // Transfer stored account
             return 1;
+        }
+        if (_tx.length == 352) {
+            // Swap
+            return 2;
         }
         revert("Tx type not recognized!");
     }
