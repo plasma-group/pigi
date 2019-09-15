@@ -7,24 +7,25 @@ import { AbiEncodable } from '../../../types'
  * @param encoded The encoded TransferNewAccountTx.
  * @returns the TransferNewAccountTx.
  */
-const fromEncoded = (encoded: string): AbiTransferNewAccountTx => {
-  const decoded = abi.decode(AbiTransferNewAccountTx.abiTypes, encoded)
-  return new AbiTransferNewAccountTx(decoded[0], decoded[1], decoded[2], decoded[3], + decoded[4], decoded[5])
+const fromEncoded = (encoded: string): AbiCreateAndTransferTransition => {
+  const decoded = abi.decode(AbiCreateAndTransferTransition.abiTypes, encoded)
+  return new AbiCreateAndTransferTransition(decoded[0], decoded[1], decoded[2], decoded[3], + decoded[4], decoded[5], decoded[6])
 }
 
 /**
  * Represents a basic abi encodable TransferNewAccountTx
  */
-export class AbiTransferNewAccountTx implements AbiEncodable {
-  public static abiTypes = ['bytes', 'address', 'uint32', 'uint32', 'bool', 'uint32']
+export class AbiCreateAndTransferTransition implements AbiEncodable {
+  public static abiTypes = ['bytes32', 'uint32', 'uint32', 'address', 'bool', 'uint32', 'bytes']
 
   constructor(
-    readonly signature: string,
-    readonly newAccountPubkey: string,
+    readonly stateRoot: string,
     readonly senderSlot: number,
     readonly recipientSlot: number,
+    readonly newAccountPubkey: string,
     readonly tokenType: number,
     readonly amount: number,
+    readonly signature: string,
   ) {
     // Attempt to encode to verify input is correct
     this.encoded
@@ -34,27 +35,29 @@ export class AbiTransferNewAccountTx implements AbiEncodable {
    * @returns the abi encoded TransferNewAccountTx.
    */
   get encoded(): string {
-    return abi.encode(AbiTransferNewAccountTx.abiTypes, [
-      this.signature,
-      this.newAccountPubkey,
+    return abi.encode(AbiCreateAndTransferTransition.abiTypes, [
+      this.stateRoot,
       this.senderSlot,
       this.recipientSlot,
+      this.newAccountPubkey,
       this.tokenType,
       this.amount,
+      this.signature,
     ])
   }
 
   /**
-   * @returns the jsonified AbiTransferNewAccountTx.
+   * @returns the jsonified AbiCreateAndTransferTransition.
    */
   get jsonified(): any {
     return {
-      signature: this.signature,
-      newAccountPubkey: this.newAccountPubkey,
+      stateRoot: this.stateRoot,
       senderSlot: this.senderSlot,
       recipientSlot: this.recipientSlot,
+      newAccountPubkey: this.newAccountPubkey,
       tokenType: this.tokenType,
       amount: this.amount,
+      signature: this.signature,
     }
   }
 
@@ -63,7 +66,7 @@ export class AbiTransferNewAccountTx implements AbiEncodable {
    * @param value Thing to cast to a TransferNewAccountTx.
    * @returns the TransferNewAccountTx.
    */
-  public static from(value: string): AbiTransferNewAccountTx {
+  public static from(value: string): AbiCreateAndTransferTransition {
     if (typeof value === 'string') {
       return fromEncoded(value)
     }

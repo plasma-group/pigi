@@ -32,7 +32,7 @@ contract DataTypes {
         uint32 amount;
     }
 
-    /*** Transition Data ***/
+    /*** Tx Data ***/
     struct TransferNewAccountTxData {
         bytes signature;
         address recipientPubkey;

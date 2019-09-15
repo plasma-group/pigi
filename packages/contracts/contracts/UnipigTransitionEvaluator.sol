@@ -27,31 +27,22 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
     /**
      * Return the tx type inferred by the length of bytes
      */
-    function inferTxType(
-        bytes memory _tx
+    function inferTransitionType(
+        bytes memory _transition
     ) public view returns(uint) {
-        if (_tx.length == 320) {
-            // Transfer new account
+        if (_transition.length == 352) {
+            // Create account and Transfer
             return 0;
         }
-        if (_tx.length == 288) {
-            // Transfer stored account
+        if (_transition.length == 320) {
+            // Transfer
             return 1;
         }
-        if (_tx.length == 352) {
+        if (_transition.length == 384) {
             // Swap
             return 2;
         }
         revert("Tx type not recognized!");
-    }
-
-    function testDynamicArray(bytes memory _array) public view returns(uint) {
-        (bytes[] memory array, bytes32 root) = abi.decode(_array, (bytes[], bytes32));
-        return 3;
-    }
-
-    function testGasLimit(bytes[] calldata transitions) external returns(uint) {
-        return 3;
     }
 
     /**

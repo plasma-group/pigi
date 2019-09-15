@@ -32,9 +32,9 @@ import {
   hexStrToBuf,
   bufToHexString,
   BigNumber,
-  AbiTransferNewAccountTx,
-  AbiTransferStoredAccountTx,
-  AbiSwapTx,
+  AbiCreateAndTransferTransition,
+  AbiTransferTransition,
+  AbiSwapTransition,
 } from '@pigi/core'
 
 /* Logging */
@@ -52,6 +52,7 @@ const getSlot = (storageSlot: string) => makePaddedUint(storageSlot, STORAGE_TRE
 const getAmount = (amount: string) => makePaddedUint(amount, AMOUNT_BYTES)
 const getAddress = (address: string) => makeRepeatedBytes(address, 20)
 const getSignature = (sig: string) => makeRepeatedBytes(sig, 65)
+const getStateRoot = (bytes: string) => makeRepeatedBytes(bytes, 32)
 
 const FAILED_TX = 0
 const SUCCESSFUL_TX = 1
@@ -71,9 +72,9 @@ describe.only('UnipigTransitionEvaluator', () => {
   })
 
   /*
-   * Test inferTxType()
+   * Test inferTransitionType()
    */
-  describe('inferTxType() ', async () => {
+  describe('inferTransitionType() ', async () => {
     const txTypes = {
       TRANSFER_NEW_ACCOUNT_TYPE: 0,
       TRANSFER_STORED_ACCOUNT_TYPE: 1,
@@ -82,33 +83,33 @@ describe.only('UnipigTransitionEvaluator', () => {
 
     it('should infer a transfer new account transaction', async () => {
       // Create a transaction which we will infer the type of
-      const tx = new AbiTransferNewAccountTx(getSignature('0'), getAddress('01'), 2, 2, 0, 1)
+      const tx = new AbiCreateAndTransferTransition(getStateRoot('ab'), 2, 2, getAddress('01'), 0, 1, getSignature('0'))
       // Encode!
       const encoded = tx.encoded
       // Attempt to infer the transaction type
-      const res = await unipigEvaluator.inferTxType(encoded)
+      const res = await unipigEvaluator.inferTransitionType(encoded)
       // Check that it's the correct type
       res.should.equal(txTypes.TRANSFER_NEW_ACCOUNT_TYPE)
     })
 
     it('should infer a transfer stored account transaction', async () => {
       // Create a transaction which we will infer the type of
-      const tx = new AbiTransferStoredAccountTx(getSignature('0'), 2, 2, 0, 1)
+      const tx = new AbiTransferTransition(getStateRoot('ba'), 2, 2, 0, 1, getSignature('0'))
       // Encode!
       const encoded = tx.encoded
       // Attempt to infer the transaction type
-      const res = await unipigEvaluator.inferTxType(encoded)
+      const res = await unipigEvaluator.inferTransitionType(encoded)
       // Check that it's the correct type
       res.should.equal(txTypes.TRANSFER_STORED_ACCOUNT_TYPE)
     })
 
     it('should infer a swap transaction', async () => {
       // Create a transaction which we will infer the type of
-      const tx = new AbiSwapTx(getSignature('0'), 2, 2, 1, 1, 3, 6)
+      const tx = new AbiSwapTransition(getStateRoot('cd'), 2, 2, 1, 1, 3, 6, getSignature('0'))
       // Encode!
       const encoded = tx.encoded
       // Attempt to infer the transaction type
-      const res = await unipigEvaluator.inferTxType(encoded)
+      const res = await unipigEvaluator.inferTransitionType(encoded)
       // Check that it's the correct type
       res.should.equal(txTypes.SWAP_TYPE)
     })
@@ -116,40 +117,13 @@ describe.only('UnipigTransitionEvaluator', () => {
     it('should revert if a tx has the wrong number of bytes', async () => {
       try {
         // Attempt to infer a faulty tx type
-        const res = await unipigEvaluator.inferTxType('0x1234')
+        const res = await unipigEvaluator.inferTransitionType('0x1234')
       } catch (err) {
         // Success we threw an error!
         return
       }
       throw new Error('Revert expected on invalid tx type length')
     })
-  })
-
-  it.only('should test the gas limit amount', async () => {
-    // Create a transaction which we will infer the type of
-    const swapTx = new AbiSwapTx(getSignature('52238723785872358723875872330007858725378278'), 4573, 3232, 0, 322, 322, 343)
-    const transferStored = new AbiTransferStoredAccountTx(getSignature('29324009892834'), 213, 892, 0, 1939)
-    const transferNew = new AbiTransferNewAccountTx(getSignature('84298'), getAddress('41'), 232, 282, 0, 232)
-    // Encode!
-    const swapEncoded = swapTx.encoded + '42'.repeat(32)
-    const storedEncoded = transferStored.encoded + '42'.repeat(32)
-    const newEncoded = transferNew.encoded + '42'.repeat(32)
-    // Now lets build tons of these txs!!!
-    const numTxs = 700
-    const fullCallData = []
-    for (let i = 0; i < numTxs; i++) {
-      const whatTx = Math.floor(Math.random()*3)
-      if(whatTx === 0) {
-        fullCallData.push(swapEncoded)
-      } else if(whatTx === 1) {
-        fullCallData.push(storedEncoded)
-      } else {
-        fullCallData.push(newEncoded)
-      }
-    }
-    // Attempt to infer the transaction type
-    const res = await unipigEvaluator.testGasLimit(fullCallData)
-    log(res)
   })
 
   /*
