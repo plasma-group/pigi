@@ -1,6 +1,6 @@
 /* Internal Imports */
-import { abi } from '../../app'
-import { AbiEncodable } from '../../types'
+import { abi } from '../../../app'
+import { AbiEncodable } from '../../../types'
 
 /**
  * Creates a TransferNewAccountTx from an encoded TransferNewAccountTx.
