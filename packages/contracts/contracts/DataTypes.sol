@@ -32,10 +32,33 @@ contract DataTypes {
         uint32 amount;
     }
 
+    /*** Transition Data ***/
+    struct TransferNewAccountTxData {
+        bytes signature;
+        address recipientPubkey;
+        uint tokenType;
+        uint32 amount;
+    }
+
+    struct TransferStoredAccountTxData {
+        bytes signature;
+        uint tokenType;
+        uint32 amount;
+    }
+
+    struct SwapTxData {
+        bytes signature;
+        uint tokenType;
+        uint32 inputAmount;
+        uint32 minOutputAmount;
+        uint timeout;
+    }
+
     /*** Transitions ***/
     struct Transition {
-        bytes tx;
         bytes32 postState;
+        uint32[2] accessList;
+        bytes txData;
     }
 
     struct TransitionInclusionProof {

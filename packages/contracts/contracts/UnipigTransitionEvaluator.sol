@@ -45,19 +45,30 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
         revert("Tx type not recognized!");
     }
 
+    function testDynamicArray(bytes memory _array) public view returns(uint) {
+        (bytes[] memory array, bytes32 root) = abi.decode(_array, (bytes[], bytes32));
+        return 3;
+    }
+
+    function testGasLimit(bytes[] calldata transitions) external returns(uint) {
+        return 3;
+    }
+
     /**
-     * Apply a transfer transaction
+     * Apply a transfer stored account transaction
      */
-    function applyTransferTx(
+    function applyTransferStoredAccountTx(
         dt.TransferTx memory _tx,
         dt.StorageSlot[2] memory _storageSlots
     ) public view returns(uint, dt.Storage[2] memory) {
+        // First construct the transaction from the storage slots
+
         // Make sure that the provided storage slots are the correct ones
-        require(verifyEcdsaSignature(_tx.signature, _storageSlots[0].slotIndex), "Signer address must equal sender!");
+        require(verifyEcdsaSignature(_tx.signature, _storageSlots[0].value.pubkey), "Signer address must equal sender!");
         require(_tx.recipient == _storageSlots[1].slotIndex, "Storage slot must match the recipient!");
         // Create an array to store our output storage slots
         dt.Storage[2] memory outputStorage;
-        // Now we know the storage slots are correct, let's compute the output of the transaction
+        // Now we know the pubkeys are correct, let's compute the output of the transaction
         uint senderBalance = _storageSlots[0].value.balances[_tx.tokenType];
         // First let's make sure the sender has enough money
         if (senderBalance < _tx.amount) {

@@ -178,8 +178,9 @@ contract RollupChain {
         // how to generate that encoding client-side.
         return keccak256(
             abi.encode(
-                _transition.tx,
-                _transition.postState
+                _transition.postState,
+                _transition.accessList,
+                _transition.txData
             )
         );
     }

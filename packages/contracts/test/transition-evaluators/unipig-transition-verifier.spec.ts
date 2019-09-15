@@ -125,6 +125,33 @@ describe.only('UnipigTransitionEvaluator', () => {
     })
   })
 
+  it.only('should test the gas limit amount', async () => {
+    // Create a transaction which we will infer the type of
+    const swapTx = new AbiSwapTx(getSignature('52238723785872358723875872330007858725378278'), 4573, 3232, 0, 322, 322, 343)
+    const transferStored = new AbiTransferStoredAccountTx(getSignature('29324009892834'), 213, 892, 0, 1939)
+    const transferNew = new AbiTransferNewAccountTx(getSignature('84298'), getAddress('41'), 232, 282, 0, 232)
+    // Encode!
+    const swapEncoded = swapTx.encoded + '42'.repeat(32)
+    const storedEncoded = transferStored.encoded + '42'.repeat(32)
+    const newEncoded = transferNew.encoded + '42'.repeat(32)
+    // Now lets build tons of these txs!!!
+    const numTxs = 700
+    const fullCallData = []
+    for (let i = 0; i < numTxs; i++) {
+      const whatTx = Math.floor(Math.random()*3)
+      if(whatTx === 0) {
+        fullCallData.push(swapEncoded)
+      } else if(whatTx === 1) {
+        fullCallData.push(storedEncoded)
+      } else {
+        fullCallData.push(newEncoded)
+      }
+    }
+    // Attempt to infer the transaction type
+    const res = await unipigEvaluator.testGasLimit(fullCallData)
+    log(res)
+  })
+
   /*
    * Test applyTransferTx()
    */
