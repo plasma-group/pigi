@@ -42,6 +42,19 @@ export const ZERO_UINT32 = makeRepeatedBytes('0', 4)
 export const ZERO_SIGNATURE = makeRepeatedBytes('0', 65)
 
 
+/* Extra Helpers */
+export const STORAGE_TREE_HEIGHT = 5
+export const AMOUNT_BYTES = 5
+export const getSlot = (storageSlot: string) => makePaddedUint(storageSlot, STORAGE_TREE_HEIGHT)
+export const getAmount = (amount: string) => makePaddedUint(amount, AMOUNT_BYTES)
+export const getAddress = (address: string) => makeRepeatedBytes(address, 20)
+export const getSignature = (sig: string) => makeRepeatedBytes(sig, 65)
+export const getStateRoot = (bytes: string) => makeRepeatedBytes(bytes, 32)
+
+export const UNISWAP_ADDRESS = getAddress('00')
+export const UNISWAP_STORAGE_SLOT = 0
+
+
 /*******************************
  * Transition Encoding Helpers *
  ******************************/

@@ -13,6 +13,13 @@ import {
   ZERO_ADDRESS,
   ZERO_UINT32,
   ZERO_SIGNATURE,
+  getSlot,
+  getAmount,
+  getAddress,
+  getSignature,
+  getStateRoot,
+  UNISWAP_ADDRESS,
+  UNISWAP_STORAGE_SLOT,
 } from '../helpers'
 
 /* External Imports */
@@ -29,6 +36,9 @@ import {
   hexStrToBuf,
   bufToHexString,
   BigNumber,
+  AbiCreateAndTransferTransition,
+  AbiTransferTransition,
+  AbiSwapTransition,
 } from '@pigi/core'
 
 /* Logging */
@@ -225,36 +235,73 @@ describe('RollupChain', () => {
   })
 
   /*
-   * Test proveTransitionInvalid()
-   * Currently skipping this because we don't have the right tools to generate this cleanly.
+   * Test getStateRootsAndStorageSlots()
    */
-  describe.skip('proveTransitionInvalid() ', async () => {
-    it('should not throw', async () => {
+  describe.skip('getStateRootsAndStorageSlots() ', async () => {
+    it('should return expected storage slots', async () => {
+      const expectedSlots = [5, 10]
+      // Create two transfer transitions
+      const transferTransitions = [
+        new AbiTransferTransition(getStateRoot('ab'), expectedSlots[0], expectedSlots[1], 0, 1, getSignature('42')),
+        new AbiTransferTransition(getStateRoot('cd'), expectedSlots[0], expectedSlots[1], 0, 1, getSignature('42')),
+      ]
+      const transferTransitionsEncoded = transferTransitions.map((transition) => transition.encoded)
+
       // Create a rollup block
-      const block = new RollupBlock(generateNTransitions(5), 0)
+      const block = new RollupBlock(transferTransitionsEncoded, 0)
       // Get two included transitions
       const includedTransitions = [
         block.getIncludedTransition(0),
         block.getIncludedTransition(1),
       ]
-      // Generate a dummy storage inclusion proof
-      const dummyStorageInclusionProof = {
-        siblings: Array(160).fill(makeRepeatedBytes('99', 32)),
-        path: 5,
-      }
-      // Generate Dummy IncludedStorage
-      const dummyInputStorage = {
+      // Call the function and see if it works!
+      const res = await rollupChain.proveTransitionInvalid(
+        includedTransitions[0],
+        includedTransitions[1],
+      )
+      log(res)
+      // Did not throw... success!
+    })
+  })
+
+  /*
+   * Test proveTransitionInvalid()
+   * Currently skipping this because we don't have the right tools to generate this cleanly.
+   */
+  describe.skip('proveTransitionInvalid() ', async () => {
+    it('should not throw', async () => {
+      // Create two transfer transitions
+      const transferTransitions = [
+        new AbiTransferTransition(getStateRoot('ab'), 2, 2, 0, 1, getSignature('42')),
+        new AbiTransferTransition(getStateRoot('cd'), 2, 2, 0, 1, getSignature('42')),
+      ]
+      const transferTransitionsEncoded = transferTransitions.map((transition) => transition.encoded)
+
+      // Create a rollup block
+      const block = new RollupBlock(transferTransitionsEncoded, 0)
+      // Get two included transitions
+      const includedTransitions = [
+        block.getIncludedTransition(0),
+        block.getIncludedTransition(1),
+      ]
+      // Make Dummy StorageSlot
+      const dummyStorageSlot = {
         value: {
           pubkey: ZERO_ADDRESS,
           balances: [20, 120],
         },
-        inclusionProof: dummyStorageInclusionProof,
+        slotIndex: 5,
+      }
+      // Make Dummy IncludedStorage
+      const dummyIncludedStorageSlot = {
+        storageSlot: dummyStorageSlot,
+        siblings: Array(32).fill(makeRepeatedBytes('99', 32)),
       }
       // Call the function and see if it works!
       await rollupChain.proveTransitionInvalid(
         includedTransitions[0],
         includedTransitions[1],
-        [dummyInputStorage, dummyInputStorage]
+        [dummyIncludedStorageSlot, dummyIncludedStorageSlot]
       )
       // Did not throw... success!
     })

@@ -85,7 +85,7 @@ contract DataTypes {
         Storage value;
     }
 
-    struct IncludedStorage {
+    struct IncludedStorageSlot {
         StorageSlot storageSlot;
         bytes32[] siblings;
     }

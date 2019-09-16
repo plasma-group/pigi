@@ -74,25 +74,28 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
      * In unipig's case this is a uint32[2] for the two storage slots touched.
      */
     function getTransitionStateRootAndAccessList(
-        bytes memory _rawTransition
-    ) public view returns(bytes32, uint32[2] memory) {
+        bytes calldata _rawTransition
+    ) external view returns(bytes32, uint32[2] memory) {
+        // Initialize memory rawTransition
+        bytes memory rawTransition = _rawTransition;
+        // Initialize stateRoot and storageSlots
         bytes32 stateRoot;
         uint32[2] memory storageSlots;
-        uint transitionType = inferTransitionType(_rawTransition);
+        uint transitionType = inferTransitionType(rawTransition);
         if (transitionType == CREATE_AND_TRANSFER_TYPE) {
-            dt.CreateAndTransferTransition memory transition = decodeCreateAndTransferTransition(_rawTransition);
+            dt.CreateAndTransferTransition memory transition = decodeCreateAndTransferTransition(rawTransition);
             stateRoot = transition.stateRoot;
             storageSlots[0] = transition.senderSlot;
             storageSlots[1] = transition.recipientSlot;
         }
         if (transitionType == TRANSFER_TYPE) {
-            dt.TransferTransition memory transition = decodeTransferTransition(_rawTransition);
+            dt.TransferTransition memory transition = decodeTransferTransition(rawTransition);
             stateRoot = transition.stateRoot;
             storageSlots[0] = transition.senderSlot;
             storageSlots[1] = transition.recipientSlot;
         }
         if (transitionType == SWAP_TYPE) {
-            dt.SwapTransition memory transition = decodeSwapTransition(_rawTransition);
+            dt.SwapTransition memory transition = decodeSwapTransition(rawTransition);
             stateRoot = transition.stateRoot;
             storageSlots[0] = transition.senderSlot;
             storageSlots[1] = transition.recipientSlot;

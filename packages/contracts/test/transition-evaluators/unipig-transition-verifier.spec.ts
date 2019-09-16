@@ -13,6 +13,13 @@ import {
   ZERO_ADDRESS,
   ZERO_UINT32,
   ZERO_SIGNATURE,
+  getSlot,
+  getAmount,
+  getAddress,
+  getSignature,
+  getStateRoot,
+  UNISWAP_ADDRESS,
+  UNISWAP_STORAGE_SLOT,
 } from '../helpers'
 
 /* External Imports */
@@ -41,18 +48,6 @@ const log = debug('test:info:unipig-transition-evaluator')
 /* Contract Imports */
 import * as UnipigTransitionEvaluator from '../../build/UnipigTransitionEvaluator.json'
 import * as SparseMerkleTreeLib from '../../build/SparseMerkleTreeLib.json'
-
-/* Helpers */
-const STORAGE_TREE_HEIGHT = 5
-const AMOUNT_BYTES = 5
-const getSlot = (storageSlot: string) => makePaddedUint(storageSlot, STORAGE_TREE_HEIGHT)
-const getAmount = (amount: string) => makePaddedUint(amount, AMOUNT_BYTES)
-const getAddress = (address: string) => makeRepeatedBytes(address, 20)
-const getSignature = (sig: string) => makeRepeatedBytes(sig, 65)
-const getStateRoot = (bytes: string) => makeRepeatedBytes(bytes, 32)
-
-const UNISWAP_ADDRESS = getAddress('00')
-const UNISWAP_STORAGE_SLOT = 0
 
 /* Begin tests */
 describe('UnipigTransitionEvaluator', () => {
