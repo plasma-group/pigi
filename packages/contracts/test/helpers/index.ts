@@ -40,6 +40,24 @@ export function makePaddedUint(value: string, length: number): string {
   return '0x' + value
 }
 
+/*******************************
+ * Transition Encoding Helpers *
+ ******************************/
+export type Transition = string
+
+// Generates some number of dummy transitions
+export function generateNTransitions(numTransitions: number) {
+  const transitions = []
+  for (let i = 0; i < numTransitions; i++) {
+    transitions.push(makeRepeatedBytes('' + i, 32))
+  }
+  return transitions
+}
+
+/****************
+ * Misc Helpers *
+ ***************/
+
 export const ZERO_BYTES32 = makeRepeatedBytes('0', 32)
 export const ZERO_ADDRESS = makeRepeatedBytes('0', 20)
 export const ZERO_UINT32 = makeRepeatedBytes('0', 4)
@@ -58,17 +76,3 @@ export const getStateRoot = (bytes: string) => makeRepeatedBytes(bytes, 32)
 
 export const UNISWAP_ADDRESS = getAddress('00')
 export const UNISWAP_STORAGE_SLOT = 0
-
-/*******************************
- * Transition Encoding Helpers *
- ******************************/
-export type Transition = string
-
-// Generates some number of dummy transitions
-export function generateNTransitions(numTransitions: number) {
-  const transitions = []
-  for (let i = 0; i < numTransitions; i++) {
-    transitions.push(makeRepeatedBytes('' + i, 32))
-  }
-  return transitions
-}

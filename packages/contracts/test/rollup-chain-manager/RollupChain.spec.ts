@@ -47,6 +47,7 @@ const log = debug('test:info:rollup-chain-manager')
 
 /* Contract Imports */
 import * as RollupChain from '../../build/RollupChain.json'
+import * as UnipigTransitionEvaluator from '../../build/UnipigTransitionEvaluator.json'
 import * as SparseMerkleTreeLib from '../../build/SparseMerkleTreeLib.json'
 
 /* Begin tests */
@@ -55,9 +56,19 @@ describe('RollupChain', () => {
   const [wallet1] = getWallets(provider)
   let rollupChain
   let sparseMerkleTree
+  let unipigEvaluator
+  let rollupCtLogFilter
 
   /* Link libraries before tests */
   before(async () => {
+    unipigEvaluator = await deployContract(
+      wallet1,
+      UnipigTransitionEvaluator,
+      [],
+      {
+        gasLimit: 6700000,
+      }
+    )
     sparseMerkleTree = await deployContract(wallet1, SparseMerkleTreeLib, [], {
       gasLimit: 6700000,
     })
@@ -72,9 +83,10 @@ describe('RollupChain', () => {
 
   /* Deploy a new RollupChain before each test */
   beforeEach(async () => {
-    rollupChain = await deployContract(wallet1, RollupChain, [], {
+    rollupChain = await deployContract(wallet1, RollupChain, [unipigEvaluator.address], {
       gasLimit: 6700000,
     })
+    rollupCtLogFilter = {address: rollupChain.address, fromBlock: 0, toBlock: 'latest'}
   })
 
   /*
@@ -232,8 +244,8 @@ describe('RollupChain', () => {
   /*
    * Test getStateRootsAndStorageSlots()
    */
-  describe.skip('getStateRootsAndStorageSlots() ', async () => {
-    it('should return expected storage slots', async () => {
+  describe('getStateRootsAndStorageSlots()', async () => {
+    it('should not throw', async () => {
       const expectedSlots = [5, 10]
       // Create two transfer transitions
       const transferTransitions = [
@@ -265,12 +277,11 @@ describe('RollupChain', () => {
         block.getIncludedTransition(0),
         block.getIncludedTransition(1),
       ]
-      // Call the function and see if it works!
-      const res = await rollupChain.proveTransitionInvalid(
-        includedTransitions[0],
-        includedTransitions[1]
+      // Call the function!
+      const res = await rollupChain.getStateRootsAndStorageSlots(
+        transferTransitions[0].encoded,
+        transferTransitions[1].encoded
       )
-      log(res)
       // Did not throw... success!
     })
   })

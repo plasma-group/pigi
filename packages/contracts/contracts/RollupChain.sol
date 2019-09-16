@@ -19,6 +19,12 @@ contract RollupChain {
     uint STORED_ACCOUNT_TRANSFER_TYPE = 1;
     uint SWAP_TYPE = 2;
 
+    /* Events */
+    event DecodedTransition(
+        bool success,
+        bytes returnData
+    );
+
     /* We need to keep a tree in storage which we will use for proving invalid transitions */
     using SparseMerkleTreeLib for SparseMerkleTreeLib.SparseMerkleTree;
     SparseMerkleTreeLib.SparseMerkleTree partialState;
@@ -26,8 +32,8 @@ contract RollupChain {
     /***************
      * Constructor *
      **************/
-    constructor() public {
-        // TODO: Initialize a transition Evaluator for this chain
+    constructor(address _transitionEvaluatorAddress) public {
+        transitionEvaluator = TransitionEvaluator(_transitionEvaluatorAddress);
     }
 
     /* Methods */
@@ -75,19 +81,35 @@ contract RollupChain {
     function getStateRootsAndStorageSlots(
         bytes memory _preStateTransition,
         bytes memory _invalidTransition
+    // ) public view returns(bytes memory) {
     ) public returns(bool, bytes32, bytes32, uint32[2] memory) {
         bool success;
         bytes memory returnData;
         bytes32 preStateRoot;
         bytes32 postStateRoot;
+        uint32[2] memory preStateStorageSlots;
         uint32[2] memory storageSlots;
         // First decode the prestate root
         (success, returnData) =
             address(transitionEvaluator).call(
-                abi.encodeWithSelector(transitionEvaluator.getTransitionStateRootAndAccessList.selector, (_preStateTransition))
+                abi.encodeWithSelector(transitionEvaluator.getTransitionStateRootAndAccessList.selector, _preStateTransition)
             );
+        // Emit the output as an event
+        emit DecodedTransition(success, returnData);
+        // Make sure the call was successful
         require(success, "If the preStateRoot is invalid, then prove that invalid instead!");
-        (preStateRoot, storageSlots) = abi.decode(returnData, (bytes32, uint32[2]));
+        (preStateRoot, preStateStorageSlots) = abi.decode((returnData), (bytes32, uint32[2]));
+        // Now that we have the prestateRoot, let's decode the postState
+        (success, returnData) =
+            address(transitionEvaluator).call(
+                abi.encodeWithSelector(transitionEvaluator.getTransitionStateRootAndAccessList.selector, _invalidTransition)
+            );
+        // Emit the output as an event
+        emit DecodedTransition(success, returnData);
+        // If the call was successful let's decode!
+        if (success) {
+            (postStateRoot, storageSlots) = abi.decode((returnData), (bytes32, uint32[2]));
+        }
         return (success, preStateRoot, postStateRoot, storageSlots);
     }
 
