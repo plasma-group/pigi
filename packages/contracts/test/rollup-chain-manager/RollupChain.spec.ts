@@ -4,10 +4,7 @@ import '../setup'
 import {
   RollupMerkleTree,
   Transition,
-  abiEncodeTransition,
-  getEncodedTransition,
   generateNTransitions,
-  getTransition,
   RollupBlock,
   makeRepeatedBytes,
   makePaddedBytes,
@@ -78,8 +75,8 @@ describe('RollupChain', () => {
   describe('submitBlock() ', async () => {
     it('should not throw', async () => {
       await rollupChain.submitBlock([
-        getEncodedTransition('0'),
-        getEncodedTransition('1'),
+        '0x1234',
+        '0x1234',
       ])
       // Did not throw... success!
     })
@@ -89,7 +86,7 @@ describe('RollupChain', () => {
    * Test verifySequentialTransitions()
    */
   describe('verifySequentialTransitions()', async () => {
-    let blocks = []
+    let blocks
     // Before each test let's submit a couple blocks
     beforeEach(async () => {
       // Create two blocks from some default transitions
@@ -98,12 +95,12 @@ describe('RollupChain', () => {
         new RollupBlock(generateNTransitions(10), 1),
       ]
       // Submit the blocks
-      await rollupChain.submitBlock(blocks[0].encodedTransitions)
-      await rollupChain.submitBlock(blocks[1].encodedTransitions)
+      await rollupChain.submitBlock(blocks[0].transitions)
+      await rollupChain.submitBlock(blocks[1].transitions)
     })
 
     describe('same block', async () => {
-      it('should not throw if the transitions are sequential in the same block', async () => {
+      it('should NOT throw if the transitions are sequential in the same block', async () => {
         const includedTransitions = [
           blocks[0].getIncludedTransition(0),
           blocks[0].getIncludedTransition(1),
@@ -175,7 +172,7 @@ describe('RollupChain', () => {
       // Create a block from some default transitions
       const block = new RollupBlock(generateNTransitions(10), 0)
       // Actually submit the block
-      await rollupChain.submitBlock(block.encodedTransitions)
+      await rollupChain.submitBlock(block.transitions)
       // Now check that each one was included
       for (let i = 0; i < block.leaves.length; i++) {
         const inclusionProof = block.getInclusionProof(i)
@@ -193,8 +190,8 @@ describe('RollupChain', () => {
       const block0 = new RollupBlock(generateNTransitions(5), 0)
       const block1 = new RollupBlock(generateNTransitions(5), 1)
       // Submit the blocks
-      await rollupChain.submitBlock(block0.encodedTransitions)
-      await rollupChain.submitBlock(block1.encodedTransitions)
+      await rollupChain.submitBlock(block0.transitions)
+      await rollupChain.submitBlock(block1.transitions)
       // Now check that all transitions for the 2nd block were included
       for (let i = 0; i < block1.leaves.length; i++) {
         const inclusionProof = block1.getInclusionProof(i)
@@ -211,9 +208,9 @@ describe('RollupChain', () => {
       // Create a block from some default transitions
       const block0 = new RollupBlock(generateNTransitions(5), 0)
       // Submit the blocks
-      await rollupChain.submitBlock(block0.encodedTransitions)
+      await rollupChain.submitBlock(block0.transitions)
       // Now check that we don't return true if a transition shouldn't have been included
-      const notIncluded = getTransition('deadbeefdeadbeefdeadbeef')
+      const notIncluded = '0xdeadbeefdeadbeefdeadbeef'
       const res = await rollupChain.checkTransitionInclusion({
         transition: notIncluded,
         inclusionProof: {

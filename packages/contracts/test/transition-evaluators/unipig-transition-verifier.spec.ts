@@ -4,10 +4,7 @@ import '../setup'
 import {
   RollupMerkleTree,
   Transition,
-  abiEncodeTransition,
-  getEncodedTransition,
   generateNTransitions,
-  getTransition,
   RollupBlock,
   makeRepeatedBytes,
   makePaddedBytes,
@@ -60,7 +57,7 @@ const UNISWAP_ADDRESS = getAddress('00')
 const UNISWAP_STORAGE_SLOT = 0
 
 /* Begin tests */
-describe.only('UnipigTransitionEvaluator', () => {
+describe('UnipigTransitionEvaluator', () => {
   const provider = createMockProvider()
   const [wallet1] = getWallets(provider)
   let unipigEvaluator

@@ -4,8 +4,7 @@ import '../setup'
 import {
   RollupMerkleTree,
   Transition,
-  abiEncodeTransition,
-  getEncodedTransition,
+  makeRepeatedBytes,
 } from '../helpers'
 
 /* External Imports */
@@ -42,15 +41,15 @@ describe('RollupMerkleUtils', () => {
   describe('getMerkleRoot() ', async () => {
     it('should not throw', async () => {
       await rollupMerkleUtils.getMerkleRoot([
-        getEncodedTransition('1234'),
-        getEncodedTransition('4321'),
+        '0x1234',
+        '0x4321',
       ])
       // Did not throw... success!
     })
 
     it('should produce a correct merkle tree with two leaves', async () => {
       // Create the block with two transitions
-      const block = [getEncodedTransition('1234'), getEncodedTransition('4321')]
+      const block = ['0x1234', '0x4321']
       // Create the Solidity tree, returning the root
       const result = await rollupMerkleUtils.getMerkleRoot(block)
       // Create a local tree
@@ -66,7 +65,7 @@ describe('RollupMerkleUtils', () => {
     it('should produce correct merkle trees with leaves ranging from 1 to 10', async () => {
       for (let i = 1; i < 10; i++) {
         // Create the block with `i` transitions
-        const block = Array(i).fill(getEncodedTransition('' + i))
+        const block = Array(i).fill(makeRepeatedBytes('' + i, 32))
         // Create the Solidity tree, returning the root
         const result = await rollupMerkleUtils.getMerkleRoot(block)
         // Create a local tree
@@ -89,7 +88,7 @@ describe('RollupMerkleUtils', () => {
         const block = []
         // Populate the block
         for (let j = 1; j < i; j++) {
-          block.push(getEncodedTransition('' + j))
+          block.push(makeRepeatedBytes('' + j, 32))
         }
         // Generate leaves
         const leaves = block.map((transition) =>

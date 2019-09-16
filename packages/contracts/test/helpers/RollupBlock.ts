@@ -2,9 +2,6 @@
 import {
   RollupMerkleTree,
   Transition,
-  abiEncodeTransition,
-  getEncodedTransition,
-  getTransition,
 } from '.'
 
 /* External Imports */
@@ -31,17 +28,13 @@ interface IncludedTransition {
  */
 export class RollupBlock {
   public transitions: Transition[]
-  public encodedTransitions: string[]
   public leaves: Buffer[]
   public blockNumber: number
   public tree: RollupMerkleTree
 
   constructor(transitions: Transition[], blockNumber: number) {
     this.transitions = transitions
-    this.encodedTransitions = transitions.map((transition) =>
-      bufToHexString(abiEncodeTransition(transition))
-    )
-    this.leaves = this.encodedTransitions.map((transition) =>
+    this.leaves = this.transitions.map((transition) =>
       keccak256(hexStrToBuf(transition))
     )
     this.blockNumber = blockNumber

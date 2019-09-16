@@ -45,48 +45,13 @@ export const ZERO_SIGNATURE = makeRepeatedBytes('0', 65)
 /*******************************
  * Transition Encoding Helpers *
  ******************************/
-export interface Transition {
-  tx: string
-  postState: string
-}
-
-export function abiEncodeTransition(transition: Transition): Buffer {
-  return hexStrToBuf(
-    abi.encode(
-      ['bytes', 'bytes32'],
-      [
-        transition.tx,
-        transition.postState,
-      ]
-    )
-  )
-}
+export type Transition = string
 
 // Generates some number of dummy transitions
 export function generateNTransitions(numTransitions: number) {
   const transitions = []
   for (let i = 0; i < numTransitions; i++) {
-    transitions.push(getTransition('' + i))
+    transitions.push(makeRepeatedBytes(''+i, 32))
   }
   return transitions
-}
-
-// Creates an encoded transition with the specified tx (transaction)
-export function getTransition(tx: string): Transition {
-  // Generate post state based on the tx
-  let postState = tx
-  // If the postState length is less than two, add zeros to it!
-  while (postState.length < 2) {
-    postState += '0'
-  }
-  postState = '0x' + postState.slice(0, 2).repeat(32)
-  // Return the Transition!
-  return {
-    tx: '0x' + tx,
-    postState,
-  }
-}
-
-export function getEncodedTransition(tx: string): string {
-  return bufToHexString(abiEncodeTransition(getTransition(tx)))
 }
