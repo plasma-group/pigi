@@ -16,11 +16,31 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
     uint SWAP_TYPE = 2;
 
     function evaluateTransition(
-        bytes calldata _tx,
-        dt.StorageSlot[] calldata _storageSlots
-    ) external returns(bytes32[2] memory) {
-        bytes32[2] memory outputs;
-        return outputs;
+        bytes calldata _transition,
+        dt.StorageSlot[2] calldata _storageSlots
+    ) external view returns(bytes32, bytes32) {
+        // Convert our inputs to memory
+        bytes memory transition = _transition;
+        dt.StorageSlot[2] memory storageSlots = _storageSlots;
+        // Determine the transition type
+        uint transitionType = inferTransitionType(transition);
+        // And initalize updatedStorage which will contain the new storage values
+        dt.Storage[2] memory updatedStorage;
+        // Apply the transition and record the resulting storage slots
+        if (transitionType == CREATE_AND_TRANSFER_TYPE) {
+            dt.CreateAndTransferTransition memory createAndTransfer = decodeCreateAndTransferTransition(transition);
+            updatedStorage = applyCreateAndTransferTransition(createAndTransfer, storageSlots);
+        } else if (transitionType == TRANSFER_TYPE) {
+            dt.TransferTransition memory transfer = decodeTransferTransition(transition);
+            updatedStorage = applyTransferTransition(transfer, storageSlots);
+        } else if (transitionType == SWAP_TYPE) {
+            dt.SwapTransition memory swap = decodeSwapTransition(transition);
+            updatedStorage = applySwapTransition(swap, storageSlots);
+        } else {
+            revert("Transition type not recognized!");
+        }
+        // Return the hash of both storage (leaf nodes to insert into the tree)
+        return (getStorageHash(updatedStorage[0]), getStorageHash(updatedStorage[1]));
     }
 
     function verifyEcdsaSignature(bytes memory _signature, bytes32 _hash, address _pubkey) private pure returns(bool) {
@@ -45,7 +65,7 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
             // Swap
             return SWAP_TYPE;
         }
-        revert("Tx type not recognized!");
+        revert("Transition type not recognized!");
     }
 
 
@@ -218,7 +238,7 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
     function getStorageHash(dt.Storage memory _storage) public pure returns(bytes32) {
         // Here we don't use `abi.encode([struct])` because it's not clear
         // how to generate that encoding client-side.
-        return keccak256(abi.encode(_storage.balances[0], _storage.balances[1]));
+        return keccak256(abi.encode(_storage.pubkey, _storage.balances[0], _storage.balances[1]));
     }
 
     /************

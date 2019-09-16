@@ -6,7 +6,7 @@ import {DataTypes as dt} from "./DataTypes.sol";
 
 interface TransitionEvaluator {
     function evaluateTransition(
-        bytes calldata _tx,
-        dt.StorageSlot[] calldata storageSlots
-    ) external returns(bytes32[2] memory);
+        bytes calldata _transition,
+        dt.StorageSlot[2] calldata _storageSlots
+    ) external view returns(bytes32, bytes32);
 }
