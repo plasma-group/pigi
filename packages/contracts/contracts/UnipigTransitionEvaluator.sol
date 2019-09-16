@@ -95,7 +95,7 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
     }
 
     /**
-     * Apply a create storage slot and transfer stored account transaction
+     * Apply a create storage slot and transfer account transition
      */
     function applyCreateAndTransferTransition(
         dt.CreateAndTransferTransition memory _transition,
@@ -119,7 +119,7 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
     }
 
     /**
-     * Apply a transfer stored account transaction
+     * Apply a transfer stored account transition
      */
     function applyTransferTransition(
         dt.TransferTransition memory _transition,
@@ -154,7 +154,7 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
     }
 
     /**
-     * Apply a swap transaction
+     * Apply a swap transition
      */
     function applySwapTransition(
         dt.SwapTransition memory _transition,
