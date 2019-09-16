@@ -8,9 +8,8 @@ import {TransitionEvaluator} from "./TransitionEvaluator.sol";
 contract UnipigTransitionEvaluator is TransitionEvaluator {
     bytes32 ZERO_BYTES32 = 0x0000000000000000000000000000000000000000000000000000000000000000;
     address UNISWAP_ADDRESS = 0x0000000000000000000000000000000000000000;
+    uint UNISWAP_SLOT_INDEX = 0;
     uint UNISWAP_FEE_IN_BIPS = 30;
-    uint FAILED_TX = 0;
-    uint SUCCESSFUL_TX = 1;
     // Transition Types
     uint CREATE_AND_TRANSFER_TYPE = 0;
     uint TRANSFER_TYPE = 1;
@@ -91,6 +90,10 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
         require(_storage.balances[1] == 0, "Pigi balance must be zero");
     }
 
+    function getSwapTxHash(dt.SwapTx memory _swapTx) internal pure returns(bytes32) {
+        return keccak256(abi.encode(_swapTx.sender, _swapTx.tokenType, _swapTx.inputAmount, _swapTx.minOutputAmount, _swapTx.timeout));
+    }
+
     /**
      * Apply a create storage slot and transfer stored account transaction
      */
@@ -129,6 +132,8 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
 
         // Next check to see if the signature is valid
         require(verifyEcdsaSignature(_transition.signature, getTransferTxHash(transferTx), sender), "Transfer signature is invalid!");
+        // Also make sure we're not sending to Unipig
+        require(_storageSlots[1].slotIndex != UNISWAP_SLOT_INDEX, "Transfer cannot be made to Unipig!");
 
         // Create an array to store our output storage slots
         dt.Storage[2] memory outputStorage;
@@ -148,59 +153,64 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
         return outputStorage;
     }
 
-    // /**
-    //  * Apply a swap transaction
-    //  */
-    // function applySwapTx(
-    //     dt.SwapTx memory _tx,
-    //     dt.StorageSlot[2] memory _storageSlots
-    // ) public view returns(uint, dt.Storage[2] memory) {
-    //     // Make sure that the provided storage slots are the correct ones
-    //     require(verifyEcdsaSignature(_tx.signature, _storageSlots[0].slotIndex), "Signer address must equal sender!");
-    //     require(_storageSlots[1].slotIndex == UNISWAP_ADDRESS, "Storage slot must be uniswap's storage slot!");
+    /**
+     * Apply a swap transaction
+     */
+    function applySwapTransition(
+        dt.SwapTransition memory _transition,
+        dt.StorageSlot[2] memory _storageSlots
+    ) public view returns(dt.Storage[2] memory) {
+        address sender = _storageSlots[0].value.pubkey;
+        address recipient = _storageSlots[1].value.pubkey;
+        // Create our swapTx
+        dt.SwapTx memory swapTx = dt.SwapTx(
+            sender,
+            _transition.tokenType,
+            _transition.inputAmount,
+            _transition.minOutputAmount,
+            _transition.timeout
+        );
 
-    //     // Create an array to store our output storage slots
-    //     dt.Storage[2] memory outputStorage;
+        // Make sure that the provided storage slots are corrent
+        require(verifyEcdsaSignature(_transition.signature, getSwapTxHash(swapTx), sender), "Swap signature is invalid!");
+        require(_storageSlots[1].slotIndex == UNISWAP_SLOT_INDEX && recipient == UNISWAP_ADDRESS, "Swap tx must be swapping with Unipig!");
 
-    //     // Now we know the storage slots are correct, let's first make sure the sender has enough money to initiate the swap
-    //     uint senderBalance = _storageSlots[0].value.balances[_tx.tokenType];
-    //     // Make sure the sender has enough money
-    //     if (senderBalance < _tx.inputAmount) {
-    //         // If not we return a failed tx
-    //         return (FAILED_TX, outputStorage);
-    //     }
+        // Create an array to store our output storage slots
+        dt.Storage[2] memory outputStorage;
 
-    //     // Store variables used for calculating the SWAP
-    //     uint inputTokenType = _tx.tokenType;
-    //     uint outputTokenType = 1 - _tx.tokenType;
-    //     dt.Storage memory senderStorage = _storageSlots[0].value;
-    //     dt.Storage memory uniswapStorage = _storageSlots[1].value;
+        // Now we know the storage slots are correct, let's first make sure the sender has enough money to initiate the swap
+        uint senderBalance = _storageSlots[0].value.balances[swapTx.tokenType];
+        // Make sure the sender has enough money
+        require(senderBalance > swapTx.inputAmount, "Sender of the swap tx does not have enough money!");
 
-    //     // Compute the SWAP
-    //     uint invariant = uniswapStorage.balances[0] * uniswapStorage.balances[1];
-    //     uint inputWithFee = _tx.inputAmount * (10000 - UNISWAP_FEE_IN_BIPS) / 10000;
-    //     uint totalInput = inputWithFee + uniswapStorage.balances[inputTokenType];
-    //     uint newOutputBalance = invariant / totalInput;
-    //     uint32 outputAmount = uniswapStorage.balances[outputTokenType] - uint32(newOutputBalance);
-    //     // Make sure the output amount is above the minimum
-    //     if (outputAmount < _tx.minOutputAmount) {
-    //         // If not we return a failed tx
-    //         return (FAILED_TX, outputStorage);
-    //     }
+        // Store variables used for calculating the SWAP
+        uint inputTokenType = swapTx.tokenType;
+        uint outputTokenType = 1 - swapTx.tokenType;
+        dt.Storage memory senderStorage = _storageSlots[0].value;
+        dt.Storage memory uniswapStorage = _storageSlots[1].value;
 
-    //     // Update the sender storage slots with the new balances
-    //     senderStorage.balances[inputTokenType] -= _tx.inputAmount;
-    //     senderStorage.balances[outputTokenType] += outputAmount;
-    //     // Update uniswap storage slots with the new balances
-    //     uniswapStorage.balances[inputTokenType] += _tx.inputAmount;
-    //     uniswapStorage.balances[outputTokenType] -= outputAmount;
+        // Compute the SWAP
+        uint invariant = uniswapStorage.balances[0] * uniswapStorage.balances[1];
+        uint inputWithFee = swapTx.inputAmount * (10000 - UNISWAP_FEE_IN_BIPS) / 10000;
+        uint totalInput = inputWithFee + uniswapStorage.balances[inputTokenType];
+        uint newOutputBalance = invariant / totalInput;
+        uint32 outputAmount = uniswapStorage.balances[outputTokenType] - uint32(newOutputBalance);
+        // Make sure the output amount is above or equal to the minimum
+        require(outputAmount >= swapTx.minOutputAmount, "Swap output amount is not above or equal to min output!");
 
-    //     // Set our output storage
-    //     outputStorage[0] = senderStorage;
-    //     outputStorage[1] = uniswapStorage;
-    //     // Return the outputs!
-    //     return (SUCCESSFUL_TX, outputStorage);
-    // }
+        // Update the sender storage slots with the new balances
+        senderStorage.balances[inputTokenType] -= swapTx.inputAmount;
+        senderStorage.balances[outputTokenType] += outputAmount;
+        // Update uniswap storage slots with the new balances
+        uniswapStorage.balances[inputTokenType] += swapTx.inputAmount;
+        uniswapStorage.balances[outputTokenType] -= outputAmount;
+
+        // Set our output storage
+        outputStorage[0] = senderStorage;
+        outputStorage[1] = uniswapStorage;
+        // Return the outputs!
+        return outputStorage;
+    }
 
     /**
      * Get the hash of the storage value.
