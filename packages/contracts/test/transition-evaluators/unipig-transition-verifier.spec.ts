@@ -184,7 +184,7 @@ describe.only('UnipigTransitionEvaluator', () => {
   /*
    * Test applyTransferTransition()
    */
-  describe.only('applyTransferTransition() ', async () => {
+  describe('applyTransferTransition() ', async () => {
 
     it('should return the correct storage slots after a successful send', async () => {
       // Set initialization variables
@@ -262,39 +262,90 @@ describe.only('UnipigTransitionEvaluator', () => {
     })
 
     // TODO: Enable this test once we add real signature verification to the contract
-    it.skip('should throw if the signature for the transfer does not match the sender', async () => {
+    it.skip('should throw if the signature for the transfer is invalid', async () => {
+      // TODO
+    })
+  })
+
+  /*
+   * Test applyCreateAndTransferTransition()
+   */
+  describe('applyCreateAndTransferTransition() ', async () => {
+    it('should succeed if the recipient storage is empty and it is a successful send', async () => {
       // Set initialization variables
-      const sentAmount = 10
-      const initialBalance = 1000
-      const initialStorage = { pubkey: getAddress('00'), balances: [initialBalance, initialBalance] }
+      const sentAmount = 5
+      const initialBalances = [1000, 1000]
+      const senderSlotIndex = 50
       const senderAddress = getAddress('48')
       const recipientAddress = getAddress('38')
+      const recipientSlotIndex = 100
+      // Create the storage slots
       const senderStorageSlot = {
-        slotIndex: senderAddress,
-        value: {...initialStorage},
+        slotIndex: senderSlotIndex,
+        value: {
+          pubkey: senderAddress,
+          balances: initialBalances,
+        },
       }
       const recipientStorageSlot = {
-        slotIndex: recipientAddress,
-        value: {...initialStorage},
+        slotIndex: recipientSlotIndex,
+        value: {
+          pubkey: getAddress('00'),
+          balances: [0, 0],
+        },
       }
+
       // Create a transaction which we will infer the type of
-      const tx = {
-        // Input an invalid signature
-        signature: getSignature('deadbeef'),
-        tokenType: 1,
-        recipient: recipientAddress,
-        amount: getAmount(sentAmount + ''),
+      const transition = new AbiCreateAndTransferTransition(getStateRoot('ab'), senderSlotIndex, recipientSlotIndex, recipientAddress, 0, sentAmount, getSignature('9'))
+      // Attempt to apply the transaction
+      const res = await unipigEvaluator.applyCreateAndTransferTransition(transition.jsonified, [
+        senderStorageSlot, recipientStorageSlot,
+      ])
+      // Check the sender's balance decremented
+      res[0].balances.should.deep.equal([ 995, 1000 ])
+      // Check the recipient's balance incremented
+      res[1].balances.should.deep.equal([ 5, 0 ])
+      // Also make sure the new storage slot has the recipient's pubkey
+      res[1].pubkey.should.equal(recipientAddress)
+      // Success!
+    })
+
+    it('should throw if the recipient storage is NOT empty and it is a successful send', async () => {
+      // Set initialization variables
+      const sentAmount = 5
+      const initialBalances = [1000, 1000]
+      const senderSlotIndex = 50
+      const senderAddress = getAddress('48')
+      const recipientAddress = getAddress('38')
+      const recipientSlotIndex = 100
+      // Create the storage slots
+      const senderStorageSlot = {
+        slotIndex: senderSlotIndex,
+        value: {
+          pubkey: senderAddress,
+          balances: initialBalances,
+        },
       }
+      const recipientStorageSlot = {
+        slotIndex: recipientSlotIndex,
+        value: {
+          pubkey: recipientAddress,
+          balances: [10, 10],
+        },
+      }
+
+      // Create a transaction which we will infer the type of
+      const transition = new AbiCreateAndTransferTransition(getStateRoot('ab'), senderSlotIndex, recipientSlotIndex, recipientAddress, 0, sentAmount, getSignature('9'))
       try {
         // Attempt to apply the transaction
-        const res = await unipigEvaluator.applyTransferTransition(tx, [
+        const res = await unipigEvaluator.applyCreateAndTransferTransition(transition.jsonified, [
           senderStorageSlot, recipientStorageSlot,
         ])
-      } catch(err) {
-        // Good we failed! Let's return
+      } catch (err) {
+        // Success!
         return
       }
-      throw new Error('Invalid signature did not cause transfer tx to fail!')
+      throw new Error('Expected to fail due to a non-empty storage slot!')
     })
   })
 

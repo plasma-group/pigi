@@ -37,7 +37,7 @@ contract DataTypes {
         bytes32 stateRoot;
         uint32 senderSlot;
         uint32 recipientSlot;
-        address recipientPubkey;
+        address createdAccountPubkey;
         uint tokenType;
         uint32 amount;
         bytes signature;

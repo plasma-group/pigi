@@ -85,6 +85,36 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
         return keccak256(abi.encode(_transferTx.sender, _transferTx.recipient, _transferTx.tokenType, _transferTx.amount));
     }
 
+    function verifyEmptyStorage(dt.Storage memory _storage) internal pure {
+        require(_storage.pubkey == 0x0000000000000000000000000000000000000000, "Pubkey of storage slot must be zero");
+        require(_storage.balances[0] == 0, "Uni balance must be zero");
+        require(_storage.balances[1] == 0, "Pigi balance must be zero");
+    }
+
+    /**
+     * Apply a create storage slot and transfer stored account transaction
+     */
+    function applyCreateAndTransferTransition(
+        dt.CreateAndTransferTransition memory _transition,
+        dt.StorageSlot[2] memory _storageSlots
+    ) public view returns(dt.Storage[2] memory) {
+        // Verify that the recipient storage is empty
+        verifyEmptyStorage(_storageSlots[1].value);
+        // Now set storage slot to have the pubkey of the recipient
+        _storageSlots[1].value.pubkey = _transition.createdAccountPubkey;
+        // Next create a transferTransition based on this createAndTransferTransition
+        dt.TransferTransition memory transferTransition = dt.TransferTransition(
+            _transition.stateRoot,
+            _transition.senderSlot,
+            _transition.recipientSlot,
+            _transition.tokenType,
+            _transition.amount,
+            _transition.signature
+        );
+        // Now simply apply the transfer transition as usual
+        return applyTransferTransition(transferTransition, _storageSlots);
+    }
+
     /**
      * Apply a transfer stored account transaction
      */
@@ -194,7 +224,7 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
              bytes32 stateRoot,
              uint32 senderSlot,
              uint32 recipientSlot,
-             address recipientPubkey,
+             address createdAccountPubkey,
              uint tokenType,
              uint32 amount,
              bytes memory signature
@@ -203,7 +233,7 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
              stateRoot,
              senderSlot,
              recipientSlot,
-             recipientPubkey,
+             createdAccountPubkey,
              tokenType,
              amount,
              signature
