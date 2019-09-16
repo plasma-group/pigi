@@ -10,6 +10,8 @@ import {
   DB,
   objectToBuffer,
   SparseMerkleTree,
+  BigNumber,
+  ZERO,
 } from '@pigi/core'
 
 /* Internal Imports */
@@ -35,6 +37,8 @@ import {
   StateSnapshot,
   Signature,
   StateReceipt,
+  State,
+  InclusionProof,
 } from './index'
 import { ethers } from 'ethers'
 import { RollupStateMachine } from './types'
@@ -91,6 +95,7 @@ export class RollupAggregator extends SimpleServer {
   private readonly rollupStateMachine: RollupStateMachine
   private readonly signatureProvider: SignatureProvider
   private readonly signatureVerifier: SignatureVerifier
+  private readonly stateCache: Map<Address, SignedStateReceipt>
 
   private blockNumber: number
   private transitionIndex: number
@@ -136,6 +141,8 @@ export class RollupAggregator extends SimpleServer {
       number: ++this.blockNumber,
       transitions: [],
     }
+    this.stateCache = new Map<Address, SignedStateReceipt>()
+
     this.lock = new AsyncLock()
   }
 
@@ -148,29 +155,34 @@ export class RollupAggregator extends SimpleServer {
    * aggregator guarantee that it does not exist.
    */
   private async getState(address: string): Promise<SignedStateReceipt> {
-    const stateReceipt: StateReceipt = await this.lock.acquire(
-      RollupAggregator.lockKey,
-      async () => {
-        const snapshot: StateSnapshot = await this.rollupStateMachine.getState(
-          address
-        )
-        return {
-          blockNumber: this.blockNumber,
-          transitionIndex: this.transitionIndex,
-          ...snapshot,
-        }
-      }
-    )
-
-    const signature: Signature = await this.signatureProvider.sign(
-      AGGREGATOR_ADDRESS,
-      serializeObject(stateReceipt)
-    )
-
-    return {
-      stateReceipt,
-      signature,
+    const cachedState: SignedStateReceipt = this.stateCache.get(address)
+    if (!!cachedState) {
+      return cachedState
     }
+
+    return this.lock.acquire(RollupAggregator.lockKey, async () => {
+      const snapshot: StateSnapshot = await this.rollupStateMachine.getState(
+        address
+      )
+      const stateReceipt: StateReceipt = {
+        blockNumber: this.blockNumber,
+        transitionIndex: this.transitionIndex,
+        ...snapshot,
+      }
+
+      const signature: Signature = await this.signatureProvider.sign(
+        AGGREGATOR_ADDRESS,
+        serializeObject(stateReceipt)
+      )
+
+      const signedStateReceipt: SignedStateReceipt = {
+        stateReceipt,
+        signature,
+      }
+      this.stateCache.set(address, signedStateReceipt)
+
+      return signedStateReceipt
+    })
   }
 
   /**
@@ -193,6 +205,23 @@ export class RollupAggregator extends SimpleServer {
           update,
           signedTransaction
         )
+
+        const cachePromises: Array<Promise<void>> = []
+        Object.keys(update.updatedState).forEach((address) => {
+          cachePromises.push(
+            this.updateCacheFromStateUpdate(
+              address,
+              { [address]: update.updatedState[address] },
+              update.endRoot,
+              update.updatedStateInclusionProof[address],
+              trans.blockNumber,
+              trans.number
+            )
+          )
+        })
+
+        await Promise.all(cachePromises)
+
         return [update, trans]
       }
     )
@@ -245,6 +274,23 @@ export class RollupAggregator extends SimpleServer {
           update,
           signedTransaction
         )
+
+        const cachePromises: Array<Promise<void>> = []
+        Object.keys(update.updatedState).forEach((address) => {
+          cachePromises.push(
+            this.updateCacheFromStateUpdate(
+              address,
+              { [address]: update.updatedState[address] },
+              update.endRoot,
+              update.updatedStateInclusionProof[address],
+              trans.blockNumber,
+              trans.number
+            )
+          )
+        })
+
+        await Promise.all(cachePromises)
+
         return [update, trans]
       }
     )
@@ -284,6 +330,32 @@ export class RollupAggregator extends SimpleServer {
       signature,
       transactionReceipt,
     }
+  }
+
+  private async updateCacheFromStateUpdate(
+    address: Address,
+    state: State,
+    stateRoot: string,
+    inclusionProof: InclusionProof,
+    blockNumber: number,
+    transitionIndex: number
+  ): Promise<void> {
+    const stateReceipt: StateReceipt = {
+      address,
+      state,
+      stateRoot,
+      inclusionProof,
+      blockNumber,
+      transitionIndex,
+    }
+    const signature: Signature = await this.signatureProvider.sign(
+      address,
+      serializeObject(stateReceipt)
+    )
+    this.stateCache.set(address, {
+      signature,
+      stateReceipt,
+    })
   }
 
   /**
