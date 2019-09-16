@@ -18,47 +18,49 @@ contract DataTypes {
 
     /*** Txs ***/
     struct SwapTx {
-        bytes signature;
         uint tokenType;
         uint32 inputAmount;
         uint32 minOutputAmount;
         uint timeout;
+        bytes signature;
     }
 
     struct TransferTx {
-        bytes signature;
         uint tokenType;
         address recipient;
         uint32 amount;
+        bytes signature;
     }
 
-    /*** Tx Data ***/
-    struct TransferNewAccountTxData {
-        bytes signature;
+    /*** Transitions ***/
+    struct CreateAndTransferTransition {
+        bytes32 postState;
+        uint32 senderSlot;
+        uint32 recipientSlot;
         address recipientPubkey;
         uint tokenType;
         uint32 amount;
+        bytes signature;
     }
 
-    struct TransferStoredAccountTxData {
-        bytes signature;
+    struct TransferTransition {
+        bytes32 postState;
+        uint32 senderSlot;
+        uint32 recipientSlot;
         uint tokenType;
         uint32 amount;
+        bytes signature;
     }
 
-    struct SwapTxData {
-        bytes signature;
+    struct SwapTransition {
+        bytes32 postState;
+        uint32 senderSlot;
+        uint32 recipientSlot;
         uint tokenType;
         uint32 inputAmount;
         uint32 minOutputAmount;
         uint timeout;
-    }
-
-    /*** Transitions ***/
-    struct Transition {
-        bytes32 postState;
-        uint32[2] accessList;
-        bytes txData;
+        bytes signature;
     }
 
     struct TransitionInclusionProof {
@@ -68,7 +70,7 @@ contract DataTypes {
     }
 
     struct IncludedTransition {
-        Transition transition;
+        bytes transition; // One of the 3 transition types
         TransitionInclusionProof inclusionProof;
     }
 

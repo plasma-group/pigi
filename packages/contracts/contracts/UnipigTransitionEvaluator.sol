@@ -11,6 +11,10 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
     uint UNISWAP_FEE_IN_BIPS = 30;
     uint FAILED_TX = 0;
     uint SUCCESSFUL_TX = 1;
+    // Transition Types
+    uint CREATE_AND_TRANSFER_TYPE = 0;
+    uint TRANSFER_TYPE = 1;
+    uint SWAP_TYPE = 2;
 
     function evaluateTransition(
         bytes calldata _tx,
@@ -32,18 +36,128 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
     ) public view returns(uint) {
         if (_transition.length == 352) {
             // Create account and Transfer
-            return 0;
+            return CREATE_AND_TRANSFER_TYPE;
         }
         if (_transition.length == 320) {
             // Transfer
-            return 1;
+            return TRANSFER_TYPE;
         }
         if (_transition.length == 384) {
             // Swap
-            return 2;
+            return SWAP_TYPE;
         }
         revert("Tx type not recognized!");
     }
+
+
+    /**
+     * Return the access list for this transition.
+     * In unipig's case this is a uint32[2] for the two storage slots touched.
+     */
+    function getTransitionPostStateAndAccessList(
+        bytes memory _rawTransition
+    ) public view returns(bytes32, uint32[2] memory) {
+        bytes32 postState;
+        uint32[2] memory storageSlots;
+        uint transitionType = inferTransitionType(_rawTransition);
+        if (transitionType == CREATE_AND_TRANSFER_TYPE) {
+            dt.CreateAndTransferTransition memory transition = decodeCreateAndTransferTransition(_rawTransition);
+            postState = transition.postState;
+            storageSlots[0] = transition.senderSlot;
+            storageSlots[1] = transition.recipientSlot;
+        }
+        if (transitionType == TRANSFER_TYPE) {
+            dt.TransferTransition memory transition = decodeTransferTransition(_rawTransition);
+            postState = transition.postState;
+            storageSlots[0] = transition.senderSlot;
+            storageSlots[1] = transition.recipientSlot;
+        }
+        if (transitionType == SWAP_TYPE) {
+            dt.SwapTransition memory transition = decodeSwapTransition(_rawTransition);
+            postState = transition.postState;
+            storageSlots[0] = transition.senderSlot;
+            storageSlots[1] = transition.recipientSlot;
+        }
+        return (postState, storageSlots);
+    }
+
+    /**
+     * Decode a createAndTransferTransition
+     * TODO: Decode directly into a struct.
+     */
+     function decodeCreateAndTransferTransition(bytes memory _rawBytes) internal pure returns(dt.CreateAndTransferTransition memory) {
+         (
+             bytes32 postState,
+             uint32 senderSlot,
+             uint32 recipientSlot,
+             address recipientPubkey,
+             uint tokenType,
+             uint32 amount,
+             bytes memory signature
+         ) = abi.decode((_rawBytes), (bytes32, uint32, uint32, address, uint, uint32, bytes));
+         dt.CreateAndTransferTransition memory transition = dt.CreateAndTransferTransition(
+             postState,
+             senderSlot,
+             recipientSlot,
+             recipientPubkey,
+             tokenType,
+             amount,
+             signature
+         );
+         return transition;
+     }
+
+    /**
+     * Decode a TransferTransition
+     * TODO: Decode directly into a struct.
+     */
+     function decodeTransferTransition(bytes memory _rawBytes) internal pure returns(dt.TransferTransition memory) {
+         (
+             bytes32 postState,
+             uint32 senderSlot,
+             uint32 recipientSlot,
+             uint tokenType,
+             uint32 amount,
+             bytes memory signature
+         ) = abi.decode((_rawBytes), (bytes32, uint32, uint32, uint, uint32, bytes));
+         dt.TransferTransition memory transition = dt.TransferTransition(
+             postState,
+             senderSlot,
+             recipientSlot,
+             tokenType,
+             amount,
+             signature
+         );
+         return transition;
+     }
+
+    /**
+     * Decode a SwapTransition
+     * TODO: Decode directly into a struct.
+     */
+     function decodeSwapTransition(bytes memory _rawBytes) internal pure returns(dt.SwapTransition memory) {
+         (
+             bytes32 postState,
+             uint32 senderSlot,
+             uint32 recipientSlot,
+             uint tokenType,
+             uint32 inputAmount,
+             uint32 minOutputAmount,
+             uint timeout,
+             bytes memory signature
+         ) = abi.decode((_rawBytes), (bytes32, uint32, uint32, uint, uint32, uint32, uint, bytes));
+         dt.SwapTransition memory transition = dt.SwapTransition(
+             postState,
+             senderSlot,
+             recipientSlot,
+             tokenType,
+             inputAmount,
+             minOutputAmount,
+             timeout,
+             signature
+         );
+         return transition;
+     }
 
     /**
      * Apply a transfer stored account transaction

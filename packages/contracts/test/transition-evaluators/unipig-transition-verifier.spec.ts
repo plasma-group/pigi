@@ -126,6 +126,61 @@ describe.only('UnipigTransitionEvaluator', () => {
     })
   })
 
+
+  /*
+   * Test getTransitionPostStateAndAccessList()
+   */
+  describe('getTransitionPostStateAndAccessList() ', async () => {
+    const stateRoot = getStateRoot('ab')
+    const accessList = [1, 2]
+
+    it('should return the expected storage slots for createAndTransferTransition', async () => {
+      // Create a transition which we will decode
+      const tx = new AbiCreateAndTransferTransition(stateRoot, accessList[0], accessList[1], getAddress('01'), 0, 1, getSignature('9'))
+      // Encode!
+      const encoded = tx.encoded
+      // Attempt to decode the transition
+      const res = await unipigEvaluator.getTransitionPostStateAndAccessList(encoded)
+      // Check that it returned the expected state root & access list
+      res.should.deep.equal([stateRoot, accessList])
+    })
+
+    it('should return the expected storage slots for transferTransition', async () => {
+      // Create a transition which we will decode
+      const tx = new AbiTransferTransition(stateRoot, accessList[0], accessList[1], 0, 1, getSignature('9'))
+      // Encode!
+      const encoded = tx.encoded
+      // Attempt to decode the transition
+      const res = await unipigEvaluator.getTransitionPostStateAndAccessList(encoded)
+      // Check that it returned the expected state root & access list
+      res.should.deep.equal([stateRoot, accessList])
+    })
+
+    it('should return the expected storage slots for swapTransition', async () => {
+      // Create a transition which we will decode
+      const tx = new AbiSwapTransition(stateRoot, accessList[0], accessList[1], 1, 1, 3, 6, getSignature('9'))
+      // Encode!
+      const encoded = tx.encoded
+      // Attempt to decode the transition
+      const res = await unipigEvaluator.getTransitionPostStateAndAccessList(encoded)
+      // Check that it returned the expected state root & access list
+      res.should.deep.equal([stateRoot, accessList])
+    })
+
+    it('should throw if we put in some random bytes as the transition', async () => {
+      const badEncoding = '0xdeadbeefdeadbeefdeadbeef'
+      try {
+        // Attempt to decode the transition
+        const res = await unipigEvaluator.getTransitionPostStateAndAccessList(badEncoding)
+        // It should have failed!
+      } catch(err) {
+        // Success! It threw!
+        return
+      }
+      throw(new Error('Expected bad encoding to fail!'))
+    })
+  })
+
   /*
    * Test applyTransferTx()
    */
