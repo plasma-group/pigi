@@ -83,10 +83,19 @@ describe('RollupChain', () => {
 
   /* Deploy a new RollupChain before each test */
   beforeEach(async () => {
-    rollupChain = await deployContract(wallet1, RollupChain, [unipigEvaluator.address], {
-      gasLimit: 6700000,
-    })
-    rollupCtLogFilter = {address: rollupChain.address, fromBlock: 0, toBlock: 'latest'}
+    rollupChain = await deployContract(
+      wallet1,
+      RollupChain,
+      [unipigEvaluator.address],
+      {
+        gasLimit: 6700000,
+      }
+    )
+    rollupCtLogFilter = {
+      address: rollupChain.address,
+      fromBlock: 0,
+      toBlock: 'latest',
+    }
   })
 
   /*
