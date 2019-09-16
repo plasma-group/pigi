@@ -290,22 +290,23 @@ describe('RollupChain', () => {
    * Test proveTransitionInvalid()
    * Currently skipping this because we don't have the right tools to generate this cleanly.
    */
-  describe.skip('proveTransitionInvalid() ', async () => {
+  describe('proveTransitionInvalid() ', async () => {
     it('should not throw', async () => {
+      const storageSlots = [5, 10]
       // Create two transfer transitions
       const transferTransitions = [
         new AbiTransferTransition(
           getStateRoot('ab'),
-          2,
-          2,
+          storageSlots[0],
+          storageSlots[1],
           0,
           1,
           getSignature('42')
         ),
         new AbiTransferTransition(
           getStateRoot('cd'),
-          2,
-          2,
+          storageSlots[0],
+          storageSlots[1],
           0,
           1,
           getSignature('42')
@@ -322,24 +323,34 @@ describe('RollupChain', () => {
         block.getIncludedTransition(0),
         block.getIncludedTransition(1),
       ]
-      // Make Dummy StorageSlot
-      const dummyStorageSlot = {
-        value: {
-          pubkey: ZERO_ADDRESS,
-          balances: [20, 120],
+      // Create two included storage slots
+      const includedStorageSlots = [
+        {
+          storageSlot: {
+            value: {
+              pubkey: ZERO_ADDRESS,
+              balances: [20, 120],
+            },
+            slotIndex: storageSlots[0],
+          },
+          siblings: Array(32).fill(makeRepeatedBytes('99', 32)),
         },
-        slotIndex: 5,
-      }
-      // Make Dummy IncludedStorage
-      const dummyIncludedStorageSlot = {
-        storageSlot: dummyStorageSlot,
-        siblings: Array(32).fill(makeRepeatedBytes('99', 32)),
-      }
+        {
+          storageSlot: {
+            value: {
+              pubkey: ZERO_ADDRESS,
+              balances: [20, 120],
+            },
+            slotIndex: storageSlots[1],
+          },
+          siblings: Array(32).fill(makeRepeatedBytes('99', 32)),
+        },
+      ]
       // Call the function and see if it works!
       await rollupChain.proveTransitionInvalid(
         includedTransitions[0],
         includedTransitions[1],
-        [dummyIncludedStorageSlot, dummyIncludedStorageSlot]
+        includedStorageSlots
       )
       // Did not throw... success!
     })

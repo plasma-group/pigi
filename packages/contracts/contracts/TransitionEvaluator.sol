@@ -8,7 +8,7 @@ interface TransitionEvaluator {
     function evaluateTransition(
         bytes calldata _transition,
         dt.StorageSlot[2] calldata _storageSlots
-    ) external view returns(bytes32, bytes32);
+    ) external view returns(bytes32[2] memory);
 
     function getTransitionStateRootAndAccessList(
         bytes calldata _rawTransition

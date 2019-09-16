@@ -18,7 +18,7 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
     function evaluateTransition(
         bytes calldata _transition,
         dt.StorageSlot[2] calldata _storageSlots
-    ) external view returns(bytes32, bytes32) {
+    ) external view returns(bytes32[2] memory) {
         // Convert our inputs to memory
         bytes memory transition = _transition;
         dt.StorageSlot[2] memory storageSlots = _storageSlots;
@@ -40,7 +40,10 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
             revert("Transition type not recognized!");
         }
         // Return the hash of both storage (leaf nodes to insert into the tree)
-        return (getStorageHash(updatedStorage[0]), getStorageHash(updatedStorage[1]));
+        bytes32[2] memory outputs;
+        outputs[0] = getStorageHash(updatedStorage[0]);
+        outputs[1] = getStorageHash(updatedStorage[1]);
+        return outputs;
     }
 
     function verifyEcdsaSignature(bytes memory _signature, bytes32 _hash, address _pubkey) private pure returns(bool) {

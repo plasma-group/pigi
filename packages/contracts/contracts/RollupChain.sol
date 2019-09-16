@@ -45,6 +45,7 @@ contract RollupChain {
         for (uint i = blockNumber; i < blocks.length; i++) {
             delete blocks[i];
         }
+        halted = true;
     }
 
     /**
@@ -81,7 +82,6 @@ contract RollupChain {
     function getStateRootsAndStorageSlots(
         bytes memory _preStateTransition,
         bytes memory _invalidTransition
-    // ) public view returns(bytes memory) {
     ) public returns(bool, bytes32, bytes32, uint32[2] memory) {
         bool success;
         bytes memory returnData;
@@ -118,53 +118,80 @@ contract RollupChain {
      * the chain.
      */
     function proveTransitionInvalid(
-        dt.IncludedTransition memory _preStateTransition,
-        dt.IncludedTransition memory _invalidTransition,
-        dt.IncludedStorageSlot[2] memory _inputStorage
+        dt.IncludedTransition memory _preStateIncludedTransition,
+        dt.IncludedTransition memory _invalidIncludedTransition,
+        dt.IncludedStorageSlot[2] memory _transitionStorageSlots
     ) public {
+        // For convenience store the transitions
+        bytes memory preStateTransition = _preStateIncludedTransition.transition;
+        bytes memory invalidTransition = _invalidIncludedTransition.transition;
+
+        /********* #1: CHECK_SEQUENTIAL_TRANSITIONS *********/
         // First verify that the transitions are sequential
-        verifySequentialTransitions(_preStateTransition, _invalidTransition);
-        // Next we need to decode our transitions
+        verifySequentialTransitions(_preStateIncludedTransition, _invalidIncludedTransition);
 
-        // bytes32 preStateRoot = _preStateTransition.transition.postState;
-        // bytes32 postStateRoot = _invalidTransition.transition.postState;
-        // partialState.root = preStateRoot;
+        /********* #2: DECODE_TRANSITIONS *********/
+        // Decode our transitions and determine which storage slots we'll need in order to validate the transition
+        (
+            bool success,
+            bytes32 preStateRoot,
+            bytes32 postStateRoot,
+            uint32[2] memory storageSlotIndexes
+        ) = getStateRootsAndStorageSlots(preStateTransition, invalidTransition);
+        // If not success something went wrong with the decoding...
+        if (!success) {
+            // Prune the block if it has an incorrectly encoded transition!
+            pruneBlocksAfter(_invalidIncludedTransition.inclusionProof.blockNumber);
+            return;
+        }
 
-        // // First we must verify and store the storage inclusion proofs
-        // for (uint i = 0; i < _inputStorage.length; i++) {
-        //     verifyAndStoreStorageSlotInclusionProof(_inputStorage[i]);
-        // }
+        /********* #3: VERIFY_TRANSITION_STORAGE_SLOTS *********/
+        // Make sure the storage slots we were given are correct
+        require(_transitionStorageSlots[0].storageSlot.slotIndex == storageSlotIndexes[0], "First supplied storage slot index is incorrect!");
+        require(_transitionStorageSlots[1].storageSlot.slotIndex == storageSlotIndexes[1], "Second supplied storage slot index is incorrect!");
 
-        // // Now that we've verified and stored our storage in the state tree, lets apply the transaction
-        // // To do this first let's pull out the two storage slots we care about
-        // dt.StorageSlot[2] memory storageSlots;
-        // storageSlots[0] = _inputStorage[0].storageSlot;
-        // storageSlots[1] = _inputStorage[1].storageSlot;
-        // // TODO: Make this an external call
-        // bytes32[3] memory outputs;
-        // bool txSuccessful = true;
+        /********* #4: STORE_STORAGE_INCLUSION_PROOFS *********/
+        // Now verify and store the storage inclusion proofs
+        for (uint i = 0; i < _transitionStorageSlots.length; i++) {
+            verifyAndStoreStorageSlotInclusionProof(_transitionStorageSlots[i]);
+        }
 
-        // // Here we're going to check
-        // // 1) did calling evaluateTx throw? if so... well we should throw. THIS MEANS THERE WAS SOMETHING WRONG WITH THE INPUTS
-        // // 2) did we get the right input but the TX failed? THIS MEANS WE NEED TO HALT
-        // // Otherwise... we check the outputs to see if they are correctly attributed
+        /********* #5: EVALUATE_TRANSITION *********/
+        // Now that we've verified and stored our storage in the state tree, lets apply the transaction
+        // To do this first let's pull out the two storage slots we care about
+        dt.StorageSlot[2] memory storageSlots;
+        storageSlots[0] = _transitionStorageSlots[0].storageSlot;
+        storageSlots[1] = _transitionStorageSlots[1].storageSlot;
+        bytes memory returnData;
+        // Make the external call
+        (success, returnData) =
+            address(transitionEvaluator).call(
+                abi.encodeWithSelector(transitionEvaluator.evaluateTransition.selector, invalidTransition, storageSlots)
+            );
+        // Check if it was successful. If not, we've got to prune.
+        if (!success) {
+            pruneBlocksAfter(_invalidIncludedTransition.inclusionProof.blockNumber);
+            return;
+        }
+        // It was successful so let's decode the outputs to get the new leaf nodes we'll have to insert
+        (bytes32[2] memory outputs) = abi.decode((returnData), (bytes32[2]));
 
+        /********* #6: EVALUATE_TRANSITION *********/
+        // Now we need to check if the state root is incorrect, to do this we first insert the new leaf values
+        for (uint i = 0; i < _transitionStorageSlots.length; i++) {
+            partialState.update(_transitionStorageSlots[i].storageSlot.slotIndex, outputs[i]);
+        }
 
-        // // First lets verify that the tx was successful. If it wasn't then our accountNonce will equal zero
-        // if (txSuccessful == false) {
-        //     halted = true;
-        //     return;
-        // }
+        /********* #7: COMPARE_STATE_ROOTS *********/
+        // Check if the calculated state root equals what we expect
+        if (postStateRoot != partialState.root) {
+            // Prune the block because we found an invalid post state root! Cryptoeconomic validity ftw!
+            pruneBlocksAfter(_invalidIncludedTransition.inclusionProof.blockNumber);
+            return;
+        }
 
-        // // The transaction succeeded, now we need to check if the state root is incorrect
-        // for (uint i = 0; i < _inputStorage.length; i++) {
-        //     partialState.update(uint(_inputStorage[i].storageSlot.slotIndex), outputs[i]);
-        // }
-        // // The state root MUST be incorrect for us to proceed in halting the chain!
-        // require(postStateRoot != partialState.root, 'postStateRoot must be different than the transaction result to be invalid.');
-
-        // // Halt the chain because we found an invalid post state root! Cryptoeconomic validity ftw!
-        // halted = true;
+        // Woah! Looks like there's no fraud!
+        revert("No fraud detected!");
     }
 
     /**
