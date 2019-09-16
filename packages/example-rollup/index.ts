@@ -3,12 +3,12 @@ import { BaseDB, SimpleClient } from '@pigi/core'
 import MemDown from 'memdown'
 import {
   State,
-  UNISWAP_ADDRESS,
   UNI_TOKEN_TYPE,
   PIGI_TOKEN_TYPE,
-  AGGREGATOR_ADDRESS,
   UnipigWallet,
+  FaucetRequest,
 } from '@pigi/wallet'
+import { ethers } from 'ethers'
 
 /* Global declarations */
 declare var document: any
@@ -50,24 +50,29 @@ setTimeout(() => {
 const db = new BaseDB(new MemDown('ovm') as any)
 const unipigWallet = new UnipigWallet(db)
 // Now create a wallet account
-const accountAddress = 'mocked account'
+
+const wallet: ethers.Wallet = ethers.Wallet.createRandom()
 
 // Connect to the mock aggregator
 unipigWallet.rollup.connect(new SimpleClient('http://localhost:3000'))
 
-updateAccountAddress(accountAddress)
+updateAccountAddress(wallet.address)
 
 async function fetchBalanceUpdate() {
-  const balances = await unipigWallet.getBalances(accountAddress)
+  const balances = await unipigWallet.getBalances(wallet.address)
   const uniswapBalances = await unipigWallet.rollup.getUniswapBalances()
   updateBalances(balances)
   updateUniswapBalances(uniswapBalances)
 }
 
 async function onRequestFundsClicked() {
+  const transaction: FaucetRequest = {
+    requester: wallet.address,
+    amount: 10,
+  }
   const response = await unipigWallet.rollup.requestFaucetFunds(
-    accountAddress,
-    10
+    transaction,
+    wallet.address
   )
   updateBalances(response)
 }
@@ -83,7 +88,7 @@ async function onTransferFundsClicked() {
       recipient,
       amount,
     },
-    accountAddress
+    wallet.address
   )
   updateBalances(response.sender.balances)
 }
@@ -99,7 +104,7 @@ async function onSwapFundsClicked() {
       minOutputAmount: 0,
       timeout: +new Date() + 1000,
     },
-    accountAddress
+    wallet.address
   )
   updateBalances(response.sender.balances)
   updateUniswapBalances(response.uniswap.balances)

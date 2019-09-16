@@ -1,33 +1,50 @@
+import MemDown from 'memdown'
 import './setup'
 
-/* External Imports */
-
-/* Internal Imports */
 import {
+  assertThrowsAsync,
   calculateSwapWithFees,
   getGenesisState,
   getGenesisStateLargeEnoughForFees,
 } from './helpers'
 import {
   UNI_TOKEN_TYPE,
-  MockRollupStateMachine,
   UNISWAP_ADDRESS,
   InsufficientBalanceError,
+  IdentityVerifier,
+  DefaultRollupStateMachine,
+  SignedTransaction,
 } from '../src'
+import { DB, BaseDB } from '@pigi/core'
+
+/* External Imports */
+
+/* Internal Imports */
 
 /*********
  * TESTS *
  *********/
 
-describe('RollupStateMachine', async () => {
+describe('RollupStateMachine', () => {
   let rollupState
-  beforeEach(() => {
-    rollupState = new MockRollupStateMachine(getGenesisState(), 0)
+  let db: DB
+
+  beforeEach(async () => {
+    db = new BaseDB(new MemDown('') as any, 256)
+    rollupState = await DefaultRollupStateMachine.create(
+      getGenesisState(),
+      db,
+      IdentityVerifier.instance()
+    )
   })
 
-  describe('getBalances', async () => {
-    it('should not throw even if the account doesnt exist', () => {
-      const response = rollupState.getBalances('this is not an address!')
+  afterEach(async () => {
+    await db.close()
+  })
+
+  describe('getBalances', () => {
+    it('should not throw even if the account doesnt exist', async () => {
+      const response = await rollupState.getBalances('this is not an address!')
       response.should.deep.equal({
         uni: 0,
         pigi: 0,
@@ -35,8 +52,8 @@ describe('RollupStateMachine', async () => {
     })
   })
 
-  describe('applyTransfer', async () => {
-    const txAliceToBob = {
+  describe('applyTransfer', () => {
+    const txAliceToBob: SignedTransaction = {
       signature: 'alice',
       transaction: {
         tokenType: UNI_TOKEN_TYPE,
@@ -45,23 +62,24 @@ describe('RollupStateMachine', async () => {
       },
     }
 
-    it('should not throw when alice sends 5 uni from genesis', () => {
-      rollupState
-        .getBalances('alice')
-        .should.deep.equal(getGenesisState().alice.balances)
-      const result = rollupState.applyTransaction(txAliceToBob)
+    it('should not throw when alice sends 5 uni from genesis', async () => {
+      const aliceBalance = await rollupState.getBalances('alice')
+      aliceBalance.should.deep.equal(getGenesisState().alice.balances)
+      const result = await rollupState.applyTransaction(txAliceToBob)
     })
 
-    it('should update balances after transfer', () => {
-      const result = rollupState.applyTransaction(txAliceToBob)
-      rollupState
-        .getBalances('alice')
-        .uni.should.equal(getGenesisState().alice.balances.uni - 5)
-      rollupState.getBalances('bob').uni.should.deep.equal(5)
+    it('should update balances after transfer', async () => {
+      const result = await rollupState.applyTransaction(txAliceToBob)
+
+      const aliceBalance = await rollupState.getBalances('alice')
+      aliceBalance.uni.should.equal(getGenesisState().alice.balances.uni - 5)
+
+      const bobBalance = await rollupState.getBalances('bob')
+      bobBalance.uni.should.deep.equal(5)
     })
 
-    it('should throw if transfering too much money', () => {
-      const invalidTxApply = () =>
+    it('should throw if transfering too much money', async () => {
+      const invalidTxApply = async () =>
         rollupState.applyTransaction({
           signature: 'alice',
           transaction: {
@@ -70,11 +88,11 @@ describe('RollupStateMachine', async () => {
             amount: 500,
           },
         })
-      invalidTxApply.should.throw(InsufficientBalanceError)
+      await assertThrowsAsync(invalidTxApply, InsufficientBalanceError)
     })
   })
 
-  describe('applySwap', async () => {
+  describe('applySwap', () => {
     let uniInput
     let expectedPigiAfterFees
     let txAliceSwapUni
@@ -99,39 +117,37 @@ describe('RollupStateMachine', async () => {
       }
     })
 
-    it('should not throw when alice swaps 5 uni from genesis', () => {
-      const result = rollupState.applyTransaction(txAliceSwapUni)
+    it('should not throw when alice swaps 5 uni from genesis', async () => {
+      const result = await rollupState.applyTransaction(txAliceSwapUni)
     })
 
-    it('should update balances after swap', () => {
-      const result = rollupState.applyTransaction(txAliceSwapUni)
-      rollupState
-        .getBalances('alice')
-        .uni.should.equal(getGenesisState().alice.balances.uni - uniInput)
-      rollupState
-        .getBalances('alice')
-        .pigi.should.equal(
-          getGenesisState().alice.balances.pigi + expectedPigiAfterFees
-        )
+    it('should update balances after swap', async () => {
+      const result = await rollupState.applyTransaction(txAliceSwapUni)
+
+      const aliceBalances = await rollupState.getBalances('alice')
+      aliceBalances.uni.should.equal(
+        getGenesisState().alice.balances.uni - uniInput
+      )
+      aliceBalances.pigi.should.equal(
+        getGenesisState().alice.balances.pigi + expectedPigiAfterFees
+      )
+
       // And we should have the opposite balances for uniswap
-      rollupState
-        .getBalances(UNISWAP_ADDRESS)
-        .uni.should.equal(
-          getGenesisState()[UNISWAP_ADDRESS].balances.uni + uniInput
-        )
-      rollupState
-        .getBalances(UNISWAP_ADDRESS)
-        .pigi.should.equal(
-          getGenesisState()[UNISWAP_ADDRESS].balances.pigi -
-            expectedPigiAfterFees
-        )
+      const uniswapBalances = await rollupState.getBalances(UNISWAP_ADDRESS)
+      uniswapBalances.uni.should.equal(
+        getGenesisState()[UNISWAP_ADDRESS].balances.uni + uniInput
+      )
+      uniswapBalances.pigi.should.equal(
+        getGenesisState()[UNISWAP_ADDRESS].balances.pigi - expectedPigiAfterFees
+      )
     })
 
-    it('should update balances after swap including fee', () => {
+    it('should update balances after swap including fee', async () => {
       const feeBasisPoints = 30
-      rollupState = new MockRollupStateMachine(
+      rollupState = await DefaultRollupStateMachine.create(
         getGenesisStateLargeEnoughForFees(),
-        feeBasisPoints
+        db,
+        IdentityVerifier.instance()
       )
 
       uniInput = 2500
@@ -152,32 +168,27 @@ describe('RollupStateMachine', async () => {
         },
       }
 
-      rollupState.applyTransaction(txAliceSwapUni)
+      await rollupState.applyTransaction(txAliceSwapUni)
 
-      rollupState
-        .getBalances('alice')
-        .uni.should.equal(
-          getGenesisStateLargeEnoughForFees().alice.balances.uni - uniInput
-        )
-      rollupState
-        .getBalances('alice')
-        .pigi.should.equal(
-          getGenesisStateLargeEnoughForFees().alice.balances.pigi +
-            expectedPigiAfterFees
-        )
+      const aliceBalances = await rollupState.getBalances('alice')
+      aliceBalances.uni.should.equal(
+        getGenesisStateLargeEnoughForFees().alice.balances.uni - uniInput
+      )
+      aliceBalances.pigi.should.equal(
+        getGenesisStateLargeEnoughForFees().alice.balances.pigi +
+          expectedPigiAfterFees
+      )
       // And we should have the opposite balances for uniswap
-      rollupState
-        .getBalances(UNISWAP_ADDRESS)
-        .uni.should.equal(
-          getGenesisStateLargeEnoughForFees()[UNISWAP_ADDRESS].balances.uni +
-            uniInput
-        )
-      rollupState
-        .getBalances(UNISWAP_ADDRESS)
-        .pigi.should.equal(
-          getGenesisStateLargeEnoughForFees()[UNISWAP_ADDRESS].balances.pigi -
-            expectedPigiAfterFees
-        )
+
+      const uniswapBalances = await rollupState.getBalances(UNISWAP_ADDRESS)
+      uniswapBalances.uni.should.equal(
+        getGenesisStateLargeEnoughForFees()[UNISWAP_ADDRESS].balances.uni +
+          uniInput
+      )
+      uniswapBalances.pigi.should.equal(
+        getGenesisStateLargeEnoughForFees()[UNISWAP_ADDRESS].balances.pigi -
+          expectedPigiAfterFees
+      )
     })
   })
 })

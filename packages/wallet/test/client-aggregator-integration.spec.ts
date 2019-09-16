@@ -1,52 +1,85 @@
 import './setup'
 
 /* External Imports */
-import { SimpleClient, BaseDB } from '@pigi/core'
+import { SimpleClient, BaseDB, DB } from '@pigi/core'
 import MemDown from 'memdown'
 
 /* Internal Imports */
-import { getGenesisState } from './helpers'
+import { AGGREGATOR_MNEMONIC, getGenesisState } from './helpers'
 import {
   UnipigWallet,
-  Address,
-  UNISWAP_ADDRESS,
   MockAggregator,
   UNI_TOKEN_TYPE,
+  FaucetRequest,
+  SignedTransaction,
 } from '../src'
+import { RollupStateMachine } from '../src/types'
+import { DefaultRollupStateMachine } from '../src/rollup-state-machine'
 
 /*********
  * TESTS *
  *********/
 
-describe('Mock Client/Aggregator Integration', async () => {
-  let db
-  let accountAddress
-  let aggregator
-  let unipigWallet
+const timeout = 20_000
 
-  beforeEach(async () => {
-    // Typings for MemDown are wrong so we need to cast to `any`.
-    db = new BaseDB(new MemDown('') as any)
-    unipigWallet = new UnipigWallet(db)
+describe('Mock Client/Aggregator Integration', () => {
+  let stateDB: DB
+  let blockDB: DB
+  let accountAddress: string
+  let aggregator: MockAggregator
+  let unipigWallet: UnipigWallet
+  let stateMemdown: any
+  let blockMemdown: any
+  const walletPassword = 'Really great password'
+
+  beforeEach(async function() {
+    this.timeout(timeout)
+
+    stateMemdown = new MemDown('state') as any
+    stateDB = new BaseDB(stateMemdown)
+    blockMemdown = new MemDown('block') as any
+    blockDB = new BaseDB(blockMemdown, 256)
+    unipigWallet = new UnipigWallet(stateDB)
+
     // Now create a wallet account
-    accountAddress = 'mocked account'
+    accountAddress = await unipigWallet.createAccount(walletPassword)
+
+    const rollupStateMachine: RollupStateMachine = await DefaultRollupStateMachine.create(
+      getGenesisState(accountAddress),
+      stateDB
+    )
+
     // Initialize a mock aggregator
-    aggregator = new MockAggregator(getGenesisState(), 'localhost', 3000)
+    await unipigWallet.unlockAccount(accountAddress, walletPassword)
+    aggregator = new MockAggregator(
+      blockDB,
+      rollupStateMachine,
+      'localhost',
+      3000,
+      AGGREGATOR_MNEMONIC
+    )
+
     await aggregator.listen()
     // Connect to the mock aggregator
     unipigWallet.rollup.connect(new SimpleClient('http://127.0.0.1:3000'))
   })
 
   afterEach(async () => {
-    // Close the server
-    await aggregator.close()
+    if (!!aggregator) {
+      // Close the server
+      await aggregator.close()
+    }
+    await stateDB.close()
+    stateMemdown = undefined
+    await blockDB.close()
+    blockMemdown = undefined
   })
 
-  describe('UnipigWallet', async () => {
+  describe('UnipigWallet', () => {
     it('should be able to query the aggregators balances', async () => {
-      const response = await unipigWallet.getBalances('alice')
+      const response = await unipigWallet.getBalances(accountAddress)
       response.should.deep.equal({ uni: 50, pigi: 50 })
-    }).timeout(8000)
+    }).timeout(timeout)
 
     it('should return an error if the wallet tries to transfer money it doesnt have', async () => {
       try {
@@ -61,41 +94,53 @@ describe('Mock Client/Aggregator Integration', async () => {
       } catch (err) {
         // Success!
       }
-    }).timeout(8000)
+    }).timeout(timeout)
 
     it('should successfully transfer if alice sends money', async () => {
       // Set "sign" to instead sign for alice
-      unipigWallet.rollup.sign = (not: string, used: string): string => 'alice'
+      const recipient = 'testing123'
       const response = await unipigWallet.rollup.sendTransaction(
         {
           tokenType: UNI_TOKEN_TYPE,
-          recipient: 'testing123',
+          recipient,
           amount: 10,
         },
         accountAddress
       )
-      response.recipient.balances.uni.should.equal(10)
-    }).timeout(8000)
+      response[recipient].balances.uni.should.equal(10)
+    }).timeout(timeout)
 
     it('should successfully transfer if first faucet is requested', async () => {
+      const recipient = 'testing123'
+      const newPassword = 'new address password'
+      const newAddress = await unipigWallet.createAccount(newPassword)
+      await unipigWallet.unlockAccount(newAddress, newPassword)
+
+      // Request some money for new wallet
+      const transaction: FaucetRequest = {
+        requester: newAddress,
+        amount: 10,
+      }
+
       // First collect some funds from the faucet
       const faucetRes = await unipigWallet.rollup.requestFaucetFunds(
-        accountAddress,
-        10
+        transaction,
+        newAddress
       )
       faucetRes.should.deep.equal({
         uni: 10,
         pigi: 10,
       })
+
       const transferRes = await unipigWallet.rollup.sendTransaction(
         {
           tokenType: UNI_TOKEN_TYPE,
-          recipient: 'testing123',
+          recipient,
           amount: 10,
         },
-        accountAddress
+        newAddress
       )
-      transferRes.recipient.balances.uni.should.equal(10)
-    }).timeout(8000)
+      transferRes[recipient].balances.uni.should.equal(10)
+    }).timeout(timeout)
   })
 })

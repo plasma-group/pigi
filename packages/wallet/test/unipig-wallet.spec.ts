@@ -34,6 +34,7 @@ describe('UnipigWallet', async () => {
   let accountAddress
   let aggregator
 
+  const timeout = 20_000
   beforeEach(async () => {
     // Typings for MemDown are wrong so we need to cast to `any`.
     db = new BaseDB(new MemDown('') as any)
@@ -58,10 +59,10 @@ describe('UnipigWallet', async () => {
     await aggregator.close()
   })
 
-  describe('getBalance()', async () => {
+  describe('getBalance()', () => {
     it('should return an empty balance after initialized', async () => {
       const balances = await unipigWallet.getBalances(accountAddress)
       balances.should.deep.equal(getBalances(''))
-    })
+    }).timeout(timeout)
   })
 })
