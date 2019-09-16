@@ -45,11 +45,9 @@ import {
 import debug from 'debug'
 const log = debug('test:info:rollup-chain-manager')
 
-
 /* Contract Imports */
 import * as RollupChain from '../../build/RollupChain.json'
 import * as SparseMerkleTreeLib from '../../build/SparseMerkleTreeLib.json'
-
 
 /* Begin tests */
 describe('RollupChain', () => {
@@ -84,10 +82,7 @@ describe('RollupChain', () => {
    */
   describe('submitBlock() ', async () => {
     it('should not throw', async () => {
-      await rollupChain.submitBlock([
-        '0x1234',
-        '0x1234',
-      ])
+      await rollupChain.submitBlock(['0x1234', '0x1234'])
       // Did not throw... success!
     })
   })
@@ -242,10 +237,26 @@ describe('RollupChain', () => {
       const expectedSlots = [5, 10]
       // Create two transfer transitions
       const transferTransitions = [
-        new AbiTransferTransition(getStateRoot('ab'), expectedSlots[0], expectedSlots[1], 0, 1, getSignature('42')),
-        new AbiTransferTransition(getStateRoot('cd'), expectedSlots[0], expectedSlots[1], 0, 1, getSignature('42')),
+        new AbiTransferTransition(
+          getStateRoot('ab'),
+          expectedSlots[0],
+          expectedSlots[1],
+          0,
+          1,
+          getSignature('42')
+        ),
+        new AbiTransferTransition(
+          getStateRoot('cd'),
+          expectedSlots[0],
+          expectedSlots[1],
+          0,
+          1,
+          getSignature('42')
+        ),
       ]
-      const transferTransitionsEncoded = transferTransitions.map((transition) => transition.encoded)
+      const transferTransitionsEncoded = transferTransitions.map(
+        (transition) => transition.encoded
+      )
 
       // Create a rollup block
       const block = new RollupBlock(transferTransitionsEncoded, 0)
@@ -257,7 +268,7 @@ describe('RollupChain', () => {
       // Call the function and see if it works!
       const res = await rollupChain.proveTransitionInvalid(
         includedTransitions[0],
-        includedTransitions[1],
+        includedTransitions[1]
       )
       log(res)
       // Did not throw... success!
@@ -272,10 +283,26 @@ describe('RollupChain', () => {
     it('should not throw', async () => {
       // Create two transfer transitions
       const transferTransitions = [
-        new AbiTransferTransition(getStateRoot('ab'), 2, 2, 0, 1, getSignature('42')),
-        new AbiTransferTransition(getStateRoot('cd'), 2, 2, 0, 1, getSignature('42')),
+        new AbiTransferTransition(
+          getStateRoot('ab'),
+          2,
+          2,
+          0,
+          1,
+          getSignature('42')
+        ),
+        new AbiTransferTransition(
+          getStateRoot('cd'),
+          2,
+          2,
+          0,
+          1,
+          getSignature('42')
+        ),
       ]
-      const transferTransitionsEncoded = transferTransitions.map((transition) => transition.encoded)
+      const transferTransitionsEncoded = transferTransitions.map(
+        (transition) => transition.encoded
+      )
 
       // Create a rollup block
       const block = new RollupBlock(transferTransitionsEncoded, 0)

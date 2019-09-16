@@ -9,14 +9,30 @@ import { AbiEncodable } from '../../../types'
  */
 const fromEncoded = (encoded: string): AbiCreateAndTransferTransition => {
   const decoded = abi.decode(AbiCreateAndTransferTransition.abiTypes, encoded)
-  return new AbiCreateAndTransferTransition(decoded[0], decoded[1], decoded[2], decoded[3], + decoded[4], decoded[5], decoded[6])
+  return new AbiCreateAndTransferTransition(
+    decoded[0],
+    decoded[1],
+    decoded[2],
+    decoded[3],
+    +decoded[4],
+    decoded[5],
+    decoded[6]
+  )
 }
 
 /**
  * Represents a basic abi encodable TransferNewAccountTx
  */
 export class AbiCreateAndTransferTransition implements AbiEncodable {
-  public static abiTypes = ['bytes32', 'uint32', 'uint32', 'address', 'bool', 'uint32', 'bytes']
+  public static abiTypes = [
+    'bytes32',
+    'uint32',
+    'uint32',
+    'address',
+    'bool',
+    'uint32',
+    'bytes',
+  ]
 
   constructor(
     readonly stateRoot: string,
@@ -25,7 +41,7 @@ export class AbiCreateAndTransferTransition implements AbiEncodable {
     readonly createdAccountPubkey: string,
     readonly tokenType: number,
     readonly amount: number,
-    readonly signature: string,
+    readonly signature: string
   ) {
     // Attempt to encode to verify input is correct
     this.encoded
@@ -71,6 +87,8 @@ export class AbiCreateAndTransferTransition implements AbiEncodable {
       return fromEncoded(value)
     }
 
-    throw new Error('Got invalid argument type when casting to TransferNewAccountTx.')
+    throw new Error(
+      'Got invalid argument type when casting to TransferNewAccountTx.'
+    )
   }
 }

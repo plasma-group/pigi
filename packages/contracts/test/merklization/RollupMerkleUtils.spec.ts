@@ -1,11 +1,7 @@
 import '../setup'
 
 /* Internal Imports */
-import {
-  RollupMerkleTree,
-  Transition,
-  makeRepeatedBytes,
-} from '../helpers'
+import { RollupMerkleTree, Transition, makeRepeatedBytes } from '../helpers'
 
 /* External Imports */
 import {
@@ -40,10 +36,7 @@ describe('RollupMerkleUtils', () => {
 
   describe('getMerkleRoot() ', async () => {
     it('should not throw', async () => {
-      await rollupMerkleUtils.getMerkleRoot([
-        '0x1234',
-        '0x4321',
-      ])
+      await rollupMerkleUtils.getMerkleRoot(['0x1234', '0x4321'])
       // Did not throw... success!
     })
 

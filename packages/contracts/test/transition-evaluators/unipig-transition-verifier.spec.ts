@@ -57,9 +57,14 @@ describe('UnipigTransitionEvaluator', () => {
 
   /* Deploy a new RollupChain before each test */
   beforeEach(async () => {
-    unipigEvaluator = await deployContract(wallet1, UnipigTransitionEvaluator, [], {
-      gasLimit: 6700000,
-    })
+    unipigEvaluator = await deployContract(
+      wallet1,
+      UnipigTransitionEvaluator,
+      [],
+      {
+        gasLimit: 6700000,
+      }
+    )
   })
 
   /*
@@ -74,7 +79,15 @@ describe('UnipigTransitionEvaluator', () => {
 
     it('should infer a transfer new account transaction', async () => {
       // Create a transaction which we will infer the type of
-      const tx = new AbiCreateAndTransferTransition(getStateRoot('ab'), 2, 2, getAddress('01'), 0, 1, getSignature('0'))
+      const tx = new AbiCreateAndTransferTransition(
+        getStateRoot('ab'),
+        2,
+        2,
+        getAddress('01'),
+        0,
+        1,
+        getSignature('0')
+      )
       // Encode!
       const encoded = tx.encoded
       // Attempt to infer the transaction type
@@ -85,7 +98,14 @@ describe('UnipigTransitionEvaluator', () => {
 
     it('should infer a transfer stored account transaction', async () => {
       // Create a transaction which we will infer the type of
-      const tx = new AbiTransferTransition(getStateRoot('ba'), 2, 2, 0, 1, getSignature('0'))
+      const tx = new AbiTransferTransition(
+        getStateRoot('ba'),
+        2,
+        2,
+        0,
+        1,
+        getSignature('0')
+      )
       // Encode!
       const encoded = tx.encoded
       // Attempt to infer the transaction type
@@ -96,7 +116,16 @@ describe('UnipigTransitionEvaluator', () => {
 
     it('should infer a swap transaction', async () => {
       // Create a transaction which we will infer the type of
-      const tx = new AbiSwapTransition(getStateRoot('cd'), 2, 2, 1, 1, 3, 6, getSignature('0'))
+      const tx = new AbiSwapTransition(
+        getStateRoot('cd'),
+        2,
+        2,
+        1,
+        1,
+        3,
+        6,
+        getSignature('0')
+      )
       // Encode!
       const encoded = tx.encoded
       // Attempt to infer the transaction type
@@ -117,7 +146,6 @@ describe('UnipigTransitionEvaluator', () => {
     })
   })
 
-
   /*
    * Test getTransitionStateRootAndAccessList()
    */
@@ -127,33 +155,63 @@ describe('UnipigTransitionEvaluator', () => {
 
     it('should return the expected storage slots for createAndTransferTransition', async () => {
       // Create a transition which we will decode
-      const tx = new AbiCreateAndTransferTransition(stateRoot, accessList[0], accessList[1], getAddress('01'), 0, 1, getSignature('9'))
+      const tx = new AbiCreateAndTransferTransition(
+        stateRoot,
+        accessList[0],
+        accessList[1],
+        getAddress('01'),
+        0,
+        1,
+        getSignature('9')
+      )
       // Encode!
       const encoded = tx.encoded
       // Attempt to decode the transition
-      const res = await unipigEvaluator.getTransitionStateRootAndAccessList(encoded)
+      const res = await unipigEvaluator.getTransitionStateRootAndAccessList(
+        encoded
+      )
       // Check that it returned the expected state root & access list
       res.should.deep.equal([stateRoot, accessList])
     })
 
     it('should return the expected storage slots for transferTransition', async () => {
       // Create a transition which we will decode
-      const tx = new AbiTransferTransition(stateRoot, accessList[0], accessList[1], 0, 1, getSignature('9'))
+      const tx = new AbiTransferTransition(
+        stateRoot,
+        accessList[0],
+        accessList[1],
+        0,
+        1,
+        getSignature('9')
+      )
       // Encode!
       const encoded = tx.encoded
       // Attempt to decode the transition
-      const res = await unipigEvaluator.getTransitionStateRootAndAccessList(encoded)
+      const res = await unipigEvaluator.getTransitionStateRootAndAccessList(
+        encoded
+      )
       // Check that it returned the expected state root & access list
       res.should.deep.equal([stateRoot, accessList])
     })
 
     it('should return the expected storage slots for swapTransition', async () => {
       // Create a transition which we will decode
-      const tx = new AbiSwapTransition(stateRoot, accessList[0], accessList[1], 1, 1, 3, 6, getSignature('9'))
+      const tx = new AbiSwapTransition(
+        stateRoot,
+        accessList[0],
+        accessList[1],
+        1,
+        1,
+        3,
+        6,
+        getSignature('9')
+      )
       // Encode!
       const encoded = tx.encoded
       // Attempt to decode the transition
-      const res = await unipigEvaluator.getTransitionStateRootAndAccessList(encoded)
+      const res = await unipigEvaluator.getTransitionStateRootAndAccessList(
+        encoded
+      )
       // Check that it returned the expected state root & access list
       res.should.deep.equal([stateRoot, accessList])
     })
@@ -162,13 +220,15 @@ describe('UnipigTransitionEvaluator', () => {
       const badEncoding = '0xdeadbeefdeadbeefdeadbeef'
       try {
         // Attempt to decode the transition
-        const res = await unipigEvaluator.getTransitionStateRootAndAccessList(badEncoding)
+        const res = await unipigEvaluator.getTransitionStateRootAndAccessList(
+          badEncoding
+        )
         // It should have failed!
-      } catch(err) {
+      } catch (err) {
         // Success! It threw!
         return
       }
-      throw(new Error('Expected bad encoding to fail!'))
+      throw new Error('Expected bad encoding to fail!')
     })
   })
 
@@ -176,7 +236,6 @@ describe('UnipigTransitionEvaluator', () => {
    * Test applyTransferTransition()
    */
   describe('applyTransferTransition() ', async () => {
-
     it('should return the correct storage slots after a successful send', async () => {
       // Set initialization variables
       const sentAmount = 5
@@ -202,15 +261,23 @@ describe('UnipigTransitionEvaluator', () => {
       }
 
       // Create a transaction which we will infer the type of
-      const transition = new AbiTransferTransition(getStateRoot('ab'), senderSlotIndex, recipientSlotIndex, 0, sentAmount, getSignature('9'))
+      const transition = new AbiTransferTransition(
+        getStateRoot('ab'),
+        senderSlotIndex,
+        recipientSlotIndex,
+        0,
+        sentAmount,
+        getSignature('9')
+      )
       // Attempt to apply the transaction
-      const res = await unipigEvaluator.applyTransferTransition(transition.jsonified, [
-        senderStorageSlot, recipientStorageSlot,
-      ])
+      const res = await unipigEvaluator.applyTransferTransition(
+        transition.jsonified,
+        [senderStorageSlot, recipientStorageSlot]
+      )
       // Check the sender's balance decremented
-      res[0].balances.should.deep.equal([ 995, 1000 ])
+      res[0].balances.should.deep.equal([995, 1000])
       // Check the recipient's balance incremented
-      res[1].balances.should.deep.equal([ 1005, 1000 ])
+      res[1].balances.should.deep.equal([1005, 1000])
       // Success!
     })
 
@@ -239,12 +306,20 @@ describe('UnipigTransitionEvaluator', () => {
       }
 
       // Create a transaction which we will infer the type of
-      const transition = new AbiTransferTransition(getStateRoot('ab'), senderSlotIndex, recipientSlotIndex, 0, sentAmount, getSignature('9'))
+      const transition = new AbiTransferTransition(
+        getStateRoot('ab'),
+        senderSlotIndex,
+        recipientSlotIndex,
+        0,
+        sentAmount,
+        getSignature('9')
+      )
       try {
         // Attempt to apply the transaction
-        const res = await unipigEvaluator.applyTransferTransition(transition.jsonified, [
-          senderStorageSlot, recipientStorageSlot,
-        ])
+        const res = await unipigEvaluator.applyTransferTransition(
+          transition.jsonified,
+          [senderStorageSlot, recipientStorageSlot]
+        )
       } catch (err) {
         // Success!
         return
@@ -287,15 +362,24 @@ describe('UnipigTransitionEvaluator', () => {
       }
 
       // Create a transaction which we will infer the type of
-      const transition = new AbiCreateAndTransferTransition(getStateRoot('ab'), senderSlotIndex, recipientSlotIndex, recipientAddress, 0, sentAmount, getSignature('9'))
+      const transition = new AbiCreateAndTransferTransition(
+        getStateRoot('ab'),
+        senderSlotIndex,
+        recipientSlotIndex,
+        recipientAddress,
+        0,
+        sentAmount,
+        getSignature('9')
+      )
       // Attempt to apply the transaction
-      const res = await unipigEvaluator.applyCreateAndTransferTransition(transition.jsonified, [
-        senderStorageSlot, recipientStorageSlot,
-      ])
+      const res = await unipigEvaluator.applyCreateAndTransferTransition(
+        transition.jsonified,
+        [senderStorageSlot, recipientStorageSlot]
+      )
       // Check the sender's balance decremented
-      res[0].balances.should.deep.equal([ 995, 1000 ])
+      res[0].balances.should.deep.equal([995, 1000])
       // Check the recipient's balance incremented
-      res[1].balances.should.deep.equal([ 5, 0 ])
+      res[1].balances.should.deep.equal([5, 0])
       // Also make sure the new storage slot has the recipient's pubkey
       res[1].pubkey.should.equal(recipientAddress)
       // Success!
@@ -326,12 +410,21 @@ describe('UnipigTransitionEvaluator', () => {
       }
 
       // Create a transaction which we will infer the type of
-      const transition = new AbiCreateAndTransferTransition(getStateRoot('ab'), senderSlotIndex, recipientSlotIndex, recipientAddress, 0, sentAmount, getSignature('9'))
+      const transition = new AbiCreateAndTransferTransition(
+        getStateRoot('ab'),
+        senderSlotIndex,
+        recipientSlotIndex,
+        recipientAddress,
+        0,
+        sentAmount,
+        getSignature('9')
+      )
       try {
         // Attempt to apply the transaction
-        const res = await unipigEvaluator.applyCreateAndTransferTransition(transition.jsonified, [
-          senderStorageSlot, recipientStorageSlot,
-        ])
+        const res = await unipigEvaluator.applyCreateAndTransferTransition(
+          transition.jsonified,
+          [senderStorageSlot, recipientStorageSlot]
+        )
       } catch (err) {
         // Success!
         return
@@ -369,18 +462,28 @@ describe('UnipigTransitionEvaluator', () => {
         },
       }
       // Create a swap transition
-      const tx = new AbiSwapTransition(getStateRoot('cd'), senderSlotIndex, UNISWAP_STORAGE_SLOT, tokenType, inputAmount, minOutputAmount, timeout, getSignature('aa'))
+      const tx = new AbiSwapTransition(
+        getStateRoot('cd'),
+        senderSlotIndex,
+        UNISWAP_STORAGE_SLOT,
+        tokenType,
+        inputAmount,
+        minOutputAmount,
+        timeout,
+        getSignature('aa')
+      )
       // Attempt to apply the transaction
       const res = await unipigEvaluator.applySwapTransition(tx, [
-        senderStorageSlot, uniswapStorageSlot,
+        senderStorageSlot,
+        uniswapStorageSlot,
       ])
       // Check to see that the result was successful
       // The sender should have 4 tokens (their min)
-      res[0].balances.should.deep.equal([1004,995])
+      res[0].balances.should.deep.equal([1004, 995])
       // The sender address should be correct
       res[0].pubkey.should.equal(senderAddress)
       // The uniswap should have gained a token from the fee
-      res[1].balances.should.deep.equal([996,1005])
+      res[1].balances.should.deep.equal([996, 1005])
       // Uniswap's address should be correct
       res[1].pubkey.should.equal(UNISWAP_ADDRESS)
       // Success!
@@ -408,18 +511,30 @@ describe('UnipigTransitionEvaluator', () => {
         },
       }
       // Create a swap transition
-      const tx = new AbiSwapTransition(getStateRoot('cd'), senderSlotIndex, UNISWAP_STORAGE_SLOT, tokenType, inputAmount, minOutputAmount, timeout, getSignature('aa'))
+      const tx = new AbiSwapTransition(
+        getStateRoot('cd'),
+        senderSlotIndex,
+        UNISWAP_STORAGE_SLOT,
+        tokenType,
+        inputAmount,
+        minOutputAmount,
+        timeout,
+        getSignature('aa')
+      )
       try {
         // Attempt to apply the transaction
         const res = await unipigEvaluator.applySwapTransition(tx, [
-          senderStorageSlot, uniswapStorageSlot,
+          senderStorageSlot,
+          uniswapStorageSlot,
         ])
         // We shouldn't get here!
       } catch (err) {
         // Success!
         return
       }
-      throw new Error('Expected minOutputAmount to be too high & for this to throw!')
+      throw new Error(
+        'Expected minOutputAmount to be too high & for this to throw!'
+      )
     })
 
     it('should throw if the sender cannot aford the swap', async () => {
@@ -442,18 +557,30 @@ describe('UnipigTransitionEvaluator', () => {
         },
       }
       // Create a swap transition
-      const tx = new AbiSwapTransition(getStateRoot('cd'), senderSlotIndex, UNISWAP_STORAGE_SLOT, tokenType, inputAmount, minOutputAmount, timeout, getSignature('aa'))
+      const tx = new AbiSwapTransition(
+        getStateRoot('cd'),
+        senderSlotIndex,
+        UNISWAP_STORAGE_SLOT,
+        tokenType,
+        inputAmount,
+        minOutputAmount,
+        timeout,
+        getSignature('aa')
+      )
       try {
         // Attempt to apply the transaction
         const res = await unipigEvaluator.applySwapTransition(tx, [
-          senderStorageSlot, uniswapStorageSlot,
+          senderStorageSlot,
+          uniswapStorageSlot,
         ])
         // We shouldn't get here!
       } catch (err) {
         // Success!
         return
       }
-      throw new Error('Expected sender not being able to afford the tx to cause this to throw!')
+      throw new Error(
+        'Expected sender not being able to afford the tx to cause this to throw!'
+      )
     })
 
     it('should throw if the 2nd storage slot doesnt match the Uniswap address', async () => {
@@ -479,18 +606,30 @@ describe('UnipigTransitionEvaluator', () => {
         },
       }
       // Create a swap transition
-      const tx = new AbiSwapTransition(getStateRoot('cd'), senderSlotIndex, NOT_UNISWAP_STORAGE_SLOT, tokenType, inputAmount, minOutputAmount, timeout, getSignature('aa'))
+      const tx = new AbiSwapTransition(
+        getStateRoot('cd'),
+        senderSlotIndex,
+        NOT_UNISWAP_STORAGE_SLOT,
+        tokenType,
+        inputAmount,
+        minOutputAmount,
+        timeout,
+        getSignature('aa')
+      )
       try {
         // Attempt to apply the transaction
         const res = await unipigEvaluator.applySwapTransition(tx, [
-          senderStorageSlot, uniswapStorageSlot,
+          senderStorageSlot,
+          uniswapStorageSlot,
         ])
         // We shouldn't get here!
       } catch (err) {
         // Success!
         return
       }
-      throw new Error('Swapping with a user other than Uniswap should cause the tx to throw!')
+      throw new Error(
+        'Swapping with a user other than Uniswap should cause the tx to throw!'
+      )
     })
 
     it.skip('should throw if the signature for the swap does not match the sender', async () => {
@@ -527,10 +666,18 @@ describe('UnipigTransitionEvaluator', () => {
       }
 
       // Create a transaction which we will infer the type of
-      const transition = new AbiTransferTransition(getStateRoot('ab'), senderSlotIndex, recipientSlotIndex, 0, sentAmount, getSignature('9'))
+      const transition = new AbiTransferTransition(
+        getStateRoot('ab'),
+        senderSlotIndex,
+        recipientSlotIndex,
+        0,
+        sentAmount,
+        getSignature('9')
+      )
       // Attempt to apply the transaction
       const res = await unipigEvaluator.evaluateTransition(transition.encoded, [
-        senderStorageSlot, recipientStorageSlot,
+        senderStorageSlot,
+        recipientStorageSlot,
       ])
       log('Transfer Transition successfully returned:', res)
       // Success!
@@ -561,10 +708,19 @@ describe('UnipigTransitionEvaluator', () => {
       }
 
       // Create a transaction which we will infer the type of
-      const transition = new AbiCreateAndTransferTransition(getStateRoot('ab'), senderSlotIndex, recipientSlotIndex, recipientAddress, 0, sentAmount, getSignature('9'))
+      const transition = new AbiCreateAndTransferTransition(
+        getStateRoot('ab'),
+        senderSlotIndex,
+        recipientSlotIndex,
+        recipientAddress,
+        0,
+        sentAmount,
+        getSignature('9')
+      )
       // Attempt to apply the transaction
       const res = await unipigEvaluator.evaluateTransition(transition.encoded, [
-        senderStorageSlot, recipientStorageSlot,
+        senderStorageSlot,
+        recipientStorageSlot,
       ])
       log('Create and Transfer Transition successfully returned:', res)
       // Success!
@@ -594,10 +750,20 @@ describe('UnipigTransitionEvaluator', () => {
         },
       }
       // Create a swap transition
-      const transition = new AbiSwapTransition(getStateRoot('cd'), senderSlotIndex, UNISWAP_STORAGE_SLOT, tokenType, inputAmount, minOutputAmount, timeout, getSignature('aa'))
+      const transition = new AbiSwapTransition(
+        getStateRoot('cd'),
+        senderSlotIndex,
+        UNISWAP_STORAGE_SLOT,
+        tokenType,
+        inputAmount,
+        minOutputAmount,
+        timeout,
+        getSignature('aa')
+      )
       // Attempt to apply the transaction
       const res = await unipigEvaluator.evaluateTransition(transition.encoded, [
-        senderStorageSlot, uniswapStorageSlot,
+        senderStorageSlot,
+        uniswapStorageSlot,
       ])
       log('Swap Transition successfully returned:', res)
       // Success!

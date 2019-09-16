@@ -1,8 +1,5 @@
 /* Internal Imports */
-import {
-  RollupMerkleTree,
-  Transition,
-} from '.'
+import { RollupMerkleTree, Transition } from '.'
 
 /* External Imports */
 import { keccak256, abi, hexStrToBuf, bufToHexString } from '@pigi/core'
