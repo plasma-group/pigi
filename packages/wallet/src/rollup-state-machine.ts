@@ -37,6 +37,7 @@ import {
   StateInclusionProof,
   StateSnapshot,
   InclusionProof,
+  StateMachineCapacityError,
 } from './index'
 import {
   InsufficientBalanceError,
@@ -52,6 +53,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
   private lastOpenKey: BigNumber
   private readonly usedKeys: Set<string>
   private readonly addressesToKeys: Map<Address, BigNumber>
+  private readonly maxAddresses: BigNumber
 
   private readonly tree: SparseMerkleTree
   private readonly lock: AsyncLock = new AsyncLock({
@@ -89,12 +91,13 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     db: DB,
     private readonly signatureVerifier: SignatureVerifier,
     private swapFeeBasisPoints: number,
-    private treeHeight: number = 32
+    treeHeight: number = 32
   ) {
     this.tree = new SparseMerkleTreeImpl(db, undefined, treeHeight)
     this.usedKeys = new Set<string>()
     this.lastOpenKey = ZERO
     this.addressesToKeys = new Map<Address, BigNumber>()
+    this.maxAddresses = new BigNumber(Math.pow(2, this.tree.getHeight()) - 1)
   }
 
   public async getState(address: Address): Promise<StateSnapshot> {
@@ -377,6 +380,9 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     let newKey: string = this.lastOpenKey.toString()
     while (this.usedKeys.has(newKey)) {
       this.lastOpenKey = this.lastOpenKey.add(ONE)
+      if (this.lastOpenKey.gt(this.maxAddresses)) {
+        throw new StateMachineCapacityError()
+      }
       newKey = this.lastOpenKey.toString()
     }
     this.addressesToKeys.set(address, this.lastOpenKey)
