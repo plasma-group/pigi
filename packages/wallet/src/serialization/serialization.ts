@@ -30,14 +30,7 @@ const getTokenType = (tokenType): TokenType => {
   return tokenTypeNumber
 }
 
-const transferAbiTypes = [
-  'bytes32',
-  'uint32',
-  'uint32',
-  'bool',
-  'uint32',
-  'bytes',
-]
+const transferAbiTypes = ['address', 'address', 'bool', 'uint32']
 
 /**
  * Creates a Transfer from an ABI-encoded Transfer.
@@ -86,7 +79,7 @@ export const parseSwapFromABI = (abiEncoded: string): Swap => {
     tokenType: getTokenType(tokenType),
     inputAmount,
     minOutputAmount,
-    timeout,
+    timeout: +timeout,
   }
 }
 
@@ -316,9 +309,9 @@ export const abiEncodeTransaction = (transaction: Transaction): string => {
  */
 export const parseTransactionFromABI = (tx: string): Transaction => {
   try {
-    return parseTransferFromABI(tx)
-  } catch (err) {
-    // If it's not a transfer, it must be a swap
     return parseSwapFromABI(tx)
+  } catch (err) {
+    // If it's not a swap, it must be a transfer
+    return parseTransferFromABI(tx)
   }
 }

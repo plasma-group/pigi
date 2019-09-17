@@ -1,38 +1,88 @@
 import './setup'
 
 /* External Imports */
-import debug from 'debug'
-const log = debug('test:info:rollup-encoding')
+import { SignedTransaction, Swap, Transaction, Transfer } from '../src/types'
+import {
+  abiEncodeSignedTransaction,
+  abiEncodeTransaction,
+  parseSignedTransactionFromABI,
+  parseTransactionFromABI,
+} from '../src/serialization'
 
 /* Internal Imports */
-import { AbiSignedTx, AbiSwapTx, AbiTransferTx } from '../src'
 
 describe('RollupEncoding', () => {
   it('should encoded & decode AbiTransferTx without throwing', async () => {
     const address = '0x' + '31'.repeat(20)
-    const tx = new AbiTransferTx(address, address, 1, 15)
-    log(tx.encoded)
-    log(AbiTransferTx.from(tx.encoded))
+    const tx: Transfer = {
+      sender: address,
+      recipient: address,
+      tokenType: 1,
+      amount: 15,
+    }
+
+    const abiEncoded: string = abiEncodeTransaction(tx)
+    const transfer: Transaction = parseTransactionFromABI(abiEncoded)
+
+    transfer.should.deep.equal(tx)
   })
 
   it('should encoded & decode AbiSwapTx without throwing', async () => {
     const address = '0x' + '31'.repeat(20)
-    const tx = new AbiSwapTx(address, 1, 15, 4, +new Date())
-    log(tx.encoded)
-    log(AbiSwapTx.from(tx.encoded))
+    const tx: Swap = {
+      sender: address,
+      tokenType: 1,
+      inputAmount: 15,
+      minOutputAmount: 4,
+      timeout: +new Date(),
+    }
+
+    const abiEncoded: string = abiEncodeTransaction(tx)
+    const swap: Transaction = parseTransactionFromABI(abiEncoded)
+
+    swap.should.deep.equal(tx)
   })
 
   it('should encoded & decode AbiSignedTx without throwing', async () => {
     const address = '0x' + '31'.repeat(20)
-    const transferTx = new AbiTransferTx(address, address, 1, 15)
-    const swapTx = new AbiSwapTx(address, 1, 15, 4, +new Date())
-    const transferSignedTx = new AbiSignedTx('0x1234', transferTx)
-    const swapSignedTx = new AbiSignedTx('0x1234', swapTx)
-    // Check transfer
-    log(transferSignedTx.encoded)
-    log(AbiSignedTx.from(transferSignedTx.encoded))
-    // Check swap
-    log(swapSignedTx.encoded)
-    log(AbiSignedTx.from(swapSignedTx.encoded))
+    const transfer: Transfer = {
+      sender: address,
+      recipient: address,
+      tokenType: 1,
+      amount: 15,
+    }
+    const signedTransfer: SignedTransaction = {
+      signature: '0x1234',
+      transaction: transfer,
+    }
+
+    const swap: Swap = {
+      sender: address,
+      tokenType: 1,
+      inputAmount: 15,
+      minOutputAmount: 4,
+      timeout: +new Date(),
+    }
+    const signedSwap: SignedTransaction = {
+      signature: '0x4321',
+      transaction: swap,
+    }
+
+    const abiEncodedSwap: string = abiEncodeSignedTransaction(signedSwap)
+    const abiEncodedTransfer: string = abiEncodeSignedTransaction(
+      signedTransfer
+    )
+    abiEncodedSwap.should.not.equal(abiEncodedTransfer)
+
+    const parsedSwap: SignedTransaction = parseSignedTransactionFromABI(
+      abiEncodedSwap
+    )
+    const parsedTransfer: SignedTransaction = parseSignedTransactionFromABI(
+      abiEncodedTransfer
+    )
+    parsedSwap.should.not.deep.equal(parsedTransfer)
+
+    parsedSwap.should.deep.equal(signedSwap)
+    parsedTransfer.should.deep.equal(signedTransfer)
   })
 })
