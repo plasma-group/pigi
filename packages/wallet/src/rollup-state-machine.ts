@@ -388,8 +388,6 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     this.addressesToKeys.set(address, this.lastOpenKey)
     this.usedKeys.add(newKey)
 
-    this.lastOpenKey = this.lastOpenKey.add(ONE)
-
     return this.addressesToKeys.get(address)
   }
 
