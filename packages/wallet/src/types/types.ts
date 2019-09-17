@@ -1,7 +1,7 @@
 import { InclusionProof } from '@pigi/core'
 
-export type UniTokenType = 'uni'
-export type PigiTokenType = 'pigi'
+export type UniTokenType = 0
+export type PigiTokenType = 1
 export type TokenType = UniTokenType | PigiTokenType
 
 export type Address = string
@@ -11,6 +11,7 @@ export interface Balances {
 }
 
 export interface Swap {
+  sender: Address
   tokenType: UniTokenType | PigiTokenType
   inputAmount: number
   minOutputAmount: number
@@ -25,8 +26,9 @@ export const isSwapTransaction = (
 }
 
 export interface Transfer {
-  tokenType: UniTokenType | PigiTokenType
+  sender: Address
   recipient: Address
+  tokenType: UniTokenType | PigiTokenType
   amount: number
 }
 
@@ -38,7 +40,7 @@ export const isTransferTransaction = (
 }
 
 export interface FaucetRequest {
-  requester: Address
+  sender: Address
   // Todo: might want to change this to token -> amount map
   amount: number
 }
@@ -46,7 +48,7 @@ export interface FaucetRequest {
 export const isFaucetTransaction = (
   transaction: Transaction
 ): transaction is FaucetRequest => {
-  return 'requester' in transaction
+  return !isSwapTransaction(transaction) && !isTransferTransaction(transaction)
 }
 
 export type Transaction = Swap | Transfer | FaucetRequest
@@ -127,4 +129,28 @@ export interface StateReceipt extends StateSnapshot {
 export interface SignedStateReceipt {
   stateReceipt: StateReceipt
   signature: Signature
+}
+
+export interface SwapTransition {
+  stateRoot: string
+  senderSlot: number
+  recipientSlot: number
+  tokenType: number
+  inputAmount: number
+  minOutputAmount: number
+  timeout: number
+  signature: string
+}
+
+export interface TransferTransition {
+  stateRoot: string
+  senderSlot: number
+  recipientSlot: number
+  tokenType: number
+  amount: number
+  signature: string
+}
+
+export interface CreateAndTransferTransition extends TransferTransition {
+  createdAccountPubkey: string
 }

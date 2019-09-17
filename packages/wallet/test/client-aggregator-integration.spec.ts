@@ -1,7 +1,7 @@
 import './setup'
 
 /* External Imports */
-import { SimpleClient, BaseDB, DB } from '@pigi/core'
+import { SimpleClient, BaseDB, DB, getLogger } from '@pigi/core'
 import MemDown from 'memdown'
 
 /* Internal Imports */
@@ -11,10 +11,13 @@ import {
   UnipigWallet,
   RollupAggregator,
   RollupStateMachine,
-  UNI_TOKEN_TYPE,
   FaucetRequest,
   SignedTransactionReceipt,
+  UNI_TOKEN_TYPE,
+  PIGI_TOKEN_TYPE,
 } from '../src'
+
+const log = getLogger('client-aggregator-integration', true)
 
 /*********
  * TESTS *
@@ -78,13 +81,17 @@ describe('Mock Client/Aggregator Integration', () => {
   describe('UnipigWallet', () => {
     it('should be able to query the aggregators balances', async () => {
       const response = await unipigWallet.getBalances(accountAddress)
-      response.should.deep.equal({ uni: 50, pigi: 50 })
+      response.should.deep.equal({
+        [UNI_TOKEN_TYPE]: 50,
+        [PIGI_TOKEN_TYPE]: 50,
+      })
     }).timeout(timeout)
 
     it('should return an error if the wallet tries to transfer money it doesnt have', async () => {
       try {
         await unipigWallet.rollup.sendTransaction(
           {
+            sender: accountAddress,
             tokenType: UNI_TOKEN_TYPE,
             recipient: 'testing123',
             amount: 10,
@@ -101,15 +108,16 @@ describe('Mock Client/Aggregator Integration', () => {
       const recipient = 'testing123'
       const response: SignedTransactionReceipt = await unipigWallet.rollup.sendTransaction(
         {
+          sender: accountAddress,
           tokenType: UNI_TOKEN_TYPE,
           recipient,
           amount: 10,
         },
         accountAddress
       )
-      response.transactionReceipt.updatedState[
-        recipient
-      ].balances.uni.should.equal(10)
+      response.transactionReceipt.updatedState[recipient].balances[
+        UNI_TOKEN_TYPE
+      ].should.equal(10)
     }).timeout(timeout)
 
     it('should successfully transfer if first faucet is requested', async () => {
@@ -120,7 +128,7 @@ describe('Mock Client/Aggregator Integration', () => {
 
       // Request some money for new wallet
       const transaction: FaucetRequest = {
-        requester: newAddress,
+        sender: newAddress,
         amount: 10,
       }
 
@@ -132,21 +140,22 @@ describe('Mock Client/Aggregator Integration', () => {
       faucetRes.transactionReceipt.updatedState[
         newAddress
       ].balances.should.deep.equal({
-        uni: 10,
-        pigi: 10,
+        [UNI_TOKEN_TYPE]: 10,
+        [PIGI_TOKEN_TYPE]: 10,
       })
 
       const transferRes: SignedTransactionReceipt = await unipigWallet.rollup.sendTransaction(
         {
-          tokenType: UNI_TOKEN_TYPE,
+          sender: newAddress,
           recipient,
+          tokenType: UNI_TOKEN_TYPE,
           amount: 10,
         },
         newAddress
       )
-      transferRes.transactionReceipt.updatedState[
-        recipient
-      ].balances.uni.should.equal(10)
+      transferRes.transactionReceipt.updatedState[recipient].balances[
+        UNI_TOKEN_TYPE
+      ].should.equal(10)
     }).timeout(timeout)
   })
 })

@@ -2,7 +2,13 @@
  * HELPERS *
  ***********/
 
-import { AGGREGATOR_ADDRESS, State, UNISWAP_ADDRESS } from '../src'
+import {
+  AGGREGATOR_ADDRESS,
+  PIGI_TOKEN_TYPE,
+  State,
+  UNI_TOKEN_TYPE,
+  UNISWAP_ADDRESS,
+} from '../src'
 import * as assert from 'assert'
 
 export const AGGREGATOR_MNEMONIC: string =
@@ -12,20 +18,20 @@ export const getGenesisState = (aliceAddress: string = 'alice'): State => {
   return {
     [UNISWAP_ADDRESS]: {
       balances: {
-        uni: 50,
-        pigi: 50,
+        [UNI_TOKEN_TYPE]: 50,
+        [PIGI_TOKEN_TYPE]: 50,
       },
     },
     [aliceAddress]: {
       balances: {
-        uni: 50,
-        pigi: 50,
+        [UNI_TOKEN_TYPE]: 50,
+        [PIGI_TOKEN_TYPE]: 50,
       },
     },
     [AGGREGATOR_ADDRESS]: {
       balances: {
-        uni: 1_000_000,
-        pigi: 1_000_000,
+        [UNI_TOKEN_TYPE]: 1_000_000,
+        [PIGI_TOKEN_TYPE]: 1_000_000,
       },
     },
   }
@@ -35,20 +41,20 @@ export const getGenesisStateLargeEnoughForFees = (): State => {
   return {
     [UNISWAP_ADDRESS]: {
       balances: {
-        uni: 650_000,
-        pigi: 500_000,
+        [UNI_TOKEN_TYPE]: 650_000,
+        [PIGI_TOKEN_TYPE]: 500_000,
       },
     },
     alice: {
       balances: {
-        uni: 5_000,
-        pigi: 5_000,
+        [UNI_TOKEN_TYPE]: 5_000,
+        [PIGI_TOKEN_TYPE]: 5_000,
       },
     },
     [AGGREGATOR_ADDRESS]: {
       balances: {
-        uni: 1_000_000,
-        pigi: 1_000_000,
+        [UNI_TOKEN_TYPE]: 1_000_000,
+        [PIGI_TOKEN_TYPE]: 1_000_000,
       },
     },
   }

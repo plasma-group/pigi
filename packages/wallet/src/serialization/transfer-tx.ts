@@ -1,6 +1,6 @@
 /* Internal Imports */
-import { abi } from '../../../app'
-import { AbiEncodable } from '../../../types'
+import { abi } from '@pigi/core/build/src/app'
+import { AbiEncodable } from '@pigi/core/build/src/types'
 
 /**
  * Creates a TransferTx from an encoded TransferTx.

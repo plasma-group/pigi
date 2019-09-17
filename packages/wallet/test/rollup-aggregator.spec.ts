@@ -27,6 +27,8 @@ import {
   SignedStateReceipt,
   RollupAggregator,
   RollupStateMachine,
+  Transfer,
+  PIGI_TOKEN_TYPE,
 } from '../src'
 
 /*********
@@ -75,7 +77,8 @@ describe('RollupAggregator', () => {
     recipient: string,
     amount: number
   ): Promise<SignedTransactionReceipt> => {
-    const transaction = {
+    const transaction: Transfer = {
+      sender: senderWallet.address,
       tokenType: UNI_TOKEN_TYPE,
       recipient,
       amount,
@@ -107,13 +110,13 @@ describe('RollupAggregator', () => {
     )
     if (!!beforeState.stateReceipt.state) {
       const uniDiff =
-        afterState.stateReceipt.state[bobAddress].balances.uni -
-        beforeState.stateReceipt.state[bobAddress].balances.uni
+        afterState.stateReceipt.state[bobAddress].balances[UNI_TOKEN_TYPE] -
+        beforeState.stateReceipt.state[bobAddress].balances[UNI_TOKEN_TYPE]
       uniDiff.should.equal(amount)
     } else {
-      afterState.stateReceipt.state[bobAddress].balances.uni.should.equal(
-        amount
-      )
+      afterState.stateReceipt.state[bobAddress].balances[
+        UNI_TOKEN_TYPE
+      ].should.equal(amount)
     }
 
     return receipt
@@ -126,7 +129,7 @@ describe('RollupAggregator', () => {
 
     // Request some money for new wallet
     const transaction: FaucetRequest = {
-      requester: newWallet.address,
+      sender: newWallet.address,
       amount,
     }
     const signature = await newWallet.signMessage(serializeObject(transaction))
@@ -141,12 +144,12 @@ describe('RollupAggregator', () => {
       AGGREGATOR_API.getState,
       newWallet.address
     )
-    newWalletState.stateReceipt.state[
-      newWallet.address
-    ].balances.uni.should.equal(amount)
-    newWalletState.stateReceipt.state[
-      newWallet.address
-    ].balances.pigi.should.equal(amount)
+    newWalletState.stateReceipt.state[newWallet.address].balances[
+      UNI_TOKEN_TYPE
+    ].should.equal(amount)
+    newWalletState.stateReceipt.state[newWallet.address].balances[
+      PIGI_TOKEN_TYPE
+    ].should.equal(amount)
 
     return newWallet
   }
@@ -160,8 +163,8 @@ describe('RollupAggregator', () => {
       response.stateReceipt.state[
         aliceWallet.address
       ].balances.should.deep.equal({
-        uni: 50,
-        pigi: 50,
+        [UNI_TOKEN_TYPE]: 50,
+        [PIGI_TOKEN_TYPE]: 50,
       })
     })
   })

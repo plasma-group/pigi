@@ -10,6 +10,8 @@ import {
   Address,
   SignedTransaction,
   SignedStateReceipt,
+  UNI_TOKEN_TYPE,
+  PIGI_TOKEN_TYPE,
 } from '../src'
 
 /***********
@@ -17,8 +19,8 @@ import {
  ***********/
 
 const balances = {
-  uni: 5,
-  pigi: 10,
+  [UNI_TOKEN_TYPE]: 5,
+  [PIGI_TOKEN_TYPE]: 10,
 }
 
 // A mocked getState api

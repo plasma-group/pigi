@@ -1,11 +1,11 @@
-import '../../setup'
+import './setup'
 
 /* External Imports */
 import debug from 'debug'
 const log = debug('test:info:rollup-encoding')
 
 /* Internal Imports */
-import { AbiTransferTx, AbiSwapTx, AbiSignedTx } from '../../../src/app'
+import { AbiSignedTx, AbiSwapTx, AbiTransferTx } from '../src'
 
 describe('RollupEncoding', () => {
   it('should encoded & decode AbiTransferTx without throwing', async () => {

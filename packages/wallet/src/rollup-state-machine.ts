@@ -9,13 +9,13 @@ import {
   SparseMerkleTree,
   SparseMerkleTreeImpl,
   BigNumber,
-  keccak256,
   objectToBuffer,
   deserializeBuffer,
   ONE,
   runInDomain,
   MerkleTreeInclusionProof,
   ZERO,
+  getLogger,
 } from '@pigi/core'
 
 /* Internal Imports */
@@ -38,6 +38,8 @@ import {
   StateSnapshot,
   InclusionProof,
   StateMachineCapacityError,
+  SignatureError,
+  AGGREGATOR_ADDRESS,
 } from './index'
 import {
   InsufficientBalanceError,
@@ -46,6 +48,8 @@ import {
   RollupStateMachine,
   SlippageError,
 } from './types'
+
+const log = getLogger('rollup-aggregator')
 
 export class DefaultRollupStateMachine implements RollupStateMachine {
   private static readonly lockKey: string = 'lock'
@@ -182,14 +186,25 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
   public async applyTransaction(
     signedTransaction: SignedTransaction
   ): Promise<StateUpdate> {
-    let sender: Address
+    let signer: Address
 
     try {
-      sender = this.signatureVerifier.verifyMessage(
+      signer = this.signatureVerifier.verifyMessage(
         serializeObject(signedTransaction.transaction),
         signedTransaction.signature
       )
+      if (
+        signer !== signedTransaction.transaction.sender &&
+        signer !== AGGREGATOR_ADDRESS
+      ) {
+        throw new SignatureError()
+      }
     } catch (e) {
+      log.error(
+        `Error verifying message sender. Signer: ${signer}, Tx: ${serializeObject(
+          signedTransaction
+        )}, ${e.message}, ${e.stack}`
+      )
       throw e
     }
 
@@ -198,9 +213,9 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       const transaction: Transaction = signedTransaction.transaction
       let updatedState: State
       if (isTransferTransaction(transaction)) {
-        updatedState = await this.applyTransfer(sender, transaction)
+        updatedState = await this.applyTransfer(transaction)
       } else if (isSwapTransaction(transaction)) {
-        updatedState = await this.applySwap(sender, transaction)
+        updatedState = await this.applySwap(signer, transaction)
       } else {
         throw new InvalidTransactionTypeError()
       }
@@ -237,7 +252,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
         return this.deserializeState(address, leaf)[address].balances
       }
     }
-    return { uni: 0, pigi: 0 }
+    return { [UNI_TOKEN_TYPE]: 0, [PIGI_TOKEN_TYPE]: 0 }
   }
 
   private async setAddressState(
@@ -251,6 +266,19 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       addressKey,
       serializedBalances
     )
+    if (!result) {
+      log.error(
+        `ERROR UPDATING TREE, address: [${address}], key: [${addressKey}], balances: [${serializeObject(
+          balances
+        )}]`
+      )
+    } else {
+      log.debug(
+        `${address} with key ${addressKey} balance updated to ${serializeObject(
+          balances
+        )}`
+      )
+    }
 
     return result
   }
@@ -265,21 +293,24 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     return tokenType in balances && balances[tokenType] >= balance
   }
 
-  private async applyTransfer(
-    sender: Address,
-    transfer: Transfer
-  ): Promise<State> {
+  private async applyTransfer(transfer: Transfer): Promise<State> {
     // Make sure the amount is above zero
     if (transfer.amount < 1) {
       throw new NegativeAmountError()
     }
 
     // Check that the sender has enough money
-    if (!(await this.hasBalance(sender, transfer.tokenType, transfer.amount))) {
+    if (
+      !(await this.hasBalance(
+        transfer.sender,
+        transfer.tokenType,
+        transfer.amount
+      ))
+    ) {
       throw new InsufficientBalanceError()
     }
 
-    const senderBalances = await this.getBalances(sender)
+    const senderBalances = await this.getBalances(transfer.sender)
     const recipientBalances = await this.getBalances(transfer.recipient)
 
     // Update the balances
@@ -288,12 +319,12 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
 
     // TODO: use batch update
     await Promise.all([
-      this.setAddressState(sender, senderBalances),
+      this.setAddressState(transfer.sender, senderBalances),
       this.setAddressState(transfer.recipient, recipientBalances),
     ])
 
     return {
-      ...this.getStateFromBalances(sender, senderBalances),
+      ...this.getStateFromBalances(transfer.sender, senderBalances),
       ...this.getStateFromBalances(transfer.recipient, recipientBalances),
     }
   }
@@ -323,7 +354,8 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     const outputTokenType =
       swap.tokenType === UNI_TOKEN_TYPE ? PIGI_TOKEN_TYPE : UNI_TOKEN_TYPE
     // Next let's calculate the invariant
-    const invariant = uniswapBalances.uni * uniswapBalances.pigi
+    const invariant =
+      uniswapBalances[UNI_TOKEN_TYPE] * uniswapBalances[PIGI_TOKEN_TYPE]
     // Now calculate the total input tokens
     const totalInput =
       this.assessSwapFee(swap.inputAmount) + uniswapBalances[inputTokenType]

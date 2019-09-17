@@ -3,11 +3,13 @@ import { SignatureProvider, SignatureVerifier } from '@pigi/core'
 
 /* Utilities */
 export const generateTransferTx = (
+  sender: Address,
   recipient: Address,
   tokenType: TokenType,
   amount: number
 ): Transaction => {
   return {
+    sender,
     tokenType,
     recipient,
     amount,

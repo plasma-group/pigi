@@ -1,5 +1,6 @@
 /* External Imports */
 import * as AsyncLock from 'async-lock'
+import { ethers } from 'ethers'
 
 import {
   SignatureVerifier,
@@ -9,7 +10,7 @@ import {
   DefaultSignatureProvider,
   DB,
   objectToBuffer,
-  SparseMerkleTree,
+  getLogger,
 } from '@pigi/core'
 
 /* Internal Imports */
@@ -36,8 +37,9 @@ import {
   Signature,
   StateReceipt,
 } from './index'
-import { ethers } from 'ethers'
 import { RollupStateMachine } from './types'
+
+const log = getLogger('rollup-aggregator')
 
 /*
  * Generate two transactions which together send the user some UNI
@@ -50,11 +52,13 @@ const generateFaucetTxs = async (
   signatureProvider?: SignatureProvider
 ): Promise<SignedTransaction[]> => {
   const txOne: Transaction = generateTransferTx(
+    UNISWAP_ADDRESS,
     recipient,
     UNI_TOKEN_TYPE,
     amount
   )
   const txTwo: Transaction = generateTransferTx(
+    UNISWAP_ADDRESS,
     recipient,
     PIGI_TOKEN_TYPE,
     amount
@@ -148,28 +152,35 @@ export class RollupAggregator extends SimpleServer {
    * aggregator guarantee that it does not exist.
    */
   private async getState(address: string): Promise<SignedStateReceipt> {
-    const stateReceipt: StateReceipt = await this.lock.acquire(
-      RollupAggregator.lockKey,
-      async () => {
-        const snapshot: StateSnapshot = await this.rollupStateMachine.getState(
-          address
-        )
-        return {
-          blockNumber: this.blockNumber,
-          transitionIndex: this.transitionIndex,
-          ...snapshot,
+    try {
+      const stateReceipt: StateReceipt = await this.lock.acquire(
+        RollupAggregator.lockKey,
+        async () => {
+          const snapshot: StateSnapshot = await this.rollupStateMachine.getState(
+            address
+          )
+          return {
+            blockNumber: this.blockNumber,
+            transitionIndex: this.transitionIndex,
+            ...snapshot,
+          }
         }
+      )
+
+      const signature: Signature = await this.signatureProvider.sign(
+        AGGREGATOR_ADDRESS,
+        serializeObject(stateReceipt)
+      )
+
+      return {
+        stateReceipt,
+        signature,
       }
-    )
-
-    const signature: Signature = await this.signatureProvider.sign(
-      AGGREGATOR_ADDRESS,
-      serializeObject(stateReceipt)
-    )
-
-    return {
-      stateReceipt,
-      signature,
+    } catch (e) {
+      log.error(
+        `Error getting state for address [${address}]! ${e.message}, ${e.stack}`
+      )
+      throw e
     }
   }
 
@@ -183,25 +194,34 @@ export class RollupAggregator extends SimpleServer {
   private async applyTransaction(
     signedTransaction
   ): Promise<SignedTransactionReceipt> {
-    const [stateUpdate, transition] = await this.lock.acquire(
-      RollupAggregator.lockKey,
-      async () => {
-        const update: StateUpdate = await this.rollupStateMachine.applyTransaction(
-          signedTransaction
-        )
-        const trans: RollupTransition = await this.addToPendingBlock(
-          update,
-          signedTransaction
-        )
-        return [update, trans]
-      }
-    )
+    try {
+      const [stateUpdate, transition] = await this.lock.acquire(
+        RollupAggregator.lockKey,
+        async () => {
+          const update: StateUpdate = await this.rollupStateMachine.applyTransaction(
+            signedTransaction
+          )
+          const trans: RollupTransition = await this.addToPendingBlock(
+            update,
+            signedTransaction
+          )
+          return [update, trans]
+        }
+      )
 
-    return this.respond(stateUpdate, transition, signedTransaction)
+      return this.respond(stateUpdate, transition, signedTransaction)
+    } catch (e) {
+      log.error(
+        `Error applying transaction [${serializeObject(signedTransaction)}]! ${
+          e.message
+        }, ${e.stack}`
+      )
+      throw e
+    }
   }
 
   /**
-   * Requests faucet funds on behalf of the requester and returns the updated
+   * Requests faucet funds on behalf of the sender and returns the updated
    * state resulting from the faucet allocation, including the guarantee that
    * it will be included in a specific block and transition.
    *
@@ -211,45 +231,56 @@ export class RollupAggregator extends SimpleServer {
   private async requestFaucetFunds(
     signedTransaction: SignedTransaction
   ): Promise<SignedTransactionReceipt> {
-    if (!isFaucetTransaction(signedTransaction.transaction)) {
-      throw Error('Cannot handle non-Faucet Request in faucet endpoint')
-    }
-    const messageSigner: Address = this.signatureVerifier.verifyMessage(
-      serializeObject(signedTransaction.transaction),
-      signedTransaction.signature
-    )
-    if (messageSigner !== signedTransaction.transaction.requester) {
-      throw Error('Faucet requests must be signed by the request address')
-    }
-
-    // TODO: Probably need to check amount before blindly giving them this amount
-
-    const { requester, amount } = signedTransaction.transaction
-    // Generate the faucet txs (one sending uni the other pigi)
-    const faucetTxs = await generateFaucetTxs(
-      requester,
-      amount,
-      this.wallet.address,
-      this.signatureProvider
-    )
-
-    const [stateUpdate, transition] = await this.lock.acquire(
-      RollupAggregator.lockKey,
-      async () => {
-        // Apply the two txs
-        const update: StateUpdate = await this.rollupStateMachine.applyTransactions(
-          faucetTxs
-        )
-
-        const trans: RollupTransition = await this.addToPendingBlock(
-          update,
-          signedTransaction
-        )
-        return [update, trans]
+    try {
+      if (!isFaucetTransaction(signedTransaction.transaction)) {
+        throw Error('Cannot handle non-Faucet Request in faucet endpoint')
       }
-    )
+      const messageSigner: Address = this.signatureVerifier.verifyMessage(
+        serializeObject(signedTransaction.transaction),
+        signedTransaction.signature
+      )
+      if (messageSigner !== signedTransaction.transaction.sender) {
+        throw Error(
+          `Faucet requests must be signed by the request address. Signer address: ${messageSigner}, sender: ${signedTransaction.transaction.sender}`
+        )
+      }
 
-    return this.respond(stateUpdate, transition, signedTransaction)
+      // TODO: Probably need to check amount before blindly giving them this amount
+
+      const { sender, amount } = signedTransaction.transaction
+      // Generate the faucet txs (one sending uni the other pigi)
+      const faucetTxs = await generateFaucetTxs(
+        sender,
+        amount,
+        this.wallet.address,
+        this.signatureProvider
+      )
+
+      const [stateUpdate, transition] = await this.lock.acquire(
+        RollupAggregator.lockKey,
+        async () => {
+          // Apply the two txs
+          const update: StateUpdate = await this.rollupStateMachine.applyTransactions(
+            faucetTxs
+          )
+
+          const trans: RollupTransition = await this.addToPendingBlock(
+            update,
+            signedTransaction
+          )
+          return [update, trans]
+        }
+      )
+
+      return this.respond(stateUpdate, transition, signedTransaction)
+    } catch (e) {
+      log.error(
+        `Error handling faucet request [${serializeObject(
+          signedTransaction
+        )}]! ${e.message}, ${e.stack}`
+      )
+      throw e
+    }
   }
 
   /**

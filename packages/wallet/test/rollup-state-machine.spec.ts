@@ -15,6 +15,7 @@ import {
   IdentityVerifier,
   DefaultRollupStateMachine,
   SignedTransaction,
+  PIGI_TOKEN_TYPE,
 } from '../src'
 
 /* External Imports */
@@ -46,8 +47,8 @@ describe('RollupStateMachine', () => {
     it('should not throw even if the account doesnt exist', async () => {
       const response = await rollupState.getBalances('this is not an address!')
       response.should.deep.equal({
-        uni: 0,
-        pigi: 0,
+        [UNI_TOKEN_TYPE]: 0,
+        [PIGI_TOKEN_TYPE]: 0,
       })
     })
   })
@@ -56,8 +57,9 @@ describe('RollupStateMachine', () => {
     const txAliceToBob: SignedTransaction = {
       signature: 'alice',
       transaction: {
-        tokenType: UNI_TOKEN_TYPE,
+        sender: 'alice',
         recipient: 'bob',
+        tokenType: UNI_TOKEN_TYPE,
         amount: 5,
       },
     }
@@ -72,10 +74,12 @@ describe('RollupStateMachine', () => {
       const result = await rollupState.applyTransaction(txAliceToBob)
 
       const aliceBalance = await rollupState.getBalances('alice')
-      aliceBalance.uni.should.equal(getGenesisState().alice.balances.uni - 5)
+      aliceBalance[UNI_TOKEN_TYPE].should.equal(
+        getGenesisState().alice.balances[UNI_TOKEN_TYPE] - 5
+      )
 
       const bobBalance = await rollupState.getBalances('bob')
-      bobBalance.uni.should.deep.equal(5)
+      bobBalance[UNI_TOKEN_TYPE].should.deep.equal(5)
     })
 
     it('should throw if transfering too much money', async () => {
@@ -83,6 +87,7 @@ describe('RollupStateMachine', () => {
         rollupState.applyTransaction({
           signature: 'alice',
           transaction: {
+            sender: 'alice',
             tokenType: UNI_TOKEN_TYPE,
             recipient: 'bob',
             amount: 500,
@@ -101,14 +106,15 @@ describe('RollupStateMachine', () => {
       uniInput = 25
       expectedPigiAfterFees = calculateSwapWithFees(
         uniInput,
-        getGenesisState()[UNISWAP_ADDRESS].balances.uni,
-        getGenesisState()[UNISWAP_ADDRESS].balances.pigi,
+        getGenesisState()[UNISWAP_ADDRESS].balances[UNI_TOKEN_TYPE],
+        getGenesisState()[UNISWAP_ADDRESS].balances[PIGI_TOKEN_TYPE],
         0
       )
 
       txAliceSwapUni = {
         signature: 'alice',
         transaction: {
+          sender: 'alice',
           tokenType: UNI_TOKEN_TYPE,
           inputAmount: uniInput,
           minOutputAmount: expectedPigiAfterFees,
@@ -125,20 +131,22 @@ describe('RollupStateMachine', () => {
       const result = await rollupState.applyTransaction(txAliceSwapUni)
 
       const aliceBalances = await rollupState.getBalances('alice')
-      aliceBalances.uni.should.equal(
-        getGenesisState().alice.balances.uni - uniInput
+      aliceBalances[UNI_TOKEN_TYPE].should.equal(
+        getGenesisState().alice.balances[UNI_TOKEN_TYPE] - uniInput
       )
-      aliceBalances.pigi.should.equal(
-        getGenesisState().alice.balances.pigi + expectedPigiAfterFees
+      aliceBalances[PIGI_TOKEN_TYPE].should.equal(
+        getGenesisState().alice.balances[PIGI_TOKEN_TYPE] +
+          expectedPigiAfterFees
       )
 
       // And we should have the opposite balances for uniswap
       const uniswapBalances = await rollupState.getBalances(UNISWAP_ADDRESS)
-      uniswapBalances.uni.should.equal(
-        getGenesisState()[UNISWAP_ADDRESS].balances.uni + uniInput
+      uniswapBalances[UNI_TOKEN_TYPE].should.equal(
+        getGenesisState()[UNISWAP_ADDRESS].balances[UNI_TOKEN_TYPE] + uniInput
       )
-      uniswapBalances.pigi.should.equal(
-        getGenesisState()[UNISWAP_ADDRESS].balances.pigi - expectedPigiAfterFees
+      uniswapBalances[PIGI_TOKEN_TYPE].should.equal(
+        getGenesisState()[UNISWAP_ADDRESS].balances[PIGI_TOKEN_TYPE] -
+          expectedPigiAfterFees
       )
     })
 
@@ -153,14 +161,19 @@ describe('RollupStateMachine', () => {
       uniInput = 2500
       expectedPigiAfterFees = calculateSwapWithFees(
         uniInput,
-        getGenesisStateLargeEnoughForFees()[UNISWAP_ADDRESS].balances.uni,
-        getGenesisStateLargeEnoughForFees()[UNISWAP_ADDRESS].balances.pigi,
+        getGenesisStateLargeEnoughForFees()[UNISWAP_ADDRESS].balances[
+          UNI_TOKEN_TYPE
+        ],
+        getGenesisStateLargeEnoughForFees()[UNISWAP_ADDRESS].balances[
+          PIGI_TOKEN_TYPE
+        ],
         feeBasisPoints
       )
 
       txAliceSwapUni = {
         signature: 'alice',
         transaction: {
+          sender: 'alice',
           tokenType: UNI_TOKEN_TYPE,
           inputAmount: uniInput,
           minOutputAmount: expectedPigiAfterFees,
@@ -171,23 +184,26 @@ describe('RollupStateMachine', () => {
       await rollupState.applyTransaction(txAliceSwapUni)
 
       const aliceBalances = await rollupState.getBalances('alice')
-      aliceBalances.uni.should.equal(
-        getGenesisStateLargeEnoughForFees().alice.balances.uni - uniInput
+      aliceBalances[UNI_TOKEN_TYPE].should.equal(
+        getGenesisStateLargeEnoughForFees().alice.balances[UNI_TOKEN_TYPE] -
+          uniInput
       )
-      aliceBalances.pigi.should.equal(
-        getGenesisStateLargeEnoughForFees().alice.balances.pigi +
+      aliceBalances[PIGI_TOKEN_TYPE].should.equal(
+        getGenesisStateLargeEnoughForFees().alice.balances[PIGI_TOKEN_TYPE] +
           expectedPigiAfterFees
       )
       // And we should have the opposite balances for uniswap
 
       const uniswapBalances = await rollupState.getBalances(UNISWAP_ADDRESS)
-      uniswapBalances.uni.should.equal(
-        getGenesisStateLargeEnoughForFees()[UNISWAP_ADDRESS].balances.uni +
-          uniInput
+      uniswapBalances[UNI_TOKEN_TYPE].should.equal(
+        getGenesisStateLargeEnoughForFees()[UNISWAP_ADDRESS].balances[
+          UNI_TOKEN_TYPE
+        ] + uniInput
       )
-      uniswapBalances.pigi.should.equal(
-        getGenesisStateLargeEnoughForFees()[UNISWAP_ADDRESS].balances.pigi -
-          expectedPigiAfterFees
+      uniswapBalances[PIGI_TOKEN_TYPE].should.equal(
+        getGenesisStateLargeEnoughForFees()[UNISWAP_ADDRESS].balances[
+          PIGI_TOKEN_TYPE
+        ] - expectedPigiAfterFees
       )
     })
   })

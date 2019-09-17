@@ -70,7 +70,7 @@ async function fetchBalanceUpdate() {
 
 async function onRequestFundsClicked() {
   const transaction: FaucetRequest = {
-    requester: wallet.address,
+    sender: wallet.address,
     amount: 10,
   }
   const response = await unipigWallet.rollup.requestFaucetFunds(
@@ -87,8 +87,9 @@ async function onTransferFundsClicked() {
   const recipient = document.getElementById('send-recipient').value
   const response: SignedTransactionReceipt = await unipigWallet.rollup.sendTransaction(
     {
-      tokenType,
+      sender: wallet.address,
       recipient,
+      tokenType,
       amount,
     },
     wallet.address
@@ -104,6 +105,7 @@ async function onSwapFundsClicked() {
   const inputAmount = parseInt(document.getElementById('swap-amount').value, 10)
   const response: SignedTransactionReceipt = await unipigWallet.rollup.sendTransaction(
     {
+      sender: wallet.address,
       tokenType,
       inputAmount,
       minOutputAmount: 0,

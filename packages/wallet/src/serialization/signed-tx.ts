@@ -1,7 +1,7 @@
 /* Internal Imports */
-import { abi } from '../../../app'
-import { AbiEncodable } from '../../../types'
-import { AbiTransferTx, AbiSwapTx } from '.'
+import { abi } from '@pigi/core/build/src/app'
+import { AbiEncodable } from '@pigi/core/build/src/types'
+import { AbiTransferTx, AbiSwapTx } from './index'
 
 /**
  * Creates a SignedTx from an encoded SignedTx.
