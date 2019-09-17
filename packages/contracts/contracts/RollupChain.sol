@@ -176,7 +176,7 @@ contract RollupChain {
         // It was successful so let's decode the outputs to get the new leaf nodes we'll have to insert
         (bytes32[2] memory outputs) = abi.decode((returnData), (bytes32[2]));
 
-        /********* #6: EVALUATE_TRANSITION *********/
+        /********* #6: UPDATE_STATE_ROOT *********/
         // Now we need to check if the state root is incorrect, to do this we first insert the new leaf values
         for (uint i = 0; i < _transitionStorageSlots.length; i++) {
             partialState.update(_transitionStorageSlots[i].storageSlot.slotIndex, outputs[i]);
