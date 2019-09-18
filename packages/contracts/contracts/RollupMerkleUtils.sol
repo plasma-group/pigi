@@ -7,22 +7,61 @@ import {DataTypes as dt} from "./DataTypes.sol";
 /*
  * Merkle Tree Utilities for Rollup
  */
-library RollupMerkleUtils {
+contract RollupMerkleUtils {
+    bytes32[160] public defaultHashes;
+
+    constructor() public {
+        setDefaultHashes();
+    }
+
+    function setDefaultHashes() private {
+        // Set the initial default hash.
+        // TODO: Replace this hardcoded bytes value with keccak256(0x000...000) or similar.
+        defaultHashes[0] = 0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563;
+        for (uint i = 1; i < defaultHashes.length; i ++) {
+            defaultHashes[i] = keccak256(abi.encodePacked(defaultHashes[i-1], defaultHashes[i-1]));
+        }
+    }
+
     /**
-     * @notice Get the merkle root computed from some set of data blocks.
+     * @notice Get the sparse merkle root computed from some set of data blocks.
      * @param _dataBlocks The data being used to generate the tree.
-     * @return the merkle tree root
+     * @return the sparse merkle tree root
      */
-    function getMerkleRoot(bytes[] memory _dataBlocks) public pure returns(bytes32) {
-        uint dataBlocksLength = _dataBlocks.length;
-        bytes32[] memory leaves = new bytes32[](dataBlocksLength);
-        for (uint i = 0; i < dataBlocksLength; i++) {
-            leaves[i] = keccak256(_dataBlocks[i]);
+    function getMerkleRoot(bytes[] calldata _dataBlocks) external view returns(bytes32) {
+        uint nextLevelLength = _dataBlocks.length;
+        uint currentLevel = 0;
+        bytes32[] memory nodes = new bytes32[](nextLevelLength + 1); // Add one in case we have an odd number of leaves
+        // Generate the leaves
+        for (uint i = 0; i < _dataBlocks.length; i++) {
+            nodes[i] = keccak256(_dataBlocks[i]);
         }
-        while (leaves.length > 1) {
-            leaves = generateNextLevel(leaves);
+        if (_dataBlocks.length == 1) {
+            return nodes[0];
         }
-        return leaves[0];
+        // Add a defaultNode if we've got an odd number of leaves
+        if (nextLevelLength % 2 == 1) {
+            nodes[nextLevelLength] = defaultHashes[currentLevel];
+            nextLevelLength += 1;
+        }
+
+        // Now generate each level
+        while (nextLevelLength > 1) {
+            currentLevel += 1;
+            // Calculate the nodes for the currentLevel
+            for (uint i = 0; i < nextLevelLength / 2; i++) {
+                nodes[i] = parent(nodes[i*2], nodes[i*2 + 1]);
+            }
+            nextLevelLength = nextLevelLength / 2;
+            // Check if we will need to add an extra node
+            if (nextLevelLength % 2 == 1 && nextLevelLength != 1) {
+                nodes[nextLevelLength] = defaultHashes[currentLevel];
+                nextLevelLength += 1;
+            }
+        }
+
+        // Alright! We should be left with a single node! Return it...
+        return nodes[0];
     }
 
     /**
@@ -33,31 +72,6 @@ library RollupMerkleUtils {
      */
     function parent(bytes32 _left, bytes32 _right) internal pure returns(bytes32) {
         return keccak256(abi.encodePacked(_left, _right));
-    }
-
-    /**
-     * @notice Generate the next level of the merkle tree
-     * @param _prevLevel An array containing the hashes which make up
-                         the previous level in the merkle tree
-     * @return The next level of the tree
-     */
-    function generateNextLevel(bytes32[] memory _prevLevel) private pure returns(bytes32[] memory) {
-        uint prevLevelLength = _prevLevel.length;
-        uint remainder = prevLevelLength % 2;
-        uint nextLevelLength = (prevLevelLength / 2) + remainder;
-        bytes32[] memory nextLevel = new bytes32[](nextLevelLength);
-        // Calculate all parent nodes except the last one
-        for(uint i = 0; i < nextLevelLength-1; i++) {
-            uint prevLevelIndex = i*2;
-            nextLevel[i] = parent(_prevLevel[prevLevelIndex], _prevLevel[prevLevelIndex+1]);
-        }
-        // Set the last node to be either the hash
-        if (remainder == 0) {
-            nextLevel[nextLevelLength-1] = keccak256(abi.encodePacked(_prevLevel[prevLevelLength-2], _prevLevel[prevLevelLength-1]));
-        } else {
-            nextLevel[nextLevelLength-1] = _prevLevel[prevLevelLength - 1];
-        }
-        return nextLevel;
     }
 
     function getNthBitFromRight(uint self, uint8 index) public pure returns (uint8) {

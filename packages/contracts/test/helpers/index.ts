@@ -12,8 +12,9 @@ export * from './RollupBlock'
 // Create a byte string of some length in bytes. It repeats the value provided until the
 // string hits that length
 export function makeRepeatedBytes(value: string, length: number): string {
-  const result = value.repeat((length * 2) / value.length).slice(0, length * 2)
-  return '0x' + result
+  const repeated = value.repeat((length * 2) / value.length + 1)
+  const sliced = repeated.slice(0, length * 2)
+  return '0x' + sliced
 }
 
 // Make padded bytes. Bytes are right padded.
@@ -73,6 +74,7 @@ export const getAmount = (amount: string) =>
 export const getAddress = (address: string) => makeRepeatedBytes(address, 20)
 export const getSignature = (sig: string) => makeRepeatedBytes(sig, 65)
 export const getStateRoot = (bytes: string) => makeRepeatedBytes(bytes, 32)
+export const getBytes32 = (bytes: string) => makeRepeatedBytes(bytes, 32)
 
 export const UNISWAP_ADDRESS = getAddress('00')
 export const UNISWAP_STORAGE_SLOT = 0
