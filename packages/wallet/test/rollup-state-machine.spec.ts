@@ -5,10 +5,12 @@ import { DB, BaseDB } from '@pigi/core'
 import {
   ALICE_ADDRESS,
   ALICE_GENESIS_STATE_INDEX,
-  assertThrowsAsync, BOB_ADDRESS,
+  assertThrowsAsync,
+  BOB_ADDRESS,
   calculateSwapWithFees,
   getGenesisState,
-  getGenesisStateLargeEnoughForFees, UNISWAP_GENESIS_STATE_INDEX,
+  getGenesisStateLargeEnoughForFees,
+  UNISWAP_GENESIS_STATE_INDEX,
 } from './helpers'
 import {
   UNI_TOKEN_TYPE,
@@ -68,7 +70,9 @@ describe('RollupStateMachine', () => {
 
     it('should not throw when alice sends 5 uni from genesis', async () => {
       const aliceBalance = await rollupState.getBalances(ALICE_ADDRESS)
-      aliceBalance.should.deep.equal(getGenesisState()[ALICE_GENESIS_STATE_INDEX].balances)
+      aliceBalance.should.deep.equal(
+        getGenesisState()[ALICE_GENESIS_STATE_INDEX].balances
+      )
       await rollupState.applyTransaction(txAliceToBob)
     })
 
@@ -77,7 +81,8 @@ describe('RollupStateMachine', () => {
 
       const aliceBalance = await rollupState.getBalances(ALICE_ADDRESS)
       aliceBalance[UNI_TOKEN_TYPE].should.equal(
-        getGenesisState()[ALICE_GENESIS_STATE_INDEX].balances[UNI_TOKEN_TYPE] - 5
+        getGenesisState()[ALICE_GENESIS_STATE_INDEX].balances[UNI_TOKEN_TYPE] -
+          5
       )
 
       const bobBalance = await rollupState.getBalances(BOB_ADDRESS)
@@ -109,7 +114,9 @@ describe('RollupStateMachine', () => {
       expectedPigiAfterFees = calculateSwapWithFees(
         uniInput,
         getGenesisState()[UNISWAP_GENESIS_STATE_INDEX].balances[UNI_TOKEN_TYPE],
-        getGenesisState()[UNISWAP_GENESIS_STATE_INDEX].balances[PIGI_TOKEN_TYPE],
+        getGenesisState()[UNISWAP_GENESIS_STATE_INDEX].balances[
+          PIGI_TOKEN_TYPE
+        ],
         0
       )
 
@@ -134,7 +141,8 @@ describe('RollupStateMachine', () => {
 
       const aliceBalances = await rollupState.getBalances(ALICE_ADDRESS)
       aliceBalances[UNI_TOKEN_TYPE].should.equal(
-        getGenesisState()[ALICE_GENESIS_STATE_INDEX].balances[UNI_TOKEN_TYPE] - uniInput
+        getGenesisState()[ALICE_GENESIS_STATE_INDEX].balances[UNI_TOKEN_TYPE] -
+          uniInput
       )
       aliceBalances[PIGI_TOKEN_TYPE].should.equal(
         getGenesisState()[ALICE_GENESIS_STATE_INDEX].balances[PIGI_TOKEN_TYPE] +
@@ -144,11 +152,14 @@ describe('RollupStateMachine', () => {
       // And we should have the opposite balances for uniswap
       const uniswapBalances = await rollupState.getBalances(UNISWAP_ADDRESS)
       uniswapBalances[UNI_TOKEN_TYPE].should.equal(
-        getGenesisState()[UNISWAP_GENESIS_STATE_INDEX].balances[UNI_TOKEN_TYPE] + uniInput
+        getGenesisState()[UNISWAP_GENESIS_STATE_INDEX].balances[
+          UNI_TOKEN_TYPE
+        ] + uniInput
       )
       uniswapBalances[PIGI_TOKEN_TYPE].should.equal(
-        getGenesisState()[UNISWAP_GENESIS_STATE_INDEX].balances[PIGI_TOKEN_TYPE] -
-          expectedPigiAfterFees
+        getGenesisState()[UNISWAP_GENESIS_STATE_INDEX].balances[
+          PIGI_TOKEN_TYPE
+        ] - expectedPigiAfterFees
       )
     })
 
@@ -163,12 +174,10 @@ describe('RollupStateMachine', () => {
       uniInput = 2500
       expectedPigiAfterFees = calculateSwapWithFees(
         uniInput,
-        getGenesisStateLargeEnoughForFees()[UNISWAP_GENESIS_STATE_INDEX].balances[
-          UNI_TOKEN_TYPE
-        ],
-        getGenesisStateLargeEnoughForFees()[UNISWAP_GENESIS_STATE_INDEX].balances[
-          PIGI_TOKEN_TYPE
-        ],
+        getGenesisStateLargeEnoughForFees()[UNISWAP_GENESIS_STATE_INDEX]
+          .balances[UNI_TOKEN_TYPE],
+        getGenesisStateLargeEnoughForFees()[UNISWAP_GENESIS_STATE_INDEX]
+          .balances[PIGI_TOKEN_TYPE],
         feeBasisPoints
       )
 
@@ -187,25 +196,25 @@ describe('RollupStateMachine', () => {
 
       const aliceBalances = await rollupState.getBalances(ALICE_ADDRESS)
       aliceBalances[UNI_TOKEN_TYPE].should.equal(
-        getGenesisStateLargeEnoughForFees()[ALICE_GENESIS_STATE_INDEX].balances[UNI_TOKEN_TYPE] -
-          uniInput
+        getGenesisStateLargeEnoughForFees()[ALICE_GENESIS_STATE_INDEX].balances[
+          UNI_TOKEN_TYPE
+        ] - uniInput
       )
       aliceBalances[PIGI_TOKEN_TYPE].should.equal(
-        getGenesisStateLargeEnoughForFees()[ALICE_GENESIS_STATE_INDEX].balances[PIGI_TOKEN_TYPE] +
-          expectedPigiAfterFees
+        getGenesisStateLargeEnoughForFees()[ALICE_GENESIS_STATE_INDEX].balances[
+          PIGI_TOKEN_TYPE
+        ] + expectedPigiAfterFees
       )
       // And we should have the opposite balances for uniswap
 
       const uniswapBalances = await rollupState.getBalances(UNISWAP_ADDRESS)
       uniswapBalances[UNI_TOKEN_TYPE].should.equal(
-        getGenesisStateLargeEnoughForFees()[UNISWAP_GENESIS_STATE_INDEX].balances[
-          UNI_TOKEN_TYPE
-        ] + uniInput
+        getGenesisStateLargeEnoughForFees()[UNISWAP_GENESIS_STATE_INDEX]
+          .balances[UNI_TOKEN_TYPE] + uniInput
       )
       uniswapBalances[PIGI_TOKEN_TYPE].should.equal(
-        getGenesisStateLargeEnoughForFees()[UNISWAP_GENESIS_STATE_INDEX].balances[
-          PIGI_TOKEN_TYPE
-        ] - expectedPigiAfterFees
+        getGenesisStateLargeEnoughForFees()[UNISWAP_GENESIS_STATE_INDEX]
+          .balances[PIGI_TOKEN_TYPE] - expectedPigiAfterFees
       )
     })
   })

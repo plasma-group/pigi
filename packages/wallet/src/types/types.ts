@@ -1,4 +1,4 @@
-import {BigNumber} from "@pigi/core";
+import { BigNumber } from '@pigi/core'
 
 export type UniTokenType = 0
 export type PigiTokenType = 1
@@ -9,8 +9,10 @@ export type Address = string
 export type RollupTransaction = Swap | Transfer | FaucetRequest
 export type Signature = string
 export type InclusionProof = string[]
-export type RollupTransition = SwapTransition | TransferTransition | CreateAndTransferTransition
-
+export type RollupTransition =
+  | SwapTransition
+  | TransferTransition
+  | CreateAndTransferTransition
 
 export interface Balances {
   [tokenType: string]: number
@@ -50,7 +52,6 @@ export interface State {
 export interface SignatureProvider {
   sign(address: string, message: string): Promise<string>
 }
-
 
 export interface StateUpdate {
   transaction: SignedTransaction
@@ -133,7 +134,7 @@ export const isFaucetTransaction = (
 export const isSwapTransition = (
   transition: RollupTransition
 ): transition is SwapTransition => {
-  return 'uniswapleafID' in transition
+  return 'uniswapLeafID' in transition
 }
 
 export const isCreateAndTransferTransition = (
@@ -145,6 +146,7 @@ export const isCreateAndTransferTransition = (
 export const isTransferTransition = (
   transition: RollupTransition
 ): transition is TransferTransition => {
-  return !isSwapTransition(transition) && !isCreateAndTransferTransition(transition)
+  return (
+    !isSwapTransition(transition) && !isCreateAndTransferTransition(transition)
+  )
 }
-

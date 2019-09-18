@@ -14,7 +14,8 @@ import {
   RollupTransaction,
   UNISWAP_ADDRESS,
   AGGREGATOR_API,
-  SignedStateReceipt, abiEncodeTransaction,
+  SignedStateReceipt,
+  abiEncodeTransaction,
 } from './index'
 
 /**

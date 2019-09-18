@@ -1,31 +1,36 @@
 /* External Imports */
-import {getLogger} from "@pigi/core";
+import { getLogger, remove0x } from '@pigi/core'
 
 /* Internal imports */
 import {
   CreateAndTransferTransition,
   InvalidTokenTypeError,
-  SignedTransaction, State, StateReceipt,
+  SignedTransaction,
+  State,
+  StateReceipt,
   Swap,
   SwapTransition,
   TokenType,
   RollupTransaction,
   Transfer,
-  TransferTransition, RollupTransition,
+  TransferTransition,
+  RollupTransition,
 } from '../types'
 import { PIGI_TOKEN_TYPE, UNI_TOKEN_TYPE } from '../index'
 import {
   abi,
   createAndTransferTransitionAbiTypes,
-  signedTransactionAbiTypes, stateAbiTypes, stateReceiptAbiTypes,
+  signedTransactionAbiTypes,
+  stateAbiTypes,
+  stateReceiptAbiTypes,
   swapAbiTypes,
   swapTransitionAbiTypes,
   transferAbiTypes,
   transferTransitionAbiTypes,
 } from './common'
-import {ethers, utils} from "ethers";
+import { ethers, utils } from 'ethers'
 
-const log = getLogger('abiEncoders')
+const log = getLogger('rollup-abiEncoders')
 
 /**
  * Creates a SignedTransaction from an ABI-encoded SignedTransaction.
@@ -48,7 +53,9 @@ export const parseSignedTransactionFromABI = (
  * @param abiEncoded The ABI-encoded string.
  * @returns the parsed RollupTransaction.
  */
-export const parseTransactionFromABI = (abiEncoded: string): RollupTransaction => {
+export const parseTransactionFromABI = (
+  abiEncoded: string
+): RollupTransaction => {
   try {
     return parseSwapFromABI(abiEncoded)
   } catch (err) {
@@ -62,7 +69,9 @@ export const parseTransactionFromABI = (abiEncoded: string): RollupTransaction =
  * @param abiEncoded The ABI-encoded string.
  * @returns the parsed RollupTransition.
  */
-export const parseTransitionFromABI = (abiEncoded: string): RollupTransition => {
+export const parseTransitionFromABI = (
+  abiEncoded: string
+): RollupTransition => {
   try {
     return parseSwapTransitionFromABI(abiEncoded)
   } catch (err) {
@@ -80,17 +89,16 @@ export const parseTransitionFromABI = (abiEncoded: string): RollupTransition => 
  * @returns the parsed State.
  */
 export const parseStateFromABI = (abiEncoded: string): State => {
-  const [
-    address,
-    uniBalance,
-    pigiBalance
-  ] = abi.decode(stateAbiTypes, abiEncoded)
+  const [address, uniBalance, pigiBalance] = abi.decode(
+    stateAbiTypes,
+    abiEncoded
+  )
   return {
     address,
     balances: {
       [UNI_TOKEN_TYPE]: uniBalance,
-      [PIGI_TOKEN_TYPE]: pigiBalance
-    }
+      [PIGI_TOKEN_TYPE]: pigiBalance,
+    },
   }
 }
 
@@ -106,15 +114,15 @@ export const parseStateReceiptFromABI = (abiEncoded: string): StateReceipt => {
     transitionIndex,
     leafID,
     inclusionProof,
-    state
+    state,
   ] = abi.decode(stateReceiptAbiTypes, abiEncoded)
   return {
-    stateRoot: ethers.utils.parseBytes32String(stateRoot),
-    blockNumber: blockNumber.toNumber(),
-    transitionIndex: transitionIndex.toNumber(),
+    stateRoot: remove0x(stateRoot),
+    blockNumber: +blockNumber,
+    transitionIndex: +transitionIndex,
     leafID,
-    inclusionProof: inclusionProof.map(x => ethers.utils.parseBytes32String(x)),
-    state: parseStateFromABI(state)
+    inclusionProof: inclusionProof.map((hex) => remove0x(hex)),
+    state: parseStateFromABI(state),
   }
 }
 
@@ -128,7 +136,9 @@ const getTokenType = (tokenType): TokenType => {
     tokenTypeNumber !== UNI_TOKEN_TYPE &&
     tokenTypeNumber !== PIGI_TOKEN_TYPE
   ) {
-    log.error(`Received invalid token type parsing ABI encoded input -- this should never happen. Token Type: ${tokenType}`)
+    log.error(
+      `Received invalid token type parsing ABI encoded input -- this should never happen. Token Type: ${tokenType}`
+    )
     throw new InvalidTokenTypeError(tokenTypeNumber)
   }
   return tokenTypeNumber
@@ -190,14 +200,14 @@ const parseSwapTransitionFromABI = (abiEncoded: string): SwapTransition => {
   ] = abi.decode(swapTransitionAbiTypes, abiEncoded)
 
   return {
-    stateRoot,
+    stateRoot: remove0x(stateRoot),
     senderLeafID: senderSlot,
     uniswapLeafID: recipientSlot,
     tokenType: getTokenType(tokenType),
     inputAmount,
     minOutputAmount,
-    timeout,
-    signature,
+    timeout: +timeout,
+    signature: ethers.utils.toUtf8String(signature),
   }
 }
 
@@ -219,12 +229,12 @@ const parseTransferTransitionFromABI = (
   ] = abi.decode(transferTransitionAbiTypes, abiEncoded)
 
   return {
-    stateRoot,
+    stateRoot: remove0x(stateRoot),
     senderLeafID: senderSlot,
     recipientLeafID: recipientSlot,
     tokenType: getTokenType(tokenType),
     amount,
-    signature,
+    signature: ethers.utils.toUtf8String(signature),
   }
 }
 
@@ -246,12 +256,12 @@ const parseCreateAndTransferTransitionFromABI = (
     signature,
   ] = abi.decode(createAndTransferTransitionAbiTypes, abiEncoded)
   return {
-    stateRoot,
+    stateRoot: remove0x(stateRoot),
     senderLeafID: senderSlot,
     recipientLeafID: recipientSlot,
     createdAccountPubkey,
     tokenType: getTokenType(tokenType),
     amount,
-    signature,
+    signature: ethers.utils.toUtf8String(signature),
   }
 }

@@ -1,18 +1,39 @@
 import './setup'
 
 /* External Imports */
-import {SignedTransaction, Swap, RollupTransaction, Transfer, State, StateReceipt} from '../src/types'
 import {
-  abiEncodeSignedTransaction, abiEncodeState, abiEncodeStateReceipt,
+  SignedTransaction,
+  Swap,
+  RollupTransaction,
+  Transfer,
+  State,
+  StateReceipt,
+  SwapTransition,
+  InclusionProof,
+  TransferTransition,
+  CreateAndTransferTransition,
+} from '../src/types'
+import {
+  abiEncodeSignedTransaction,
+  abiEncodeState,
+  abiEncodeStateReceipt,
   abiEncodeTransaction,
-  parseSignedTransactionFromABI, parseStateFromABI, parseStateReceiptFromABI,
+  abiEncodeTransition,
+  parseSignedTransactionFromABI,
+  parseStateFromABI,
+  parseStateReceiptFromABI,
   parseTransactionFromABI,
+  parseTransitionFromABI,
 } from '../src/serialization'
-import {BOB_ADDRESS} from "./helpers";
-import {PIGI_TOKEN_TYPE, UNI_TOKEN_TYPE} from "../src";
-import {ethers} from "ethers";
+import { BOB_ADDRESS } from './helpers'
+import { AGGREGATOR_ADDRESS, PIGI_TOKEN_TYPE, UNI_TOKEN_TYPE } from '../src'
+import { ethers } from 'ethers'
 
 /* Internal Imports */
+
+const stateRoot: string =
+  '9c22ff5f21f0b81b113e63f7db6da94fedef11b2119b4088b89664fb9a3cb658'
+const inclusionProof: InclusionProof = [stateRoot, stateRoot, stateRoot]
 
 describe('RollupEncoding', () => {
   describe('Transactions', () => {
@@ -93,12 +114,12 @@ describe('RollupEncoding', () => {
 
   describe('State', () => {
     it('should encoded & decode State without throwing', async () => {
-      const state: State =  {
+      const state: State = {
         address: BOB_ADDRESS,
         balances: {
           [UNI_TOKEN_TYPE]: 50,
-          [PIGI_TOKEN_TYPE]: 100
-        }
+          [PIGI_TOKEN_TYPE]: 100,
+        },
       }
 
       const stateString: string = abiEncodeState(state)
@@ -108,28 +129,83 @@ describe('RollupEncoding', () => {
     })
   })
 
-  describe('State', () => {
+  describe('State Receipt', () => {
     it('should encoded & decode StateReceipt without throwing', async () => {
-      const state: State =  {
+      const state: State = {
         address: BOB_ADDRESS,
         balances: {
           [UNI_TOKEN_TYPE]: 50,
-          [PIGI_TOKEN_TYPE]: 100
-        }
+          [PIGI_TOKEN_TYPE]: 100,
+        },
       }
       const stateReceipt: StateReceipt = {
         leafID: 0,
-        stateRoot: "TEST",
-        inclusionProof: [],
+        stateRoot,
+        inclusionProof,
         blockNumber: 1,
         transitionIndex: 2,
-        state
+        state,
       }
 
       const stateReceiptString: string = abiEncodeStateReceipt(stateReceipt)
-      const parsedStateReceipt: StateReceipt = parseStateReceiptFromABI(stateReceiptString)
+      const parsedStateReceipt: StateReceipt = parseStateReceiptFromABI(
+        stateReceiptString
+      )
 
       parsedStateReceipt.should.deep.equal(stateReceipt)
+    })
+  })
+
+  describe('Transitions', () => {
+    it('should encoded & decode Swap Transition without throwing', async () => {
+      const transition: SwapTransition = {
+        stateRoot,
+        senderLeafID: 2,
+        uniswapLeafID: 1,
+        tokenType: 0,
+        inputAmount: 10,
+        minOutputAmount: 100,
+        timeout: 10,
+        signature: 'sig',
+      }
+
+      const transitionString: string = abiEncodeTransition(transition)
+      const parsedTransition = parseTransitionFromABI(transitionString)
+
+      parsedTransition.should.deep.equal(transition)
+    })
+
+    it('should encoded & decode Transfer Transition without throwing', async () => {
+      const transition: TransferTransition = {
+        stateRoot,
+        senderLeafID: 2,
+        recipientLeafID: 1,
+        tokenType: 0,
+        amount: 10,
+        signature: 'sig',
+      }
+
+      const transitionString: string = abiEncodeTransition(transition)
+      const parsedTransition = parseTransitionFromABI(transitionString)
+
+      parsedTransition.should.deep.equal(transition)
+    })
+
+    it('should encoded & decode CreateAndTransfer Transition without throwing', async () => {
+      const transition: CreateAndTransferTransition = {
+        stateRoot,
+        senderLeafID: 2,
+        recipientLeafID: 1,
+        tokenType: 0,
+        amount: 10,
+        signature: 'sig',
+        createdAccountPubkey: AGGREGATOR_ADDRESS,
+      }
+
+      const transitionString: string = abiEncodeTransition(transition)
+      const parsedTransition = parseTransitionFromABI(transitionString)
+
+      parsedTransition.should.deep.equal(transition)
     })
   })
 })

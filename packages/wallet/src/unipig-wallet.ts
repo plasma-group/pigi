@@ -8,12 +8,7 @@ import {
 } from '@pigi/core'
 
 /* Internal Imports */
-import {
-  Address,
-  Balances,
-  RollupClient,
-  SignedStateReceipt,
-} from '.'
+import { Address, Balances, RollupClient, SignedStateReceipt } from '.'
 
 const KEYSTORE_BUCKET = 0
 const ROLLUP_BUCKET = 1

@@ -6,7 +6,8 @@ import {
   UNI_TOKEN_TYPE,
   PIGI_TOKEN_TYPE,
   UnipigWallet,
-  FaucetRequest, SignedStateReceipt,
+  FaucetRequest,
+  SignedStateReceipt,
 } from '@pigi/wallet'
 import { ethers } from 'ethers'
 
@@ -93,9 +94,7 @@ async function onTransferFundsClicked() {
     },
     wallet.address
   )
-  updateBalances(
-    response[0].stateReceipt.state.balances
-  )
+  updateBalances(response[0].stateReceipt.state.balances)
 }
 
 async function onSwapFundsClicked() {
@@ -112,12 +111,8 @@ async function onSwapFundsClicked() {
     },
     wallet.address
   )
-  updateBalances(
-    response[0].stateReceipt.state.balances
-  )
-  updateUniswapBalances(
-    response[1].stateReceipt.state.balances
-  )
+  updateBalances(response[0].stateReceipt.state.balances)
+  updateUniswapBalances(response[1].stateReceipt.state.balances)
 }
 
 fetchBalanceUpdate()

@@ -9,8 +9,6 @@ import {
   SparseMerkleTree,
   SparseMerkleTreeImpl,
   BigNumber,
-  objectToBuffer,
-  deserializeBuffer,
   ONE,
   runInDomain,
   MerkleTreeInclusionProof,
@@ -38,7 +36,10 @@ import {
   InclusionProof,
   StateMachineCapacityError,
   SignatureError,
-  AGGREGATOR_ADDRESS, abiEncodeTransaction, abiEncodeState, parseStateFromABI,
+  AGGREGATOR_ADDRESS,
+  abiEncodeTransaction,
+  abiEncodeState,
+  parseStateFromABI,
 } from './index'
 import {
   InsufficientBalanceError,
@@ -193,41 +194,48 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     }
 
     return this.lock.acquire(DefaultRollupStateMachine.lockKey, async () => {
-      let stateUpdate = {transaction: signedTransaction}
+      const stateUpdate = { transaction: signedTransaction }
       const transaction: RollupTransaction = signedTransaction.transaction
       let updatedStates: State[]
       if (isTransferTransaction(transaction)) {
-        stateUpdate['receiverCreated'] = !this.getAddressKey(transaction.recipient)
+        stateUpdate['receiverCreated'] = !this.getAddressKey(
+          transaction.recipient
+        )
         updatedStates = await this.applyTransfer(transaction)
-        stateUpdate['receiverLeafID'] = this.getAddressKey(transaction.recipient)
+        stateUpdate['receiverLeafID'] = this.getAddressKey(
+          transaction.recipient
+        ).toNumber()
       } else if (isSwapTransaction(transaction)) {
         updatedStates = await this.applySwap(signer, transaction)
         stateUpdate['receiverCreated'] = false
-        stateUpdate['receiverLeafID'] = this.getAddressKey(UNISWAP_ADDRESS)
+        stateUpdate['receiverLeafID'] = this.getAddressKey(
+          UNISWAP_ADDRESS
+        ).toNumber()
       } else {
         throw new InvalidTransactionTypeError()
       }
       const senderState: State = updatedStates[0]
       const receiverState: State = updatedStates[1]
 
-      stateUpdate['senderLeafID'] = this.getAddressKey(transaction.sender)
+      stateUpdate['senderLeafID'] = this.getAddressKey(
+        transaction.sender
+      ).toNumber()
       stateUpdate['senderState'] = senderState
       stateUpdate['receiverState'] = receiverState
 
-      const inclusionProof = async(state: State): Promise<InclusionProof> => {
+      const inclusionProof = async (state: State): Promise<InclusionProof> => {
         const proof: MerkleTreeInclusionProof = await this.tree.getMerkleProof(
           this.getAddressKey(state.address),
           this.serializeBalances(state.address, state.balances)
         )
         return proof.siblings.map((p) => p.toString('hex'))
       }
-
-      [
+      ;[
         stateUpdate['senderStateInclusionProof'],
-        stateUpdate['receiverStateInclusionProof']
+        stateUpdate['receiverStateInclusionProof'],
       ] = await Promise.all([
         inclusionProof(senderState),
-        inclusionProof(receiverState)
+        inclusionProof(receiverState),
       ])
 
       stateUpdate['stateRoot'] = (await this.tree.getRootHash()).toString('hex')
@@ -317,7 +325,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
 
     return [
       this.getStateFromBalances(transfer.sender, senderBalances),
-      this.getStateFromBalances(transfer.recipient, recipientBalances)
+      this.getStateFromBalances(transfer.recipient, recipientBalances),
     ]
   }
 
@@ -374,7 +382,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
 
     return [
       this.getStateFromBalances(sender, senderBalances),
-      this.getStateFromBalances(UNISWAP_ADDRESS, uniswapBalances)
+      this.getStateFromBalances(UNISWAP_ADDRESS, uniswapBalances),
     ]
   }
 
@@ -417,7 +425,9 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
 
   private serializeBalances(address: string, balances: Balances): Buffer {
     // TODO: Update these to deal with ABI encoding
-    return Buffer.from(abiEncodeState(this.getStateFromBalances(address, balances)))
+    return Buffer.from(
+      abiEncodeState(this.getStateFromBalances(address, balances))
+    )
   }
 
   private deserializeState(state: Buffer): State {
@@ -426,8 +436,8 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
 
   private getStateFromBalances(address: string, balances: Balances): State {
     return {
-      address: address,
-      balances
+      address,
+      balances,
     }
   }
 }

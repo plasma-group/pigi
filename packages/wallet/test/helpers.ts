@@ -19,7 +19,9 @@ export const BOB_ADDRESS = '0xbbbCAAe85dfE709a25545E610Dba4082f6D02D73'
 export const AGGREGATOR_MNEMONIC: string =
   'rebel talent argue catalog maple duty file taxi dust hire funny steak'
 
-export const getGenesisState = (aliceAddress: string = ALICE_ADDRESS): State[] => {
+export const getGenesisState = (
+  aliceAddress: string = ALICE_ADDRESS
+): State[] => {
   return [
     {
       address: aliceAddress,
@@ -41,11 +43,13 @@ export const getGenesisState = (aliceAddress: string = ALICE_ADDRESS): State[] =
         [UNI_TOKEN_TYPE]: 1_000_000,
         [PIGI_TOKEN_TYPE]: 1_000_000,
       },
-    }
+    },
   ]
 }
 
-export const getGenesisStateLargeEnoughForFees = (aliceAddress: string = ALICE_ADDRESS): State[] => {
+export const getGenesisStateLargeEnoughForFees = (
+  aliceAddress: string = ALICE_ADDRESS
+): State[] => {
   return [
     {
       address: aliceAddress,
@@ -67,7 +71,7 @@ export const getGenesisStateLargeEnoughForFees = (aliceAddress: string = ALICE_A
         [UNI_TOKEN_TYPE]: 1_000_000,
         [PIGI_TOKEN_TYPE]: 1_000_000,
       },
-    }
+    },
   ]
 }
 

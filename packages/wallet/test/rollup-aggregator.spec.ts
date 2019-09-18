@@ -7,6 +7,7 @@ import {
   BigNumber,
   DB,
   DefaultSignatureVerifier,
+  getLogger,
   serializeObject,
   SimpleClient,
   SparseMerkleTree,
@@ -15,7 +16,7 @@ import {
 
 /* Internal Imports */
 import { ethers } from 'ethers'
-import {AGGREGATOR_MNEMONIC, BOB_ADDRESS, getGenesisState} from './helpers'
+import { AGGREGATOR_MNEMONIC, BOB_ADDRESS, getGenesisState } from './helpers'
 import {
   UNI_TOKEN_TYPE,
   DefaultRollupStateMachine,
@@ -27,9 +28,12 @@ import {
   RollupAggregator,
   RollupStateMachine,
   Transfer,
-  PIGI_TOKEN_TYPE, abiEncodeStateReceipt, abiEncodeTransaction,
+  PIGI_TOKEN_TYPE,
+  abiEncodeStateReceipt,
+  abiEncodeTransaction,
 } from '../src'
 
+const log = getLogger('rollup-aggregator', true)
 /*********
  * TESTS *
  *********/
@@ -92,29 +96,33 @@ describe('RollupAggregator', () => {
     return client.handle(AGGREGATOR_API.applyTransaction, tx)
   }
 
-  const sendFromAliceToBob = async (
-    amount
-  ): Promise<SignedStateReceipt[]> => {
+  const sendFromAliceToBob = async (amount): Promise<SignedStateReceipt[]> => {
     const beforeState: SignedStateReceipt = await client.handle(
       AGGREGATOR_API.getState,
       BOB_ADDRESS
     )
-    const receipts: SignedStateReceipt[] = await sendFromAToB(aliceWallet, BOB_ADDRESS, amount)
-
+    log.debug(`Got before state ${serializeObject(beforeState)}`)
+    const receipts: SignedStateReceipt[] = await sendFromAToB(
+      aliceWallet,
+      BOB_ADDRESS,
+      amount
+    )
+    log.debug(`Got tx receipts state ${serializeObject(receipts)}`)
     // Make sure bob got the money!
     const afterState: SignedStateReceipt = await client.handle(
       AGGREGATOR_API.getState,
       BOB_ADDRESS
     )
+    log.debug(`Got after state ${serializeObject(afterState)}`)
     if (!!beforeState.stateReceipt.state) {
       const uniDiff =
         afterState.stateReceipt.state.balances[UNI_TOKEN_TYPE] -
         beforeState.stateReceipt.state.balances[UNI_TOKEN_TYPE]
       uniDiff.should.equal(amount)
     } else {
-      afterState.stateReceipt.state.balances[
-        UNI_TOKEN_TYPE
-      ].should.equal(amount)
+      afterState.stateReceipt.state.balances[UNI_TOKEN_TYPE].should.equal(
+        amount
+      )
     }
 
     return receipts
@@ -142,12 +150,12 @@ describe('RollupAggregator', () => {
       AGGREGATOR_API.getState,
       newWallet.address
     )
-    newWalletState.stateReceipt.state[newWallet.address].balances[
-      UNI_TOKEN_TYPE
-    ].should.equal(amount)
-    newWalletState.stateReceipt.state[newWallet.address].balances[
-      PIGI_TOKEN_TYPE
-    ].should.equal(amount)
+    newWalletState.stateReceipt.state.balances[UNI_TOKEN_TYPE].should.equal(
+      amount
+    )
+    newWalletState.stateReceipt.state.balances[PIGI_TOKEN_TYPE].should.equal(
+      amount
+    )
 
     return newWallet
   }
@@ -158,9 +166,7 @@ describe('RollupAggregator', () => {
         AGGREGATOR_API.getState,
         aliceWallet.address
       )
-      response.stateReceipt.state[
-        aliceWallet.address
-      ].balances.should.deep.equal({
+      response.stateReceipt.state.balances.should.deep.equal({
         [UNI_TOKEN_TYPE]: 50,
         [PIGI_TOKEN_TYPE]: 50,
       })

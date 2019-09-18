@@ -13,7 +13,8 @@ import {
   RollupStateMachine,
   FaucetRequest,
   UNI_TOKEN_TYPE,
-  PIGI_TOKEN_TYPE, SignedStateReceipt,
+  PIGI_TOKEN_TYPE,
+  SignedStateReceipt,
 } from '../src'
 
 const log = getLogger('client-aggregator-integration', true)
@@ -23,6 +24,7 @@ const log = getLogger('client-aggregator-integration', true)
  *********/
 
 const timeout = 20_000
+const testRecipientAddress = '0x7777b66b3C70137264BE7303812090EC42D85B4d'
 
 describe('Mock Client/Aggregator Integration', () => {
   let stateDB: DB
@@ -92,7 +94,7 @@ describe('Mock Client/Aggregator Integration', () => {
           {
             sender: accountAddress,
             tokenType: UNI_TOKEN_TYPE,
-            recipient: 'testing123',
+            recipient: testRecipientAddress,
             amount: 10,
           },
           accountAddress
@@ -103,24 +105,19 @@ describe('Mock Client/Aggregator Integration', () => {
     }).timeout(timeout)
 
     it('should successfully transfer if alice sends money', async () => {
-      // Set "sign" to instead sign for alice
-      const recipient = 'testing123'
       const response: SignedStateReceipt[] = await unipigWallet.rollup.sendTransaction(
         {
           sender: accountAddress,
           tokenType: UNI_TOKEN_TYPE,
-          recipient,
+          recipient: testRecipientAddress,
           amount: 10,
         },
         accountAddress
       )
-      response[1].stateReceipt.state.balances[
-        UNI_TOKEN_TYPE
-      ].should.equal(10)
+      response[1].stateReceipt.state.balances[UNI_TOKEN_TYPE].should.equal(10)
     }).timeout(timeout)
 
     it('should successfully transfer if first faucet is requested', async () => {
-      const recipient = 'testing123'
       const newPassword = 'new address password'
       const newAddress = await unipigWallet.createAccount(newPassword)
       await unipigWallet.unlockAccount(newAddress, newPassword)
@@ -144,15 +141,15 @@ describe('Mock Client/Aggregator Integration', () => {
       const transferRes: SignedStateReceipt[] = await unipigWallet.rollup.sendTransaction(
         {
           sender: newAddress,
-          recipient,
+          recipient: testRecipientAddress,
           tokenType: UNI_TOKEN_TYPE,
           amount: 10,
         },
         newAddress
       )
-      transferRes[1].stateReceipt.state.balances[
-        UNI_TOKEN_TYPE
-      ].should.equal(10)
+      transferRes[1].stateReceipt.state.balances[UNI_TOKEN_TYPE].should.equal(
+        10
+      )
     }).timeout(timeout)
   })
 })
