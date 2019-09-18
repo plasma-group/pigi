@@ -1,5 +1,5 @@
 /* External Imports */
-import { getLogger, remove0x } from '@pigi/core'
+import { getLogger, remove0x, serializeObject } from '@pigi/core'
 
 /* Internal imports */
 import {
@@ -30,7 +30,7 @@ import {
 } from './common'
 import { ethers, utils } from 'ethers'
 
-const log = getLogger('rollup-abiEncoders')
+const log = getLogger('abiEncoders')
 
 /**
  * Creates a SignedTransaction from an ABI-encoded SignedTransaction.
@@ -40,6 +40,7 @@ const log = getLogger('rollup-abiEncoders')
 export const parseSignedTransactionFromABI = (
   abiEncoded: string
 ): SignedTransaction => {
+  log.debug(`ABI decoding SignedTransaction: ${serializeObject(abiEncoded)}`)
   const [signature, tx] = abi.decode(signedTransactionAbiTypes, abiEncoded)
 
   return {
@@ -89,6 +90,7 @@ export const parseTransitionFromABI = (
  * @returns the parsed State.
  */
 export const parseStateFromABI = (abiEncoded: string): State => {
+  log.debug(`ABI decoding State: ${serializeObject(abiEncoded)}`)
   const [address, uniBalance, pigiBalance] = abi.decode(
     stateAbiTypes,
     abiEncoded
@@ -108,6 +110,7 @@ export const parseStateFromABI = (abiEncoded: string): State => {
  * @returns the parsed StateReceipt
  */
 export const parseStateReceiptFromABI = (abiEncoded: string): StateReceipt => {
+  log.debug(`ABI decoding StateReceipt: ${serializeObject(abiEncoded)}`)
   const [
     stateRoot,
     blockNumber,
@@ -150,6 +153,7 @@ const getTokenType = (tokenType): TokenType => {
  * @returns the Transfer.
  */
 const parseTransferFromABI = (abiEncoded: string): Transfer => {
+  log.debug(`ABI decoding Transfer: ${serializeObject(abiEncoded)}`)
   const [sender, recipient, tokenType, amount] = abi.decode(
     transferAbiTypes,
     abiEncoded
@@ -168,6 +172,7 @@ const parseTransferFromABI = (abiEncoded: string): Transfer => {
  * @returns the Swap.
  */
 const parseSwapFromABI = (abiEncoded: string): Swap => {
+  log.debug(`ABI decoding Swap: ${serializeObject(abiEncoded)}`)
   const [sender, tokenType, inputAmount, minOutputAmount, timeout] = abi.decode(
     swapAbiTypes,
     abiEncoded
@@ -188,6 +193,7 @@ const parseSwapFromABI = (abiEncoded: string): Swap => {
  * @returns the SwapTransition.
  */
 const parseSwapTransitionFromABI = (abiEncoded: string): SwapTransition => {
+  log.debug(`ABI decoding SwapTransition: ${serializeObject(abiEncoded)}`)
   const [
     stateRoot,
     senderSlot,
@@ -219,6 +225,7 @@ const parseSwapTransitionFromABI = (abiEncoded: string): SwapTransition => {
 const parseTransferTransitionFromABI = (
   abiEncoded: string
 ): TransferTransition => {
+  log.debug(`ABI decoding TransferTransition: ${serializeObject(abiEncoded)}`)
   const [
     stateRoot,
     senderSlot,
@@ -246,6 +253,9 @@ const parseTransferTransitionFromABI = (
 const parseCreateAndTransferTransitionFromABI = (
   abiEncoded: string
 ): CreateAndTransferTransition => {
+  log.debug(
+    `ABI decoding CreateAndTransferTransition: ${serializeObject(abiEncoded)}`
+  )
   const [
     stateRoot,
     senderSlot,

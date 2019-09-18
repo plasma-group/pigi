@@ -33,7 +33,7 @@ import {
 import { PIGI_TOKEN_TYPE, UNI_TOKEN_TYPE } from '../index'
 import { ethers } from 'ethers'
 
-const log = getLogger('rollup-abiEncoders')
+const log = getLogger('abiEncoders')
 
 /**
  * ABI-encodes the provided SignedTransaction.
@@ -43,6 +43,9 @@ const log = getLogger('rollup-abiEncoders')
 export const abiEncodeSignedTransaction = (
   signedTransaction: SignedTransaction
 ): string => {
+  log.debug(
+    `ABI encoding SignedTransaction: ${serializeObject(signedTransaction)}`
+  )
   return abi.encode(signedTransactionAbiTypes, [
     signedTransaction.signature,
     abiEncodeTransaction(signedTransaction.transaction),
@@ -76,15 +79,10 @@ export const abiEncodeTransaction = (
  */
 export const abiEncodeTransition = (transition: RollupTransition): string => {
   if (isSwapTransition(transition)) {
-    log.debug(`Encoding SwapTransition: ${serializeObject(transition)}`)
     return abiEncodeSwapTransition(transition)
   } else if (isTransferTransition(transition)) {
-    log.debug(`Encoding TransferTransition: ${serializeObject(transition)}`)
     return abiEncodeTransferTransition(transition)
   } else if (isCreateAndTransferTransition(transition)) {
-    log.debug(
-      `Encoding CreateAndTransferTransition: ${serializeObject(transition)}`
-    )
     return abiEncodeCreateAndTransferTransition(transition)
   }
   const message: string = `Unknown transition type: ${JSON.stringify(
@@ -100,6 +98,7 @@ export const abiEncodeTransition = (transition: RollupTransition): string => {
  * @returns the ABI-encoded string.
  */
 export const abiEncodeState = (state: State): string => {
+  log.debug(`ABI encoding State: ${serializeObject(state)}`)
   return abi.encode(stateAbiTypes, [
     state.address,
     state.balances[UNI_TOKEN_TYPE],
@@ -113,6 +112,7 @@ export const abiEncodeState = (state: State): string => {
  * @returns the ABI-encoded string.
  */
 export const abiEncodeStateReceipt = (stateReceipt: StateReceipt): string => {
+  log.debug(`ABI encoding StateReceipt: ${serializeObject(stateReceipt)}`)
   return abi.encode(stateReceiptAbiTypes, [
     add0x(stateReceipt.stateRoot),
     stateReceipt.blockNumber,
@@ -133,6 +133,7 @@ export const abiEncodeStateReceipt = (stateReceipt: StateReceipt): string => {
  * @returns The ABI-encoded Transfer as a string.
  */
 const abiEncodeTransfer = (transfer: Transfer): string => {
+  log.debug(`ABI encoding Transfer: ${serializeObject(transfer)}`)
   return abi.encode(transferAbiTypes, [
     transfer.sender,
     transfer.recipient,
@@ -147,6 +148,7 @@ const abiEncodeTransfer = (transfer: Transfer): string => {
  * @returns The ABI-encoded Swap as a string.
  */
 const abiEncodeSwap = (swap: Swap): string => {
+  log.debug(`ABI encoding Swap: ${serializeObject(swap)}`)
   return abi.encode(swapAbiTypes, [
     swap.sender,
     swap.tokenType,
@@ -162,6 +164,7 @@ const abiEncodeSwap = (swap: Swap): string => {
  * @returns The ABI-encoded SwapTransition as a string.
  */
 const abiEncodeSwapTransition = (trans: SwapTransition): string => {
+  log.debug(`ABI encoding SwapTransition: ${serializeObject(trans)}`)
   return abi.encode(swapTransitionAbiTypes, [
     add0x(trans.stateRoot),
     trans.senderLeafID,
@@ -180,6 +183,7 @@ const abiEncodeSwapTransition = (trans: SwapTransition): string => {
  * @returns The ABI-encoded TransferTransition as a string.
  */
 const abiEncodeTransferTransition = (trans: TransferTransition): string => {
+  log.debug(`ABI encoding TransferTransition: ${serializeObject(trans)}`)
   return abi.encode(transferTransitionAbiTypes, [
     add0x(trans.stateRoot),
     trans.senderLeafID,
@@ -198,6 +202,9 @@ const abiEncodeTransferTransition = (trans: TransferTransition): string => {
 const abiEncodeCreateAndTransferTransition = (
   trans: CreateAndTransferTransition
 ): string => {
+  log.debug(
+    `ABI encoding CreateAndTransferTransition: ${serializeObject(trans)}`
+  )
   return abi.encode(createAndTransferTransitionAbiTypes, [
     add0x(trans.stateRoot),
     trans.senderLeafID,
