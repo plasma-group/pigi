@@ -40,6 +40,7 @@ import {
   abiEncodeTransaction,
   abiEncodeState,
   parseStateFromABI,
+  NON_EXISTENT_LEAF_ID,
 } from './index'
 import {
   InsufficientBalanceError,
@@ -136,7 +137,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     if (!accountState) {
       state = undefined
       inclusionProof = undefined
-      leafID = -1
+      leafID = NON_EXISTENT_LEAF_ID
     } else {
       state = this.deserializeState(accountState)
       inclusionProof = proof.siblings.map((x: Buffer) => x.toString('hex'))
@@ -173,24 +174,20 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
   ): Promise<StateUpdate> {
     let signer: Address
 
-    try {
-      signer = this.signatureVerifier.verifyMessage(
-        abiEncodeTransaction(signedTransaction.transaction),
-        signedTransaction.signature
-      )
-      if (
-        signer !== signedTransaction.transaction.sender &&
-        signer !== AGGREGATOR_ADDRESS
-      ) {
-        throw new SignatureError()
-      }
-    } catch (e) {
-      log.error(
-        `Error verifying message sender. Signer: ${signer}, Tx: ${serializeObject(
+    signer = this.signatureVerifier.verifyMessage(
+      abiEncodeTransaction(signedTransaction.transaction),
+      signedTransaction.signature
+    )
+    if (
+      signer !== signedTransaction.transaction.sender &&
+      signer !== AGGREGATOR_ADDRESS
+    ) {
+      log.info(
+        `Received transaction with invalid signature: ${serializeObject(
           signedTransaction
-        )}, ${e.message}, ${e.stack}`
+        )}`
       )
-      throw e
+      throw new SignatureError()
     }
 
     return this.lock.acquire(DefaultRollupStateMachine.lockKey, async () => {

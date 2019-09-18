@@ -12,6 +12,8 @@ import {
   SignedStateReceipt,
   UNI_TOKEN_TYPE,
   PIGI_TOKEN_TYPE,
+  EMPTY_AGGREGATOR_SIGNATURE,
+  NON_EXISTENT_LEAF_ID,
 } from '../src'
 
 /***********
@@ -26,9 +28,9 @@ const balances = {
 // A mocked getState api
 const getState = (address: Address): SignedStateReceipt => {
   return {
-    signature: 'mocked',
+    signature: EMPTY_AGGREGATOR_SIGNATURE,
     stateReceipt: {
-      leafID: 0,
+      leafID: NON_EXISTENT_LEAF_ID,
       stateRoot: 'mocked',
       inclusionProof: [],
       blockNumber: 1,

@@ -5,6 +5,8 @@ import {
   WalletDB,
   SignatureProvider,
   DB,
+  SignatureVerifier,
+  DefaultSignatureVerifier,
 } from '@pigi/core'
 
 /* Internal Imports */
@@ -21,7 +23,11 @@ export class UnipigWallet extends DefaultWallet {
   private db: DB
   public rollup: RollupClient
 
-  constructor(db: DB, signatureProvider?: SignatureProvider) {
+  constructor(
+    db: DB,
+    signatureVerifier: SignatureVerifier = DefaultSignatureVerifier.instance(),
+    signatureProvider?: SignatureProvider
+  ) {
     // Set up the keystore db
     const keystoreBucket = db.bucket(Buffer.from([KEYSTORE_BUCKET]))
     const keystoreDB: WalletDB = new DefaultWalletDB(keystoreBucket)
@@ -29,7 +35,11 @@ export class UnipigWallet extends DefaultWallet {
 
     // Set up the rollup client db
     const rollupBucket = db.bucket(Buffer.from([ROLLUP_BUCKET]))
-    this.rollup = new RollupClient(rollupBucket, signatureProvider || this)
+    this.rollup = new RollupClient(
+      rollupBucket,
+      signatureProvider || this,
+      signatureVerifier
+    )
 
     // Save a reference to our db
     this.db = db
