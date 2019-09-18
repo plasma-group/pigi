@@ -12,9 +12,8 @@ import {
   RollupAggregator,
   RollupStateMachine,
   FaucetRequest,
-  SignedTransactionReceipt,
   UNI_TOKEN_TYPE,
-  PIGI_TOKEN_TYPE,
+  PIGI_TOKEN_TYPE, SignedStateReceipt,
 } from '../src'
 
 const log = getLogger('client-aggregator-integration', true)
@@ -106,7 +105,7 @@ describe('Mock Client/Aggregator Integration', () => {
     it('should successfully transfer if alice sends money', async () => {
       // Set "sign" to instead sign for alice
       const recipient = 'testing123'
-      const response: SignedTransactionReceipt = await unipigWallet.rollup.sendTransaction(
+      const response: SignedStateReceipt[] = await unipigWallet.rollup.sendTransaction(
         {
           sender: accountAddress,
           tokenType: UNI_TOKEN_TYPE,
@@ -115,7 +114,7 @@ describe('Mock Client/Aggregator Integration', () => {
         },
         accountAddress
       )
-      response.transactionReceipt.updatedState[recipient].balances[
+      response[1].stateReceipt.state.balances[
         UNI_TOKEN_TYPE
       ].should.equal(10)
     }).timeout(timeout)
@@ -133,18 +132,16 @@ describe('Mock Client/Aggregator Integration', () => {
       }
 
       // First collect some funds from the faucet
-      const faucetRes: SignedTransactionReceipt = await unipigWallet.rollup.requestFaucetFunds(
+      const faucetRes: SignedStateReceipt = await unipigWallet.rollup.requestFaucetFunds(
         transaction,
         newAddress
       )
-      faucetRes.transactionReceipt.updatedState[
-        newAddress
-      ].balances.should.deep.equal({
+      faucetRes.stateReceipt.state.balances.should.deep.equal({
         [UNI_TOKEN_TYPE]: 10,
         [PIGI_TOKEN_TYPE]: 10,
       })
 
-      const transferRes: SignedTransactionReceipt = await unipigWallet.rollup.sendTransaction(
+      const transferRes: SignedStateReceipt[] = await unipigWallet.rollup.sendTransaction(
         {
           sender: newAddress,
           recipient,
@@ -153,7 +150,7 @@ describe('Mock Client/Aggregator Integration', () => {
         },
         newAddress
       )
-      transferRes.transactionReceipt.updatedState[recipient].balances[
+      transferRes[1].stateReceipt.state.balances[
         UNI_TOKEN_TYPE
       ].should.equal(10)
     }).timeout(timeout)

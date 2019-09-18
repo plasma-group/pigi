@@ -28,15 +28,14 @@ const getState = (address: Address): SignedStateReceipt => {
   return {
     signature: 'mocked',
     stateReceipt: {
-      address,
+      leafID: 0,
       stateRoot: 'mocked',
       inclusionProof: [],
       blockNumber: 1,
       transitionIndex: 0,
       state: {
-        [address]: {
-          balances,
-        },
+        address,
+        balances,
       },
     },
   }

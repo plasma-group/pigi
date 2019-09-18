@@ -1,10 +1,16 @@
-import { InclusionProof } from '@pigi/core'
+import {BigNumber} from "@pigi/core";
 
 export type UniTokenType = 0
 export type PigiTokenType = 1
 export type TokenType = UniTokenType | PigiTokenType
 
 export type Address = string
+
+export type RollupTransaction = Swap | Transfer | FaucetRequest
+export type Signature = string
+export type InclusionProof = string[]
+export type RollupTransition = SwapTransition | TransferTransition | CreateAndTransferTransition
+
 
 export interface Balances {
   [tokenType: string]: number
@@ -18,25 +24,11 @@ export interface Swap {
   timeout: number
 }
 
-/* Type guard for swap transaction */
-export const isSwapTransaction = (
-  transaction: Transaction
-): transaction is Swap => {
-  return 'minOutputAmount' in transaction
-}
-
 export interface Transfer {
   sender: Address
   recipient: Address
   tokenType: UniTokenType | PigiTokenType
   amount: number
-}
-
-/* Type guard for transfer transaction */
-export const isTransferTransaction = (
-  transaction: Transaction
-): transaction is Transfer => {
-  return 'recipient' in transaction
 }
 
 export interface FaucetRequest {
@@ -45,22 +37,13 @@ export interface FaucetRequest {
   amount: number
 }
 
-export const isFaucetTransaction = (
-  transaction: Transaction
-): transaction is FaucetRequest => {
-  return !isSwapTransaction(transaction) && !isTransferTransaction(transaction)
-}
-
-export type Transaction = Swap | Transfer | FaucetRequest
-
-export type Signature = string
-
 export interface SignedTransaction {
   signature: Signature
-  transaction: Transaction
+  transaction: RollupTransaction
 }
 
-export interface Storage {
+export interface State {
+  address: Address
   balances: Balances
 }
 
@@ -68,30 +51,17 @@ export interface SignatureProvider {
   sign(address: string, message: string): Promise<string>
 }
 
-export interface State {
-  [address: string]: Storage
-}
-
-export type InclusionProof = string[]
-
-export interface StateInclusionProof {
-  [address: string]: InclusionProof
-}
 
 export interface StateUpdate {
-  transactions: SignedTransaction[]
-  startRoot: string
-  endRoot: string
-  updatedState: State
-  updatedStateInclusionProof: StateInclusionProof
-}
-
-export interface RollupTransition {
-  number: number
-  blockNumber: number
-  transactions: SignedTransaction[]
-  startRoot: string
-  endRoot: string
+  transaction: SignedTransaction
+  stateRoot: string
+  senderLeafID: number
+  receiverLeafID: number
+  senderState: State
+  senderStateInclusionProof: InclusionProof
+  receiverState: State
+  receiverStateInclusionProof: InclusionProof
+  receiverCreated: boolean
 }
 
 export interface RollupBlock {
@@ -99,23 +69,8 @@ export interface RollupBlock {
   transitions: RollupTransition[]
 }
 
-export interface TransactionReceipt {
-  blockNumber: number
-  transitionIndex: number
-  transaction: SignedTransaction
-  startRoot: string
-  endRoot: string
-  updatedState: State
-  updatedStateInclusionProof: StateInclusionProof
-}
-
-export interface SignedTransactionReceipt {
-  transactionReceipt: TransactionReceipt
-  signature: Signature
-}
-
 export interface StateSnapshot {
-  address: string
+  leafID: number
   state: State
   stateRoot: string
   inclusionProof: InclusionProof
@@ -133,8 +88,8 @@ export interface SignedStateReceipt {
 
 export interface SwapTransition {
   stateRoot: string
-  senderSlot: number
-  recipientSlot: number
+  senderLeafID: number
+  uniswapLeafID: number
   tokenType: number
   inputAmount: number
   minOutputAmount: number
@@ -144,8 +99,8 @@ export interface SwapTransition {
 
 export interface TransferTransition {
   stateRoot: string
-  senderSlot: number
-  recipientSlot: number
+  senderLeafID: number
+  recipientLeafID: number
   tokenType: number
   amount: number
   signature: string
@@ -154,3 +109,42 @@ export interface TransferTransition {
 export interface CreateAndTransferTransition extends TransferTransition {
   createdAccountPubkey: string
 }
+
+/*** Type Determination Functions ***/
+
+export const isSwapTransaction = (
+  transaction: RollupTransaction
+): transaction is Swap => {
+  return 'minOutputAmount' in transaction
+}
+
+export const isTransferTransaction = (
+  transaction: RollupTransaction
+): transaction is Transfer => {
+  return 'recipient' in transaction
+}
+
+export const isFaucetTransaction = (
+  transaction: RollupTransaction
+): transaction is FaucetRequest => {
+  return !isSwapTransaction(transaction) && !isTransferTransaction(transaction)
+}
+
+export const isSwapTransition = (
+  transition: RollupTransition
+): transition is SwapTransition => {
+  return 'uniswapleafID' in transition
+}
+
+export const isCreateAndTransferTransition = (
+  transition: RollupTransition
+): transition is CreateAndTransferTransition => {
+  return 'createdAccountPubkey' in transition
+}
+
+export const isTransferTransition = (
+  transition: RollupTransition
+): transition is TransferTransition => {
+  return !isSwapTransition(transition) && !isCreateAndTransferTransition(transition)
+}
+

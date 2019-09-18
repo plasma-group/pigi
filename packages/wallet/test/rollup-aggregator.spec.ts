@@ -15,20 +15,19 @@ import {
 
 /* Internal Imports */
 import { ethers } from 'ethers'
-import { AGGREGATOR_MNEMONIC, getGenesisState } from './helpers'
+import {AGGREGATOR_MNEMONIC, BOB_ADDRESS, getGenesisState} from './helpers'
 import {
   UNI_TOKEN_TYPE,
   DefaultRollupStateMachine,
   FaucetRequest,
   SignedTransaction,
-  SignedTransactionReceipt,
   AGGREGATOR_ADDRESS,
   AGGREGATOR_API,
   SignedStateReceipt,
   RollupAggregator,
   RollupStateMachine,
   Transfer,
-  PIGI_TOKEN_TYPE,
+  PIGI_TOKEN_TYPE, abiEncodeStateReceipt, abiEncodeTransaction,
 } from '../src'
 
 /*********
@@ -76,7 +75,7 @@ describe('RollupAggregator', () => {
     senderWallet: ethers.Wallet,
     recipient: string,
     amount: number
-  ): Promise<SignedTransactionReceipt> => {
+  ): Promise<SignedStateReceipt[]> => {
     const transaction: Transfer = {
       sender: senderWallet.address,
       tokenType: UNI_TOKEN_TYPE,
@@ -84,7 +83,7 @@ describe('RollupAggregator', () => {
       amount,
     }
     const signature = await senderWallet.signMessage(
-      JSON.stringify(transaction)
+      abiEncodeTransaction(transaction)
     )
     const tx = {
       signature,
@@ -95,31 +94,30 @@ describe('RollupAggregator', () => {
 
   const sendFromAliceToBob = async (
     amount
-  ): Promise<SignedTransactionReceipt> => {
-    const bobAddress: string = 'bob'
+  ): Promise<SignedStateReceipt[]> => {
     const beforeState: SignedStateReceipt = await client.handle(
       AGGREGATOR_API.getState,
-      bobAddress
+      BOB_ADDRESS
     )
-    const receipt = await sendFromAToB(aliceWallet, bobAddress, amount)
+    const receipts: SignedStateReceipt[] = await sendFromAToB(aliceWallet, BOB_ADDRESS, amount)
 
     // Make sure bob got the money!
     const afterState: SignedStateReceipt = await client.handle(
       AGGREGATOR_API.getState,
-      bobAddress
+      BOB_ADDRESS
     )
     if (!!beforeState.stateReceipt.state) {
       const uniDiff =
-        afterState.stateReceipt.state[bobAddress].balances[UNI_TOKEN_TYPE] -
-        beforeState.stateReceipt.state[bobAddress].balances[UNI_TOKEN_TYPE]
+        afterState.stateReceipt.state.balances[UNI_TOKEN_TYPE] -
+        beforeState.stateReceipt.state.balances[UNI_TOKEN_TYPE]
       uniDiff.should.equal(amount)
     } else {
-      afterState.stateReceipt.state[bobAddress].balances[
+      afterState.stateReceipt.state.balances[
         UNI_TOKEN_TYPE
       ].should.equal(amount)
     }
 
-    return receipt
+    return receipts
   }
 
   const requestFaucetFundsForNewWallet = async (
@@ -181,32 +179,43 @@ describe('RollupAggregator', () => {
     })
   })
 
-  describe('Transaction Receipt Tests', () => {
+  describe('RollupTransaction Receipt Tests', () => {
     it('should receive a transaction receipt signed by the aggregator', async () => {
-      const receipt: SignedTransactionReceipt = await sendFromAliceToBob(5)
-      const signer: string = DefaultSignatureVerifier.instance().verifyMessage(
-        serializeObject(receipt.transactionReceipt),
-        receipt.signature
+      const receipts: SignedStateReceipt[] = await sendFromAliceToBob(5)
+      const signer0: string = DefaultSignatureVerifier.instance().verifyMessage(
+        abiEncodeStateReceipt(receipts[0].stateReceipt),
+        receipts[0].signature
       )
 
-      signer.should.equal(AGGREGATOR_ADDRESS)
+      signer0.should.equal(AGGREGATOR_ADDRESS)
+
+      const signer1: string = DefaultSignatureVerifier.instance().verifyMessage(
+        abiEncodeStateReceipt(receipts[1].stateReceipt),
+        receipts[1].signature
+      )
+
+      signer1.should.equal(AGGREGATOR_ADDRESS)
     })
 
     it('should have subsequent transactions that build on one another', async () => {
-      const receiptOne: SignedTransactionReceipt = await sendFromAliceToBob(5)
-      const receiptTwo: SignedTransactionReceipt = await sendFromAliceToBob(5)
+      const receiptsOne: SignedStateReceipt[] = await sendFromAliceToBob(5)
+      const receiptsTwo: SignedStateReceipt[] = await sendFromAliceToBob(5)
 
-      const blockOne = receiptOne.transactionReceipt.blockNumber
-      const blockTwo = receiptTwo.transactionReceipt.blockNumber
-      blockOne.should.equal(blockTwo)
+      const blockOne0 = receiptsOne[0].stateReceipt.blockNumber
+      const blockTwo0 = receiptsTwo[0].stateReceipt.blockNumber
+      blockOne0.should.equal(blockTwo0)
 
-      const indexOne = receiptOne.transactionReceipt.transitionIndex
-      const indexTwo = receiptTwo.transactionReceipt.transitionIndex
-      indexOne.should.equal(indexTwo - 1)
+      const blockOne1 = receiptsOne[1].stateReceipt.blockNumber
+      const blockTwo1 = receiptsTwo[1].stateReceipt.blockNumber
+      blockOne1.should.equal(blockTwo1)
 
-      const oneEnd = receiptOne.transactionReceipt.endRoot
-      const twoStart = receiptTwo.transactionReceipt.startRoot
-      oneEnd.should.equal(twoStart)
+      const indexOne0 = receiptsOne[0].stateReceipt.transitionIndex
+      const indexTwo0 = receiptsTwo[0].stateReceipt.transitionIndex
+      indexOne0.should.equal(indexTwo0 - 1)
+
+      const indexOne1 = receiptsOne[1].stateReceipt.transitionIndex
+      const indexTwo1 = receiptsTwo[1].stateReceipt.transitionIndex
+      indexOne1.should.equal(indexTwo1 - 1)
     })
   })
 

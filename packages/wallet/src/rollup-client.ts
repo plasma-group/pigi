@@ -11,11 +11,10 @@ import {
   Address,
   Balances,
   State,
-  Transaction,
+  RollupTransaction,
   UNISWAP_ADDRESS,
   AGGREGATOR_API,
-  SignedTransactionReceipt,
-  SignedStateReceipt,
+  SignedStateReceipt, abiEncodeTransaction,
 } from './index'
 
 /**
@@ -61,14 +60,14 @@ export class RollupClient {
   }
 
   public async sendTransaction(
-    transaction: Transaction,
+    transaction: RollupTransaction,
     account: Address
-  ): Promise<SignedTransactionReceipt> {
+  ): Promise<SignedStateReceipt[]> {
     const signature = await this.signatureProvider.sign(
       account,
-      serializeObject(transaction)
+      abiEncodeTransaction(transaction)
     )
-    return this.rpcClient.handle<SignedTransactionReceipt>(
+    return this.rpcClient.handle<SignedStateReceipt[]>(
       AGGREGATOR_API.applyTransaction,
       {
         signature,
@@ -78,14 +77,14 @@ export class RollupClient {
   }
 
   public async requestFaucetFunds(
-    transaction: Transaction,
+    transaction: RollupTransaction,
     account: Address
-  ): Promise<SignedTransactionReceipt> {
+  ): Promise<SignedStateReceipt> {
     const signature = await this.signatureProvider.sign(
       account,
       serializeObject(transaction)
     )
-    return this.rpcClient.handle<SignedTransactionReceipt>(
+    return this.rpcClient.handle<SignedStateReceipt>(
       AGGREGATOR_API.requestFaucetFunds,
       {
         signature,

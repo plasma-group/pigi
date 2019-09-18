@@ -26,7 +26,7 @@ import {
   isSwapTransaction,
   Transfer,
   isTransferTransaction,
-  Transaction,
+  RollupTransaction,
   SignedTransaction,
   UNISWAP_ADDRESS,
   UNI_TOKEN_TYPE,
@@ -34,12 +34,11 @@ import {
   TokenType,
   State,
   StateUpdate,
-  StateInclusionProof,
   StateSnapshot,
   InclusionProof,
   StateMachineCapacityError,
   SignatureError,
-  AGGREGATOR_ADDRESS,
+  AGGREGATOR_ADDRESS, abiEncodeTransaction, abiEncodeState, parseStateFromABI,
 } from './index'
 import {
   InsufficientBalanceError,
@@ -65,7 +64,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
   })
 
   public static async create(
-    genesisState: State,
+    genesisState: State[],
     db: DB,
     signatureVerifier: SignatureVerifier = DefaultSignatureVerifier.instance(),
     swapFeeBasisPoints: number = 30,
@@ -78,11 +77,11 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       treeHeight
     )
 
-    if (!!Object.keys(genesisState).length) {
+    if (!!genesisState.length) {
       const promises: Array<Promise<boolean>> = []
-      for (const key of Object.keys(genesisState)) {
+      for (const state of genesisState) {
         promises.push(
-          stateMachine.setAddressState(key, genesisState[key].balances)
+          stateMachine.setAddressState(state.address, state.balances)
         )
       }
       await Promise.all(promises)
@@ -132,16 +131,19 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
 
     let state: State
     let inclusionProof: InclusionProof
+    let leafID: number
     if (!accountState) {
       state = undefined
       inclusionProof = undefined
+      leafID = -1
     } else {
-      state = this.deserializeState(address, accountState)
+      state = this.deserializeState(accountState)
       inclusionProof = proof.siblings.map((x: Buffer) => x.toString('hex'))
+      leafID = this.getAddressKey(address).toNumber()
     }
 
     return {
-      address,
+      leafID,
       state,
       stateRoot,
       inclusionProof,
@@ -150,7 +152,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
 
   public async applyTransactions(
     transactions: SignedTransaction[]
-  ): Promise<StateUpdate> {
+  ): Promise<StateUpdate[]> {
     return runInDomain(undefined, async () => {
       return this.lock.acquire(DefaultRollupStateMachine.lockKey, async () => {
         const stateUpdates: StateUpdate[] = []
@@ -160,25 +162,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
           stateUpdates.push(await this.applyTransaction(tx))
         }
 
-        const startRoot: string = stateUpdates[0].startRoot
-        const endRoot: string = stateUpdates[stateUpdates.length - 1].endRoot
-        const updatedState: State = {}
-        const updatedStateInclusionProof: StateInclusionProof = {}
-        for (const update of stateUpdates) {
-          Object.assign(updatedState, update.updatedState)
-          Object.assign(
-            updatedStateInclusionProof,
-            update.updatedStateInclusionProof
-          )
-        }
-
-        return {
-          transactions,
-          startRoot,
-          endRoot,
-          updatedState,
-          updatedStateInclusionProof,
-        }
+        return stateUpdates
       })
     })
   }
@@ -190,7 +174,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
 
     try {
       signer = this.signatureVerifier.verifyMessage(
-        serializeObject(signedTransaction.transaction),
+        abiEncodeTransaction(signedTransaction.transaction),
         signedTransaction.signature
       )
       if (
@@ -209,37 +193,45 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     }
 
     return this.lock.acquire(DefaultRollupStateMachine.lockKey, async () => {
-      const startRoot: string = (await this.tree.getRootHash()).toString('hex')
-      const transaction: Transaction = signedTransaction.transaction
-      let updatedState: State
+      let stateUpdate = {transaction: signedTransaction}
+      const transaction: RollupTransaction = signedTransaction.transaction
+      let updatedStates: State[]
       if (isTransferTransaction(transaction)) {
-        updatedState = await this.applyTransfer(transaction)
+        stateUpdate['receiverCreated'] = !this.getAddressKey(transaction.recipient)
+        updatedStates = await this.applyTransfer(transaction)
+        stateUpdate['receiverLeafID'] = this.getAddressKey(transaction.recipient)
       } else if (isSwapTransaction(transaction)) {
-        updatedState = await this.applySwap(signer, transaction)
+        updatedStates = await this.applySwap(signer, transaction)
+        stateUpdate['receiverCreated'] = false
+        stateUpdate['receiverLeafID'] = this.getAddressKey(UNISWAP_ADDRESS)
       } else {
         throw new InvalidTransactionTypeError()
       }
+      const senderState: State = updatedStates[0]
+      const receiverState: State = updatedStates[1]
 
-      const updatedStateInclusionProof: StateInclusionProof = {}
-      for (const key of Object.keys(updatedState)) {
+      stateUpdate['senderLeafID'] = this.getAddressKey(transaction.sender)
+      stateUpdate['senderState'] = senderState
+      stateUpdate['receiverState'] = receiverState
+
+      const inclusionProof = async(state: State): Promise<InclusionProof> => {
         const proof: MerkleTreeInclusionProof = await this.tree.getMerkleProof(
-          this.getAddressKey(key),
-          this.serializeBalances(key, updatedState[key].balances)
+          this.getAddressKey(state.address),
+          this.serializeBalances(state.address, state.balances)
         )
-        updatedStateInclusionProof[key] = proof.siblings.map((p) =>
-          p.toString('hex')
-        )
+        return proof.siblings.map((p) => p.toString('hex'))
       }
 
-      const endRoot: string = (await this.tree.getRootHash()).toString('hex')
+      [
+        stateUpdate['senderStateInclusionProof'],
+        stateUpdate['receiverStateInclusionProof']
+      ] = await Promise.all([
+        inclusionProof(senderState),
+        inclusionProof(receiverState)
+      ])
 
-      return {
-        transactions: [signedTransaction],
-        startRoot,
-        endRoot,
-        updatedState,
-        updatedStateInclusionProof,
-      }
+      stateUpdate['stateRoot'] = (await this.tree.getRootHash()).toString('hex')
+      return stateUpdate
     })
   }
 
@@ -249,7 +241,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     if (!!key) {
       const leaf: Buffer = await this.tree.getLeaf(key)
       if (!!leaf) {
-        return this.deserializeState(address, leaf)[address].balances
+        return this.deserializeState(leaf).balances
       }
     }
     return { [UNI_TOKEN_TYPE]: 0, [PIGI_TOKEN_TYPE]: 0 }
@@ -293,7 +285,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     return tokenType in balances && balances[tokenType] >= balance
   }
 
-  private async applyTransfer(transfer: Transfer): Promise<State> {
+  private async applyTransfer(transfer: Transfer): Promise<State[]> {
     // Make sure the amount is above zero
     if (transfer.amount < 1) {
       throw new NegativeAmountError()
@@ -323,13 +315,13 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       this.setAddressState(transfer.recipient, recipientBalances),
     ])
 
-    return {
-      ...this.getStateFromBalances(transfer.sender, senderBalances),
-      ...this.getStateFromBalances(transfer.recipient, recipientBalances),
-    }
+    return [
+      this.getStateFromBalances(transfer.sender, senderBalances),
+      this.getStateFromBalances(transfer.recipient, recipientBalances)
+    ]
   }
 
-  private async applySwap(sender: Address, swap: Swap): Promise<State> {
+  private async applySwap(sender: Address, swap: Swap): Promise<State[]> {
     // Make sure the amount is above zero
     if (swap.inputAmount < 1) {
       throw new NegativeAmountError()
@@ -347,7 +339,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
   private async updateBalancesFromSwap(
     swap: Swap,
     sender: Address
-  ): Promise<State> {
+  ): Promise<State[]> {
     const uniswapBalances: Balances = await this.getBalances(UNISWAP_ADDRESS)
     // First let's figure out which token types are input & output
     const inputTokenType = swap.tokenType
@@ -380,10 +372,10 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       this.setAddressState(UNISWAP_ADDRESS, uniswapBalances),
     ])
 
-    return {
-      ...this.getStateFromBalances(sender, senderBalances),
-      ...this.getStateFromBalances(UNISWAP_ADDRESS, uniswapBalances),
-    }
+    return [
+      this.getStateFromBalances(sender, senderBalances),
+      this.getStateFromBalances(UNISWAP_ADDRESS, uniswapBalances)
+    ]
   }
 
   /**
@@ -425,18 +417,17 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
 
   private serializeBalances(address: string, balances: Balances): Buffer {
     // TODO: Update these to deal with ABI encoding
-    return objectToBuffer(this.getStateFromBalances(address, balances))
+    return Buffer.from(abiEncodeState(this.getStateFromBalances(address, balances)))
   }
 
-  private deserializeState(address: string, state: Buffer): State {
-    return deserializeBuffer(state)
+  private deserializeState(state: Buffer): State {
+    return parseStateFromABI(state.toString())
   }
 
   private getStateFromBalances(address: string, balances: Balances): State {
     return {
-      [address]: {
-        balances,
-      },
+      address: address,
+      balances
     }
   }
 }

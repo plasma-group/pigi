@@ -1,4 +1,4 @@
-import { Address, TokenType, Transaction } from './index'
+import { Address, TokenType, RollupTransaction } from './index'
 import { SignatureProvider, SignatureVerifier } from '@pigi/core'
 
 /* Utilities */
@@ -7,7 +7,7 @@ export const generateTransferTx = (
   recipient: Address,
   tokenType: TokenType,
   amount: number
-): Transaction => {
+): RollupTransaction => {
   return {
     sender,
     tokenType,

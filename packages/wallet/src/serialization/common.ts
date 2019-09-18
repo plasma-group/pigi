@@ -2,33 +2,60 @@
 import { ethers } from 'ethers'
 export const abi = new ethers.utils.AbiCoder()
 
-export const transferAbiTypes = ['address', 'address', 'bool', 'uint32']
-export const swapAbiTypes = ['address', 'bool', 'uint32', 'uint32', 'uint']
-export const signedTransactionAbiTypes = ['bytes', 'bytes']
+export const transferAbiTypes = [
+  'address', // sender address
+  'address', // recipient address
+  'bool',    // token type
+  'uint32'   // amount
+]
+export const swapAbiTypes = [
+  'address', // sender address
+  'bool',    // token type
+  'uint32',  // amount
+  'uint32',  // min output amount
+  'uint'     // timeout
+]
+export const signedTransactionAbiTypes = [
+  'bytes', // signature
+  'bytes'  // transaction
+]
 export const swapTransitionAbiTypes = [
-  'bytes32',
-  'uint32',
-  'uint32',
-  'bool',
-  'uint32',
-  'uint32',
-  'uint',
-  'bytes',
+  'bytes32', // state root
+  'uint32',  // sender slot
+  'uint32',  // receiver slot
+  'bool',    // token type
+  'uint32',  // input amount
+  'uint32',  // min output amount
+  'uint',    // timeout
+  'bytes',   // transaction signature
 ]
 export const transferTransitionAbiTypes = [
-  'bytes32',
-  'uint32',
-  'uint32',
-  'bool',
-  'uint32',
-  'bytes',
+  'bytes32', // state root
+  'uint32',  // sender slot
+  'uint32',  // recipient slot
+  'bool',    // token type
+  'uint32',  // amount
+  'bytes',   // transaction signature
 ]
 export const createAndTransferTransitionAbiTypes = [
-  'bytes32',
-  'uint32',
-  'uint32',
-  'address',
-  'bool',
-  'uint32',
-  'bytes',
+  'bytes32', // state root
+  'uint32',  // sender slot
+  'uint32',  // uniswap slot
+  'address', // created public key
+  'bool',    // token type
+  'uint32',  // amount
+  'bytes',   // transaction signature
+]
+export const stateAbiTypes = [
+  'address', // owner address
+  'uint32',  // uni balance
+  'uint32'   // pigi balance
+]
+export const stateReceiptAbiTypes = [
+  'bytes32',  // state root
+  'uint',     // block number
+  'uint',     // transition index
+  'uint32',   // state slot
+  'bytes32[]',// inclusion proof
+  'bytes'     // state
 ]

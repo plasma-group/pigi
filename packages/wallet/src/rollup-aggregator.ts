@@ -9,7 +9,6 @@ import {
   serializeObject,
   DefaultSignatureProvider,
   DB,
-  objectToBuffer,
   getLogger,
 } from '@pigi/core'
 
@@ -18,24 +17,28 @@ import {
   Address,
   SignedTransaction,
   Balances,
-  TransactionReceipt,
   UNI_TOKEN_TYPE,
   PIGI_TOKEN_TYPE,
   generateTransferTx,
   AGGREGATOR_API,
-  Transaction,
+  RollupTransaction,
   SignatureProvider,
   UNISWAP_ADDRESS,
   AGGREGATOR_ADDRESS,
   RollupTransition,
   StateUpdate,
-  SignedTransactionReceipt,
   isFaucetTransaction,
   RollupBlock,
   SignedStateReceipt,
   StateSnapshot,
   Signature,
   StateReceipt,
+  abiEncodeStateReceipt,
+  isSwapTransaction,
+  isTransferTransaction,
+  Transfer,
+  abiEncodeTransition,
+  TransferTransition, abiEncodeTransaction,
 } from './index'
 import { RollupStateMachine } from './types'
 
@@ -51,13 +54,13 @@ const generateFaucetTxs = async (
   aggregatorAddress: string = AGGREGATOR_ADDRESS,
   signatureProvider?: SignatureProvider
 ): Promise<SignedTransaction[]> => {
-  const txOne: Transaction = generateTransferTx(
+  const txOne: RollupTransaction = generateTransferTx(
     UNISWAP_ADDRESS,
     recipient,
     UNI_TOKEN_TYPE,
     amount
   )
-  const txTwo: Transaction = generateTransferTx(
+  const txTwo: RollupTransaction = generateTransferTx(
     UNISWAP_ADDRESS,
     recipient,
     PIGI_TOKEN_TYPE,
@@ -68,14 +71,14 @@ const generateFaucetTxs = async (
     {
       signature: await signatureProvider.sign(
         aggregatorAddress,
-        serializeObject(txOne)
+        abiEncodeTransaction(txOne)
       ),
       transaction: txOne,
     },
     {
       signature: await signatureProvider.sign(
         aggregatorAddress,
-        serializeObject(txTwo)
+        abiEncodeTransaction(txTwo)
       ),
       transaction: txTwo,
     },
@@ -120,12 +123,12 @@ export class RollupAggregator extends SimpleServer {
 
       [AGGREGATOR_API.applyTransaction]: async (
         signedTransaction: SignedTransaction
-      ): Promise<SignedTransactionReceipt> =>
+      ): Promise<SignedStateReceipt[]> =>
         this.applyTransaction(signedTransaction),
 
       [AGGREGATOR_API.requestFaucetFunds]: async (
         signedTransaction: SignedTransaction
-      ): Promise<SignedTransactionReceipt> =>
+      ): Promise<SignedStateReceipt> =>
         this.requestFaucetFunds(signedTransaction),
     }
     super(methods, hostname, port, middleware)
@@ -135,9 +138,9 @@ export class RollupAggregator extends SimpleServer {
     this.signatureProvider = new DefaultSignatureProvider(this.wallet)
     this.db = db
     this.transitionIndex = 0
-    this.blockNumber = 0
+    this.blockNumber = 1
     this.pendingBlock = {
-      number: ++this.blockNumber,
+      number: this.blockNumber,
       transitions: [],
     }
     this.lock = new AsyncLock()
@@ -167,9 +170,10 @@ export class RollupAggregator extends SimpleServer {
         }
       )
 
+      log.error(`STATE RECEIPT BEFORE IT BREAKS: ${serializeObject(stateReceipt)}`)
       const signature: Signature = await this.signatureProvider.sign(
         AGGREGATOR_ADDRESS,
-        serializeObject(stateReceipt)
+        abiEncodeStateReceipt(stateReceipt)
       )
 
       return {
@@ -193,23 +197,24 @@ export class RollupAggregator extends SimpleServer {
    */
   private async applyTransaction(
     signedTransaction
-  ): Promise<SignedTransactionReceipt> {
+  ): Promise<SignedStateReceipt[]> {
     try {
-      const [stateUpdate, transition] = await this.lock.acquire(
+      const [stateUpdates, blockNumber, transitionIndex] = await this.lock.acquire(
         RollupAggregator.lockKey,
         async () => {
           const update: StateUpdate = await this.rollupStateMachine.applyTransaction(
             signedTransaction
           )
-          const trans: RollupTransition = await this.addToPendingBlock(
-            update,
-            signedTransaction
-          )
-          return [update, trans]
+          await this.addToPendingBlock([update], signedTransaction)
+          return [update, this.blockNumber, this.transitionIndex]
         }
       )
 
-      return this.respond(stateUpdate, transition, signedTransaction)
+      return this.respond(
+        stateUpdates[stateUpdates.length - 1],
+        blockNumber,
+        transitionIndex
+      )
     } catch (e) {
       log.error(
         `Error applying transaction [${serializeObject(signedTransaction)}]! ${
@@ -230,7 +235,7 @@ export class RollupAggregator extends SimpleServer {
    */
   private async requestFaucetFunds(
     signedTransaction: SignedTransaction
-  ): Promise<SignedTransactionReceipt> {
+  ): Promise<SignedStateReceipt> {
     try {
       if (!isFaucetTransaction(signedTransaction.transaction)) {
         throw Error('Cannot handle non-Faucet Request in faucet endpoint')
@@ -256,23 +261,20 @@ export class RollupAggregator extends SimpleServer {
         this.signatureProvider
       )
 
-      const [stateUpdate, transition] = await this.lock.acquire(
+      const [stateUpdate, blockNumber,  transitionIndex] = await this.lock.acquire(
         RollupAggregator.lockKey,
         async () => {
           // Apply the two txs
-          const update: StateUpdate = await this.rollupStateMachine.applyTransactions(
+          const updates: StateUpdate[] = await this.rollupStateMachine.applyTransactions(
             faucetTxs
           )
 
-          const trans: RollupTransition = await this.addToPendingBlock(
-            update,
-            signedTransaction
-          )
-          return [update, trans]
+          await this.addToPendingBlock(updates, signedTransaction)
+          return [updates[updates.length - 1], this.blockNumber, this.transitionIndex]
         }
       )
 
-      return this.respond(stateUpdate, transition, signedTransaction)
+      return (await this.respond(stateUpdate, blockNumber, transitionIndex))[0]
     } catch (e) {
       log.error(
         `Error handling faucet request [${serializeObject(
@@ -284,68 +286,125 @@ export class RollupAggregator extends SimpleServer {
   }
 
   /**
-   * Responds to the provided Transaction according to the provided resulting state
+   * Responds to the provided RollupTransaction according to the provided resulting state
    * update and rollup transition.
    *
    * @param stateUpdate The state update that resulted from this transaction
-   * @param transition The rollup transition for this transaction
-   * @param transaction The transaction
-   * @returns The signed transaction response
+   * @param blockNumber The block number of this update
+   * @param transitionIndex The transition index of this update
+   * @returns The signed state receipt objects for the
    */
   private async respond(
     stateUpdate: StateUpdate,
-    transition: RollupTransition,
-    transaction: SignedTransaction
-  ): Promise<SignedTransactionReceipt> {
-    const transactionReceipt: TransactionReceipt = {
-      blockNumber: transition.blockNumber,
-      transitionIndex: transition.number,
-      transaction,
-      startRoot: transition.startRoot,
-      endRoot: transition.endRoot,
-      updatedState: stateUpdate.updatedState,
-      updatedStateInclusionProof: stateUpdate.updatedStateInclusionProof,
-    }
+    blockNumber: number,
+    transitionIndex: number
+  ): Promise<SignedStateReceipt[]> {
+      const receipts: SignedStateReceipt[] = []
 
-    const signature: string = await this.signatureProvider.sign(
-      AGGREGATOR_ADDRESS,
-      serializeObject(transactionReceipt)
-    )
-    return {
-      signature,
-      transactionReceipt,
-    }
+      const senderReceipt: StateReceipt = {
+        leafID: stateUpdate.senderLeafID,
+        stateRoot: stateUpdate.stateRoot,
+        state: stateUpdate.senderState,
+        inclusionProof: stateUpdate.senderStateInclusionProof,
+        blockNumber,
+        transitionIndex
+      }
+      const senderSignature: string = await this.signatureProvider.sign(
+        AGGREGATOR_ADDRESS,
+        abiEncodeStateReceipt(senderReceipt)
+      )
+      receipts.push({
+        signature: senderSignature,
+        stateReceipt: senderReceipt
+      })
+
+      if (stateUpdate.receiverState.address !== UNISWAP_ADDRESS) {
+        const recipientReceipt: StateReceipt = {
+          leafID: stateUpdate.receiverLeafID,
+          stateRoot: stateUpdate.stateRoot,
+          state: stateUpdate.receiverState,
+          inclusionProof: stateUpdate.receiverStateInclusionProof,
+          blockNumber,
+          transitionIndex
+        }
+        const recipientSignature: string = await this.signatureProvider.sign(
+          AGGREGATOR_ADDRESS,
+          abiEncodeStateReceipt(recipientReceipt)
+        )
+        receipts.push({
+          signature: recipientSignature,
+          stateReceipt: recipientReceipt
+        })
+      }
+
+      return receipts
   }
 
   /**
-   * Adds and returns the pending transition resulting from the provided StateUpdate.
+   * Adds and returns the pending transition(s) resulting from
+   * the provided StateUpdate(s).
    *
-   * @param update The state update in question
+   * @param updates The state updates in question
    * @param transaction The signed transaction received as input
    * @returns The rollup transition
    */
   private async addToPendingBlock(
-    update: StateUpdate,
+    updates: StateUpdate[],
     transaction: SignedTransaction
-  ): Promise<RollupTransition> {
-    const transition: RollupTransition = {
-      number: this.transitionIndex++,
-      blockNumber: this.pendingBlock.number,
-      transactions: [transaction],
-      startRoot: update.startRoot,
-      endRoot: update.endRoot,
+  ): Promise<Array<RollupTransition>> {
+    let transitions: RollupTransition[] = []
+
+    if (isSwapTransaction(transaction.transaction)) {
+      const update: StateUpdate = updates[0]
+      transitions.push({
+        stateRoot: update.stateRoot,
+        senderLeafID: update.senderLeafID,
+        uniswapLeafID: update.receiverLeafID,
+        tokenType: transaction.transaction.tokenType,
+        inputAmount: transaction.transaction.inputAmount,
+        minOutputAmount: transaction.transaction.minOutputAmount,
+        timeout: transaction.transaction.timeout,
+        signature: transaction.signature
+      })
+    } else {
+      // It's a transfer -- either faucet or p2p
+      for (const u of updates) {
+        transitions.push(this.getTransferTransitionFromStateUpdate(u))
+      }
     }
 
-    await this.db
-      .bucket(this.getDBKeyFromNumber(this.pendingBlock.number))
-      .put(
-        this.getDBKeyFromNumber(transition.number),
-        objectToBuffer(transition)
-      )
+    for (const trans of transitions) {
+      await this.db
+        .bucket(this.getDBKeyFromNumber(this.pendingBlock.number))
+        .put(
+          this.getDBKeyFromNumber(++this.transitionIndex),
+          Buffer.from(abiEncodeTransition(trans))
+        )
+    }
 
-    return transition
+    return transitions
   }
 
+  /**
+   * Creates a TransferTransition from the provided StateUpdate for a Transfer.
+   * @param update The state update
+   * @returns the TransferTransition
+   */
+  private getTransferTransitionFromStateUpdate(update: StateUpdate): TransferTransition {
+    const transfer = update.transaction.transaction as Transfer
+    let transition = {
+      stateRoot: update.stateRoot,
+      senderLeafID: update.senderLeafID,
+      recipientLeafID: update.receiverLeafID,
+      tokenType: transfer.tokenType,
+      amount: transfer.amount,
+      signature: update.transaction.signature
+    }
+    if (update.receiverCreated) {
+      transition['createdAccountPubkey'] = update.receiverState.address
+    }
+    return transition
+  }
   /**
    * Submits a block to the main chain, creating a new pending block for future
    * transitions.

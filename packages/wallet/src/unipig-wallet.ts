@@ -11,7 +11,6 @@ import {
 import {
   Address,
   Balances,
-  TransactionReceipt,
   RollupClient,
   SignedStateReceipt,
 } from '.'
@@ -48,7 +47,7 @@ export class UnipigWallet extends DefaultWallet {
     // TODO: We'll want to persist this State & Signature
 
     return !!state.stateReceipt.state
-      ? state.stateReceipt.state[account].balances
+      ? state.stateReceipt.state.balances
       : undefined
   }
 }
