@@ -30,8 +30,8 @@ const log = debug('test:info:merkle-utils')
 async function createSMTfromDataBlocks(
   dataBlocks: Buffer[]
 ): Promise<SparseMerkleTreeImpl> {
-  const treeHeight = Math.ceil(Math.log2(dataBlocks.length)) + 1
-  log('Creating tree of height:', treeHeight)
+  const treeHeight = Math.ceil(Math.log2(dataBlocks.length)) + 1  // The height should actually not be plus 1
+  log('Creating tree of height:', treeHeight - 1, 'But our implementation thinks its height', treeHeight)
   const tree = getNewSMT(treeHeight)
   for (let i = 0; i < dataBlocks.length; i++) {
     await tree.update(new BigNumber(i, 10), dataBlocks[i])
@@ -45,6 +45,16 @@ function getNewSMT(treeHeight: number): SparseMerkleTreeImpl {
     undefined,
     treeHeight
   )
+}
+
+function makeRandomBlockOfSize(blockSize: number): string[] {
+  const block = []
+  for (let i = 0; i < blockSize; i++) {
+    block.push(
+      makeRepeatedBytes('' + Math.floor(Math.random() * 500 + 1), 32)
+    )
+  }
+  return block
 }
 
 /* Begin tests */
@@ -157,6 +167,66 @@ describe('RollupMerkleUtils', () => {
           isValid.should.equal(true)
         }
       }
-    }).timeout(100000000)
+    })
+  })
+
+  describe('updateTree()', async () => {
+    it('should not throw', async () => {
+      const minBlockSize = 1
+      const maxBlockSize = 7
+      for (let blockSize = minBlockSize; blockSize < maxBlockSize; blockSize++) {
+        const block = makeRandomBlockOfSize(blockSize)
+        const bufBlock = block.map((data) => hexStrToBuf(data))
+        const treeHeight = Math.ceil(Math.log2(bufBlock.length))
+        // Create a local tree
+        const tree = await createSMTfromDataBlocks(bufBlock)
+        // Get the root
+        const root: Buffer = await tree.getRootHash()
+        // Set the root and the height of our stored tree
+        await rollupMerkleUtils.setMerkleRootAndHeight(root, treeHeight)
+
+        // Now that we've set everything up, let's store the full tree in Solidity
+        for (let leafIndex = 0; leafIndex < block.length; leafIndex++) {
+          const inclusionProof = await tree.getMerkleProof(
+            new BigNumber(leafIndex),
+            bufBlock[leafIndex]
+          )
+          // Extract the values we need for the proof in the form we need them
+          const path = bufToHexString(inclusionProof.key.toBuffer('B', 32))
+          // Extract the siblings but reverse the order (reversed order is what is expected by the contract
+          // which verifies bottom to top as opposed to top to bottom.
+          const siblings = inclusionProof.siblings
+            .map((sibBuf) => bufToHexString(sibBuf))
+            .reverse()
+          await rollupMerkleUtils.storeMerkleProof(
+            bufToHexString(inclusionProof.value),
+            path,
+            siblings
+          )
+        }
+
+        // Exciting! We've stored the full tree. Let's start updating everything!
+        const newBlock = makeRandomBlockOfSize(blockSize)
+        const newBufBlock = newBlock.map((data) => hexStrToBuf(data))
+        for (let leafIndex = 0; leafIndex < block.length; leafIndex++) {
+          await tree.update(new BigNumber(leafIndex), newBufBlock[leafIndex])
+          const inclusionProof = await tree.getMerkleProof(
+            new BigNumber(leafIndex),
+            newBufBlock[leafIndex]
+          )
+          // Extract the values we need for the proof in the form we need them
+          const path = bufToHexString(inclusionProof.key.toBuffer('B', 32))
+          await rollupMerkleUtils.updateTree(
+            bufToHexString(inclusionProof.value),
+            path
+          )
+          const newContractRoot = await rollupMerkleUtils.getRoot()
+          const newLocalRoot: Buffer = await tree.getRootHash()
+          log('got contract', newContractRoot)
+          // Compare!
+          newContractRoot.should.equal(bufToHexString(newLocalRoot))
+        }
+      }
+    }).timeout(100000)
   })
 })

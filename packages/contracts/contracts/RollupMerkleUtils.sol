@@ -12,7 +12,8 @@ contract RollupMerkleUtils {
     // This struct contains a partial sparse merkle tree
     struct SparseMerkleTree {
         bytes32 root;
-        mapping (bytes32 => bytes) nodes;
+        uint height;
+        mapping (bytes32 => bytes32) nodes;
     }
     SparseMerkleTree public tree;
 
@@ -56,7 +57,7 @@ contract RollupMerkleUtils {
             currentLevel += 1;
             // Calculate the nodes for the currentLevel
             for (uint i = 0; i < nextLevelLength / 2; i++) {
-                nodes[i] = parent(nodes[i*2], nodes[i*2 + 1]);
+                nodes[i] = getParent(nodes[i*2], nodes[i*2 + 1]);
             }
             nextLevelLength = nextLevelLength / 2;
             // Check if we will need to add an extra node
@@ -76,7 +77,7 @@ contract RollupMerkleUtils {
      * @param _right The right child
      * @return The parent node
      */
-    function parent(bytes32 _left, bytes32 _right) internal pure returns(bytes32) {
+    function getParent(bytes32 _left, bytes32 _right) internal pure returns(bytes32) {
         return keccak256(abi.encodePacked(_left, _right));
     }
 
@@ -84,12 +85,95 @@ contract RollupMerkleUtils {
         return uint8(intVal >> index & 1);
     }
 
-    function setMerkleRoot(bytes32 _root) public {
+    /**
+     * Utility Functions for getting & setting values in the SMT
+     */
+    function storeNode(bytes32 parentHash, bytes32 leftChild, bytes32 rightChild) public {
+        tree.nodes[getLeftSiblingKey(parentHash)] = leftChild;
+        tree.nodes[getRightSiblingKey(parentHash)] = rightChild;
+    }
+
+    function getChildren(bytes32 parentHash) public view returns(bytes32, bytes32) {
+        return (tree.nodes[getLeftSiblingKey(parentHash)], tree.nodes[getRightSiblingKey(parentHash)]);
+    }
+
+    function getRightSiblingKey(bytes32 parentHash) public pure returns(bytes32) {
+        return parentHash | 0x1100000000000000000000000000000000000000000000000000000000000000;
+    }
+
+    function getLeftSiblingKey(bytes32 parentHash) public pure returns(bytes32) {
+        return parentHash & 0x0011111111111111111111111111111111111111111111111111111111111111;
+    }
+
+    function setMerkleRootAndHeight(bytes32 _root, uint _height) public {
         tree.root = _root;
+        tree.height = _height;
     }
 
     /**
-     * @notice Verify and store an inclusion proof of the SMT.
+     * Update the stored merkle tree
+     */
+    function updateTree(bytes memory _dataBlock, uint _path) public {
+        bytes32[] memory siblings = getSiblings(_path);
+        storeMerkleProof(_dataBlock, _path, siblings);
+    }
+
+    function getRoot() public view returns(bytes32) {
+        return tree.root;
+    }
+
+    /**
+     * @notice Store a particular merkle proof
+     * @param _dataBlock The data block we're verifying inclusion for.
+     * @param _path The path from the leaf to the root.
+     * @param _siblings The sibling nodes along the way.
+     * @return The next level of the tree
+     */
+    function storeMerkleProof(bytes memory _dataBlock, uint _path, bytes32[] memory _siblings) public {
+        // First compute the leaf node
+        bytes32 computedNode = keccak256(_dataBlock);
+        for (uint i = 0; i < _siblings.length; i++) {
+            bytes32 parent;
+            bytes32 sibling = _siblings[i];
+            uint8 isComputedRightSibling = getNthBitFromRight(_path, i);
+            if (isComputedRightSibling == 0) {
+                parent = getParent(computedNode, sibling);
+                // Store the node!
+                storeNode(parent, computedNode, sibling);
+            } else {
+                parent = getParent(sibling, computedNode);
+                // Store the node!
+                storeNode(parent, sibling, computedNode);
+            }
+            computedNode = parent;
+        }
+        // Store the new root
+        tree.root = computedNode;
+    }
+
+    /**
+     * Get the stored siblings
+     */
+    function getSiblings(uint _path) public view returns (bytes32[] memory) {
+        bytes32[] memory siblings = new bytes32[](tree.height);
+        bytes32 computedNode = tree.root;
+        for(uint i = tree.height; i > 0; i--) {
+            uint siblingIndex = i-1;
+            (bytes32 leftChild, bytes32 rightChild) = getChildren(computedNode);
+            if (getNthBitFromRight(_path, siblingIndex) == 0) {
+                computedNode = leftChild;
+                siblings[siblingIndex] = rightChild;
+            } else {
+                computedNode = rightChild;
+                siblings[siblingIndex] = leftChild;
+            }
+        }
+        // Now store everything
+        return siblings;
+    }
+
+    /**
+     * @notice Verify an inclusion proof.
      * @param _root The root of the tree we are verifying inclusion for.
      * @param _dataBlock The data block we're verifying inclusion for.
      * @param _path The path from the leaf to the root.
@@ -103,9 +187,9 @@ contract RollupMerkleUtils {
             bytes32 sibling = _siblings[i];
             uint8 isComputedRightSibling = getNthBitFromRight(_path, i);
             if (isComputedRightSibling == 0) {
-                computedNode = parent(computedNode, sibling);
+                computedNode = getParent(computedNode, sibling);
             } else {
-                computedNode = parent(sibling, computedNode);
+                computedNode = getParent(sibling, computedNode);
             }
         }
         // Check if the computed node (_root) is equal to the provided root
