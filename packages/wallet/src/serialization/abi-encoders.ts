@@ -100,7 +100,7 @@ export const abiEncodeTransition = (transition: RollupTransition): string => {
 export const abiEncodeState = (state: State): string => {
   log.debug(`ABI encoding State: ${serializeObject(state)}`)
   return abi.encode(stateAbiTypes, [
-    state.address,
+    state.pubKey,
     state.balances[UNI_TOKEN_TYPE],
     state.balances[PIGI_TOKEN_TYPE],
   ])

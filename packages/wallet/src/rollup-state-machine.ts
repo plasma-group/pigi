@@ -83,7 +83,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       const promises: Array<Promise<boolean>> = []
       for (const state of genesisState) {
         promises.push(
-          stateMachine.setAddressState(state.address, state.balances)
+          stateMachine.setAddressState(state.pubKey, state.balances)
         )
       }
       await Promise.all(promises)
@@ -222,8 +222,8 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
 
       const inclusionProof = async (state: State): Promise<InclusionProof> => {
         const proof: MerkleTreeInclusionProof = await this.tree.getMerkleProof(
-          this.getAddressKey(state.address),
-          this.serializeBalances(state.address, state.balances)
+          this.getAddressKey(state.pubKey),
+          this.serializeBalances(state.pubKey, state.balances)
         )
         return proof.siblings.map((p) => p.toString('hex'))
       }
@@ -431,9 +431,9 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     return parseStateFromABI(state.toString())
   }
 
-  private getStateFromBalances(address: string, balances: Balances): State {
+  private getStateFromBalances(pubKey: string, balances: Balances): State {
     return {
-      address,
+      pubKey,
       balances,
     }
   }

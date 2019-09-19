@@ -91,12 +91,12 @@ export const parseTransitionFromABI = (
  */
 export const parseStateFromABI = (abiEncoded: string): State => {
   log.debug(`ABI decoding State: ${serializeObject(abiEncoded)}`)
-  const [address, uniBalance, pigiBalance] = abi.decode(
+  const [pubKey, uniBalance, pigiBalance] = abi.decode(
     stateAbiTypes,
     abiEncoded
   )
   return {
-    address,
+    pubKey,
     balances: {
       [UNI_TOKEN_TYPE]: uniBalance,
       [PIGI_TOKEN_TYPE]: pigiBalance,

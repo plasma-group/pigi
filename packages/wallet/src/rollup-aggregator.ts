@@ -257,7 +257,7 @@ export class RollupAggregator extends SimpleServer {
       const { sender, amount } = signedTransaction.transaction
       // Generate the faucet txs (one sending uni the other pigi)
       const faucetTxs = await generateFaucetTxs(
-        sender,
+        sender, // original tx sender... is actually faucet fund recipient
         amount,
         this.wallet.address,
         this.signatureProvider
@@ -325,7 +325,7 @@ export class RollupAggregator extends SimpleServer {
       stateReceipt: senderReceipt,
     })
 
-    if (stateUpdate.receiverState.address !== UNISWAP_ADDRESS) {
+    if (stateUpdate.receiverState.pubKey !== UNISWAP_ADDRESS) {
       const recipientReceipt: StateReceipt = {
         slotIndex: stateUpdate.receiverSlotIndex,
         stateRoot: stateUpdate.stateRoot,
@@ -412,7 +412,7 @@ export class RollupAggregator extends SimpleServer {
       signature: update.transaction.signature,
     }
     if (update.receiverCreated) {
-      transition['createdAccountPubkey'] = update.receiverState.address
+      transition['createdAccountPubkey'] = update.receiverState.pubKey
     }
     return transition
   }

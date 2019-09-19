@@ -115,7 +115,7 @@ describe('RollupEncoding', () => {
   describe('State', () => {
     it('should encoded & decode State without throwing', async () => {
       const state: State = {
-        address: BOB_ADDRESS,
+        pubKey: BOB_ADDRESS,
         balances: {
           [UNI_TOKEN_TYPE]: 50,
           [PIGI_TOKEN_TYPE]: 100,
@@ -132,7 +132,7 @@ describe('RollupEncoding', () => {
   describe('State Receipt', () => {
     it('should encoded & decode StateReceipt without throwing', async () => {
       const state: State = {
-        address: BOB_ADDRESS,
+        pubKey: BOB_ADDRESS,
         balances: {
           [UNI_TOKEN_TYPE]: 50,
           [PIGI_TOKEN_TYPE]: 100,

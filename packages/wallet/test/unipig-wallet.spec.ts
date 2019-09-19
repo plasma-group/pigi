@@ -26,7 +26,7 @@ const balances = {
 }
 
 // A mocked getState api
-const getState = (address: Address): SignedStateReceipt => {
+const getState = (pubKey: Address): SignedStateReceipt => {
   return {
     signature: EMPTY_AGGREGATOR_SIGNATURE,
     stateReceipt: {
@@ -36,7 +36,7 @@ const getState = (address: Address): SignedStateReceipt => {
       blockNumber: 1,
       transitionIndex: 0,
       state: {
-        address,
+        pubKey,
         balances,
       },
     },

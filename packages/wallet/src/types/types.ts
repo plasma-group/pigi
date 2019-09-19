@@ -45,7 +45,7 @@ export interface SignedTransaction {
 }
 
 export interface State {
-  address: Address
+  pubKey: Address
   balances: Balances
 }
 
