@@ -62,9 +62,6 @@ export class DefaultRollupOVM implements RollupOVM {
     stateReceipt: StateReceipt,
     signer: Address
   ): Promise<boolean> {
-    // TODO: should we return the decision here and make the caller handle disputes,
-    //       or should this handle disputes?
-    //       I'm leaning toward this handling disputes.
     return (await this.decideIfStateReceiptIsValid(stateReceipt, signer))
       .outcome
   }
@@ -89,14 +86,14 @@ export class DefaultRollupOVM implements RollupOVM {
 
   private async decideIfStateReceiptIsValid(
     stateReceipt: StateReceipt,
-    signer: Address
+    aggregator: Address
   ): Promise<Decision> {
     return AndDecider.instance().decide({
       properties: [
         {
           decider: this.signedByDecider,
           input: {
-            publicKey: Buffer.from(signer),
+            publicKey: Buffer.from(aggregator),
             message: Buffer.from(abiEncodeStateReceipt(stateReceipt)),
           },
         },

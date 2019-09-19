@@ -12,12 +12,12 @@ export interface RollupOVM {
    * Determines whether or not the provided StateReceipt is valid, checking that
    * there is a signature for it, and it has a valid inclusion proof.
    * @param stateReceipt The state receipt to check validity
-   * @param signer The signer in question
+   * @param aggregator The aggregator from which the receipt was received
    * @returns True if the receipt is provably valid, false otherwise
    */
   isStateReceiptProvablyValid(
     stateReceipt: StateReceipt,
-    signer: Address
+    aggregator: Address
   ): Promise<boolean>
 
   /**
