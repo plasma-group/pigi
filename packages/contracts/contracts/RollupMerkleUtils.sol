@@ -8,19 +8,33 @@ import {DataTypes as dt} from "./DataTypes.sol";
  * Merkle Tree Utilities for Rollup
  */
 contract RollupMerkleUtils {
-    bytes32[160] public defaultHashes;
-    // This struct contains a partial sparse merkle tree
+    /* Structs */
+    // A partial merkle tree which can be updated with new nodes, recomputing the root
     struct SparseMerkleTree {
+        // The root
         bytes32 root;
         uint height;
         mapping (bytes32 => bytes32) nodes;
     }
+
+    /* Fields */
+    // The default hashes
+    bytes32[160] public defaultHashes;
+    // A tree which is used in `update()` and `store()`
     SparseMerkleTree public tree;
 
+    /**
+     * @notice Initialize a new SparseMerkleUtils contract, computing the default hashes for the sparse merkle tree (SMT)
+     */
     constructor() public {
+        // Calculate & set the default hashes
         setDefaultHashes();
     }
 
+    /* Methods */
+    /**
+     * @notice Set default hashes
+     */
     function setDefaultHashes() private {
         // Set the initial default hash.
         // TODO: Replace this hardcoded bytes value with keccak256(0x000...000) or similar.
@@ -72,64 +86,59 @@ contract RollupMerkleUtils {
     }
 
     /**
-     * @notice Get the parent of two children nodes in the tree
-     * @param _left The left child
-     * @param _right The right child
-     * @return The parent node
-     */
-    function getParent(bytes32 _left, bytes32 _right) internal pure returns(bytes32) {
-        return keccak256(abi.encodePacked(_left, _right));
-    }
-
-    function getNthBitFromRight(uint intVal, uint index) public pure returns (uint8) {
-        return uint8(intVal >> index & 1);
-    }
-
-    /**
-     * Utility Functions for getting & setting values in the SMT
-     */
-    function storeNode(bytes32 parentHash, bytes32 leftChild, bytes32 rightChild) public {
-        tree.nodes[getLeftSiblingKey(parentHash)] = leftChild;
-        tree.nodes[getRightSiblingKey(parentHash)] = rightChild;
-    }
-
-    function getChildren(bytes32 parentHash) public view returns(bytes32, bytes32) {
-        return (tree.nodes[getLeftSiblingKey(parentHash)], tree.nodes[getRightSiblingKey(parentHash)]);
-    }
-
-    function getRightSiblingKey(bytes32 parentHash) public pure returns(bytes32) {
-        return parentHash | 0x1100000000000000000000000000000000000000000000000000000000000000;
-    }
-
-    function getLeftSiblingKey(bytes32 parentHash) public pure returns(bytes32) {
-        return parentHash & 0x0011111111111111111111111111111111111111111111111111111111111111;
-    }
-
-    function setMerkleRootAndHeight(bytes32 _root, uint _height) public {
-        tree.root = _root;
-        tree.height = _height;
-    }
-
-    /**
-     * Update the stored merkle tree
-     */
-    function updateTree(bytes memory _dataBlock, uint _path) public {
-        bytes32[] memory siblings = getSiblings(_path);
-        storeMerkleProof(_dataBlock, _path, siblings);
-    }
-
-    function getRoot() public view returns(bytes32) {
-        return tree.root;
-    }
-
-    /**
-     * @notice Store a particular merkle proof
+     * @notice Verify an inclusion proof.
+     * @param _root The root of the tree we are verifying inclusion for.
      * @param _dataBlock The data block we're verifying inclusion for.
      * @param _path The path from the leaf to the root.
      * @param _siblings The sibling nodes along the way.
      * @return The next level of the tree
      */
-    function storeMerkleProof(bytes memory _dataBlock, uint _path, bytes32[] memory _siblings) public {
+    function verify(bytes32 _root, bytes memory _dataBlock, uint _path, bytes32[] memory _siblings) public pure returns (bool) {
+        // First compute the leaf node
+        bytes32 computedNode = keccak256(_dataBlock);
+        for (uint i = 0; i < _siblings.length; i++) {
+            bytes32 sibling = _siblings[i];
+            uint8 isComputedRightSibling = getNthBitFromRight(_path, i);
+            if (isComputedRightSibling == 0) {
+                computedNode = getParent(computedNode, sibling);
+            } else {
+                computedNode = getParent(sibling, computedNode);
+            }
+        }
+        // Check if the computed node (_root) is equal to the provided root
+        return computedNode == _root;
+    }
+
+    /**
+     * @notice Update the stored tree / root with a particular dataBlock at some path (no siblings needed)
+     * @param _dataBlock The data block we're storing/verifying
+     * @param _path The path from the leaf to the root / the index of the leaf.
+     */
+    function update(bytes memory _dataBlock, uint _path) public {
+        bytes32[] memory siblings = getSiblings(_path);
+        store(_dataBlock, _path, siblings);
+    }
+
+    /**
+     * @notice Store a particular merkle proof & verify that the root did not change.
+     * @param _dataBlock The data block we're storing/verifying
+     * @param _path The path from the leaf to the root / the index of the leaf.
+     * @param _siblings The sibling nodes along the way.
+     */
+    function storeAndVerify(bytes memory _dataBlock, uint _path, bytes32[] memory _siblings) public {
+        bytes32 oldRoot = tree.root;
+        store(_dataBlock, _path, _siblings);
+        require(tree.root == oldRoot, "Failed same root verification check! This was an inclusion proof for a different tree!");
+    }
+
+
+    /**
+     * @notice Store a particular leaf & intermediate nodes in the tree
+     * @param _dataBlock The data block we're storing.
+     * @param _path The path from the leaf to the root / the index of the leaf.
+     * @param _siblings The sibling nodes along the way.
+     */
+    function store(bytes memory _dataBlock, uint _path, bytes32[] memory _siblings) public {
         // First compute the leaf node
         bytes32 computedNode = keccak256(_dataBlock);
         for (uint i = 0; i < _siblings.length; i++) {
@@ -152,7 +161,10 @@ contract RollupMerkleUtils {
     }
 
     /**
-     * Get the stored siblings
+     * @notice Get siblings for a leaf at a particular index of the tree.
+     *         This is used for updates which don't include sibling nodes.
+     * @param _path The path from the leaf to the root / the index of the leaf.
+     * @return The sibling nodes along the way.
      */
     function getSiblings(uint _path) public view returns (bytes32[] memory) {
         bytes32[] memory siblings = new bytes32[](tree.height);
@@ -172,27 +184,85 @@ contract RollupMerkleUtils {
         return siblings;
     }
 
+    /*********************
+     * Utility Functions *
+     ********************/
     /**
-     * @notice Verify an inclusion proof.
-     * @param _root The root of the tree we are verifying inclusion for.
-     * @param _dataBlock The data block we're verifying inclusion for.
-     * @param _path The path from the leaf to the root.
-     * @param _siblings The sibling nodes along the way.
-     * @return The next level of the tree
+     * @notice Get our stored tree's root
+     * @return The merkle root of the tree
      */
-    function verify(bytes32 _root, bytes memory _dataBlock, uint _path, bytes32[] memory _siblings) public pure returns (bool) {
-        // First compute the leaf node
-        bytes32 computedNode = keccak256(_dataBlock);
-        for (uint i = 0; i < _siblings.length; i++) {
-            bytes32 sibling = _siblings[i];
-            uint8 isComputedRightSibling = getNthBitFromRight(_path, i);
-            if (isComputedRightSibling == 0) {
-                computedNode = getParent(computedNode, sibling);
-            } else {
-                computedNode = getParent(sibling, computedNode);
-            }
-        }
-        // Check if the computed node (_root) is equal to the provided root
-        return computedNode == _root;
+    function getRoot() public view returns(bytes32) {
+        return tree.root;
+    }
+
+    /**
+     * @notice Set the tree root and height of the stored tree
+     * @param _root The merkle root of the tree
+     * @param _height The height of the tree
+     */
+    function setMerkleRootAndHeight(bytes32 _root, uint _height) public {
+        tree.root = _root;
+        tree.height = _height;
+    }
+
+    /**
+     * @notice Store node in the (in-storage) sparse merkle tree
+     * @param _parent The parent node
+     * @param _leftChild The left child of the parent in the tree
+     * @param _rightChild The right child of the parent in the tree
+     */
+    function storeNode(bytes32 _parent, bytes32 _leftChild, bytes32 _rightChild) public {
+        tree.nodes[getLeftSiblingKey(_parent)] = _leftChild;
+        tree.nodes[getRightSiblingKey(_parent)] = _rightChild;
+    }
+
+    /**
+     * @notice Get the parent of two children nodes in the tree
+     * @param _left The left child
+     * @param _right The right child
+     * @return The parent node
+     */
+    function getParent(bytes32 _left, bytes32 _right) internal pure returns(bytes32) {
+        return keccak256(abi.encodePacked(_left, _right));
+    }
+
+    /**
+     * @notice get the n'th bit in a uint.
+     *         For instance, if exampleUint=binary(11), getNth(exampleUint, 0) == 1, getNth(2, 1) == 1
+     * @param _intVal The uint we are extracting a bit out of
+     * @param _index The index of the bit we want to extract
+     * @return The bit (1 or 0) in a uint8
+     */
+    function getNthBitFromRight(uint _intVal, uint _index) public pure returns (uint8) {
+        return uint8(_intVal >> _index & 1);
+    }
+
+    /**
+     * @notice Get the children of some parent in the tree
+     * @param _parent The parent node
+     * @return (rightChild, leftChild) -- the two children of the parent
+     */
+    function getChildren(bytes32 _parent) public view returns(bytes32, bytes32) {
+        return (tree.nodes[getLeftSiblingKey(_parent)], tree.nodes[getRightSiblingKey(_parent)]);
+    }
+
+    /**
+     * @notice Get the right sibling key. Note that these keys overwrite the first bit of the hash
+               to signify if it is on the right side of the parent or on the left
+     * @param _parent The parent node
+     * @return the key for the left sibling (0 as the first bit)
+     */
+    function getLeftSiblingKey(bytes32 _parent) public pure returns(bytes32) {
+        return _parent & 0x0111111111111111111111111111111111111111111111111111111111111111;
+    }
+
+    /**
+     * @notice Get the right sibling key. Note that these keys overwrite the first bit of the hash
+               to signify if it is on the right side of the parent or on the left
+     * @param _parent The parent node
+     * @return the key for the right sibling (1 as the first bit)
+     */
+    function getRightSiblingKey(bytes32 _parent) public pure returns(bytes32) {
+        return _parent | 0x1000000000000000000000000000000000000000000000000000000000000000;
     }
 }

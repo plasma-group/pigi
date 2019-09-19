@@ -127,21 +127,18 @@ describe('RollupMerkleUtils', () => {
     it('should verify all the nodes of trees at various heights', async () => {
       const numDifferentTrees = 5
       // Create trees of multiple sizes tree
-      for (let i = 1; i < numDifferentTrees + 1; i++) {
+      for (let blockSize = 1; blockSize < numDifferentTrees + 1; blockSize++) {
         // Create the block we'll prove inclusion for
-        const block = []
-        // Populate the block
-        for (let j = 1; j < i + 1; j++) {
-          block.push(makeRepeatedBytes('' + j, 32))
-        }
+        const block = makeRandomBlockOfSize(blockSize)
         const bufBlock = block.map((data) => hexStrToBuf(data))
+        const treeHeight = Math.ceil(Math.log2(bufBlock.length))
         // Create a local tree
         const tree = await createSMTfromDataBlocks(bufBlock)
         // Get the root
         const root: Buffer = await tree.getRootHash()
 
         // Now let's set the root in the contract
-        await rollupMerkleUtils.setMerkleRoot(bufToHexString(root))
+        await rollupMerkleUtils.setMerkleRootAndHeight(bufToHexString(root), treeHeight)
         // Now that the root is set, let's try verifying all thhe nodes
         for (let j = 0; j < block.length; j++) {
           const indexOfNode = j
@@ -170,7 +167,7 @@ describe('RollupMerkleUtils', () => {
     })
   })
 
-  describe('updateTree()', async () => {
+  describe('update()', async () => {
     it('should not throw', async () => {
       const minBlockSize = 1
       const maxBlockSize = 7
@@ -198,7 +195,7 @@ describe('RollupMerkleUtils', () => {
           const siblings = inclusionProof.siblings
             .map((sibBuf) => bufToHexString(sibBuf))
             .reverse()
-          await rollupMerkleUtils.storeMerkleProof(
+          await rollupMerkleUtils.store(
             bufToHexString(inclusionProof.value),
             path,
             siblings
@@ -216,7 +213,7 @@ describe('RollupMerkleUtils', () => {
           )
           // Extract the values we need for the proof in the form we need them
           const path = bufToHexString(inclusionProof.key.toBuffer('B', 32))
-          await rollupMerkleUtils.updateTree(
+          await rollupMerkleUtils.update(
             bufToHexString(inclusionProof.value),
             path
           )
