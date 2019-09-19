@@ -9,6 +9,12 @@ import {DataTypes as dt} from "./DataTypes.sol";
  */
 contract RollupMerkleUtils {
     bytes32[160] public defaultHashes;
+    // This struct contains a partial sparse merkle tree
+    struct SparseMerkleTree {
+        bytes32 root;
+        mapping (bytes32 => bytes) nodes;
+    }
+    SparseMerkleTree public tree;
 
     constructor() public {
         setDefaultHashes();
@@ -74,21 +80,26 @@ contract RollupMerkleUtils {
         return keccak256(abi.encodePacked(_left, _right));
     }
 
-    function getNthBitFromRight(uint self, uint8 index) public pure returns (uint8) {
-        return uint8(self >> index & 1);
+    function getNthBitFromRight(uint intVal, uint index) public pure returns (uint8) {
+        return uint8(intVal >> index & 1);
+    }
+
+    function setMerkleRoot(bytes32 _root) public {
+        tree.root = _root;
     }
 
     /**
-     * @notice Verify an inclusion proof of an arbitrary merkle tree.
+     * @notice Verify and store an inclusion proof of the SMT.
      * @param _root The root of the tree we are verifying inclusion for.
-     * @param _leaf The leaf of the tree we are verifying inclusion for.
+     * @param _dataBlock The data block we're verifying inclusion for.
      * @param _path The path from the leaf to the root.
      * @param _siblings The sibling nodes along the way.
      * @return The next level of the tree
      */
-    function verify(bytes32 _root, bytes32 _leaf, uint _path, bytes32[] memory _siblings) public pure returns (bool) {
-        bytes32 computedNode = _leaf;
-        for (uint8 i = 0; i < _siblings.length; i++) {
+    function verify(bytes32 _root, bytes memory _dataBlock, uint _path, bytes32[] memory _siblings) public pure returns (bool) {
+        // First compute the leaf node
+        bytes32 computedNode = keccak256(_dataBlock);
+        for (uint i = 0; i < _siblings.length; i++) {
             bytes32 sibling = _siblings[i];
             uint8 isComputedRightSibling = getNthBitFromRight(_path, i);
             if (isComputedRightSibling == 0) {
@@ -97,7 +108,6 @@ contract RollupMerkleUtils {
                 computedNode = parent(sibling, computedNode);
             }
         }
-
         // Check if the computed node (_root) is equal to the provided root
         return computedNode == _root;
     }
