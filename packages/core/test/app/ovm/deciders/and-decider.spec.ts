@@ -3,9 +3,11 @@ import '../../../setup'
 import {
   AndDecider,
   AndDeciderInput,
+  CannotDecideDecider,
   CannotDecideError,
+  FalseDecider,
+  TrueDecider,
 } from '../../../../src/app/ovm/deciders'
-import { CannotDecideDecider, FalseDecider, TrueDecider } from './utils'
 import { Decision } from '../../../../src/types/ovm'
 import * as assert from 'assert'
 

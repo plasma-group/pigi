@@ -2,6 +2,7 @@
 import {
   AndDecider,
   BigNumber,
+  Decider,
   Decision,
   DefaultSignatureVerifier,
   getLogger,
@@ -19,7 +20,6 @@ import {
   SignedStateReceipt,
   StateReceipt,
 } from './index'
-import { SignedByDecider } from '@pigi/core/build/src/app/ovm/deciders/signed-by-decider'
 
 const log = getLogger('rollup-ovm')
 
@@ -29,8 +29,8 @@ const log = getLogger('rollup-ovm')
 export class RollupOVM {
   constructor(
     private readonly signedByDB: SignedByDBInterface,
-    private readonly signedByDecider: SignedByDecider,
-    private readonly merkleInclusionDecider: MerkleInclusionProofDecider = new MerkleInclusionProofDecider(),
+    private readonly signedByDecider: Decider,
+    private readonly merkleInclusionDecider: Decider = new MerkleInclusionProofDecider(),
     private readonly signatureVerifier: SignatureVerifier = DefaultSignatureVerifier.instance()
   ) {}
 
@@ -69,9 +69,10 @@ export class RollupOVM {
   }
 
   /**
-   * Gets the proof that
-   * @param stateReceipt
-   * @param signer
+   * Gets the proof that the provided state receipt is valid.
+   * @param stateReceipt The State Receipt in question
+   * @param signer The Signer of the StateReceipt
+   * @returns The implication proof items of state receipt being valid, else undefined
    */
   public async getFraudProof(
     stateReceipt: StateReceipt,
@@ -82,7 +83,7 @@ export class RollupOVM {
       signer
     )
 
-    return decision ? decision.justification : undefined
+    return decision.outcome ? decision.justification : undefined
   }
 
   private async decideIfStateReceiptIsValid(
@@ -94,8 +95,8 @@ export class RollupOVM {
         {
           decider: this.signedByDecider,
           input: {
-            publicKey: signer,
-            message: abiEncodeStateReceipt(stateReceipt),
+            publicKey: Buffer.from(signer),
+            message: Buffer.from(abiEncodeStateReceipt(stateReceipt)),
           },
         },
         {
