@@ -30,8 +30,8 @@ const log = debug('test:info:merkle-utils')
 async function createSMTfromDataBlocks(
   dataBlocks: Buffer[]
 ): Promise<SparseMerkleTreeImpl> {
-  const treeHeight = Math.ceil(Math.log2(dataBlocks.length)) + 1  // The height should actually not be plus 1
-  log('Creating tree of height:', treeHeight - 1, 'But our implementation thinks its height', treeHeight)
+  const treeHeight = Math.ceil(Math.log2(dataBlocks.length)) + 1 // The height should actually not be plus 1
+  log('Creating tree of height:', treeHeight - 1)
   const tree = getNewSMT(treeHeight)
   for (let i = 0; i < dataBlocks.length; i++) {
     await tree.update(new BigNumber(i, 10), dataBlocks[i])
@@ -50,9 +50,7 @@ function getNewSMT(treeHeight: number): SparseMerkleTreeImpl {
 function makeRandomBlockOfSize(blockSize: number): string[] {
   const block = []
   for (let i = 0; i < blockSize; i++) {
-    block.push(
-      makeRepeatedBytes('' + Math.floor(Math.random() * 500 + 1), 32)
-    )
+    block.push(makeRepeatedBytes('' + Math.floor(Math.random() * 500 + 1), 32))
   }
   return block
 }
@@ -125,9 +123,14 @@ describe('RollupMerkleUtils', () => {
 
   describe('verify()', async () => {
     it('should verify all the nodes of trees at various heights', async () => {
-      const numDifferentTrees = 5
+      const maxBlockSize = 5
+      const minBlockSize = 1
       // Create trees of multiple sizes tree
-      for (let blockSize = 1; blockSize < numDifferentTrees + 1; blockSize++) {
+      for (
+        let blockSize = minBlockSize;
+        blockSize < maxBlockSize + 1;
+        blockSize++
+      ) {
         // Create the block we'll prove inclusion for
         const block = makeRandomBlockOfSize(blockSize)
         const bufBlock = block.map((data) => hexStrToBuf(data))
@@ -138,8 +141,11 @@ describe('RollupMerkleUtils', () => {
         const root: Buffer = await tree.getRootHash()
 
         // Now let's set the root in the contract
-        await rollupMerkleUtils.setMerkleRootAndHeight(bufToHexString(root), treeHeight)
-        // Now that the root is set, let's try verifying all thhe nodes
+        await rollupMerkleUtils.setMerkleRootAndHeight(
+          bufToHexString(root),
+          treeHeight
+        )
+        // Now that the root is set, let's try verifying all the nodes
         for (let j = 0; j < block.length; j++) {
           const indexOfNode = j
           // Generate an inclusion proof
@@ -168,10 +174,14 @@ describe('RollupMerkleUtils', () => {
   })
 
   describe('update()', async () => {
-    it('should not throw', async () => {
+    it('should update all nodes correctly in trees of various heights', async () => {
       const minBlockSize = 1
-      const maxBlockSize = 7
-      for (let blockSize = minBlockSize; blockSize < maxBlockSize; blockSize++) {
+      const maxBlockSize = 5
+      for (
+        let blockSize = minBlockSize;
+        blockSize < maxBlockSize;
+        blockSize++
+      ) {
         const block = makeRandomBlockOfSize(blockSize)
         const bufBlock = block.map((data) => hexStrToBuf(data))
         const treeHeight = Math.ceil(Math.log2(bufBlock.length))
@@ -205,6 +215,7 @@ describe('RollupMerkleUtils', () => {
         // Exciting! We've stored the full tree. Let's start updating everything!
         const newBlock = makeRandomBlockOfSize(blockSize)
         const newBufBlock = newBlock.map((data) => hexStrToBuf(data))
+        // For each leaf in the tree let's call update and compare the results
         for (let leafIndex = 0; leafIndex < block.length; leafIndex++) {
           await tree.update(new BigNumber(leafIndex), newBufBlock[leafIndex])
           const inclusionProof = await tree.getMerkleProof(
@@ -219,11 +230,10 @@ describe('RollupMerkleUtils', () => {
           )
           const newContractRoot = await rollupMerkleUtils.getRoot()
           const newLocalRoot: Buffer = await tree.getRootHash()
-          log('got contract', newContractRoot)
-          // Compare!
+          // Compare the updated roots! They should be equal.
           newContractRoot.should.equal(bufToHexString(newLocalRoot))
         }
       }
-    }).timeout(100000)
+    })
   })
 })
