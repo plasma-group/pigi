@@ -255,7 +255,7 @@ export class RollupAggregator extends SimpleServer {
       const { sender, amount } = signedTransaction.transaction
       // Generate the faucet txs (one sending uni the other pigi)
       const faucetTxs = await generateFaucetTxs(
-        sender,
+        sender, // original tx sender... is actually faucet fund recipient
         amount,
         this.wallet.address,
         this.signatureProvider
@@ -307,7 +307,7 @@ export class RollupAggregator extends SimpleServer {
     const receipts: SignedStateReceipt[] = []
 
     const senderReceipt: StateReceipt = {
-      leafID: stateUpdate.senderLeafID,
+      slotIndex: stateUpdate.senderSlotIndex,
       stateRoot: stateUpdate.stateRoot,
       state: stateUpdate.senderState,
       inclusionProof: stateUpdate.senderStateInclusionProof,
@@ -323,9 +323,9 @@ export class RollupAggregator extends SimpleServer {
       stateReceipt: senderReceipt,
     })
 
-    if (stateUpdate.receiverState.address !== UNISWAP_ADDRESS) {
+    if (stateUpdate.receiverState.pubKey !== UNISWAP_ADDRESS) {
       const recipientReceipt: StateReceipt = {
-        leafID: stateUpdate.receiverLeafID,
+        slotIndex: stateUpdate.receiverSlotIndex,
         stateRoot: stateUpdate.stateRoot,
         state: stateUpdate.receiverState,
         inclusionProof: stateUpdate.receiverStateInclusionProof,
@@ -364,8 +364,8 @@ export class RollupAggregator extends SimpleServer {
       const update: StateUpdate = updates[0]
       transitions.push({
         stateRoot: update.stateRoot,
-        senderLeafID: update.senderLeafID,
-        uniswapLeafID: update.receiverLeafID,
+        senderSlotIndex: update.senderSlotIndex,
+        uniswapSlotIndex: update.receiverSlotIndex,
         tokenType: transaction.transaction.tokenType,
         inputAmount: transaction.transaction.inputAmount,
         minOutputAmount: transaction.transaction.minOutputAmount,
@@ -403,14 +403,14 @@ export class RollupAggregator extends SimpleServer {
     const transfer = update.transaction.transaction as Transfer
     const transition = {
       stateRoot: update.stateRoot,
-      senderLeafID: update.senderLeafID,
-      recipientLeafID: update.receiverLeafID,
+      senderSlotIndex: update.senderSlotIndex,
+      recipientSlotIndex: update.receiverSlotIndex,
       tokenType: transfer.tokenType,
       amount: transfer.amount,
       signature: update.transaction.signature,
     }
     if (update.receiverCreated) {
-      transition['createdAccountPubkey'] = update.receiverState.address
+      transition['createdAccountPubkey'] = update.receiverState.pubKey
     }
     return transition
   }

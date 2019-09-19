@@ -115,7 +115,7 @@ describe('RollupEncoding', () => {
   describe('State', () => {
     it('should encoded & decode State without throwing', async () => {
       const state: State = {
-        address: BOB_ADDRESS,
+        pubKey: BOB_ADDRESS,
         balances: {
           [UNI_TOKEN_TYPE]: 50,
           [PIGI_TOKEN_TYPE]: 100,
@@ -132,14 +132,14 @@ describe('RollupEncoding', () => {
   describe('State Receipt', () => {
     it('should encoded & decode StateReceipt without throwing', async () => {
       const state: State = {
-        address: BOB_ADDRESS,
+        pubKey: BOB_ADDRESS,
         balances: {
           [UNI_TOKEN_TYPE]: 50,
           [PIGI_TOKEN_TYPE]: 100,
         },
       }
       const stateReceipt: StateReceipt = {
-        leafID: 0,
+        slotIndex: 0,
         stateRoot,
         inclusionProof,
         blockNumber: 1,
@@ -160,8 +160,8 @@ describe('RollupEncoding', () => {
     it('should encoded & decode Swap Transition without throwing', async () => {
       const transition: SwapTransition = {
         stateRoot,
-        senderLeafID: 2,
-        uniswapLeafID: 1,
+        senderSlotIndex: 2,
+        uniswapSlotIndex: 1,
         tokenType: 0,
         inputAmount: 10,
         minOutputAmount: 100,
@@ -178,8 +178,8 @@ describe('RollupEncoding', () => {
     it('should encoded & decode Transfer Transition without throwing', async () => {
       const transition: TransferTransition = {
         stateRoot,
-        senderLeafID: 2,
-        recipientLeafID: 1,
+        senderSlotIndex: 2,
+        recipientSlotIndex: 1,
         tokenType: 0,
         amount: 10,
         signature: 'sig',
@@ -194,8 +194,8 @@ describe('RollupEncoding', () => {
     it('should encoded & decode CreateAndTransfer Transition without throwing', async () => {
       const transition: CreateAndTransferTransition = {
         stateRoot,
-        senderLeafID: 2,
-        recipientLeafID: 1,
+        senderSlotIndex: 2,
+        recipientSlotIndex: 1,
         tokenType: 0,
         amount: 10,
         signature: 'sig',

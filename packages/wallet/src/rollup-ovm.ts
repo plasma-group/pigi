@@ -104,7 +104,7 @@ export class RollupOVM {
           input: {
             merkleProof: {
               rootHash: Buffer.from(stateReceipt.stateRoot),
-              key: new BigNumber(stateReceipt.leafID),
+              key: new BigNumber(stateReceipt.slotIndex),
               value: abiEncodeState(stateReceipt.state),
               siblings: stateReceipt.inclusionProof.map((x) => Buffer.from(x)),
             },

@@ -91,12 +91,12 @@ export const parseTransitionFromABI = (
  */
 export const parseStateFromABI = (abiEncoded: string): State => {
   log.debug(`ABI decoding State: ${serializeObject(abiEncoded)}`)
-  const [address, uniBalance, pigiBalance] = abi.decode(
+  const [pubKey, uniBalance, pigiBalance] = abi.decode(
     stateAbiTypes,
     abiEncoded
   )
   return {
-    address,
+    pubKey,
     balances: {
       [UNI_TOKEN_TYPE]: uniBalance,
       [PIGI_TOKEN_TYPE]: pigiBalance,
@@ -115,7 +115,7 @@ export const parseStateReceiptFromABI = (abiEncoded: string): StateReceipt => {
     stateRoot,
     blockNumber,
     transitionIndex,
-    leafID,
+    slotIndex,
     inclusionProof,
     state,
   ] = abi.decode(stateReceiptAbiTypes, abiEncoded)
@@ -123,7 +123,7 @@ export const parseStateReceiptFromABI = (abiEncoded: string): StateReceipt => {
     stateRoot: remove0x(stateRoot),
     blockNumber: +blockNumber,
     transitionIndex: +transitionIndex,
-    leafID,
+    slotIndex,
     inclusionProof: inclusionProof.map((hex) => remove0x(hex)),
     state: parseStateFromABI(state),
   }
@@ -207,8 +207,8 @@ const parseSwapTransitionFromABI = (abiEncoded: string): SwapTransition => {
 
   return {
     stateRoot: remove0x(stateRoot),
-    senderLeafID: senderSlot,
-    uniswapLeafID: recipientSlot,
+    senderSlotIndex: senderSlot,
+    uniswapSlotIndex: recipientSlot,
     tokenType: getTokenType(tokenType),
     inputAmount,
     minOutputAmount,
@@ -237,8 +237,8 @@ const parseTransferTransitionFromABI = (
 
   return {
     stateRoot: remove0x(stateRoot),
-    senderLeafID: senderSlot,
-    recipientLeafID: recipientSlot,
+    senderSlotIndex: senderSlot,
+    recipientSlotIndex: recipientSlot,
     tokenType: getTokenType(tokenType),
     amount,
     signature: ethers.utils.toUtf8String(signature),
@@ -267,8 +267,8 @@ const parseCreateAndTransferTransitionFromABI = (
   ] = abi.decode(createAndTransferTransitionAbiTypes, abiEncoded)
   return {
     stateRoot: remove0x(stateRoot),
-    senderLeafID: senderSlot,
-    recipientLeafID: recipientSlot,
+    senderSlotIndex: senderSlot,
+    recipientSlotIndex: recipientSlot,
     createdAccountPubkey,
     tokenType: getTokenType(tokenType),
     amount,

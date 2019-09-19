@@ -45,7 +45,7 @@ export interface SignedTransaction {
 }
 
 export interface State {
-  address: Address
+  pubKey: Address
   balances: Balances
 }
 
@@ -56,8 +56,8 @@ export interface SignatureProvider {
 export interface StateUpdate {
   transaction: SignedTransaction
   stateRoot: string
-  senderLeafID: number
-  receiverLeafID: number
+  senderSlotIndex: number
+  receiverSlotIndex: number
   senderState: State
   senderStateInclusionProof: InclusionProof
   receiverState: State
@@ -71,7 +71,7 @@ export interface RollupBlock {
 }
 
 export interface StateSnapshot {
-  leafID: number
+  slotIndex: number
   state: State
   stateRoot: string
   inclusionProof: InclusionProof
@@ -89,8 +89,8 @@ export interface SignedStateReceipt {
 
 export interface SwapTransition {
   stateRoot: string
-  senderLeafID: number
-  uniswapLeafID: number
+  senderSlotIndex: number
+  uniswapSlotIndex: number
   tokenType: number
   inputAmount: number
   minOutputAmount: number
@@ -100,8 +100,8 @@ export interface SwapTransition {
 
 export interface TransferTransition {
   stateRoot: string
-  senderLeafID: number
-  recipientLeafID: number
+  senderSlotIndex: number
+  recipientSlotIndex: number
   tokenType: number
   amount: number
   signature: string
@@ -134,7 +134,7 @@ export const isFaucetTransaction = (
 export const isSwapTransition = (
   transition: RollupTransition
 ): transition is SwapTransition => {
-  return 'uniswapLeafID' in transition
+  return 'uniswapSlotIndex' in transition
 }
 
 export const isCreateAndTransferTransition = (

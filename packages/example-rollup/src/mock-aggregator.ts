@@ -17,14 +17,14 @@ export const AGGREGATOR_MNEMONIC: string =
 /* Set the initial balances/state */
 export const genesisState: State[] = [
   {
-    address: UNISWAP_ADDRESS,
+    pubKey: UNISWAP_ADDRESS,
     balances: {
       uni: 1000,
       pigi: 1000,
     },
   },
   {
-    address: AGGREGATOR_ADDRESS,
+    pubKey: AGGREGATOR_ADDRESS,
     balances: {
       uni: 1000000,
       pigi: 1000000,

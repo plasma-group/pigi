@@ -40,7 +40,7 @@ import {
   abiEncodeTransaction,
   abiEncodeState,
   parseStateFromABI,
-  NON_EXISTENT_LEAF_ID,
+  NON_EXISTENT_SLOT_INDEX,
 } from './index'
 import {
   InsufficientBalanceError,
@@ -83,7 +83,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       const promises: Array<Promise<boolean>> = []
       for (const state of genesisState) {
         promises.push(
-          stateMachine.setAddressState(state.address, state.balances)
+          stateMachine.setAddressState(state.pubKey, state.balances)
         )
       }
       await Promise.all(promises)
@@ -133,19 +133,19 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
 
     let state: State
     let inclusionProof: InclusionProof
-    let leafID: number
+    let slotIndex: number
     if (!accountState) {
       state = undefined
       inclusionProof = undefined
-      leafID = NON_EXISTENT_LEAF_ID
+      slotIndex = NON_EXISTENT_SLOT_INDEX
     } else {
       state = this.deserializeState(accountState)
       inclusionProof = proof.siblings.map((x: Buffer) => x.toString('hex'))
-      leafID = this.getAddressKey(address).toNumber()
+      slotIndex = this.getAddressKey(address).toNumber()
     }
 
     return {
-      leafID,
+      slotIndex,
       state,
       stateRoot,
       inclusionProof,
@@ -199,13 +199,13 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
           transaction.recipient
         )
         updatedStates = await this.applyTransfer(transaction)
-        stateUpdate['receiverLeafID'] = this.getAddressKey(
+        stateUpdate['receiverSlotIndex'] = this.getAddressKey(
           transaction.recipient
         ).toNumber()
       } else if (isSwapTransaction(transaction)) {
         updatedStates = await this.applySwap(signer, transaction)
         stateUpdate['receiverCreated'] = false
-        stateUpdate['receiverLeafID'] = this.getAddressKey(
+        stateUpdate['receiverSlotIndex'] = this.getAddressKey(
           UNISWAP_ADDRESS
         ).toNumber()
       } else {
@@ -214,7 +214,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       const senderState: State = updatedStates[0]
       const receiverState: State = updatedStates[1]
 
-      stateUpdate['senderLeafID'] = this.getAddressKey(
+      stateUpdate['senderSlotIndex'] = this.getAddressKey(
         transaction.sender
       ).toNumber()
       stateUpdate['senderState'] = senderState
@@ -222,8 +222,8 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
 
       const inclusionProof = async (state: State): Promise<InclusionProof> => {
         const proof: MerkleTreeInclusionProof = await this.tree.getMerkleProof(
-          this.getAddressKey(state.address),
-          this.serializeBalances(state.address, state.balances)
+          this.getAddressKey(state.pubKey),
+          this.serializeBalances(state.pubKey, state.balances)
         )
         return proof.siblings.map((p) => p.toString('hex'))
       }
@@ -431,9 +431,9 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     return parseStateFromABI(state.toString())
   }
 
-  private getStateFromBalances(address: string, balances: Balances): State {
+  private getStateFromBalances(pubKey: string, balances: Balances): State {
     return {
-      address,
+      pubKey,
       balances,
     }
   }

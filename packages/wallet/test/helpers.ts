@@ -24,21 +24,21 @@ export const getGenesisState = (
 ): State[] => {
   return [
     {
-      address: aliceAddress,
+      pubKey: aliceAddress,
       balances: {
         [UNI_TOKEN_TYPE]: 50,
         [PIGI_TOKEN_TYPE]: 50,
       },
     },
     {
-      address: UNISWAP_ADDRESS,
+      pubKey: UNISWAP_ADDRESS,
       balances: {
         [UNI_TOKEN_TYPE]: 50,
         [PIGI_TOKEN_TYPE]: 50,
       },
     },
     {
-      address: AGGREGATOR_ADDRESS,
+      pubKey: AGGREGATOR_ADDRESS,
       balances: {
         [UNI_TOKEN_TYPE]: 1_000_000,
         [PIGI_TOKEN_TYPE]: 1_000_000,
@@ -52,21 +52,21 @@ export const getGenesisStateLargeEnoughForFees = (
 ): State[] => {
   return [
     {
-      address: aliceAddress,
+      pubKey: aliceAddress,
       balances: {
         [UNI_TOKEN_TYPE]: 5_000,
         [PIGI_TOKEN_TYPE]: 5_000,
       },
     },
     {
-      address: UNISWAP_ADDRESS,
+      pubKey: UNISWAP_ADDRESS,
       balances: {
         [UNI_TOKEN_TYPE]: 650_000,
         [PIGI_TOKEN_TYPE]: 650_000,
       },
     },
     {
-      address: AGGREGATOR_ADDRESS,
+      pubKey: AGGREGATOR_ADDRESS,
       balances: {
         [UNI_TOKEN_TYPE]: 1_000_000,
         [PIGI_TOKEN_TYPE]: 1_000_000,

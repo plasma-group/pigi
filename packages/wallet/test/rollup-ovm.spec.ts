@@ -3,7 +3,6 @@ import './setup'
 /* External Imports */
 import {
   SignedByDB,
-  SignedByDecider,
   newInMemoryDB,
   Decider,
   FalseDecider,
@@ -14,7 +13,7 @@ import {
 /* Internal Imports */
 import { InclusionProof, SignedStateReceipt } from '../src/types'
 
-import { ALICE_ADDRESS, BOB_ADDRESS } from './helpers'
+import { BOB_ADDRESS } from './helpers'
 import { RollupOVM } from '../src/rollup-ovm'
 import {
   AGGREGATOR_ADDRESS,
@@ -34,13 +33,13 @@ const falseDecider: Decider = new FalseDecider()
 const signedStateReceipt: SignedStateReceipt = {
   signature: AGGREGATOR_ADDRESS,
   stateReceipt: {
-    leafID: 4,
+    slotIndex: 4,
     stateRoot,
     inclusionProof,
     blockNumber: 1,
     transitionIndex: 2,
     state: {
-      address: BOB_ADDRESS,
+      pubKey: BOB_ADDRESS,
       balances: {
         [UNI_TOKEN_TYPE]: 10,
         [PIGI_TOKEN_TYPE]: 30,

@@ -100,7 +100,7 @@ export const abiEncodeTransition = (transition: RollupTransition): string => {
 export const abiEncodeState = (state: State): string => {
   log.debug(`ABI encoding State: ${serializeObject(state)}`)
   return abi.encode(stateAbiTypes, [
-    state.address,
+    state.pubKey,
     state.balances[UNI_TOKEN_TYPE],
     state.balances[PIGI_TOKEN_TYPE],
   ])
@@ -117,7 +117,7 @@ export const abiEncodeStateReceipt = (stateReceipt: StateReceipt): string => {
     add0x(stateReceipt.stateRoot),
     stateReceipt.blockNumber,
     stateReceipt.transitionIndex,
-    stateReceipt.leafID,
+    stateReceipt.slotIndex,
     stateReceipt.inclusionProof.map((hex) => add0x(hex)),
     abiEncodeState(stateReceipt.state),
   ])
@@ -167,8 +167,8 @@ const abiEncodeSwapTransition = (trans: SwapTransition): string => {
   log.debug(`ABI encoding SwapTransition: ${serializeObject(trans)}`)
   return abi.encode(swapTransitionAbiTypes, [
     add0x(trans.stateRoot),
-    trans.senderLeafID,
-    trans.uniswapLeafID,
+    trans.senderSlotIndex,
+    trans.uniswapSlotIndex,
     trans.tokenType,
     trans.inputAmount,
     trans.minOutputAmount,
@@ -186,8 +186,8 @@ const abiEncodeTransferTransition = (trans: TransferTransition): string => {
   log.debug(`ABI encoding TransferTransition: ${serializeObject(trans)}`)
   return abi.encode(transferTransitionAbiTypes, [
     add0x(trans.stateRoot),
-    trans.senderLeafID,
-    trans.recipientLeafID,
+    trans.senderSlotIndex,
+    trans.recipientSlotIndex,
     trans.tokenType,
     trans.amount,
     ethers.utils.toUtf8Bytes(trans.signature),
@@ -207,8 +207,8 @@ const abiEncodeCreateAndTransferTransition = (
   )
   return abi.encode(createAndTransferTransitionAbiTypes, [
     add0x(trans.stateRoot),
-    trans.senderLeafID,
-    trans.recipientLeafID,
+    trans.senderSlotIndex,
+    trans.recipientSlotIndex,
     trans.createdAccountPubkey,
     trans.tokenType,
     trans.amount,
