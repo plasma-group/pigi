@@ -20,13 +20,14 @@ import {
   SignedStateReceipt,
   StateReceipt,
 } from './index'
+import { RollupOVM } from './types/rollup-ovm.interface'
 
 const log = getLogger('rollup-ovm')
 
 /**
  * The OVM processor for UniPig-like applications
  */
-export class RollupOVM {
+export class DefaultRollupOVM implements RollupOVM {
   constructor(
     private readonly signedByDB: SignedByDBInterface,
     private readonly signedByDecider: Decider,

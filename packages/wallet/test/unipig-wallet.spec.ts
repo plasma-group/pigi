@@ -1,8 +1,7 @@
 import './setup'
 
 /* External Imports */
-import { BaseDB, SimpleServer, SimpleClient } from '@pigi/core'
-import MemDown from 'memdown'
+import { SimpleServer, SimpleClient, DB, newInMemoryDB } from '@pigi/core'
 
 /* Internal Imports */
 import {
@@ -14,32 +13,37 @@ import {
   PIGI_TOKEN_TYPE,
   EMPTY_AGGREGATOR_SIGNATURE,
   NON_EXISTENT_SLOT_INDEX,
+  StateReceipt,
+  RollupClient,
 } from '../src'
+import { DummyRollupOVM } from './helpers'
 
 /***********
  * HELPERS *
  ***********/
 
-const balances = {
-  [UNI_TOKEN_TYPE]: 5,
-  [PIGI_TOKEN_TYPE]: 10,
+const getStateReceipt = (pubKey: Address): StateReceipt => {
+  return {
+    slotIndex: NON_EXISTENT_SLOT_INDEX,
+    stateRoot: 'mocked',
+    inclusionProof: [],
+    blockNumber: 1,
+    transitionIndex: 0,
+    state: {
+      pubKey,
+      balances: {
+        [UNI_TOKEN_TYPE]: 5,
+        [PIGI_TOKEN_TYPE]: 10,
+      },
+    },
+  }
 }
 
 // A mocked getState api
 const getState = (pubKey: Address): SignedStateReceipt => {
   return {
     signature: EMPTY_AGGREGATOR_SIGNATURE,
-    stateReceipt: {
-      slotIndex: NON_EXISTENT_SLOT_INDEX,
-      stateRoot: 'mocked',
-      inclusionProof: [],
-      blockNumber: 1,
-      transitionIndex: 0,
-      state: {
-        pubKey,
-        balances,
-      },
-    },
+    stateReceipt: getStateReceipt(pubKey),
   }
 }
 
@@ -53,16 +57,18 @@ const applyTransaction = (transaction: SignedTransaction) => {
  *********/
 
 describe('UnipigWallet', async () => {
-  let db
-  let unipigWallet
-  let accountAddress
-  let aggregator
+  let unipigWallet: UnipigWallet
+  let accountAddress: Address
+  let aggregator: SimpleServer
+  let ovm: DummyRollupOVM
+  let rollupClient: RollupClient
 
   const timeout = 20_000
   beforeEach(async () => {
     // Typings for MemDown are wrong so we need to cast to `any`.
-    db = new BaseDB(new MemDown('') as any)
-    unipigWallet = new UnipigWallet(db)
+    ovm = new DummyRollupOVM()
+    rollupClient = new RollupClient(newInMemoryDB())
+    unipigWallet = new UnipigWallet(newInMemoryDB(), ovm, rollupClient)
     // Now create a wallet account
     accountAddress = await unipigWallet.createAccount('')
     // Initialize a mock aggregator
@@ -75,7 +81,7 @@ describe('UnipigWallet', async () => {
     )
     await aggregator.listen()
     // Connect to the mock aggregator
-    unipigWallet.rollup.connect(new SimpleClient('http://127.0.0.1:3000'))
+    rollupClient.connect(new SimpleClient('http://127.0.0.1:3000'))
   })
 
   afterEach(async () => {
@@ -83,10 +89,10 @@ describe('UnipigWallet', async () => {
     await aggregator.close()
   })
 
-  describe('getBalance()', () => {
+  describe('getState()', () => {
     it('should return an empty balance after initialized', async () => {
-      const result = await unipigWallet.getBalances(accountAddress)
-      result.should.deep.equal(balances)
+      const result: StateReceipt = await unipigWallet.getState(accountAddress)
+      result.should.deep.equal(getStateReceipt(accountAddress))
     }).timeout(timeout)
   })
 })

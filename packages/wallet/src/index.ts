@@ -1,5 +1,6 @@
 export * from './rollup-aggregator'
 export * from './rollup-client'
+export * from './rollup-ovm'
 export * from './rollup-state-machine'
 export * from './serialization/'
 export * from './types/'

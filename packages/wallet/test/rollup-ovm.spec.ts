@@ -11,10 +11,10 @@ import {
 } from '@pigi/core'
 
 /* Internal Imports */
-import { InclusionProof, SignedStateReceipt } from '../src/types'
+import { InclusionProof, RollupOVM, SignedStateReceipt } from '../src/types'
 
 import { BOB_ADDRESS } from './helpers'
-import { RollupOVM } from '../src/rollup-ovm'
+import { DefaultRollupOVM } from '../src/rollup-ovm'
 import {
   AGGREGATOR_ADDRESS,
   IdentityVerifier,
@@ -56,7 +56,7 @@ describe('RollupOVM', () => {
       it('should determine valid receipt is valid', async () => {
         signedByDB = new SignedByDB(newInMemoryDB())
 
-        rollupOVM = new RollupOVM(
+        rollupOVM = new DefaultRollupOVM(
           signedByDB,
           trueDecider,
           trueDecider,
@@ -75,7 +75,7 @@ describe('RollupOVM', () => {
       it('should determine invalid receipt is invalid -- signature mismatch', async () => {
         signedByDB = new SignedByDB(newInMemoryDB())
 
-        rollupOVM = new RollupOVM(
+        rollupOVM = new DefaultRollupOVM(
           signedByDB,
           falseDecider,
           trueDecider,
@@ -94,7 +94,7 @@ describe('RollupOVM', () => {
       it('should determine invalid receipt is invalid -- proof invalid', async () => {
         signedByDB = new SignedByDB(newInMemoryDB())
 
-        rollupOVM = new RollupOVM(
+        rollupOVM = new DefaultRollupOVM(
           signedByDB,
           trueDecider,
           falseDecider,
@@ -116,7 +116,7 @@ describe('RollupOVM', () => {
       it('should get valid fraud proof', async () => {
         signedByDB = new SignedByDB(newInMemoryDB())
 
-        rollupOVM = new RollupOVM(
+        rollupOVM = new DefaultRollupOVM(
           signedByDB,
           trueDecider,
           trueDecider,
@@ -137,7 +137,7 @@ describe('RollupOVM', () => {
       it('should determine invalid receipt is invalid -- signature mismatch', async () => {
         signedByDB = new SignedByDB(newInMemoryDB())
 
-        rollupOVM = new RollupOVM(
+        rollupOVM = new DefaultRollupOVM(
           signedByDB,
           falseDecider,
           trueDecider,
@@ -157,7 +157,7 @@ describe('RollupOVM', () => {
       it('should determine invalid receipt is invalid -- proof invalid', async () => {
         signedByDB = new SignedByDB(newInMemoryDB())
 
-        rollupOVM = new RollupOVM(
+        rollupOVM = new DefaultRollupOVM(
           signedByDB,
           trueDecider,
           falseDecider,
