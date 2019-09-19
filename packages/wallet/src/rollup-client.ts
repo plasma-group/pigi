@@ -112,7 +112,7 @@ export class RollupClient {
   private verifyTransactionReceipt(receipt: SignedStateReceipt): void {
     if (
       receipt.signature === EMPTY_AGGREGATOR_SIGNATURE &&
-      receipt.stateReceipt.leafID === NON_EXISTENT_LEAF_ID
+      receipt.stateReceipt.slotIndex === NON_EXISTENT_LEAF_ID
     ) {
       return
     }

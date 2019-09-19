@@ -133,19 +133,19 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
 
     let state: State
     let inclusionProof: InclusionProof
-    let leafID: number
+    let slotIndex: number
     if (!accountState) {
       state = undefined
       inclusionProof = undefined
-      leafID = NON_EXISTENT_LEAF_ID
+      slotIndex = NON_EXISTENT_LEAF_ID
     } else {
       state = this.deserializeState(accountState)
       inclusionProof = proof.siblings.map((x: Buffer) => x.toString('hex'))
-      leafID = this.getAddressKey(address).toNumber()
+      slotIndex = this.getAddressKey(address).toNumber()
     }
 
     return {
-      leafID,
+      slotIndex,
       state,
       stateRoot,
       inclusionProof,
@@ -199,13 +199,13 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
           transaction.recipient
         )
         updatedStates = await this.applyTransfer(transaction)
-        stateUpdate['receiverLeafID'] = this.getAddressKey(
+        stateUpdate['receiverSlotIndex'] = this.getAddressKey(
           transaction.recipient
         ).toNumber()
       } else if (isSwapTransaction(transaction)) {
         updatedStates = await this.applySwap(signer, transaction)
         stateUpdate['receiverCreated'] = false
-        stateUpdate['receiverLeafID'] = this.getAddressKey(
+        stateUpdate['receiverSlotIndex'] = this.getAddressKey(
           UNISWAP_ADDRESS
         ).toNumber()
       } else {
@@ -214,7 +214,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       const senderState: State = updatedStates[0]
       const receiverState: State = updatedStates[1]
 
-      stateUpdate['senderLeafID'] = this.getAddressKey(
+      stateUpdate['senderSlotIndex'] = this.getAddressKey(
         transaction.sender
       ).toNumber()
       stateUpdate['senderState'] = senderState

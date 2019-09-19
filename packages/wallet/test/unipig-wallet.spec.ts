@@ -30,7 +30,7 @@ const getState = (address: Address): SignedStateReceipt => {
   return {
     signature: EMPTY_AGGREGATOR_SIGNATURE,
     stateReceipt: {
-      leafID: NON_EXISTENT_LEAF_ID,
+      slotIndex: NON_EXISTENT_LEAF_ID,
       stateRoot: 'mocked',
       inclusionProof: [],
       blockNumber: 1,

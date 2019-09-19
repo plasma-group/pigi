@@ -139,7 +139,7 @@ describe('RollupEncoding', () => {
         },
       }
       const stateReceipt: StateReceipt = {
-        leafID: 0,
+        slotIndex: 0,
         stateRoot,
         inclusionProof,
         blockNumber: 1,
@@ -160,8 +160,8 @@ describe('RollupEncoding', () => {
     it('should encoded & decode Swap Transition without throwing', async () => {
       const transition: SwapTransition = {
         stateRoot,
-        senderLeafID: 2,
-        uniswapLeafID: 1,
+        senderSlotIndex: 2,
+        uniswapSlotIndex: 1,
         tokenType: 0,
         inputAmount: 10,
         minOutputAmount: 100,
@@ -178,8 +178,8 @@ describe('RollupEncoding', () => {
     it('should encoded & decode Transfer Transition without throwing', async () => {
       const transition: TransferTransition = {
         stateRoot,
-        senderLeafID: 2,
-        recipientLeafID: 1,
+        senderSlotIndex: 2,
+        recipientSlotIndex: 1,
         tokenType: 0,
         amount: 10,
         signature: 'sig',
@@ -194,8 +194,8 @@ describe('RollupEncoding', () => {
     it('should encoded & decode CreateAndTransfer Transition without throwing', async () => {
       const transition: CreateAndTransferTransition = {
         stateRoot,
-        senderLeafID: 2,
-        recipientLeafID: 1,
+        senderSlotIndex: 2,
+        recipientSlotIndex: 1,
         tokenType: 0,
         amount: 10,
         signature: 'sig',
