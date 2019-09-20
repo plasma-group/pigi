@@ -30,7 +30,7 @@
     "access": "public"
   },
   "devDependencies": {
-    "@pigi/prettier-config": "^0.0.2-alpha.2",
+    "@pigi/prettier-config": "latest",
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.6",
     "@types/node": "^11.11.3",
@@ -44,7 +44,7 @@
     "web3": "^1.0.0-beta.48"
   },
   "dependencies": {
-    "@pigi/core": "^0.0.1-alpha.1",
+    "@pigi/core": "latest",
     "@types/sinon-chai": "^3.2.2",
     "chai": "^4.2.0",
     "debug": "^4.1.1",
