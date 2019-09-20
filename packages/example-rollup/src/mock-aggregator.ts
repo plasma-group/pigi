@@ -5,7 +5,7 @@ import {
   State,
   UNISWAP_ADDRESS,
   AGGREGATOR_ADDRESS,
-  MockAggregator,
+  RollupAggregator,
   RollupStateMachine,
   DefaultRollupStateMachine,
 } from '@pigi/wallet'
@@ -15,20 +15,22 @@ export const AGGREGATOR_MNEMONIC: string =
   'rebel talent argue catalog maple duty file taxi dust hire funny steak'
 
 /* Set the initial balances/state */
-export const genesisState: State = {
-  [UNISWAP_ADDRESS]: {
+export const genesisState: State[] = [
+  {
+    pubKey: UNISWAP_ADDRESS,
     balances: {
       uni: 1000,
       pigi: 1000,
     },
   },
-  [AGGREGATOR_ADDRESS]: {
+  {
+    pubKey: AGGREGATOR_ADDRESS,
     balances: {
       uni: 1000000,
       pigi: 1000000,
     },
   },
-}
+]
 
 // Create a new aggregator... and then...
 const host = 'localhost'
@@ -43,7 +45,7 @@ async function runAggregator() {
     stateDB
   )
 
-  const aggregator = new MockAggregator(
+  const aggregator = new RollupAggregator(
     blockDB,
     rollupStateMachine,
     host,

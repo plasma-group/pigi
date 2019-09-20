@@ -9,12 +9,11 @@ import {
   SparseMerkleTree,
   SparseMerkleTreeImpl,
   BigNumber,
-  keccak256,
-  objectToBuffer,
-  deserializeBuffer,
   ONE,
   runInDomain,
   MerkleTreeInclusionProof,
+  ZERO,
+  getLogger,
 } from '@pigi/core'
 
 /* Internal Imports */
@@ -25,7 +24,7 @@ import {
   isSwapTransaction,
   Transfer,
   isTransferTransaction,
-  Transaction,
+  RollupTransaction,
   SignedTransaction,
   UNISWAP_ADDRESS,
   UNI_TOKEN_TYPE,
@@ -33,7 +32,15 @@ import {
   TokenType,
   State,
   StateUpdate,
-  StateInclusionProof,
+  StateSnapshot,
+  InclusionProof,
+  StateMachineCapacityError,
+  SignatureError,
+  AGGREGATOR_ADDRESS,
+  abiEncodeTransaction,
+  abiEncodeState,
+  parseStateFromABI,
+  NON_EXISTENT_LEAF_ID,
 } from './index'
 import {
   InsufficientBalanceError,
@@ -43,8 +50,15 @@ import {
   SlippageError,
 } from './types'
 
+const log = getLogger('rollup-aggregator')
+
 export class DefaultRollupStateMachine implements RollupStateMachine {
   private static readonly lockKey: string = 'lock'
+
+  private lastOpenKey: BigNumber
+  private readonly usedKeys: Set<string>
+  private readonly addressesToKeys: Map<Address, BigNumber>
+  private readonly maxAddresses: BigNumber
 
   private readonly tree: SparseMerkleTree
   private readonly lock: AsyncLock = new AsyncLock({
@@ -52,22 +66,24 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
   })
 
   public static async create(
-    genesisState: State,
+    genesisState: State[],
     db: DB,
     signatureVerifier: SignatureVerifier = DefaultSignatureVerifier.instance(),
-    swapFeeBasisPoints: number = 30
+    swapFeeBasisPoints: number = 30,
+    treeHeight: number = 32
   ): Promise<RollupStateMachine> {
     const stateMachine = new DefaultRollupStateMachine(
       db,
       signatureVerifier,
-      swapFeeBasisPoints
+      swapFeeBasisPoints,
+      treeHeight
     )
 
-    if (!!Object.keys(genesisState).length) {
+    if (!!genesisState.length) {
       const promises: Array<Promise<boolean>> = []
-      for (const key of Object.keys(genesisState)) {
+      for (const state of genesisState) {
         promises.push(
-          stateMachine.setAddressState(key, genesisState[key].balances)
+          stateMachine.setAddressState(state.pubKey, state.balances)
         )
       }
       await Promise.all(promises)
@@ -79,30 +95,66 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
   private constructor(
     db: DB,
     private readonly signatureVerifier: SignatureVerifier,
-    private swapFeeBasisPoints: number
+    private swapFeeBasisPoints: number,
+    treeHeight: number = 32
   ) {
-    this.tree = new SparseMerkleTreeImpl(db)
+    this.tree = new SparseMerkleTreeImpl(db, undefined, treeHeight)
+    this.usedKeys = new Set<string>()
+    this.lastOpenKey = ZERO
+    this.addressesToKeys = new Map<Address, BigNumber>()
+    this.maxAddresses = new BigNumber(Math.pow(2, this.tree.getHeight()) - 1)
   }
 
-  public async getBalances(account: Address): Promise<Balances> {
-    const key: BigNumber = this.getAddressKey(account)
-    const accountState: Buffer = await this.tree.getLeaf(key)
+  public async getState(address: Address): Promise<StateSnapshot> {
+    const [accountState, proof, stateRoot]: [
+      Buffer,
+      MerkleTreeInclusionProof,
+      string
+    ] = await this.lock.acquire(DefaultRollupStateMachine.lockKey, async () => {
+      const key: BigNumber = this.getAddressKey(address)
 
-    let balances: Balances
-    if (!accountState) {
-      balances = {
-        uni: 0,
-        pigi: 0,
+      if (!!key) {
+        const leaf: Buffer = await this.tree.getLeaf(key)
+        if (!!leaf) {
+          const merkleProof: MerkleTreeInclusionProof = await this.tree.getMerkleProof(
+            key,
+            leaf
+          )
+          return [leaf, merkleProof, merkleProof.rootHash.toString('hex')]
+        }
       }
+
+      return [
+        undefined,
+        undefined,
+        (await this.tree.getRootHash()).toString('hex'),
+      ]
+    })
+
+    let state: State
+    let inclusionProof: InclusionProof
+    let slotIndex: number
+    if (!accountState) {
+      state = undefined
+      inclusionProof = undefined
+      slotIndex = NON_EXISTENT_LEAF_ID
     } else {
-      balances = this.deserializeBalances(account, accountState)
+      state = this.deserializeState(accountState)
+      inclusionProof = proof.siblings.map((x: Buffer) => x.toString('hex'))
+      slotIndex = this.getAddressKey(address).toNumber()
     }
-    return balances
+
+    return {
+      slotIndex,
+      state,
+      stateRoot,
+      inclusionProof,
+    }
   }
 
   public async applyTransactions(
     transactions: SignedTransaction[]
-  ): Promise<StateUpdate> {
+  ): Promise<StateUpdate[]> {
     return runInDomain(undefined, async () => {
       return this.lock.acquire(DefaultRollupStateMachine.lockKey, async () => {
         const stateUpdates: StateUpdate[] = []
@@ -112,25 +164,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
           stateUpdates.push(await this.applyTransaction(tx))
         }
 
-        const startRoot: string = stateUpdates[0].startRoot
-        const endRoot: string = stateUpdates[stateUpdates.length - 1].endRoot
-        const updatedState: State = {}
-        const updatedStateInclusionProof: StateInclusionProof = {}
-        for (const update of stateUpdates) {
-          Object.assign(updatedState, update.updatedState)
-          Object.assign(
-            updatedStateInclusionProof,
-            update.updatedStateInclusionProof
-          )
-        }
-
-        return {
-          transactions,
-          startRoot,
-          endRoot,
-          updatedState,
-          updatedStateInclusionProof,
-        }
+        return stateUpdates
       })
     })
   }
@@ -138,92 +172,142 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
   public async applyTransaction(
     signedTransaction: SignedTransaction
   ): Promise<StateUpdate> {
-    let sender: Address
+    let signer: Address
 
-    try {
-      sender = this.signatureVerifier.verifyMessage(
-        serializeObject(signedTransaction.transaction),
-        signedTransaction.signature
+    signer = this.signatureVerifier.verifyMessage(
+      abiEncodeTransaction(signedTransaction.transaction),
+      signedTransaction.signature
+    )
+    if (
+      signer !== signedTransaction.transaction.sender &&
+      signer !== AGGREGATOR_ADDRESS
+    ) {
+      log.info(
+        `Received transaction with invalid signature: ${serializeObject(
+          signedTransaction
+        )}`
       )
-    } catch (e) {
-      throw e
+      throw new SignatureError()
     }
 
     return this.lock.acquire(DefaultRollupStateMachine.lockKey, async () => {
-      const startRoot: string = (await this.tree.getRootHash()).toString('hex')
-      const transaction: Transaction = signedTransaction.transaction
-      let updatedState: State
+      const stateUpdate = { transaction: signedTransaction }
+      const transaction: RollupTransaction = signedTransaction.transaction
+      let updatedStates: State[]
       if (isTransferTransaction(transaction)) {
-        updatedState = await this.applyTransfer(sender, transaction)
+        stateUpdate['receiverCreated'] = !this.getAddressKey(
+          transaction.recipient
+        )
+        updatedStates = await this.applyTransfer(transaction)
+        stateUpdate['receiverSlotIndex'] = this.getAddressKey(
+          transaction.recipient
+        ).toNumber()
       } else if (isSwapTransaction(transaction)) {
-        updatedState = await this.applySwap(sender, transaction)
+        updatedStates = await this.applySwap(signer, transaction)
+        stateUpdate['receiverCreated'] = false
+        stateUpdate['receiverSlotIndex'] = this.getAddressKey(
+          UNISWAP_ADDRESS
+        ).toNumber()
       } else {
         throw new InvalidTransactionTypeError()
       }
+      const senderState: State = updatedStates[0]
+      const receiverState: State = updatedStates[1]
 
-      const updatedStateInclusionProof: StateInclusionProof = {}
-      for (const key of Object.keys(updatedState)) {
+      stateUpdate['senderSlotIndex'] = this.getAddressKey(
+        transaction.sender
+      ).toNumber()
+      stateUpdate['senderState'] = senderState
+      stateUpdate['receiverState'] = receiverState
+
+      const inclusionProof = async (state: State): Promise<InclusionProof> => {
         const proof: MerkleTreeInclusionProof = await this.tree.getMerkleProof(
-          this.getAddressKey(key),
-          this.serializeBalances(key, updatedState[key].balances)
+          this.getAddressKey(state.pubKey),
+          this.serializeBalances(state.pubKey, state.balances)
         )
-        updatedStateInclusionProof[key] = proof.siblings.map((p) =>
-          p.toString('hex')
-        )
+        return proof.siblings.map((p) => p.toString('hex'))
       }
+      ;[
+        stateUpdate['senderStateInclusionProof'],
+        stateUpdate['receiverStateInclusionProof'],
+      ] = await Promise.all([
+        inclusionProof(senderState),
+        inclusionProof(receiverState),
+      ])
 
-      const endRoot: string = (await this.tree.getRootHash()).toString('hex')
-
-      return {
-        transactions: [signedTransaction],
-        startRoot,
-        endRoot,
-        updatedState,
-        updatedStateInclusionProof,
-      }
+      stateUpdate['stateRoot'] = (await this.tree.getRootHash()).toString('hex')
+      return stateUpdate
     })
+  }
+
+  private async getBalances(address: string): Promise<Balances> {
+    const key: BigNumber = this.getAddressKey(address)
+
+    if (!!key) {
+      const leaf: Buffer = await this.tree.getLeaf(key)
+      if (!!leaf) {
+        return this.deserializeState(leaf).balances
+      }
+    }
+    return { [UNI_TOKEN_TYPE]: 0, [PIGI_TOKEN_TYPE]: 0 }
   }
 
   private async setAddressState(
     address: string,
     balances: Balances
   ): Promise<boolean> {
-    const addressKey: BigNumber = this.getAddressKey(address)
+    const addressKey: BigNumber = this.getOrCreateAddressKey(address)
     const serializedBalances: Buffer = this.serializeBalances(address, balances)
 
     const result: boolean = await this.tree.update(
       addressKey,
       serializedBalances
     )
+    if (!result) {
+      log.error(
+        `ERROR UPDATING TREE, address: [${address}], key: [${addressKey}], balances: [${serializeObject(
+          balances
+        )}]`
+      )
+    } else {
+      log.debug(
+        `${address} with key ${addressKey} balance updated to ${serializeObject(
+          balances
+        )}`
+      )
+    }
 
     return result
   }
 
   private async hasBalance(
-    account: Address,
+    address: Address,
     tokenType: TokenType,
     balance: number
   ): Promise<boolean> {
     // Check that the account has more than some amount of pigi/uni
-    const balances = await this.getBalances(account)
+    const balances = await this.getBalances(address)
     return tokenType in balances && balances[tokenType] >= balance
   }
 
-  private async applyTransfer(
-    sender: Address,
-    transfer: Transfer
-  ): Promise<State> {
+  private async applyTransfer(transfer: Transfer): Promise<State[]> {
     // Make sure the amount is above zero
     if (transfer.amount < 1) {
       throw new NegativeAmountError()
     }
 
     // Check that the sender has enough money
-    if (!(await this.hasBalance(sender, transfer.tokenType, transfer.amount))) {
+    if (
+      !(await this.hasBalance(
+        transfer.sender,
+        transfer.tokenType,
+        transfer.amount
+      ))
+    ) {
       throw new InsufficientBalanceError()
     }
 
-    const senderBalances = await this.getBalances(sender)
+    const senderBalances = await this.getBalances(transfer.sender)
     const recipientBalances = await this.getBalances(transfer.recipient)
 
     // Update the balances
@@ -232,17 +316,17 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
 
     // TODO: use batch update
     await Promise.all([
-      this.setAddressState(sender, senderBalances),
+      this.setAddressState(transfer.sender, senderBalances),
       this.setAddressState(transfer.recipient, recipientBalances),
     ])
 
-    return {
-      ...this.getStateFromBalances(sender, senderBalances),
-      ...this.getStateFromBalances(transfer.recipient, recipientBalances),
-    }
+    return [
+      this.getStateFromBalances(transfer.sender, senderBalances),
+      this.getStateFromBalances(transfer.recipient, recipientBalances),
+    ]
   }
 
-  private async applySwap(sender: Address, swap: Swap): Promise<State> {
+  private async applySwap(sender: Address, swap: Swap): Promise<State[]> {
     // Make sure the amount is above zero
     if (swap.inputAmount < 1) {
       throw new NegativeAmountError()
@@ -252,7 +336,6 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       throw new InsufficientBalanceError()
     }
     // Check that we'll have ample time to include the swap
-    // TODO
 
     // Set the post swap balances
     return this.updateBalancesFromSwap(swap, sender)
@@ -261,14 +344,15 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
   private async updateBalancesFromSwap(
     swap: Swap,
     sender: Address
-  ): Promise<State> {
+  ): Promise<State[]> {
     const uniswapBalances: Balances = await this.getBalances(UNISWAP_ADDRESS)
     // First let's figure out which token types are input & output
     const inputTokenType = swap.tokenType
     const outputTokenType =
       swap.tokenType === UNI_TOKEN_TYPE ? PIGI_TOKEN_TYPE : UNI_TOKEN_TYPE
     // Next let's calculate the invariant
-    const invariant = uniswapBalances.uni * uniswapBalances.pigi
+    const invariant =
+      uniswapBalances[UNI_TOKEN_TYPE] * uniswapBalances[PIGI_TOKEN_TYPE]
     // Now calculate the total input tokens
     const totalInput =
       this.assessSwapFee(swap.inputAmount) + uniswapBalances[inputTokenType]
@@ -293,10 +377,10 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       this.setAddressState(UNISWAP_ADDRESS, uniswapBalances),
     ])
 
-    return {
-      ...this.getStateFromBalances(sender, senderBalances),
-      ...this.getStateFromBalances(UNISWAP_ADDRESS, uniswapBalances),
-    }
+    return [
+      this.getStateFromBalances(sender, senderBalances),
+      this.getStateFromBalances(UNISWAP_ADDRESS, uniswapBalances),
+    ]
   }
 
   /**
@@ -313,25 +397,44 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
   }
 
   private getAddressKey(address: string): BigNumber {
-    // TODO: This makes sure the key has all 0s for bits > tree height -- should be in merkle-tree.ts
-    const andMask: BigNumber = ONE.shiftLeft(this.tree.getHeight() - 1).sub(ONE)
-    return new BigNumber(keccak256(Buffer.from(address))).and(andMask)
+    return this.addressesToKeys.get(address)
+  }
+
+  private getOrCreateAddressKey(address: string): BigNumber {
+    const existingKey: BigNumber = this.getAddressKey(address)
+    if (!!existingKey) {
+      return existingKey
+    }
+
+    let newKey: string = this.lastOpenKey.toString()
+    while (this.usedKeys.has(newKey)) {
+      this.lastOpenKey = this.lastOpenKey.add(ONE)
+      if (this.lastOpenKey.gt(this.maxAddresses)) {
+        throw new StateMachineCapacityError()
+      }
+      newKey = this.lastOpenKey.toString()
+    }
+    this.addressesToKeys.set(address, this.lastOpenKey)
+    this.usedKeys.add(newKey)
+
+    return this.addressesToKeys.get(address)
   }
 
   private serializeBalances(address: string, balances: Balances): Buffer {
-    return objectToBuffer(this.getStateFromBalances(address, balances))
+    // TODO: Update these to deal with ABI encoding
+    return Buffer.from(
+      abiEncodeState(this.getStateFromBalances(address, balances))
+    )
   }
 
-  private deserializeBalances(address: string, state: Buffer): Balances {
-    const stateObj: State = deserializeBuffer(state)
-    return stateObj[address].balances
+  private deserializeState(state: Buffer): State {
+    return parseStateFromABI(state.toString())
   }
 
-  private getStateFromBalances(address: string, balances: Balances): State {
+  private getStateFromBalances(pubKey: string, balances: Balances): State {
     return {
-      [address]: {
-        balances,
-      },
+      pubKey,
+      balances,
     }
   }
 }
