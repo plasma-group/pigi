@@ -25,7 +25,7 @@ import {
 const log = getLogger('rollup-ovm')
 
 /**
- * The OVM processor for UniPig-like applications
+ * The State Solver. Stores state, evaluates state validity, and sends fraud proofs to L1 as necessary.
  */
 export class DefaultRollupStateSolver implements RollupStateSolver {
   constructor(
