@@ -53,17 +53,21 @@ export class UnipigTransitioner extends DefaultWallet {
   private stateSolver: RollupStateSolver
   private knownState: KnownState
 
-  public new(db: DB, myAddress: string) {
+  public static new(db: DB, myAddress: string): UnipigTransitioner {
     const signedByDB: SignedByDBInterface = new SignedByDB(db)
     const decider: SignedByDecider = new SignedByDecider(
       signedByDB,
       Buffer.from(myAddress)
     )
-    return new DefaultRollupStateSolver(
+    const stateSolver: RollupStateSolver = new DefaultRollupStateSolver(
       signedByDB,
       decider,
       new MerkleInclusionProofDecider()
     )
+
+    const rollupclient: RollupClient = new RollupClient(db)
+
+    return new UnipigTransitioner(db, stateSolver, rollupclient)
   }
 
   constructor(
