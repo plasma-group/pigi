@@ -11,12 +11,16 @@ import {
 } from '@pigi/core'
 
 /* Internal Imports */
-import { InclusionProof, RollupOVM, SignedStateReceipt } from '../src/types'
+import {
+  InclusionProof,
+  RollupStateSolver,
+  SignedStateReceipt,
+} from '../src/types'
 
 import { BOB_ADDRESS } from './helpers'
-import { DefaultRollupOVM } from '../src/rollup-ovm'
 import {
   AGGREGATOR_ADDRESS,
+  DefaultRollupStateSolver,
   IdentityVerifier,
   PIGI_TOKEN_TYPE,
   UNI_TOKEN_TYPE,
@@ -48,24 +52,24 @@ const signedStateReceipt: SignedStateReceipt = {
   },
 }
 
-describe('RollupOVM', () => {
-  let rollupOVM: RollupOVM
+describe('RollupStateSolver', () => {
+  let rollupStateSolver: RollupStateSolver
   let signedByDB: SignedByDB
   describe('Merkle Proof true decider', () => {
     describe('isStateReceiptProvablyValid', () => {
       it('should determine valid receipt is valid', async () => {
         signedByDB = new SignedByDB(newInMemoryDB())
 
-        rollupOVM = new DefaultRollupOVM(
+        rollupStateSolver = new DefaultRollupStateSolver(
           signedByDB,
           trueDecider,
           trueDecider,
           IdentityVerifier.instance()
         )
-        await rollupOVM.storeSignedStateReceipt(signedStateReceipt)
+        await rollupStateSolver.storeSignedStateReceipt(signedStateReceipt)
 
         assert(
-          await rollupOVM.isStateReceiptProvablyValid(
+          await rollupStateSolver.isStateReceiptProvablyValid(
             signedStateReceipt.stateReceipt,
             AGGREGATOR_ADDRESS
           ),
@@ -75,16 +79,16 @@ describe('RollupOVM', () => {
       it('should determine invalid receipt is invalid -- signature mismatch', async () => {
         signedByDB = new SignedByDB(newInMemoryDB())
 
-        rollupOVM = new DefaultRollupOVM(
+        rollupStateSolver = new DefaultRollupStateSolver(
           signedByDB,
           falseDecider,
           trueDecider,
           IdentityVerifier.instance()
         )
-        await rollupOVM.storeSignedStateReceipt(signedStateReceipt)
+        await rollupStateSolver.storeSignedStateReceipt(signedStateReceipt)
 
         assert(
-          !(await rollupOVM.isStateReceiptProvablyValid(
+          !(await rollupStateSolver.isStateReceiptProvablyValid(
             signedStateReceipt.stateReceipt,
             AGGREGATOR_ADDRESS
           )),
@@ -94,16 +98,16 @@ describe('RollupOVM', () => {
       it('should determine invalid receipt is invalid -- proof invalid', async () => {
         signedByDB = new SignedByDB(newInMemoryDB())
 
-        rollupOVM = new DefaultRollupOVM(
+        rollupStateSolver = new DefaultRollupStateSolver(
           signedByDB,
           trueDecider,
           falseDecider,
           IdentityVerifier.instance()
         )
-        await rollupOVM.storeSignedStateReceipt(signedStateReceipt)
+        await rollupStateSolver.storeSignedStateReceipt(signedStateReceipt)
 
         assert(
-          !(await rollupOVM.isStateReceiptProvablyValid(
+          !(await rollupStateSolver.isStateReceiptProvablyValid(
             signedStateReceipt.stateReceipt,
             AGGREGATOR_ADDRESS
           )),
@@ -116,15 +120,15 @@ describe('RollupOVM', () => {
       it('should get valid fraud proof', async () => {
         signedByDB = new SignedByDB(newInMemoryDB())
 
-        rollupOVM = new DefaultRollupOVM(
+        rollupStateSolver = new DefaultRollupStateSolver(
           signedByDB,
           trueDecider,
           trueDecider,
           IdentityVerifier.instance()
         )
-        await rollupOVM.storeSignedStateReceipt(signedStateReceipt)
+        await rollupStateSolver.storeSignedStateReceipt(signedStateReceipt)
 
-        const proof: ImplicationProofItem[] = await rollupOVM.getFraudProof(
+        const proof: ImplicationProofItem[] = await rollupStateSolver.getFraudProof(
           signedStateReceipt.stateReceipt,
           AGGREGATOR_ADDRESS
         )
@@ -137,16 +141,16 @@ describe('RollupOVM', () => {
       it('should determine invalid receipt is invalid -- signature mismatch', async () => {
         signedByDB = new SignedByDB(newInMemoryDB())
 
-        rollupOVM = new DefaultRollupOVM(
+        rollupStateSolver = new DefaultRollupStateSolver(
           signedByDB,
           falseDecider,
           trueDecider,
           IdentityVerifier.instance()
         )
-        await rollupOVM.storeSignedStateReceipt(signedStateReceipt)
+        await rollupStateSolver.storeSignedStateReceipt(signedStateReceipt)
 
         assert(
-          !(await rollupOVM.getFraudProof(
+          !(await rollupStateSolver.getFraudProof(
             signedStateReceipt.stateReceipt,
             AGGREGATOR_ADDRESS
           )),
@@ -157,16 +161,16 @@ describe('RollupOVM', () => {
       it('should determine invalid receipt is invalid -- proof invalid', async () => {
         signedByDB = new SignedByDB(newInMemoryDB())
 
-        rollupOVM = new DefaultRollupOVM(
+        rollupStateSolver = new DefaultRollupStateSolver(
           signedByDB,
           trueDecider,
           falseDecider,
           IdentityVerifier.instance()
         )
-        await rollupOVM.storeSignedStateReceipt(signedStateReceipt)
+        await rollupStateSolver.storeSignedStateReceipt(signedStateReceipt)
 
         assert(
-          !(await rollupOVM.getFraudProof(
+          !(await rollupStateSolver.getFraudProof(
             signedStateReceipt.stateReceipt,
             AGGREGATOR_ADDRESS
           )),
@@ -182,19 +186,19 @@ describe('RollupOVM', () => {
   //   beforeEach(async () => {
   //     signedByDB = new SignedByDB(newInMemoryDB())
   //
-  //     rollupOVM = new RollupOVM(
+  //     rollupStateSolver = new RollupStateSolver(
   //       signedByDB,
   //       new SignedByDecider(signedByDB, Buffer.from(BOB_ADDRESS)),
   //       trueDecider,
   //       IdentityVerifier.instance()
   //     )
-  //     await rollupOVM.storeSignedStateReceipt(signedStateReceipt)
+  //     await rollupStateSolver.storeSignedStateReceipt(signedStateReceipt)
   //   })
   //
   //   describe('isStateReceiptProvablyValid', () => {
   //     it('should determine valid receipt is valid', async () => {
   //       assert(
-  //         await rollupOVM.isStateReceiptProvablyValid(
+  //         await rollupStateSolver.isStateReceiptProvablyValid(
   //           signedStateReceipt.stateReceipt,
   //           AGGREGATOR_ADDRESS
   //         ),
@@ -203,7 +207,7 @@ describe('RollupOVM', () => {
   //     })
   //     it('should determine invalid receipt is invalid', async () => {
   //       assert(
-  //         !(await rollupOVM.isStateReceiptProvablyValid(
+  //         !(await rollupStateSolver.isStateReceiptProvablyValid(
   //           signedStateReceipt.stateReceipt,
   //           ALICE_ADDRESS
   //         )),
@@ -214,7 +218,7 @@ describe('RollupOVM', () => {
   //
   //   describe('getFraudProof', () => {
   //     it('should get valid fraud proof', async () => {
-  //       const proof: ImplicationProofItem[] = await rollupOVM.getFraudProof(
+  //       const proof: ImplicationProofItem[] = await rollupStateSolver.getFraudProof(
   //         signedStateReceipt.stateReceipt,
   //         AGGREGATOR_ADDRESS
   //       )
@@ -226,7 +230,7 @@ describe('RollupOVM', () => {
   //
   //     it('should determine invalid receipt is invalid', async () => {
   //       assert(
-  //         !(await rollupOVM.getFraudProof(
+  //         !(await rollupStateSolver.getFraudProof(
   //           signedStateReceipt.stateReceipt,
   //           ALICE_ADDRESS
   //         )),
@@ -240,19 +244,19 @@ describe('RollupOVM', () => {
   //   beforeEach(async () => {
   //     signedByDB = new SignedByDB(newInMemoryDB())
   //
-  //     rollupOVM = new RollupOVM(
+  //     rollupStateSolver = new RollupStateSolver(
   //       signedByDB,
   //       new SignedByDecider(signedByDB, Buffer.from(BOB_ADDRESS)),
   //       falseDecider,
   //       IdentityVerifier.instance()
   //     )
-  //     await rollupOVM.storeSignedStateReceipt(signedStateReceipt)
+  //     await rollupStateSolver.storeSignedStateReceipt(signedStateReceipt)
   //   })
   //
   //   describe('isStateReceiptProvablyValid', () => {
   //     it('should determine invalid receipt is invalid', async () => {
   //       assert(
-  //         !(await rollupOVM.isStateReceiptProvablyValid(
+  //         !(await rollupStateSolver.isStateReceiptProvablyValid(
   //           signedStateReceipt.stateReceipt,
   //           AGGREGATOR_ADDRESS
   //         )),
@@ -264,7 +268,7 @@ describe('RollupOVM', () => {
   //   describe('getFraudProof', () => {
   //     it('should determine invalid receipt is invalid', async () => {
   //       assert(
-  //         !(await rollupOVM.getFraudProof(
+  //         !(await rollupStateSolver.getFraudProof(
   //           signedStateReceipt.stateReceipt,
   //           AGGREGATOR_ADDRESS
   //         )),

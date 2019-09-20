@@ -21,11 +21,10 @@ import {
   FaucetRequest,
   isFaucetTransaction,
   RollupClient,
-  RollupOVM,
+  RollupStateSolver,
   RollupTransaction,
   SignatureError,
   SignedStateReceipt,
-  State,
   StateReceipt,
   Swap,
   TokenType,
@@ -33,25 +32,25 @@ import {
   UNISWAP_ADDRESS,
 } from '.'
 
-const log = getLogger('unipig-wallet')
+const log = getLogger('unipig-transitioner')
 
 interface KnownState {
   [pubKey: string]: StateReceipt
 }
 
 /*
- * The UnipigWallet class can be used to interact with the OVM and
+ * The UnipigTransitioner class can be used to interact with the OVM and
  * all the L2s under it.
  */
-export class UnipigWallet extends DefaultWallet {
+export class UnipigTransitioner extends DefaultWallet {
   private db: DB
   private rollupClient: RollupClient
-  private ovm: RollupOVM
+  private stateSolver: RollupStateSolver
   private knownState: KnownState
 
   constructor(
     db: DB,
-    ovm: RollupOVM,
+    stateSolver: RollupStateSolver,
     rollupClient: RollupClient,
     signatureVerifier: SignatureVerifier = DefaultSignatureVerifier.instance(),
     signatureProvider?: SignatureProvider
@@ -64,7 +63,7 @@ export class UnipigWallet extends DefaultWallet {
 
     // Save a reference to our db
     this.db = db
-    this.ovm = ovm
+    this.stateSolver = stateSolver
     this.knownState = {}
   }
 
@@ -87,13 +86,13 @@ export class UnipigWallet extends DefaultWallet {
       account
     )
 
-    await this.ovm.storeSignedStateReceipt(signedState)
+    await this.stateSolver.storeSignedStateReceipt(signedState)
 
     // If valid, update known state
     if (
       (account in this.knownState &&
         signedState.signature === EMPTY_AGGREGATOR_SIGNATURE) ||
-      (await this.ovm.isStateReceiptProvablyValid(
+      (await this.stateSolver.isStateReceiptProvablyValid(
         signedState.stateReceipt,
         AGGREGATOR_ADDRESS
       ))
@@ -182,7 +181,7 @@ export class UnipigWallet extends DefaultWallet {
 
     try {
       await Promise.all(
-        receipts.map((r) => this.ovm.storeSignedStateReceipt(r))
+        receipts.map((r) => this.stateSolver.storeSignedStateReceipt(r))
       )
     } catch (e) {
       logError(

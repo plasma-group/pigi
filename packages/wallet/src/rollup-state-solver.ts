@@ -17,17 +17,17 @@ import {
   abiEncodeState,
   abiEncodeStateReceipt,
   Address,
+  RollupStateSolver,
   SignedStateReceipt,
   StateReceipt,
 } from './index'
-import { RollupOVM } from './types/rollup-ovm.interface'
 
 const log = getLogger('rollup-ovm')
 
 /**
  * The OVM processor for UniPig-like applications
  */
-export class DefaultRollupOVM implements RollupOVM {
+export class DefaultRollupStateSolver implements RollupStateSolver {
   constructor(
     private readonly signedByDB: SignedByDBInterface,
     private readonly signedByDecider: Decider,

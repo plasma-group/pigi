@@ -4,10 +4,14 @@ import './setup'
 import { SimpleClient, getLogger, newInMemoryDB } from '@pigi/core'
 
 /* Internal Imports */
-import { AGGREGATOR_MNEMONIC, DummyRollupOVM, getGenesisState } from './helpers'
+import {
+  AGGREGATOR_MNEMONIC,
+  DummyRollupStateSolver,
+  getGenesisState,
+} from './helpers'
 import {
   DefaultRollupStateMachine,
-  UnipigWallet,
+  UnipigTransitioner,
   RollupAggregator,
   RollupStateMachine,
   FaucetRequest,
@@ -30,16 +34,16 @@ const testRecipientAddress = '0x7777b66b3C70137264BE7303812090EC42D85B4d'
 describe('Mock Client/Aggregator Integration', () => {
   let accountAddress: string
   let aggregator: RollupAggregator
-  let ovm: DummyRollupOVM
+  let ovm: DummyRollupStateSolver
   let rollupClient: RollupClient
-  let unipigWallet: UnipigWallet
+  let unipigWallet: UnipigTransitioner
   const walletPassword = 'Really great password'
 
   beforeEach(async function() {
     this.timeout(timeout)
-    ovm = new DummyRollupOVM()
+    ovm = new DummyRollupStateSolver()
     rollupClient = new RollupClient(newInMemoryDB())
-    unipigWallet = new UnipigWallet(newInMemoryDB(), ovm, rollupClient)
+    unipigWallet = new UnipigTransitioner(newInMemoryDB(), ovm, rollupClient)
 
     // Now create a wallet account
     accountAddress = await unipigWallet.createAccount(walletPassword)
@@ -71,7 +75,7 @@ describe('Mock Client/Aggregator Integration', () => {
     }
   })
 
-  describe('UnipigWallet', () => {
+  describe('UnipigTransitioner', () => {
     it('should be able to query the aggregators balances', async () => {
       const response = await unipigWallet.getBalances(accountAddress)
       response.should.deep.equal({

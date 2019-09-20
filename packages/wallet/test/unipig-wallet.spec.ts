@@ -5,7 +5,7 @@ import { SimpleServer, SimpleClient, DB, newInMemoryDB } from '@pigi/core'
 
 /* Internal Imports */
 import {
-  UnipigWallet,
+  UnipigTransitioner,
   Address,
   SignedTransaction,
   SignedStateReceipt,
@@ -16,7 +16,7 @@ import {
   StateReceipt,
   RollupClient,
 } from '../src'
-import { DummyRollupOVM } from './helpers'
+import { DummyRollupStateSolver } from './helpers'
 
 /***********
  * HELPERS *
@@ -56,19 +56,19 @@ const applyTransaction = (transaction: SignedTransaction) => {
  * TESTS *
  *********/
 
-describe('UnipigWallet', async () => {
-  let unipigWallet: UnipigWallet
+describe('UnipigTransitioner', async () => {
+  let unipigWallet: UnipigTransitioner
   let accountAddress: Address
   let aggregator: SimpleServer
-  let ovm: DummyRollupOVM
+  let ovm: DummyRollupStateSolver
   let rollupClient: RollupClient
 
   const timeout = 20_000
   beforeEach(async () => {
     // Typings for MemDown are wrong so we need to cast to `any`.
-    ovm = new DummyRollupOVM()
+    ovm = new DummyRollupStateSolver()
     rollupClient = new RollupClient(newInMemoryDB())
-    unipigWallet = new UnipigWallet(newInMemoryDB(), ovm, rollupClient)
+    unipigWallet = new UnipigTransitioner(newInMemoryDB(), ovm, rollupClient)
     // Now create a wallet account
     accountAddress = await unipigWallet.createAccount('')
     // Initialize a mock aggregator

@@ -9,11 +9,11 @@ import {
 import {
   UNI_TOKEN_TYPE,
   PIGI_TOKEN_TYPE,
-  UnipigWallet,
-  DefaultRollupOVM,
-  RollupOVM,
+  UnipigTransitioner,
   RollupClient,
   Balances,
+  RollupStateSolver,
+  DefaultRollupStateSolver,
 } from '@pigi/wallet'
 import { ethers } from 'ethers'
 
@@ -65,9 +65,16 @@ const signedByDecider: SignedByDecider = new SignedByDecider(
   signedByDB,
   Buffer.from(wallet.address)
 )
-const ovm: RollupOVM = new DefaultRollupOVM(signedByDB, signedByDecider)
+const rollupStateSolver: RollupStateSolver = new DefaultRollupStateSolver(
+  signedByDB,
+  signedByDecider
+)
 const rollupClient: RollupClient = new RollupClient(newInMemoryDB())
-const unipigWallet = new UnipigWallet(newInMemoryDB(), ovm, rollupClient)
+const unipigWallet = new UnipigTransitioner(
+  newInMemoryDB(),
+  rollupStateSolver,
+  rollupClient
+)
 // Now create a wallet account
 
 // Connect to the mock aggregator

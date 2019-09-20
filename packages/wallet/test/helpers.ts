@@ -6,7 +6,7 @@ import * as assert from 'assert'
 import {
   AGGREGATOR_ADDRESS,
   PIGI_TOKEN_TYPE,
-  RollupOVM,
+  RollupStateSolver,
   SignedStateReceipt,
   State,
   StateReceipt,
@@ -143,7 +143,7 @@ export const assertThrowsAsync = async (
   )
 }
 
-export class DummyRollupOVM implements RollupOVM {
+export class DummyRollupStateSolver implements RollupStateSolver {
   private validityResult: boolean = true
   private fraudProof: ImplicationProofItem[]
   private storeErrorToThrow: Error
