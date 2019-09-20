@@ -10,6 +10,10 @@ import {
   getLogger,
   serializeObject,
   logError,
+  SignedByDBInterface,
+  SignedByDB,
+  SignedByDecider,
+  MerkleInclusionProofDecider,
 } from '@pigi/core'
 
 /* Internal Imports */
@@ -17,6 +21,7 @@ import {
   Address,
   AGGREGATOR_ADDRESS,
   Balances,
+  DefaultRollupStateSolver,
   EMPTY_AGGREGATOR_SIGNATURE,
   FaucetRequest,
   isFaucetTransaction,
@@ -47,6 +52,19 @@ export class UnipigTransitioner extends DefaultWallet {
   private rollupClient: RollupClient
   private stateSolver: RollupStateSolver
   private knownState: KnownState
+
+  public new(db: DB, myAddress: string) {
+    const signedByDB: SignedByDBInterface = new SignedByDB(db)
+    const decider: SignedByDecider = new SignedByDecider(
+      signedByDB,
+      Buffer.from(myAddress)
+    )
+    return new DefaultRollupStateSolver(
+      signedByDB,
+      decider,
+      new MerkleInclusionProofDecider()
+    )
+  }
 
   constructor(
     db: DB,
