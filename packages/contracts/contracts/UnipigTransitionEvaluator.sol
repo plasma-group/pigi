@@ -88,20 +88,20 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
         if (transitionType == CREATE_AND_TRANSFER_TYPE) {
             dt.CreateAndTransferTransition memory transition = decodeCreateAndTransferTransition(rawTransition);
             stateRoot = transition.stateRoot;
-            storageSlots[0] = transition.senderSlot;
-            storageSlots[1] = transition.recipientSlot;
+            storageSlots[0] = transition.senderSlotIndex;
+            storageSlots[1] = transition.recipientSlotIndex;
         }
         if (transitionType == TRANSFER_TYPE) {
             dt.TransferTransition memory transition = decodeTransferTransition(rawTransition);
             stateRoot = transition.stateRoot;
-            storageSlots[0] = transition.senderSlot;
-            storageSlots[1] = transition.recipientSlot;
+            storageSlots[0] = transition.senderSlotIndex;
+            storageSlots[1] = transition.recipientSlotIndex;
         }
         if (transitionType == SWAP_TYPE) {
             dt.SwapTransition memory transition = decodeSwapTransition(rawTransition);
             stateRoot = transition.stateRoot;
-            storageSlots[0] = transition.senderSlot;
-            storageSlots[1] = transition.recipientSlot;
+            storageSlots[0] = transition.senderSlotIndex;
+            storageSlots[1] = transition.uniswapSlotIndex;
         }
         return (stateRoot, storageSlots);
     }
@@ -134,8 +134,8 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
         // Next create a transferTransition based on this createAndTransferTransition
         dt.TransferTransition memory transferTransition = dt.TransferTransition(
             _transition.stateRoot,
-            _transition.senderSlot,
-            _transition.recipientSlot,
+            _transition.senderSlotIndex,
+            _transition.recipientSlotIndex,
             _transition.tokenType,
             _transition.amount,
             _transition.signature
@@ -258,8 +258,8 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
      function decodeCreateAndTransferTransition(bytes memory _rawBytes) internal pure returns(dt.CreateAndTransferTransition memory) {
          (
              bytes32 stateRoot,
-             uint32 senderSlot,
-             uint32 recipientSlot,
+             uint32 senderSlotIndex,
+             uint32 recipientSlotIndex,
              address createdAccountPubkey,
              uint tokenType,
              uint32 amount,
@@ -267,8 +267,8 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
          ) = abi.decode((_rawBytes), (bytes32, uint32, uint32, address, uint, uint32, bytes));
          dt.CreateAndTransferTransition memory transition = dt.CreateAndTransferTransition(
              stateRoot,
-             senderSlot,
-             recipientSlot,
+             senderSlotIndex,
+             recipientSlotIndex,
              createdAccountPubkey,
              tokenType,
              amount,
@@ -284,16 +284,16 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
      function decodeTransferTransition(bytes memory _rawBytes) internal pure returns(dt.TransferTransition memory) {
          (
              bytes32 stateRoot,
-             uint32 senderSlot,
-             uint32 recipientSlot,
+             uint32 senderSlotIndex,
+             uint32 recipientSlotIndex,
              uint tokenType,
              uint32 amount,
              bytes memory signature
          ) = abi.decode((_rawBytes), (bytes32, uint32, uint32, uint, uint32, bytes));
          dt.TransferTransition memory transition = dt.TransferTransition(
              stateRoot,
-             senderSlot,
-             recipientSlot,
+             senderSlotIndex,
+             recipientSlotIndex,
              tokenType,
              amount,
              signature
@@ -308,8 +308,8 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
      function decodeSwapTransition(bytes memory _rawBytes) internal pure returns(dt.SwapTransition memory) {
          (
              bytes32 stateRoot,
-             uint32 senderSlot,
-             uint32 recipientSlot,
+             uint32 senderSlotIndex,
+             uint32 uniswapSlotIndex,
              uint tokenType,
              uint32 inputAmount,
              uint32 minOutputAmount,
@@ -318,8 +318,8 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
          ) = abi.decode((_rawBytes), (bytes32, uint32, uint32, uint, uint32, uint32, uint, bytes));
          dt.SwapTransition memory transition = dt.SwapTransition(
              stateRoot,
-             senderSlot,
-             recipientSlot,
+             senderSlotIndex,
+             uniswapSlotIndex,
              tokenType,
              inputAmount,
              minOutputAmount,

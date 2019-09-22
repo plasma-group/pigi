@@ -36,10 +36,13 @@ import {
   hexStrToBuf,
   bufToHexString,
   BigNumber,
-  AbiCreateAndTransferTransition,
-  AbiTransferTransition,
-  AbiSwapTransition,
 } from '@pigi/core'
+import {
+  SwapTransition,
+  TransferTransition,
+  CreateAndTransferTransition,
+  abiEncodeTransition,
+} from '@pigi/wallet'
 
 /* Logging */
 import debug from 'debug'
@@ -257,26 +260,26 @@ describe('RollupChain', () => {
     it('should not throw', async () => {
       const expectedSlots = [5, 10]
       // Create two transfer transitions
-      const transferTransitions = [
-        new AbiTransferTransition(
-          getStateRoot('ab'),
-          expectedSlots[0],
-          expectedSlots[1],
-          0,
-          1,
-          getSignature('42')
-        ),
-        new AbiTransferTransition(
-          getStateRoot('cd'),
-          expectedSlots[0],
-          expectedSlots[1],
-          0,
-          1,
-          getSignature('42')
-        ),
+      const transferTransitions: TransferTransition[] = [
+        {
+          stateRoot: getStateRoot('ab'),
+          senderSlotIndex: expectedSlots[0],
+          recipientSlotIndex: expectedSlots[1],
+          tokenType: 0,
+          amount: 1,
+          signature: getSignature('42'),
+        },
+        {
+          stateRoot: getStateRoot('ab'),
+          senderSlotIndex: expectedSlots[0],
+          recipientSlotIndex: expectedSlots[1],
+          tokenType: 0,
+          amount: 1,
+          signature: getSignature('42'),
+        },
       ]
       const transferTransitionsEncoded = transferTransitions.map(
-        (transition) => transition.encoded
+        (transition) => abiEncodeTransition(transition)
       )
 
       // Create a rollup block
@@ -288,8 +291,8 @@ describe('RollupChain', () => {
       ]
       // Call the function!
       const res = await rollupChain.getStateRootsAndStorageSlots(
-        transferTransitions[0].encoded,
-        transferTransitions[1].encoded
+        transferTransitionsEncoded[0],
+        transferTransitionsEncoded[1]
       )
       // Did not throw... success!
     })
@@ -303,26 +306,26 @@ describe('RollupChain', () => {
     it('should not throw', async () => {
       const storageSlots = [5, 10]
       // Create two transfer transitions
-      const transferTransitions = [
-        new AbiTransferTransition(
-          getStateRoot('ab'),
-          storageSlots[0],
-          storageSlots[1],
-          0,
-          1,
-          getSignature('42')
-        ),
-        new AbiTransferTransition(
-          getStateRoot('cd'),
-          storageSlots[0],
-          storageSlots[1],
-          0,
-          1,
-          getSignature('42')
-        ),
+      const transferTransitions: TransferTransition[] = [
+        {
+          stateRoot: getStateRoot('ab'),
+          senderSlotIndex: storageSlots[0],
+          recipientSlotIndex: storageSlots[1],
+          tokenType: 0,
+          amount: 1,
+          signature: getSignature('42'),
+        },
+        {
+          stateRoot: getStateRoot('ab'),
+          senderSlotIndex: storageSlots[0],
+          recipientSlotIndex: storageSlots[1],
+          tokenType: 0,
+          amount: 1,
+          signature: getSignature('42'),
+        },
       ]
       const transferTransitionsEncoded = transferTransitions.map(
-        (transition) => transition.encoded
+        (transition) => abiEncodeTransition(transition)
       )
 
       // Create a rollup block

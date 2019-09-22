@@ -35,8 +35,8 @@ contract DataTypes {
     /*** Transitions ***/
     struct CreateAndTransferTransition {
         bytes32 stateRoot;
-        uint32 senderSlot;
-        uint32 recipientSlot;
+        uint32 senderSlotIndex;
+        uint32 recipientSlotIndex;
         address createdAccountPubkey;
         uint tokenType;
         uint32 amount;
@@ -45,8 +45,8 @@ contract DataTypes {
 
     struct TransferTransition {
         bytes32 stateRoot;
-        uint32 senderSlot;
-        uint32 recipientSlot;
+        uint32 senderSlotIndex;
+        uint32 recipientSlotIndex;
         uint tokenType;
         uint32 amount;
         bytes signature;
@@ -54,8 +54,8 @@ contract DataTypes {
 
     struct SwapTransition {
         bytes32 stateRoot;
-        uint32 senderSlot;
-        uint32 recipientSlot;
+        uint32 senderSlotIndex;
+        uint32 uniswapSlotIndex;
         uint tokenType;
         uint32 inputAmount;
         uint32 minOutputAmount;
