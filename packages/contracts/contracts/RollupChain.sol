@@ -21,6 +21,8 @@ contract RollupChain {
     uint NEW_ACCOUNT_TRANSFER_TYPE = 0;
     uint STORED_ACCOUNT_TRANSFER_TYPE = 1;
     uint SWAP_TYPE = 2;
+    // State tree height
+    uint STATE_TREE_HEIGHT = 32;
 
     /* Events */
     event DecodedTransition(
@@ -73,8 +75,8 @@ contract RollupChain {
      */
     function verifyAndStoreStorageSlotInclusionProof(dt.IncludedStorageSlot memory _includedStorageSlot) private {
         // partialState.verifyAndStore(
+        //     _includedStorageSlot.storageSlot.value,
         //     uint(_includedStorageSlot.storageSlot.slotIndex),
-        //     getStorageHash(_includedStorageSlot.storageSlot.value),
         //     _includedStorageSlot.siblings
         // );
     }
@@ -152,6 +154,7 @@ contract RollupChain {
 
         /********* #4: STORE_STORAGE_INCLUSION_PROOFS *********/
         // Now verify and store the storage inclusion proofs
+        merkleUtils.setMerkleRootAndHeight(preStateRoot, STATE_TREE_HEIGHT);
         for (uint i = 0; i < _transitionStorageSlots.length; i++) {
             verifyAndStoreStorageSlotInclusionProof(_transitionStorageSlots[i]);
         }
@@ -253,13 +256,9 @@ contract RollupChain {
     /**
      * Get the hash of the storage value.
      */
-    function getStorageHash(dt.Storage memory _storage) public view returns(bytes32) {
-        // If the storage is empty, we return all zeros
-        if (_storage.balances[0] == 0 && _storage.balances[1] == 0) {
-            return ZERO_BYTES32;
-        }
+    function getStorageBytes(dt.Storage memory _storage) public view returns(bytes memory) {
         // Here we don't use `abi.encode([struct])` because it's not clear
         // how to generate that encoding client-side.
-        return keccak256(abi.encode(_storage.balances[0], _storage.balances[1]));
+        return abi.encode(_storage.pubkey, _storage.balances[0], _storage.balances[1]);
     }
 }

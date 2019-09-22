@@ -363,7 +363,7 @@ describe('RollupChain', () => {
           signature: getSignature('42'),
         },
         {
-          stateRoot: getStateRoot('ab'),
+          stateRoot: getStateRoot('cd'),
           senderSlotIndex: storageSlots[0],
           recipientSlotIndex: storageSlots[1],
           tokenType: 0,
