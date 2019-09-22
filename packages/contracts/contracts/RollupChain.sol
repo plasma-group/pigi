@@ -233,26 +233,20 @@ contract RollupChain {
      * Check to see if a transition was indeed included.
      */
     function checkTransitionInclusion(dt.IncludedTransition memory _includedTransition) public view returns(bool) {
-        // bytes32 rootHash = blocks[_includedTransition.inclusionProof.blockNumber].rootHash;
-        // bytes32 transitionHash = getTransitionHash(_includedTransition.transition);
-        // bool isIncluded =  SparseMerkleTreeLib.verify(
-        //     rootHash,
-        //     transitionHash,
-        //     _includedTransition.inclusionProof.transitionIndex,
-        //     _includedTransition.inclusionProof.siblings
-        // );
-        // return isIncluded;
-
-        // TODO: Actually check inclusion. Mock this until we build an SMT inclusion proof checker.
-        return true;
+        bytes32 rootHash = blocks[_includedTransition.inclusionProof.blockNumber].rootHash;
+        bool isIncluded =  merkleUtils.verify(
+            rootHash,
+            _includedTransition.transition,
+            _includedTransition.inclusionProof.transitionIndex,
+            _includedTransition.inclusionProof.siblings
+        );
+        return isIncluded;
     }
 
     /**
      * Get the hash of the transition.
      */
     function getTransitionHash(bytes memory _transition) public pure returns(bytes32) {
-        // Here we don't use `abi.encode([struct])` because it's not clear
-        // how to generate that encoding client-side.
         return keccak256(_transition);
     }
 
