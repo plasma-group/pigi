@@ -125,7 +125,7 @@ contract RollupMerkleUtils {
      * @param _path The path from the leaf to the root / the index of the leaf.
      * @param _siblings The sibling nodes along the way.
      */
-    function storeAndVerify(bytes memory _dataBlock, uint _path, bytes32[] memory _siblings) public {
+    function verifyAndStore(bytes memory _dataBlock, uint _path, bytes32[] memory _siblings) public {
         bytes32 oldRoot = tree.root;
         store(_dataBlock, _path, _siblings);
         require(tree.root == oldRoot, "Failed same root verification check! This was an inclusion proof for a different tree!");

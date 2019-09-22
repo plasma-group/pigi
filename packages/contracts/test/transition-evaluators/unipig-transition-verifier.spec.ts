@@ -53,7 +53,7 @@ import * as UnipigTransitionEvaluator from '../../build/UnipigTransitionEvaluato
 import * as SparseMerkleTreeLib from '../../build/SparseMerkleTreeLib.json'
 
 /* Begin tests */
-describe.only('UnipigTransitionEvaluator', () => {
+describe('UnipigTransitionEvaluator', () => {
   const provider = createMockProvider()
   const [wallet1] = getWallets(provider)
   let unipigEvaluator

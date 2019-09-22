@@ -3,13 +3,16 @@ pragma experimental ABIEncoderV2;
 
 /* Internal Imports */
 import {DataTypes as dt} from "./DataTypes.sol";
-import {SparseMerkleTreeLib} from "./SparseMerkleTreeLib.sol";
+import {RollupMerkleUtils} from "./RollupMerkleUtils.sol";
 import {TransitionEvaluator} from "./TransitionEvaluator.sol";
 
 contract RollupChain {
     /* Fields */
     // The Evaluator for our STF
     TransitionEvaluator transitionEvaluator;
+    // The Rollup Merkle Tree library (currently a contract for ease of testing)
+    RollupMerkleUtils merkleUtils;
+    // All the blocks!
     dt.Block[] public blocks;
     bytes32 public ZERO_BYTES32 = 0x0000000000000000000000000000000000000000000000000000000000000000;
     bytes32[3] private FAILED_TX_OUTPUT = [ZERO_BYTES32, ZERO_BYTES32, ZERO_BYTES32];
@@ -25,15 +28,12 @@ contract RollupChain {
         bytes returnData
     );
 
-    /* We need to keep a tree in storage which we will use for proving invalid transitions */
-    using SparseMerkleTreeLib for SparseMerkleTreeLib.SparseMerkleTree;
-    SparseMerkleTreeLib.SparseMerkleTree partialState;
-
     /***************
      * Constructor *
      **************/
-    constructor(address _transitionEvaluatorAddress) public {
+    constructor(address _transitionEvaluatorAddress, address _rollupMerkleUtilsAddress) public {
         transitionEvaluator = TransitionEvaluator(_transitionEvaluatorAddress);
+        merkleUtils = RollupMerkleUtils(_rollupMerkleUtilsAddress);
     }
 
     /* Methods */
@@ -51,8 +51,8 @@ contract RollupChain {
     /**
      * Submits a new block which is then rolled up.
      */
-    function submitBlock(bytes[] memory _block) public returns(bytes32) {
-        bytes32 root = SparseMerkleTreeLib.getMerkleRoot(_block);
+    function submitBlock(bytes[] calldata _block) external returns(bytes32) {
+        bytes32 root = merkleUtils.getMerkleRoot(_block);
         dt.Block memory rollupBlock = dt.Block({
             rootHash: root,
             blockSize: _block.length
@@ -72,11 +72,11 @@ contract RollupChain {
      * to be what the sparse merkle tree expects.
      */
     function verifyAndStoreStorageSlotInclusionProof(dt.IncludedStorageSlot memory _includedStorageSlot) private {
-        partialState.verifyAndStore(
-            uint(_includedStorageSlot.storageSlot.slotIndex),
-            getStorageHash(_includedStorageSlot.storageSlot.value),
-            _includedStorageSlot.siblings
-        );
+        // partialState.verifyAndStore(
+        //     uint(_includedStorageSlot.storageSlot.slotIndex),
+        //     getStorageHash(_includedStorageSlot.storageSlot.value),
+        //     _includedStorageSlot.siblings
+        // );
     }
 
     function getStateRootsAndStorageSlots(
@@ -179,12 +179,12 @@ contract RollupChain {
         /********* #6: UPDATE_STATE_ROOT *********/
         // Now we need to check if the state root is incorrect, to do this we first insert the new leaf values
         for (uint i = 0; i < _transitionStorageSlots.length; i++) {
-            partialState.update(_transitionStorageSlots[i].storageSlot.slotIndex, outputs[i]);
+            // partialState.update(_transitionStorageSlots[i].storageSlot.slotIndex, outputs[i]);
         }
 
         /********* #7: COMPARE_STATE_ROOTS *********/
         // Check if the calculated state root equals what we expect
-        if (postStateRoot != partialState.root) {
+        if (postStateRoot != merkleUtils.getRoot()) {
             // Prune the block because we found an invalid post state root! Cryptoeconomic validity ftw!
             pruneBlocksAfter(_invalidIncludedTransition.inclusionProof.blockNumber);
             return;

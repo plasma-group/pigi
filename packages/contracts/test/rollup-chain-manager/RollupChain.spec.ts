@@ -51,14 +51,14 @@ const log = debug('test:info:rollup-chain-manager')
 /* Contract Imports */
 import * as RollupChain from '../../build/RollupChain.json'
 import * as UnipigTransitionEvaluator from '../../build/UnipigTransitionEvaluator.json'
-import * as SparseMerkleTreeLib from '../../build/SparseMerkleTreeLib.json'
+import * as RollupMerkleUtils from '../../build/RollupMerkleUtils.json'
 
 /* Begin tests */
 describe('RollupChain', () => {
   const provider = createMockProvider()
   const [wallet1] = getWallets(provider)
   let rollupChain
-  let sparseMerkleTree
+  let rollupMerkleUtils
   let unipigEvaluator
   let rollupCtLogFilter
 
@@ -72,16 +72,9 @@ describe('RollupChain', () => {
         gasLimit: 6700000,
       }
     )
-    sparseMerkleTree = await deployContract(wallet1, SparseMerkleTreeLib, [], {
+    rollupMerkleUtils = await deployContract(wallet1, RollupMerkleUtils, [], {
       gasLimit: 6700000,
     })
-    // Link attaches the library to the RollupChain contract.
-    link(
-      RollupChain,
-      // NOTE: This path is in relation to `waffle-config.json`
-      'contracts/SparseMerkleTreeLib.sol:SparseMerkleTreeLib',
-      sparseMerkleTree.address
-    )
   })
 
   /* Deploy a new RollupChain before each test */
@@ -89,7 +82,7 @@ describe('RollupChain', () => {
     rollupChain = await deployContract(
       wallet1,
       RollupChain,
-      [unipigEvaluator.address],
+      [unipigEvaluator.address, rollupMerkleUtils.address],
       {
         gasLimit: 6700000,
       }
@@ -109,6 +102,57 @@ describe('RollupChain', () => {
       await rollupChain.submitBlock(['0x1234', '0x1234'])
       // Did not throw... success!
     })
+
+    it('should process blocks many transitions', async () => {
+      // The number of transitions in our block
+      const numTransitions = 50
+
+      await rollupChain.submitBlock(['0x1234', '0x1234'])
+      // Create a block with many transitions
+      const createAndTransfer: CreateAndTransferTransition = {
+        stateRoot: getStateRoot('ab'),
+        senderSlotIndex: 2,
+        recipientSlotIndex: 2,
+        createdAccountPubkey: getAddress('01'),
+        tokenType: 0,
+        amount: 1,
+        signature: getSignature('01'),
+      }
+      const transfer: TransferTransition = {
+        stateRoot: getStateRoot('ab'),
+        senderSlotIndex: 2,
+        recipientSlotIndex: 2,
+        tokenType: 0,
+        amount: 1,
+        signature: getSignature('01'),
+      }
+      const swap: SwapTransition = {
+        stateRoot: getStateRoot('cd'),
+        senderSlotIndex: 2,
+        uniswapSlotIndex: 2,
+        tokenType: 1,
+        inputAmount: 1,
+        minOutputAmount: 3,
+        timeout: 6,
+        signature: getSignature('0'),
+      }
+      // Encode!
+      const encoded = [
+        abiEncodeTransition(createAndTransfer),
+        abiEncodeTransition(transfer),
+        abiEncodeTransition(swap),
+      ]
+      // Now lets build tons of these txs!!!
+      const fullCallData = []
+      for (let i = 0; i < numTransitions; i++) {
+        fullCallData.push(encoded[Math.floor(Math.random() * encoded.length)])
+      }
+      // Add the block, creating the sparse merkle tree!
+      const result = await rollupChain.submitBlock(fullCallData)
+      // If desired, log the result to check the gas usage
+      // log(result)
+      // Did not throw... success!
+    }).timeout(3000)
   })
 
   /*
