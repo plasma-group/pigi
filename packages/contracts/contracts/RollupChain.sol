@@ -29,6 +29,9 @@ contract RollupChain {
         bool success,
         bytes returnData
     );
+    event NewRollupBlock(
+        bytes[] block
+    );
 
     /***************
      * Constructor *
@@ -60,6 +63,8 @@ contract RollupChain {
             blockSize: _block.length
         });
         blocks.push(rollupBlock);
+        // NOTE: Toggle the event if you'd like easier historical block queries
+        // emit NewRollupBlock(_block);
         return root;
     }
 

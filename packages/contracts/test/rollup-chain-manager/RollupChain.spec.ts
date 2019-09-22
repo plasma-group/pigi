@@ -112,10 +112,10 @@ describe('RollupChain', () => {
         stateRoot: getStateRoot('ab'),
         senderSlotIndex: 2,
         recipientSlotIndex: 2,
-        createdAccountPubkey: getAddress('01'),
+        createdAccountPubkey: getAddress('11'),
         tokenType: 0,
         amount: 1,
-        signature: getSignature('01'),
+        signature: getSignature('0ad1'),
       }
       const transfer: TransferTransition = {
         stateRoot: getStateRoot('ab'),
@@ -123,17 +123,17 @@ describe('RollupChain', () => {
         recipientSlotIndex: 2,
         tokenType: 0,
         amount: 1,
-        signature: getSignature('01'),
+        signature: getSignature('ab10'),
       }
       const swap: SwapTransition = {
         stateRoot: getStateRoot('cd'),
         senderSlotIndex: 2,
-        uniswapSlotIndex: 2,
+        uniswapSlotIndex: 0,
         tokenType: 1,
         inputAmount: 1,
         minOutputAmount: 3,
         timeout: 6,
-        signature: getSignature('0'),
+        signature: getSignature('1301'),
       }
       // Encode!
       const encoded = [
@@ -385,6 +385,9 @@ describe('RollupChain', () => {
         await block.getIncludedTransition(0),
         await block.getIncludedTransition(1),
       ]
+      // TODO: Create a state tree & actually use valid inclusion proofs for the state tree.
+      // Then we can check the result
+      // const stateTree = ........
       // Create two included storage slots
       const includedStorageSlots = [
         {
