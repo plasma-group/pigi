@@ -45,6 +45,7 @@
   },
   "dependencies": {
     "@pigi/core": "latest",
+    "@pigi/wallet": "^0.0.1-alpha.1",
     "@types/sinon-chai": "^3.2.2",
     "chai": "^4.2.0",
     "debug": "^4.1.1",

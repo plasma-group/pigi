@@ -278,8 +278,8 @@ describe('RollupChain', () => {
           signature: getSignature('42'),
         },
       ]
-      const transferTransitionsEncoded = transferTransitions.map(
-        (transition) => abiEncodeTransition(transition)
+      const transferTransitionsEncoded = transferTransitions.map((transition) =>
+        abiEncodeTransition(transition)
       )
 
       // Create a rollup block
@@ -324,8 +324,8 @@ describe('RollupChain', () => {
           signature: getSignature('42'),
         },
       ]
-      const transferTransitionsEncoded = transferTransitions.map(
-        (transition) => abiEncodeTransition(transition)
+      const transferTransitionsEncoded = transferTransitions.map((transition) =>
+        abiEncodeTransition(transition)
       )
 
       // Create a rollup block

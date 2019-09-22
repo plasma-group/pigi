@@ -273,10 +273,10 @@ describe.only('UnipigTransitionEvaluator', () => {
         signature: getSignature('9'),
       }
       // Attempt to apply the transaction
-      const res = await unipigEvaluator.applyTransferTransition(
-        transition,
-        [senderStorageSlot, recipientStorageSlot]
-      )
+      const res = await unipigEvaluator.applyTransferTransition(transition, [
+        senderStorageSlot,
+        recipientStorageSlot,
+      ])
       // Check the sender's balance decremented
       res[0].balances.should.deep.equal([995, 1000])
       // Check the recipient's balance incremented
@@ -319,10 +319,10 @@ describe.only('UnipigTransitionEvaluator', () => {
       }
       try {
         // Attempt to apply the transaction
-        const res = await unipigEvaluator.applyTransferTransition(
-          transition,
-          [senderStorageSlot, recipientStorageSlot]
-        )
+        const res = await unipigEvaluator.applyTransferTransition(transition, [
+          senderStorageSlot,
+          recipientStorageSlot,
+        ])
       } catch (err) {
         // Success!
         return
