@@ -2,10 +2,8 @@ import '../setup'
 
 /* Internal Imports */
 import {
-  RollupMerkleTree,
   Transition,
   generateNTransitions,
-  RollupBlock,
   makeRepeatedBytes,
   makePaddedBytes,
   makePaddedUint,
@@ -29,7 +27,6 @@ import {
   link,
   getWallets,
 } from 'ethereum-waffle'
-import { MerkleTree } from 'merkletreejs'
 import {
   keccak256,
   abi,
