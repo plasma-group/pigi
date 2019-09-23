@@ -37,8 +37,7 @@ contract RollupMerkleUtils {
      */
     function setDefaultHashes() private {
         // Set the initial default hash.
-        // TODO: Replace this hardcoded bytes value with keccak256(0x000...000) or similar.
-        defaultHashes[0] = 0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563;
+        defaultHashes[0] = keccak256(abi.encodePacked(uint(0)));
         for (uint i = 1; i < defaultHashes.length; i ++) {
             defaultHashes[i] = keccak256(abi.encodePacked(defaultHashes[i-1], defaultHashes[i-1]));
         }

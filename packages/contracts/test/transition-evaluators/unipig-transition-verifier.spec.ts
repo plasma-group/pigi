@@ -47,7 +47,6 @@ const log = debug('test:info:unipig-transition-evaluator')
 
 /* Contract Imports */
 import * as UnipigTransitionEvaluator from '../../build/UnipigTransitionEvaluator.json'
-import * as SparseMerkleTreeLib from '../../build/SparseMerkleTreeLib.json'
 
 /* Begin tests */
 describe('UnipigTransitionEvaluator', () => {

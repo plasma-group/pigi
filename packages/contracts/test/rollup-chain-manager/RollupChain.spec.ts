@@ -28,13 +28,15 @@ import {
   link,
   getWallets,
 } from 'ethereum-waffle'
-import { MerkleTree } from 'merkletreejs'
+import MemDown from 'memdown'
 import {
   keccak256,
   abi,
   hexStrToBuf,
   bufToHexString,
   BigNumber,
+  BaseDB,
+  SparseMerkleTreeImpl,
 } from '@pigi/core'
 import {
   SwapTransition,
@@ -98,8 +100,7 @@ describe('RollupChain', () => {
    */
   describe('submitBlock() ', async () => {
     it('should not throw as long as it gets a bytes array (even if its invalid)', async () => {
-      await rollupChain.submitBlock(['0x1234', '0x1234'])
-      // Did not throw... success!
+      await rollupChain.submitBlock(['0x1234', '0x1234']) // Did not throw... success!
     })
 
     it('should process blocks many transitions', async () => {
@@ -349,7 +350,7 @@ describe('RollupChain', () => {
    * Test proveTransitionInvalid()
    * Currently skipping this because we don't have the right tools to generate this cleanly.
    */
-  describe('proveTransitionInvalid() ', async () => {
+  describe.skip('proveTransitionInvalid() ', async () => {
     it('should not throw', async () => {
       const storageSlots = [5, 10]
       // Create two transfer transitions
@@ -387,7 +388,9 @@ describe('RollupChain', () => {
       ]
       // TODO: Create a state tree & actually use valid inclusion proofs for the state tree.
       // Then we can check the result
-      // const stateTree = ........
+      const treeHeight = 32 // Default tree height
+      log('Creating tree of height:', treeHeight)
+      const tree = new SparseMerkleTreeImpl(new BaseDB(new MemDown('') as any, 256), undefined, treeHeight + 1)
       // Create two included storage slots
       const includedStorageSlots = [
         {

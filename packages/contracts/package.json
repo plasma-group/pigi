@@ -44,7 +44,7 @@
     "web3": "^1.0.0-beta.48"
   },
   "dependencies": {
-    "@pigi/core": "latest",
+    "@pigi/core": "^0.0.1-alpha.1",
     "@pigi/wallet": "^0.0.1-alpha.1",
     "@types/sinon-chai": "^3.2.2",
     "chai": "^4.2.0",

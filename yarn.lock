@@ -846,31 +846,6 @@
   resolved "https://registry.yarnpkg.com/@pigi/core/-/core-0.0.1-alpha.1.tgz#09afa39eedd6d988a8a24173c4f01a060c8d1e3b"
   integrity sha512-OggIZxHB5ZApeT3s14GIiqzZolzA+8UVk2Y1J0sRDyPW55G+Bc+OzcmXGhQeKLHslT54K1Y5DhW+YyrE9z/utg==
 
-"@pigi/core@latest":
-  version "0.0.14"
-  resolved "https://registry.yarnpkg.com/@pigi/core/-/core-0.0.14.tgz#a92b95a52c62f8f2c8c89e84bb7d67c49c1e66a5"
-  integrity sha512-eHff5AEcsf6NBrLCcLeYBRdZ95h5XfDQdbilsB2fQgV4OR3lYK/JKMe2uSwQdV31dZ04z2JzH4DsLOYxBuk8Rg==
-  dependencies:
-    abstract-leveldown "^6.0.3"
-    async-mutex "^0.1.3"
-    axios "^0.19.0"
-    bn.js "^4.11.8"
-    body-parser "^1.19.0"
-    chai "^4.2.0"
-    chai-as-promised "^7.1.1"
-    debug "^4.1.1"
-    eth-lib "^0.2.8"
-    ethers "^4.0.30"
-    express "^4.17.1"
-    ganache-cli "^6.4.4"
-    jayson "^3.0.2"
-    level "^5.0.1"
-    memdown "^4.0.0"
-    ts-md5 "^1.2.4"
-    uuid "^3.3.2"
-    web3 "^1.0.0-beta.55"
-    web3-utils "^1.0.0-beta.55"
-
 "@pigi/prettier-config@latest":
   version "0.0.14"
   resolved "https://registry.yarnpkg.com/@pigi/prettier-config/-/prettier-config-0.0.14.tgz#51352cd61c0e47ac8badf7a209d144d67577bcfd"
