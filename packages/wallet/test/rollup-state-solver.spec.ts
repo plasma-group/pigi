@@ -8,6 +8,8 @@ import {
   FalseDecider,
   TrueDecider,
   ImplicationProofItem,
+  IdentityVerifier,
+  SignedByDecider,
 } from '@pigi/core'
 
 /* Internal Imports */
@@ -21,7 +23,6 @@ import { BOB_ADDRESS } from './helpers'
 import {
   AGGREGATOR_ADDRESS,
   DefaultRollupStateSolver,
-  IdentityVerifier,
   PIGI_TOKEN_TYPE,
   UNI_TOKEN_TYPE,
 } from '../src'
@@ -58,13 +59,15 @@ describe('RollupStateSolver', () => {
   describe('Merkle Proof true decider', () => {
     describe('isStateReceiptProvablyValid', () => {
       it('should determine valid receipt is valid', async () => {
-        signedByDB = new SignedByDB(newInMemoryDB())
+        signedByDB = new SignedByDB(
+          newInMemoryDB(),
+          IdentityVerifier.instance()
+        )
 
         rollupStateSolver = new DefaultRollupStateSolver(
           signedByDB,
           trueDecider,
-          trueDecider,
-          IdentityVerifier.instance()
+          trueDecider
         )
         await rollupStateSolver.storeSignedStateReceipt(signedStateReceipt)
 
@@ -77,13 +80,15 @@ describe('RollupStateSolver', () => {
         )
       })
       it('should determine invalid receipt is invalid -- signature mismatch', async () => {
-        signedByDB = new SignedByDB(newInMemoryDB())
+        signedByDB = new SignedByDB(
+          newInMemoryDB(),
+          IdentityVerifier.instance()
+        )
 
         rollupStateSolver = new DefaultRollupStateSolver(
           signedByDB,
           falseDecider,
-          trueDecider,
-          IdentityVerifier.instance()
+          trueDecider
         )
         await rollupStateSolver.storeSignedStateReceipt(signedStateReceipt)
 
@@ -96,13 +101,15 @@ describe('RollupStateSolver', () => {
         )
       })
       it('should determine invalid receipt is invalid -- proof invalid', async () => {
-        signedByDB = new SignedByDB(newInMemoryDB())
+        signedByDB = new SignedByDB(
+          newInMemoryDB(),
+          IdentityVerifier.instance()
+        )
 
         rollupStateSolver = new DefaultRollupStateSolver(
           signedByDB,
           trueDecider,
-          falseDecider,
-          IdentityVerifier.instance()
+          falseDecider
         )
         await rollupStateSolver.storeSignedStateReceipt(signedStateReceipt)
 
@@ -118,13 +125,15 @@ describe('RollupStateSolver', () => {
 
     describe('getFraudProof', () => {
       it('should get valid fraud proof', async () => {
-        signedByDB = new SignedByDB(newInMemoryDB())
+        signedByDB = new SignedByDB(
+          newInMemoryDB(),
+          IdentityVerifier.instance()
+        )
 
         rollupStateSolver = new DefaultRollupStateSolver(
           signedByDB,
           trueDecider,
-          trueDecider,
-          IdentityVerifier.instance()
+          trueDecider
         )
         await rollupStateSolver.storeSignedStateReceipt(signedStateReceipt)
 
@@ -139,13 +148,15 @@ describe('RollupStateSolver', () => {
       })
 
       it('should determine invalid receipt is invalid -- signature mismatch', async () => {
-        signedByDB = new SignedByDB(newInMemoryDB())
+        signedByDB = new SignedByDB(
+          newInMemoryDB(),
+          IdentityVerifier.instance()
+        )
 
         rollupStateSolver = new DefaultRollupStateSolver(
           signedByDB,
           falseDecider,
-          trueDecider,
-          IdentityVerifier.instance()
+          trueDecider
         )
         await rollupStateSolver.storeSignedStateReceipt(signedStateReceipt)
 
@@ -159,13 +170,15 @@ describe('RollupStateSolver', () => {
       })
 
       it('should determine invalid receipt is invalid -- proof invalid', async () => {
-        signedByDB = new SignedByDB(newInMemoryDB())
+        signedByDB = new SignedByDB(
+          newInMemoryDB(),
+          IdentityVerifier.instance()
+        )
 
         rollupStateSolver = new DefaultRollupStateSolver(
           signedByDB,
           trueDecider,
-          falseDecider,
-          IdentityVerifier.instance()
+          falseDecider
         )
         await rollupStateSolver.storeSignedStateReceipt(signedStateReceipt)
 
@@ -179,102 +192,4 @@ describe('RollupStateSolver', () => {
       })
     })
   })
-
-  // TODO: For when signed by decider works with signature verification
-
-  // describe('Merkle Proof true decider', () => {
-  //   beforeEach(async () => {
-  //     signedByDB = new SignedByDB(newInMemoryDB())
-  //
-  //     rollupStateSolver = new RollupStateSolver(
-  //       signedByDB,
-  //       new SignedByDecider(signedByDB, Buffer.from(BOB_ADDRESS)),
-  //       trueDecider,
-  //       IdentityVerifier.instance()
-  //     )
-  //     await rollupStateSolver.storeSignedStateReceipt(signedStateReceipt)
-  //   })
-  //
-  //   describe('isStateReceiptProvablyValid', () => {
-  //     it('should determine valid receipt is valid', async () => {
-  //       assert(
-  //         await rollupStateSolver.isStateReceiptProvablyValid(
-  //           signedStateReceipt.stateReceipt,
-  //           AGGREGATOR_ADDRESS
-  //         ),
-  //         'State Receipt should be provably valid'
-  //       )
-  //     })
-  //     it('should determine invalid receipt is invalid', async () => {
-  //       assert(
-  //         !(await rollupStateSolver.isStateReceiptProvablyValid(
-  //           signedStateReceipt.stateReceipt,
-  //           ALICE_ADDRESS
-  //         )),
-  //         'State Receipt should be provably invalid because signature should not match'
-  //       )
-  //     })
-  //   })
-  //
-  //   describe('getFraudProof', () => {
-  //     it('should get valid fraud proof', async () => {
-  //       const proof: ImplicationProofItem[] = await rollupStateSolver.getFraudProof(
-  //         signedStateReceipt.stateReceipt,
-  //         AGGREGATOR_ADDRESS
-  //       )
-  //       assert(
-  //         proof && proof.length == 3,
-  //         'Fraud proof should contain 3 elements for And, SignedBy, and MerkleInclusionProof Deciders'
-  //       )
-  //     })
-  //
-  //     it('should determine invalid receipt is invalid', async () => {
-  //       assert(
-  //         !(await rollupStateSolver.getFraudProof(
-  //           signedStateReceipt.stateReceipt,
-  //           ALICE_ADDRESS
-  //         )),
-  //         'Fraud proof should be undefined because signature should not match'
-  //       )
-  //     })
-  //   })
-  // })
-  //
-  // describe('Merkle Proof false decider', () => {
-  //   beforeEach(async () => {
-  //     signedByDB = new SignedByDB(newInMemoryDB())
-  //
-  //     rollupStateSolver = new RollupStateSolver(
-  //       signedByDB,
-  //       new SignedByDecider(signedByDB, Buffer.from(BOB_ADDRESS)),
-  //       falseDecider,
-  //       IdentityVerifier.instance()
-  //     )
-  //     await rollupStateSolver.storeSignedStateReceipt(signedStateReceipt)
-  //   })
-  //
-  //   describe('isStateReceiptProvablyValid', () => {
-  //     it('should determine invalid receipt is invalid', async () => {
-  //       assert(
-  //         !(await rollupStateSolver.isStateReceiptProvablyValid(
-  //           signedStateReceipt.stateReceipt,
-  //           AGGREGATOR_ADDRESS
-  //         )),
-  //         'State Receipt should be provably invalid because merkle proof should not be valid'
-  //       )
-  //     })
-  //   })
-  //
-  //   describe('getFraudProof', () => {
-  //     it('should determine invalid receipt is invalid', async () => {
-  //       assert(
-  //         !(await rollupStateSolver.getFraudProof(
-  //           signedStateReceipt.stateReceipt,
-  //           AGGREGATOR_ADDRESS
-  //         )),
-  //         'Fraud proof should be undefined because merkle proof should not be valid'
-  //       )
-  //     })
-  //   })
-  // })
 })
