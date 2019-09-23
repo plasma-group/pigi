@@ -43,7 +43,9 @@ export class RollupBlock {
 
   constructor(transitions: RollupTransition[], blockNumber: number) {
     this.transitions = transitions
-    this.encodedTransitions = transitions.map((transition) => abiEncodeTransition(transition))
+    this.encodedTransitions = transitions.map((transition) =>
+      abiEncodeTransition(transition)
+    )
     this.blockNumber = blockNumber
   }
 
@@ -56,11 +58,16 @@ export class RollupBlock {
       treeHeight
     )
     for (let i = 0; i < this.encodedTransitions.length; i++) {
-      await this.tree.update(new BigNumber(i, 10), hexStrToBuf(this.encodedTransitions[i]))
+      await this.tree.update(
+        new BigNumber(i, 10),
+        hexStrToBuf(this.encodedTransitions[i])
+      )
     }
   }
 
-  public async getIncludedTransition(transitionIndex: number): Promise<IncludedTransition> {
+  public async getIncludedTransition(
+    transitionIndex: number
+  ): Promise<IncludedTransition> {
     const inclusionProof = await this.getInclusionProof(transitionIndex)
     return {
       transition: this.encodedTransitions[transitionIndex],
@@ -68,7 +75,9 @@ export class RollupBlock {
     }
   }
 
-  public async getInclusionProof(transitionIndex: number): Promise<TransitionInclusionProof> {
+  public async getInclusionProof(
+    transitionIndex: number
+  ): Promise<TransitionInclusionProof> {
     const blockInclusion = await this.tree.getMerkleProof(
       new BigNumber(transitionIndex),
       hexStrToBuf(this.encodedTransitions[transitionIndex])

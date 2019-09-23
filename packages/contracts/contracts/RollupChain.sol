@@ -16,7 +16,6 @@ contract RollupChain {
     dt.Block[] public blocks;
     bytes32 public ZERO_BYTES32 = 0x0000000000000000000000000000000000000000000000000000000000000000;
     bytes32[3] private FAILED_TX_OUTPUT = [ZERO_BYTES32, ZERO_BYTES32, ZERO_BYTES32];
-    bool public halted = false;
     // Tx types
     uint NEW_ACCOUNT_TRANSFER_TYPE = 0;
     uint STORED_ACCOUNT_TRANSFER_TYPE = 1;
@@ -42,15 +41,10 @@ contract RollupChain {
     }
 
     /* Methods */
-    function isHalted() public view returns(bool) {
-        return halted;
-    }
-
     function pruneBlocksAfter(uint blockNumber) internal {
         for (uint i = blockNumber; i < blocks.length; i++) {
             delete blocks[i];
         }
-        halted = true;
     }
 
     /**
@@ -122,7 +116,7 @@ contract RollupChain {
     }
 
     /**
-     * Checks if a transition is invalid and if it is records it & halts
+     * Checks if a transition is invalid and if it is prunes that block and it's children from the chain
      * the chain.
      */
     function proveTransitionInvalid(

@@ -1,9 +1,6 @@
 /* Imports */
 import { keccak256, abi, hexStrToBuf, bufToHexString } from '@pigi/core'
-import {
-  RollupTransition,
-  TransferTransition,
-} from '@pigi/wallet'
+import { RollupTransition, TransferTransition } from '@pigi/wallet'
 
 /* Export files */
 export * from './RollupBlock'
@@ -50,7 +47,9 @@ export function makePaddedUint(value: string, length: number): string {
 export type Transition = string
 
 // Generates some number of dummy transitions
-export function generateNTransitions(numTransitions: number): RollupTransition[] {
+export function generateNTransitions(
+  numTransitions: number
+): RollupTransition[] {
   const transitions = []
   for (let i = 0; i < numTransitions; i++) {
     const transfer: TransferTransition = {

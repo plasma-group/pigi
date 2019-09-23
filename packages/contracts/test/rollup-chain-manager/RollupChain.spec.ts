@@ -169,7 +169,9 @@ describe('RollupChain', () => {
         new RollupBlock(generateNTransitions(10), 0),
         new RollupBlock(generateNTransitions(10), 1),
       ]
-      for(const block of blocks) { await block.generateTree() }
+      for (const block of blocks) {
+        await block.generateTree()
+      }
       // Submit the blocks
       await rollupChain.submitBlock(blocks[0].encodedTransitions)
       await rollupChain.submitBlock(blocks[1].encodedTransitions)
@@ -209,7 +211,9 @@ describe('RollupChain', () => {
       it('should NOT throw if the transitions are last of prev block & first of next block', async () => {
         const includedTransitions = [
           // Last transition of the first block
-          await blocks[0].getIncludedTransition(blocks[0].transitions.length - 1),
+          await blocks[0].getIncludedTransition(
+            blocks[0].transitions.length - 1
+          ),
           // First transition of the next block
           await blocks[1].getIncludedTransition(0),
         ]
@@ -356,9 +360,12 @@ describe('RollupChain', () => {
       const sentAmount = 5
       const storageSlots = [5, 10]
       const pubkeys = [getAddress('11'), getAddress('22')]
-      const balances = [{'0': 10, '1': 20}, {'0': 100, '1': 200}]
+      const balances = [{ '0': 10, '1': 20 }, { '0': 100, '1': 200 }]
       // Post balances after a send of 5 uni
-      const postBalances = [{'0': 10 - sentAmount, '1': 20}, {'0': 100 + sentAmount, '1': 200}]
+      const postBalances = [
+        { '0': 10 - sentAmount, '1': 20 },
+        { '0': 100 + sentAmount, '1': 200 },
+      ]
       const stateBalancesToContractBalances = (bal) => [bal['0'], bal['1']]
 
       // 1) Create a state tree with our prestate, and get the prestate inclusion proofs
@@ -367,20 +374,27 @@ describe('RollupChain', () => {
       const preStateObjects: State[] = [
         {
           pubKey: pubkeys[0],
-          balances: balances[0]
+          balances: balances[0],
         },
         {
           pubKey: pubkeys[1],
-          balances: balances[1]
-        }
+          balances: balances[1],
+        },
       ]
       const encodedPreStates = preStateObjects.map((obj) => abiEncodeState(obj))
       // Create the state tree
       const treeHeight = 32 // Default tree height
-      const stateTree = new SparseMerkleTreeImpl(new BaseDB(new MemDown('') as any, 256), undefined, treeHeight + 1)
+      const stateTree = new SparseMerkleTreeImpl(
+        new BaseDB(new MemDown('') as any, 256),
+        undefined,
+        treeHeight + 1
+      )
       // Store the state objects
       for (let i = 0; i < preStateObjects.length; i++) {
-        await stateTree.update(new BigNumber(storageSlots[i]), hexStrToBuf(encodedPreStates[i]))
+        await stateTree.update(
+          new BigNumber(storageSlots[i]),
+          hexStrToBuf(encodedPreStates[i])
+        )
       }
       // Store the pre state root
       const preStateRoot = bufToHexString(await stateTree.getRootHash())
@@ -392,7 +406,11 @@ describe('RollupChain', () => {
           hexStrToBuf(encodedPreStates[i])
         )
         // Here we're storing the siblings in the format we need them!
-        siblings.push(inclusionProof.siblings.map((sibBuf) => bufToHexString(sibBuf)).reverse())
+        siblings.push(
+          inclusionProof.siblings
+            .map((sibBuf) => bufToHexString(sibBuf))
+            .reverse()
+        )
       }
 
       // 2) Update our state objects (send some money) and get our postStateRoot
@@ -402,7 +420,10 @@ describe('RollupChain', () => {
       })
       // Update the tree
       for (let i = 0; i < preStateObjects.length; i++) {
-        await stateTree.update(new BigNumber(storageSlots[i]), hexStrToBuf(abiEncodeState(postStateObjects[i])))
+        await stateTree.update(
+          new BigNumber(storageSlots[i]),
+          hexStrToBuf(abiEncodeState(postStateObjects[i]))
+        )
       }
       // Store the post state root
       const postStateRoot = bufToHexString(await stateTree.getRootHash())
@@ -427,10 +448,10 @@ describe('RollupChain', () => {
           signature: getSignature('42'),
         },
       ]
-       // Encode them!
-       const transferTransitionsEncoded = transferTransitions.map((transition) =>
-         abiEncodeTransition(transition)
-       )
+      // Encode them!
+      const transferTransitionsEncoded = transferTransitions.map((transition) =>
+        abiEncodeTransition(transition)
+      )
 
       // 4) Create a rollup block with our two transitions
       //
@@ -481,7 +502,9 @@ describe('RollupChain', () => {
         // Success we threw an error!
         return
       }
-      throw new Error('Expected no fraud to be detected & therefore an error to be thrown!')
-    }).timeout(5000)
+      throw new Error(
+        'Expected no fraud to be detected & therefore an error to be thrown!'
+      )
+    }).timeout(8000)
   })
 })
