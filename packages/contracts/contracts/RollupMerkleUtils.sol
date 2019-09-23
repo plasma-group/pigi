@@ -119,6 +119,16 @@ contract RollupMerkleUtils {
     }
 
     /**
+     * @notice Update the stored tree / root with a particular leaf hash at some path (no siblings needed)
+     * @param _leaf The leaf we're storing/verifying
+     * @param _path The path from the leaf to the root / the index of the leaf.
+     */
+    function updateLeaf(bytes32 _leaf, uint _path) public {
+        bytes32[] memory siblings = getSiblings(_path);
+        storeLeaf(_leaf, _path, siblings);
+    }
+
+    /**
      * @notice Store a particular merkle proof & verify that the root did not change.
      * @param _dataBlock The data block we're storing/verifying
      * @param _path The path from the leaf to the root / the index of the leaf.
@@ -130,16 +140,27 @@ contract RollupMerkleUtils {
         require(tree.root == oldRoot, "Failed same root verification check! This was an inclusion proof for a different tree!");
     }
 
-
     /**
-     * @notice Store a particular leaf & intermediate nodes in the tree
+     * @notice Store a particular dataBlock & its intermediate nodes in the tree
      * @param _dataBlock The data block we're storing.
      * @param _path The path from the leaf to the root / the index of the leaf.
      * @param _siblings The sibling nodes along the way.
      */
     function store(bytes memory _dataBlock, uint _path, bytes32[] memory _siblings) public {
+        // Compute the leaf node & store the leaf
+        bytes32 leaf = keccak256(_dataBlock);
+        storeLeaf(leaf, _path, _siblings);
+    }
+
+    /**
+     * @notice Store a particular leaf hash & its intermediate nodes in the tree
+     * @param _leaf The leaf we're storing.
+     * @param _path The path from the leaf to the root / the index of the leaf.
+     * @param _siblings The sibling nodes along the way.
+     */
+    function storeLeaf(bytes32 _leaf, uint _path, bytes32[] memory _siblings) public {
         // First compute the leaf node
-        bytes32 computedNode = keccak256(_dataBlock);
+        bytes32 computedNode = _leaf;
         for (uint i = 0; i < _siblings.length; i++) {
             bytes32 parent;
             bytes32 sibling = _siblings[i];

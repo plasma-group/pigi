@@ -188,7 +188,7 @@ contract RollupChain {
         /********* #6: UPDATE_STATE_ROOT *********/
         // Now we need to check if the state root is incorrect, to do this we first insert the new leaf values
         for (uint i = 0; i < _transitionStorageSlots.length; i++) {
-            // partialState.update(_transitionStorageSlots[i].storageSlot.slotIndex, outputs[i]);
+            merkleUtils.updateLeaf(outputs[i], _transitionStorageSlots[i].storageSlot.slotIndex);
         }
 
         /********* #7: COMPARE_STATE_ROOTS *********/

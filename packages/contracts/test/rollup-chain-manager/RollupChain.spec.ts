@@ -43,6 +43,8 @@ import {
   TransferTransition,
   CreateAndTransferTransition,
   abiEncodeTransition,
+  State,
+  abiEncodeState,
 } from '@pigi/wallet'
 
 /* Logging */
@@ -348,15 +350,68 @@ describe('RollupChain', () => {
 
   /*
    * Test proveTransitionInvalid()
-   * Currently skipping this because we don't have the right tools to generate this cleanly.
    */
-  describe.skip('proveTransitionInvalid() ', async () => {
-    it('should not throw', async () => {
+  describe('proveTransitionInvalid() ', async () => {
+    it('should throw if attempting to prove invalid a valid transition', async () => {
+      const sentAmount = 5
       const storageSlots = [5, 10]
-      // Create two transfer transitions
+      const pubkeys = [getAddress('11'), getAddress('22')]
+      const balances = [{'0': 10, '1': 20}, {'0': 100, '1': 200}]
+      // Post balances after a send of 5 uni
+      const postBalances = [{'0': 10 - sentAmount, '1': 20}, {'0': 100 + sentAmount, '1': 200}]
+      const stateBalancesToContractBalances = (bal) => [bal['0'], bal['1']]
+
+      // 1) Create a state tree with our prestate, and get the prestate inclusion proofs
+      //
+      // Create the two state objects
+      const preStateObjects: State[] = [
+        {
+          pubKey: pubkeys[0],
+          balances: balances[0]
+        },
+        {
+          pubKey: pubkeys[1],
+          balances: balances[1]
+        }
+      ]
+      const encodedPreStates = preStateObjects.map((obj) => abiEncodeState(obj))
+      // Create the state tree
+      const treeHeight = 32 // Default tree height
+      const stateTree = new SparseMerkleTreeImpl(new BaseDB(new MemDown('') as any, 256), undefined, treeHeight + 1)
+      // Store the state objects
+      for (let i = 0; i < preStateObjects.length; i++) {
+        await stateTree.update(new BigNumber(storageSlots[i]), hexStrToBuf(encodedPreStates[i]))
+      }
+      // Store the pre state root
+      const preStateRoot = bufToHexString(await stateTree.getRootHash())
+      // Generate and store the inclusion proof siblings
+      const siblings = []
+      for (let i = 0; i < preStateObjects.length; i++) {
+        const inclusionProof = await stateTree.getMerkleProof(
+          new BigNumber(storageSlots[i]),
+          hexStrToBuf(encodedPreStates[i])
+        )
+        // Here we're storing the siblings in the format we need them!
+        siblings.push(inclusionProof.siblings.map((sibBuf) => bufToHexString(sibBuf)).reverse())
+      }
+
+      // 2) Update our state objects (send some money) and get our postStateRoot
+      //
+      const postStateObjects = preStateObjects.map((obj, index) => {
+        return { pubKey: obj.pubKey, balances: postBalances[index] }
+      })
+      // Update the tree
+      for (let i = 0; i < preStateObjects.length; i++) {
+        await stateTree.update(new BigNumber(storageSlots[i]), hexStrToBuf(abiEncodeState(postStateObjects[i])))
+      }
+      // Store the post state root
+      const postStateRoot = bufToHexString(await stateTree.getRootHash())
+
+      // 3) Create transfer transitions
+      //
       const transferTransitions: TransferTransition[] = [
         {
-          stateRoot: getStateRoot('ab'),
+          stateRoot: preStateRoot,
           senderSlotIndex: storageSlots[0],
           recipientSlotIndex: storageSlots[1],
           tokenType: 0,
@@ -364,19 +419,21 @@ describe('RollupChain', () => {
           signature: getSignature('42'),
         },
         {
-          stateRoot: getStateRoot('cd'),
+          stateRoot: postStateRoot,
           senderSlotIndex: storageSlots[0],
           recipientSlotIndex: storageSlots[1],
           tokenType: 0,
-          amount: 1,
+          amount: sentAmount,
           signature: getSignature('42'),
         },
       ]
-      const transferTransitionsEncoded = transferTransitions.map((transition) =>
-        abiEncodeTransition(transition)
-      )
+       // Encode them!
+       const transferTransitionsEncoded = transferTransitions.map((transition) =>
+         abiEncodeTransition(transition)
+       )
 
-      // Create a rollup block
+      // 4) Create a rollup block with our two transitions
+      //
       const block = new RollupBlock(transferTransitions, 0)
       await block.generateTree()
       // Submit the rollup block
@@ -386,41 +443,45 @@ describe('RollupChain', () => {
         await block.getIncludedTransition(0),
         await block.getIncludedTransition(1),
       ]
-      // TODO: Create a state tree & actually use valid inclusion proofs for the state tree.
-      // Then we can check the result
-      const treeHeight = 32 // Default tree height
-      log('Creating tree of height:', treeHeight)
-      const tree = new SparseMerkleTreeImpl(new BaseDB(new MemDown('') as any, 256), undefined, treeHeight + 1)
-      // Create two included storage slots
+
+      // 5) Create our IncludedStorageSlot objects
+      //
       const includedStorageSlots = [
         {
           storageSlot: {
             value: {
-              pubkey: ZERO_ADDRESS,
-              balances: [20, 120],
+              pubkey: pubkeys[0],
+              balances: [balances[0]['0'], balances[0]['1']],
             },
             slotIndex: storageSlots[0],
           },
-          siblings: Array(32).fill(makeRepeatedBytes('99', 32)),
+          siblings: siblings[0],
         },
         {
           storageSlot: {
             value: {
-              pubkey: ZERO_ADDRESS,
-              balances: [20, 120],
+              pubkey: pubkeys[1],
+              balances: [balances[1]['0'], balances[1]['1']],
             },
             slotIndex: storageSlots[1],
           },
-          siblings: Array(32).fill(makeRepeatedBytes('99', 32)),
+          siblings: siblings[1],
         },
       ]
-      // Call the function and see if it works!
-      await rollupChain.proveTransitionInvalid(
-        includedTransitions[0],
-        includedTransitions[1],
-        includedStorageSlots
-      )
-      // Did not throw... success!
-    })
+
+      // 5) Try to prove the transition invalid. It should fail because this transition is valid!
+      //
+      try {
+        await rollupChain.proveTransitionInvalid(
+          includedTransitions[0],
+          includedTransitions[1],
+          includedStorageSlots
+        )
+      } catch (err) {
+        // Success we threw an error!
+        return
+      }
+      throw new Error('Expected no fraud to be detected & therefore an error to be thrown!')
+    }).timeout(5000)
   })
 })
