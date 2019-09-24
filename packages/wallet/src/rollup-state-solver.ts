@@ -106,7 +106,9 @@ export class DefaultRollupStateSolver implements RollupStateSolver {
               rootHash: Buffer.from(stateReceipt.stateRoot, 'hex'),
               key: new BigNumber(stateReceipt.slotIndex),
               value: abiEncodeState(stateReceipt.state),
-              siblings: stateReceipt.inclusionProof.map((x) => Buffer.from(x, 'hex')),
+              siblings: stateReceipt.inclusionProof.map((x) =>
+                Buffer.from(x, 'hex')
+              ),
             },
           },
         },

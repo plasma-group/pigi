@@ -122,7 +122,9 @@ export class UnipigTransitioner extends DefaultWallet {
 
   public async getBalances(account: Address): Promise<Balances> {
     const stateReceipt: StateReceipt = await this.getState(account)
-    return !!stateReceipt && !!stateReceipt.state ? stateReceipt.state.balances : undefined
+    return !!stateReceipt && !!stateReceipt.state
+      ? stateReceipt.state.balances
+      : undefined
   }
 
   public async getState(account: Address): Promise<StateReceipt> {
