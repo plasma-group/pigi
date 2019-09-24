@@ -10,6 +10,7 @@ import {
   MerkleInclusionProofDecider,
   SignatureVerifier,
   SignedByDBInterface,
+  hexStrToBuf,
 } from '@pigi/core'
 
 /* Internal Imports */
@@ -103,7 +104,7 @@ export class DefaultRollupStateSolver implements RollupStateSolver {
           decider: this.merkleInclusionDecider,
           input: {
             merkleProof: {
-              rootHash: Buffer.from(stateReceipt.stateRoot, 'hex'),
+              rootHash: hexStrToBuf(stateReceipt.stateRoot),
               key: new BigNumber(stateReceipt.slotIndex),
               value: abiEncodeState(stateReceipt.state),
               siblings: stateReceipt.inclusionProof.map((x) =>

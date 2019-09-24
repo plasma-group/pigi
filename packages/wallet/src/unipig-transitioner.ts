@@ -95,7 +95,7 @@ export class UnipigTransitioner extends DefaultWallet {
 
   public async sign(signer: string, message: string): Promise<string> {
     if (typeof this.wallet !== 'undefined') {
-      log.debug('Were signing with ethers!')
+      log.debug('Address:', signer, 'signing message:', message)
       return this.wallet.signMessage(message)
     } else {
       return super.sign(signer, message)
@@ -105,7 +105,7 @@ export class UnipigTransitioner extends DefaultWallet {
   public async listAccounts(): Promise<string[]> {
     if (typeof this.wallet !== 'undefined') {
       const address = await this.wallet.getAddress()
-      log.debug('We got an ethers address!', address)
+      log.debug('Listing address:', address)
       return [address]
     } else {
       return super.listAccounts()

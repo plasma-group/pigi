@@ -35,7 +35,7 @@ export const genesisState: State[] = [
 ]
 
 // Create a new aggregator... and then...
-const host = 'localhost'
+const host = '0.0.0.0'
 const port = 3000
 
 async function runAggregator() {
