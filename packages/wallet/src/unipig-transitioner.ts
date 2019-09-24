@@ -109,7 +109,7 @@ export class UnipigTransitioner extends DefaultWallet {
     )
 
     if (signedState.signature === EMPTY_AGGREGATOR_SIGNATURE) {
-      return undefined
+      return signedState.stateReceipt
     }
 
     await this.stateSolver.storeSignedStateReceipt(signedState)
