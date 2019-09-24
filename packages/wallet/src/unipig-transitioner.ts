@@ -108,6 +108,10 @@ export class UnipigTransitioner extends DefaultWallet {
       account
     )
 
+    if (signedState.signature === EMPTY_AGGREGATOR_SIGNATURE) {
+      return undefined
+    }
+
     await this.stateSolver.storeSignedStateReceipt(signedState)
 
     // If valid, update known state

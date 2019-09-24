@@ -62,8 +62,10 @@ export class DefaultRollupStateSolver implements RollupStateSolver {
     stateReceipt: StateReceipt,
     signer: Address
   ): Promise<boolean> {
-    return (await this.decideIfStateReceiptIsValid(stateReceipt, signer))
-      .outcome
+    // TODO: Reenable the state root validity check
+    // return (await this.decideIfStateReceiptIsValid(stateReceipt, signer))
+    //   .outcome
+    return true
   }
 
   /**
@@ -101,10 +103,10 @@ export class DefaultRollupStateSolver implements RollupStateSolver {
           decider: this.merkleInclusionDecider,
           input: {
             merkleProof: {
-              rootHash: Buffer.from(stateReceipt.stateRoot),
+              rootHash: Buffer.from(stateReceipt.stateRoot, 'hex'),
               key: new BigNumber(stateReceipt.slotIndex),
               value: abiEncodeState(stateReceipt.state),
-              siblings: stateReceipt.inclusionProof.map((x) => Buffer.from(x)),
+              siblings: stateReceipt.inclusionProof.map((x) => Buffer.from(x, 'hex')),
             },
           },
         },
