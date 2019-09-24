@@ -40,7 +40,7 @@ const port = 3000
 
 async function runAggregator() {
   const stateDB = new BaseDB(new MemDown('state') as any)
-  const blockDB = new BaseDB(new MemDown('blocks') as any)
+  const blockDB = new BaseDB(new MemDown('blocks') as any, 4)
 
   const rollupStateMachine: RollupStateMachine = await DefaultRollupStateMachine.create(
     genesisState,

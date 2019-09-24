@@ -85,11 +85,13 @@ async function initialize() {
   unipigWallet = new UnipigTransitioner(
     newInMemoryDB(),
     rollupStateSolver,
-    rollupClient
+    rollupClient,
+    undefined,
+    undefined,
+    wallet
   )
-  // Now create a wallet account
+  // Update account address
   updateAccountAddress(wallet.address)
-
   // Connect to the mock aggregator
   rollupClient.connect(new SimpleClient('http://localhost:3000'))
   await fetchBalanceUpdate()
