@@ -96,6 +96,8 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
         inclusionProof.value,
         inclusionProof.key
       )
+
+      let siblingIndex = 0
       let parent: MerkleTreeNode = child
       const nodesToStore: MerkleTreeNode[] = [child]
       for (let parentDepth = this.height - 2; parentDepth >= 0; parentDepth--) {
@@ -103,7 +105,7 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
 
         const childDepth: number = parentDepth + 1
         // Since there's no root sibling, each sibling is one index lower
-        const childSiblingHash: Buffer = inclusionProof.siblings[childDepth - 1]
+        const childSiblingHash: Buffer = inclusionProof.siblings[siblingIndex++]
         parent = this.calculateParentNode(
           child,
           childSiblingHash,
@@ -259,7 +261,7 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
         rootHash: this.root.hash,
         key: leafKey,
         value: leafValue,
-        siblings,
+        siblings: siblings.reverse(),
       }
     })
   }
@@ -299,7 +301,7 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
       rootHash: this.root.hash,
       key: leafKey,
       value: SparseMerkleTreeImpl.emptyBuffer,
-      siblings,
+      siblings: siblings.reverse(),
     })
   }
 
