@@ -4,6 +4,8 @@ import { BaseDB } from '@pigi/core'
 import {
   State,
   UNISWAP_ADDRESS,
+  UNI_TOKEN_TYPE,
+  PIGI_TOKEN_TYPE,
   AGGREGATOR_ADDRESS,
   RollupAggregator,
   RollupStateMachine,
@@ -19,15 +21,15 @@ export const genesisState: State[] = [
   {
     pubKey: UNISWAP_ADDRESS,
     balances: {
-      uni: 1000,
-      pigi: 1000,
+      [UNI_TOKEN_TYPE]: 1000,
+      [PIGI_TOKEN_TYPE]: 1000,
     },
   },
   {
     pubKey: AGGREGATOR_ADDRESS,
     balances: {
-      uni: 1000000,
-      pigi: 1000000,
+      [UNI_TOKEN_TYPE]: 1000000,
+      [PIGI_TOKEN_TYPE]: 1000000,
     },
   },
 ]
