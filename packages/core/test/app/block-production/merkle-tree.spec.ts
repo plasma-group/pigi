@@ -47,7 +47,7 @@ const verifyEmptyTreeWithDepth = async (
     rootHash: await tree.getRootHash(),
     key,
     value: SparseMerkleTreeImpl.emptyBuffer,
-    siblings: siblings,
+    siblings,
   }
 
   assert(
