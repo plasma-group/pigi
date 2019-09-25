@@ -17,7 +17,8 @@ describe('Miscellanous Utils', () => {
       const end = Date.now()
       const diff = end - start
 
-      diff.should.be.closeTo(100, 10)
+      diff.should.be.greaterThan(100)
+      diff.should.be.lessThan(150)
     })
   })
 
