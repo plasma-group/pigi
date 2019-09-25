@@ -100,6 +100,7 @@ describe('RollupStateSolver', () => {
           'State Receipt should be provably invalid because signature should not match'
         )
       })
+
       it('should determine invalid receipt is invalid -- proof invalid', async () => {
         signedByDB = new SignedByDB(
           newInMemoryDB(),
