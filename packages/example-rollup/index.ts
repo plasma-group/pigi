@@ -1,12 +1,14 @@
+import * as Level from 'level'
+
 /* Imports */
 import {
   DB,
-  newInMemoryDB,
   SignedByDB,
   SignedByDecider,
   SimpleClient,
   getLogger,
   DefaultSignatureProvider,
+  BaseDB,
 } from '@pigi/core'
 import {
   UNI_TOKEN_TYPE,
@@ -70,9 +72,30 @@ let unipigWallet
 let wallet: ethers.Wallet
 
 async function initialize() {
-  wallet = ethers.Wallet.createRandom()
+  const levelOptions = {
+    keyEncoding: 'binary',
+    valueEncoding: 'binary',
+  }
 
-  const signatureDB: DB = newInMemoryDB()
+  const walletDB = new BaseDB(
+    (await Level('build/level/wallet', levelOptions)) as any,
+    256
+  )
+  const mnemonicKey: Buffer = Buffer.from('mnemonic')
+  const mnemonic: Buffer = await walletDB.get(mnemonicKey)
+  if (!!mnemonic) {
+    log.info('mnemonic found. Initializing existing wallet.')
+    wallet = ethers.Wallet.fromMnemonic(mnemonic.toString())
+  } else {
+    log.info('mnemonic not found. Generating new wallet.')
+    wallet = ethers.Wallet.createRandom()
+    await walletDB.put(mnemonicKey, Buffer.from(wallet.mnemonic))
+  }
+
+  const signatureDB: DB = new BaseDB(
+    (await Level('build/level/signatures', levelOptions)) as any,
+    256
+  )
   const signedByDB: SignedByDB = new SignedByDB(signatureDB)
   const signedByDecider: SignedByDecider = new SignedByDecider(
     signedByDB,
@@ -82,9 +105,19 @@ async function initialize() {
     signedByDB,
     signedByDecider
   )
-  const rollupClient: RollupClient = new RollupClient(newInMemoryDB())
+
+  const clientDB: DB = new BaseDB(
+    (await Level('build/level/client', levelOptions)) as any,
+    256
+  )
+  const transitionerDB: DB = new BaseDB(
+    (await Level('build/level/transitioner', levelOptions)) as any,
+    256
+  )
+
+  const rollupClient: RollupClient = new RollupClient(clientDB)
   unipigWallet = new UnipigTransitioner(
-    newInMemoryDB(),
+    transitionerDB,
     rollupStateSolver,
     rollupClient,
     new DefaultSignatureProvider(wallet)
