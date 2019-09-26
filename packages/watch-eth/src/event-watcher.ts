@@ -1,6 +1,5 @@
 /* External Imports */
 import { EventEmitter } from 'events'
-import * as W3 from 'web3'
 const Web3 = require('web3') // tslint:disable-line
 
 /* Internal Imports */

@@ -1,5 +1,5 @@
 /* External Imports */
-import Web3 from 'web3'
+const Web3 = require('web3') // tslint:disable-line
 
 /* Internal Imports */
 import { EthProvider, FullEventFilter, EventLog } from './interfaces'
@@ -9,7 +9,7 @@ import { DefaultEventLog } from './models'
  * Basic EthProvider implementation.
  */
 export class DefaultEthProvider implements EthProvider {
-  constructor(private web3: Web3) {}
+  constructor(private web3) {}
 
   /**
    * Checks whether the web3 node is connected.
