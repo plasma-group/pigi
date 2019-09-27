@@ -3,8 +3,7 @@ import { EventEmitter } from 'events'
 const Web3 = require('web3') // tslint:disable-line
 
 /* Internal Imports */
-import { sleep } from './utils'
-import { EventFilter, DefaultEventLog } from './models'
+import { EventFilter } from './models'
 import {
   EventDB,
   EthProvider,
@@ -13,6 +12,9 @@ import {
 } from './interfaces'
 import { DefaultEventDB } from './event-db'
 import { DefaultEthProvider } from './eth-provider'
+import { getLogger, logError, sleep } from '@pigi/core'
+
+const log = getLogger('event-watcher')
 
 export interface EventSubscription {
   filter: EventFilter
@@ -74,7 +76,9 @@ export class EventWatcher extends EventEmitter {
     }
 
     this.polling = true
+    log.debug(`just about to have unhandled promise`)
     this.pollEvents()
+    log.debug(`after unhandled promise`)
   }
 
   /**
@@ -93,9 +97,6 @@ export class EventWatcher extends EventEmitter {
     options: EventFilterOptions | string,
     listener: (...args: any) => any
   ): void {
-    // Start polling if we haven't already.
-    this.startPolling()
-
     const filter =
       typeof options === 'string'
         ? new EventFilter({
@@ -103,6 +104,7 @@ export class EventWatcher extends EventEmitter {
           })
         : new EventFilter(options)
 
+    log.debug(`Filter created`)
     // Initialize the subscriber if it doesn't exist.
     if (!(filter.hash in this.subscriptions)) {
       this.subscriptions[filter.hash] = {
@@ -111,8 +113,14 @@ export class EventWatcher extends EventEmitter {
       }
     }
 
+    log.debug(`Filter added to subscriptions`)
+
     // Register the event.
     this.subscriptions[filter.hash].listeners.push(listener)
+
+    log.debug(`About to start polling`)
+    // Start polling if we haven't already.
+    this.startPolling()
   }
 
   /**
@@ -159,15 +167,15 @@ export class EventWatcher extends EventEmitter {
    * Stops polling if the service is stopped.
    */
   private async pollEvents(): Promise<void> {
-    if (!this.polling) {
-      return
-    }
-
-    try {
-      await this.checkEvents()
-    } finally {
-      await sleep(this.options.pollInterval)
-      this.pollEvents()
+    while (this.polling) {
+      try {
+        log.debug('calling check for events')
+        await this.checkForEvents()
+      } catch (e) {
+        logError(log, 'Error checking for events', e)
+      } finally {
+        await sleep(this.options.pollInterval)
+      }
     }
   }
 
@@ -175,20 +183,24 @@ export class EventWatcher extends EventEmitter {
    * Checks for new events and triggers any listeners on those events.
    * Will only check for events that are currently being listened to.
    */
-  private async checkEvents(): Promise<void> {
-    const connected = await this.eth.connected()
-    if (!connected) {
-      return
-    }
+  private async checkForEvents(): Promise<void> {
+    log.debug(`In check for events`)
+    // const connected = await this.eth.connected()
+    // if (!connected) {
+    //   return
+    // }
+
+    log.debug(`Before getting current block`)
 
     // We only want to query final blocks, so we look a few blocks in the past.
     const block = await this.eth.getCurrentBlock()
+    log.debug(`After getting current block: ${block}`)
     const lastFinalBlock = Math.max(-1, block - this.options.finalityDepth)
 
     // Check all subscribed events.
     await Promise.all(
       Object.values(this.subscriptions).map((subscription) =>
-        this.checkEvent(subscription.filter, lastFinalBlock)
+        this.checkForEvent(subscription.filter, lastFinalBlock)
       )
     )
   }
@@ -198,19 +210,24 @@ export class EventWatcher extends EventEmitter {
    * @param filter Event filter to check.
    * @param lastFinalBlock Number of the latest block known to be final.
    */
-  private async checkEvent(
+  private async checkForEvent(
     filter: EventFilter,
     lastFinalBlock: number
   ): Promise<void> {
     // Figure out the last block we've seen.
+    log.debug(`Checking for event in block ${lastFinalBlock}`)
     const lastLoggedBlock = await this.db.getLastLoggedBlock(filter.hash)
+    log.debug(`Last logged block ${lastLoggedBlock}`)
     const firstUnsyncedBlock = lastLoggedBlock + 1
+    log.debug(`First unsynced block ${firstUnsyncedBlock}`)
 
     // Don't do anything if we've already seen the latest final block.
     if (firstUnsyncedBlock > lastFinalBlock) {
+      log.debug(`firstUnsyncedBlock > lastFinalBlock`)
       return
     }
 
+    log.debug(`Getting events`)
     // Pull new events from the contract.
     const events = await this.eth.getEvents({
       ...filter.options,
@@ -219,6 +236,8 @@ export class EventWatcher extends EventEmitter {
       fromBlock: firstUnsyncedBlock,
       toBlock: lastFinalBlock,
     })
+
+    log.debug(`After getting events`)
 
     // Filter out events that we've already seen.
     const unique = await this.getUniqueEvents(events)

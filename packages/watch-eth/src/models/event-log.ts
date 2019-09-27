@@ -1,6 +1,6 @@
 /* Internal Imports */
-import { hash } from '../utils'
 import { EventLog, EventLogData } from '../interfaces'
+import { Md5Hash } from '@pigi/core'
 
 /**
  * Represents a single event log.
@@ -16,6 +16,6 @@ export class DefaultEventLog implements EventLog {
    * Returns a unique hash for this event log.
    */
   public getHash(): string {
-    return hash(this.data.transactionHash + this.data.logIndex)
+    return Md5Hash(this.data.transactionHash + this.data.logIndex)
   }
 }

@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "lint": "tslint --format stylish --project .",
-    "fix": "prettier --config ./.prettierrc.js --write 'index.ts' 'src/**/*.ts'",
+    "fix": "prettier --config ./.prettierrc.js --write 'index.ts' '{src,test}/**/*.ts'",
     "build": "tsc -p .",
     "clean": "rimraf build/",
     "test": "waffle waffle-config.json && mocha --require ts-node/register 'test/*.spec.ts' --timeout 5000 --exit"
@@ -32,7 +32,9 @@
   "license": "MIT",
   "dependencies": {
     "@types/node": "^11.10.0",
-    "web3": "^1.2.1"
+    "@pigi/core": "^0.0.2-alpha.1",
+    "web3": "^1.2.1",
+    "ethers": "^4.0.37"
   },
   "devDependencies": {
     "@pigi/prettier-config": "^0.0.2-alpha.2",
@@ -53,6 +55,7 @@
     "tslint-plugin-prettier": "^2.0.1",
     "typescript": "^3.3.3333",
     "rimraf": "^2.6.3",
-    "chai-as-promised": "^7.1.1"
+    "chai-as-promised": "^7.1.1",
+    "chai-bignumber": "^3.0.0"
   }
 }

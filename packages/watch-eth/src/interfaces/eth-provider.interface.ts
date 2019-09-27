@@ -10,7 +10,6 @@ export interface FullEventFilter extends EventFilterOptions {
 }
 
 export interface EthProvider {
-  connected(): Promise<boolean>
   getCurrentBlock(): Promise<number>
   getEvents(filter: FullEventFilter): Promise<EventLog[]>
 }

@@ -27,18 +27,13 @@ contract TestToken {
     return _balances[account];
   }
 
-  function transfer(address recipient, uint256 amount) public returns (bool) {
-    _transfer(msg.sender, recipient, amount);
-    return true;
-  }
-
-  function _transfer(address sender, address recipient, uint256 amount) internal {
+  function transfer(address sender, address recipient, uint256 amount) public {
     require(sender != address(0), "ERC20: transfer from the zero address");
     require(recipient != address(0), "ERC20: transfer to the zero address");
     require(_balances[sender] >= amount, "Insufficient sender balance");
 
     _balances[sender] -= amount;
     _balances[recipient] += amount;
-    emit Transfer(sender, recipient, amount, block.number);
+    emit Transfer(sender, recipient, amount, block.timestamp);
   }
 }

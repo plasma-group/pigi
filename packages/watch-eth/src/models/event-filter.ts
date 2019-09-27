@@ -1,6 +1,6 @@
 /* Internal Imports */
-import { hash } from '../utils'
 import { EventFilterOptions } from '../interfaces'
+import { Md5Hash } from '@pigi/core'
 
 /**
  * Represents an event filter.
@@ -16,6 +16,6 @@ export class EventFilter {
    * @returns the unique hash for this filter.
    */
   get hash(): string {
-    return hash(JSON.stringify(this.options))
+    return Md5Hash(JSON.stringify(this.options))
   }
 }

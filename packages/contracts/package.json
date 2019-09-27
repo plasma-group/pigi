@@ -41,7 +41,7 @@
     "mocha": "^6.0.2",
     "rimraf": "^2.6.3",
     "typescript": "^3.3.3333",
-    "web3": "^1.0.0-beta.48"
+    "web3": "^1.2.1"
   },
   "dependencies": {
     "@pigi/core": "^0.0.1-alpha.1",

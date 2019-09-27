@@ -6,5 +6,6 @@ import { solidity } from 'ethereum-waffle'
 chai.use(bignum())
 chai.use(solidity)
 const should = chai.should()
+const expect = chai.expect
 
-export { should }
+export { should, expect }
