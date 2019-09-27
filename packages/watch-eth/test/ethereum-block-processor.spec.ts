@@ -57,30 +57,26 @@ describe('Block Subscription', () => {
   }).timeout(timeout)
 
   it('processes old blocks', async () => {
-    await tokenContract.transfer(
-      ownerWallet.address,
-      recipientWallet.address,
-      sendAmount
-    )
-
     await blockProcessor.subscribe(provider, blockListener)
 
-    const blocks: Block[] = await blockListener.waitForReceive(3)
+    const blocks: Block[] = await blockListener.waitForReceive(2)
 
-    blocks.length.should.equal(3)
+    blocks.length.should.equal(2)
     blocks[0].number.should.equal(0)
     blocks[1].number.should.equal(1)
-    blocks[2].number.should.equal(2)
-    blocks[2].transactions.length.should.equal(1)
+  }).timeout(timeout)
+
+  it('processes old blocks starting at 1', async () => {
+    blockProcessor = new EthereumBlockProcessor(db, 1)
+    await blockProcessor.subscribe(provider, blockListener)
+
+    const blocks: Block[] = await blockListener.waitForReceive(1)
+
+    blocks.length.should.equal(1)
+    blocks[0].number.should.equal(1)
   }).timeout(timeout)
 
   it('processes old and new blocks', async () => {
-    await tokenContract.transfer(
-      ownerWallet.address,
-      recipientWallet.address,
-      sendAmount
-    )
-
     await blockProcessor.subscribe(provider, blockListener)
 
     await tokenContract.transfer(
@@ -89,13 +85,12 @@ describe('Block Subscription', () => {
       sendAmount * 2
     )
 
-    const blocks: Block[] = await blockListener.waitForReceive(4)
+    const blocks: Block[] = await blockListener.waitForReceive(3)
 
-    blocks.length.should.equal(4)
+    blocks.length.should.equal(3)
     blocks[0].number.should.equal(0)
     blocks[1].number.should.equal(1)
     blocks[2].number.should.equal(2)
-    blocks[3].number.should.equal(3)
-    blocks[3].transactions.length.should.equal(1)
+    blocks[2].transactions.length.should.equal(1)
   }).timeout(timeout)
 })
