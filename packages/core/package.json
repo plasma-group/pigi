@@ -38,7 +38,7 @@
     "chai-as-promised": "^7.1.1",
     "debug": "^4.1.1",
     "eth-lib": "^0.2.8",
-    "ethers": "^4.0.30",
+    "ethers": "^4.0.37",
     "express": "^4.17.1",
     "ganache-cli": "^6.4.4",
     "jayson": "^3.0.2",

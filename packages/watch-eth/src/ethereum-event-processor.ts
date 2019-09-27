@@ -1,6 +1,11 @@
+/* External Imports */
+import { ethers, Contract } from 'ethers'
+import { LogDescription } from 'ethers/utils'
+import { Filter, Log, Provider } from 'ethers/providers'
 import { DB, getLogger, logError, Md5Hash } from '@pigi/core'
-import { ethers } from 'ethers'
-import { EthereumEventHandler, Event } from './interfaces'
+
+/* Internal Imports */
+import { Event, EthereumListener } from './interfaces'
 
 const log = getLogger('ethereum- event-processor')
 
@@ -9,14 +14,14 @@ const log = getLogger('ethereum- event-processor')
  * The single class to process and disseminate all Ethereum Event subscriptions.
  */
 export class EthereumEventProcessor {
-  private readonly subscriptions: Map<string, Set<EthereumEventHandler>>
+  private readonly subscriptions: Map<string, Set<EthereumListener<Event>>>
   private currentBlockNumber: number
 
   constructor(
     private readonly db: DB,
     private readonly earliestBlock: number = 0
   ) {
-    this.subscriptions = new Map<string, Set<EthereumEventHandler>>()
+    this.subscriptions = new Map<string, Set<EthereumListener<Event>>>()
     this.currentBlockNumber = 0
   }
 
@@ -31,16 +36,19 @@ export class EthereumEventProcessor {
    * @param backfill Whether or not to fetch previous events
    */
   public async subscribe(
-    contract: ethers.Contract,
+    contract: Contract,
     eventName: string,
-    handler: EthereumEventHandler,
+    handler: EthereumListener<Event>,
     backfill: boolean = true
   ): Promise<void> {
     const eventId: string = this.getEventID(contract.address, eventName)
     log.debug(`Received subscriber for event ${eventName}, ID: ${eventId}`)
 
     if (!this.subscriptions.has(eventId)) {
-      this.subscriptions.set(eventId, new Set<EthereumEventHandler>([handler]))
+      this.subscriptions.set(
+        eventId,
+        new Set<EthereumListener<Event>>([handler])
+      )
     } else {
       this.subscriptions.get(eventId).add(handler)
     }
@@ -77,7 +85,7 @@ export class EthereumEventProcessor {
    * @param eventId The local event ID to identify the event in this class.
    */
   private async backfillEvents(
-    contract: ethers.Contract,
+    contract: Contract,
     eventName: string,
     eventId: string
   ): Promise<void> {
@@ -95,15 +103,13 @@ export class EthereumEventProcessor {
       return
     }
 
-    const filter: ethers.providers.Filter = contract.filters[eventName]()
+    const filter: Filter = contract.filters[eventName]()
     filter.fromBlock = lastSyncedNumber + 1
     filter.toBlock = 'latest'
 
-    const logs: ethers.providers.Log[] = await contract.provider.getLogs(filter)
+    const logs: Log[] = await contract.provider.getLogs(filter)
     const events: Event[] = logs.map((l) => {
-      const logDesc: ethers.utils.LogDescription = contract.interface.parseLog(
-        l
-      )
+      const logDesc: LogDescription = contract.interface.parseLog(l)
       return EthereumEventProcessor.createEventFromLogDesc(logDesc, eventId)
     })
 
@@ -122,14 +128,14 @@ export class EthereumEventProcessor {
    */
   private async handleEvent(event: Event): Promise<void> {
     log.debug(`Handling event ${JSON.stringify(event)}`)
-    const subscribers: Set<EthereumEventHandler> = this.subscriptions.get(
+    const subscribers: Set<EthereumListener<Event>> = this.subscriptions.get(
       event.eventID
     )
 
     subscribers.forEach((s) => {
       try {
         // purposefully ignore promise
-        s.handleEvent(event)
+        s.handle(event)
       } catch (e) {
         // should be logged in subscriber
       }
@@ -142,9 +148,7 @@ export class EthereumEventProcessor {
    * @param provider The provider connected to a node
    * @returns The current block number
    */
-  private async getBlockNumber(
-    provider: ethers.providers.Provider
-  ): Promise<number> {
+  private async getBlockNumber(provider: Provider): Promise<number> {
     if (this.currentBlockNumber === 0) {
       this.currentBlockNumber = await provider.getBlockNumber()
     }
@@ -160,7 +164,7 @@ export class EthereumEventProcessor {
    * @returns The local Event
    */
   private static createEventFromLogDesc(
-    logDesc: ethers.utils.LogDescription,
+    logDesc: LogDescription,
     eventID: string
   ): Event {
     const values = EthereumEventProcessor.getLogValues(logDesc.values)

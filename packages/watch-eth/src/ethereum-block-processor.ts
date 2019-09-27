@@ -1,10 +1,11 @@
-import { ethers } from 'ethers'
+/* External Imports */
 import { DB, getLogger, logError } from '@pigi/core'
+import { Block, Provider } from 'ethers/providers'
 
-import { BlockEventHandler } from './interfaces'
+/* Internal Imports */
+import { EthereumListener } from './interfaces/listener'
 
 const log = getLogger('ethereum-block-processor')
-
 const blockKey: Buffer = Buffer.from('latestBlock')
 
 /**
@@ -12,14 +13,14 @@ const blockKey: Buffer = Buffer.from('latestBlock')
  * Single place through which all block subscriptions are handled.
  */
 export class EthereumBlockProcessor {
-  private readonly subscriptions: Set<BlockEventHandler>
+  private readonly subscriptions: Set<EthereumListener<Block>>
   private currentBlockNumber: number
 
   constructor(
     private readonly db: DB,
     private readonly earliestBlock: number = 0
   ) {
-    this.subscriptions = new Set<BlockEventHandler>()
+    this.subscriptions = new Set<EthereumListener<Block>>()
     this.currentBlockNumber = 0
   }
 
@@ -33,17 +34,21 @@ export class EthereumBlockProcessor {
    * @param backfill Whether or not to fetch previous events
    */
   public async subscribe(
-    provider: ethers.providers.Provider,
-    handler: BlockEventHandler,
+    provider: Provider,
+    handler: EthereumListener<Block>,
     backfill: boolean = true
   ): Promise<void> {
     this.subscriptions.add(handler)
 
     provider.on('block', async (blockNumber) => {
-      log.debug(`Block [${+blockNumber}] was mined!`)
-      await this.fetchAndDisemminateBlock(provider, blockNumber)
+      log.debug(`Block [${blockNumber}] was mined!`)
+      await this.fetchAndDisseminateBlock(provider, blockNumber)
+      this.currentBlockNumber = blockNumber
       try {
-        await this.db.put(blockKey, Buffer.from(blockNumber.toString()))
+        await this.db.put(
+          blockKey,
+          Buffer.from(this.currentBlockNumber.toString())
+        )
       } catch (e) {
         logError(
           log,
@@ -64,16 +69,18 @@ export class EthereumBlockProcessor {
    * @param provider The provider with the connection to the blockchain
    * @param blockNumber The block number
    */
-  private async fetchAndDisemminateBlock(
-    provider: ethers.providers.Provider,
+  private async fetchAndDisseminateBlock(
+    provider: Provider,
     blockNumber: number
   ): Promise<void> {
-    const block: ethers.providers.Block = await provider.getBlock(blockNumber)
+    log.debug(`Fetching block [${blockNumber}].`)
+    const block: Block = await provider.getBlock(blockNumber, true)
+    log.debug(`Received block: [${JSON.stringify(block)}].`)
 
     this.subscriptions.forEach((h) => {
       try {
         // purposefully ignore promise
-        h.handleBlock(block)
+        h.handle(block)
       } catch (e) {
         // should be logged in handler
       }
@@ -85,29 +92,26 @@ export class EthereumBlockProcessor {
    *
    * @param provider The provider with the connection to the blockchain.
    */
-  private async backfillBlocks(
-    provider: ethers.providers.Provider
-  ): Promise<void> {
+  private async backfillBlocks(provider: Provider): Promise<void> {
     log.debug(`Backfilling blocks`)
     const blockNumber = await this.getBlockNumber(provider)
 
-    const lastSyncedBlockBuffer: Buffer = await this.db.get(
-      Buffer.from(blockKey)
-    )
+    const lastSyncedBlockBuffer: Buffer = await this.db.get(blockKey)
     const lastSyncedNumber: number = !!lastSyncedBlockBuffer
       ? parseInt(lastSyncedBlockBuffer.toString(), 10)
       : this.earliestBlock - 1
 
     if (blockNumber === lastSyncedNumber) {
+      log.debug(`Up to date, not backfilling.`)
       return
     }
 
     for (let i = lastSyncedNumber + 1; i <= blockNumber; i++) {
-      await this.fetchAndDisemminateBlock(provider, i)
+      await this.fetchAndDisseminateBlock(provider, i)
     }
 
     log.debug(
-      `backfilled from block [${lastSyncedNumber}] to [${blockNumber}]!`
+      `backfilled from block [${lastSyncedNumber + 1}] to [${blockNumber}]!`
     )
   }
 
@@ -117,13 +121,12 @@ export class EthereumBlockProcessor {
    * @param provider The provider connected to a node
    * @returns The current block number
    */
-  private async getBlockNumber(
-    provider: ethers.providers.Provider
-  ): Promise<number> {
+  private async getBlockNumber(provider: Provider): Promise<number> {
     if (this.currentBlockNumber === 0) {
       this.currentBlockNumber = await provider.getBlockNumber()
     }
 
+    log.debug(`Current block number: ${this.currentBlockNumber}`)
     return this.currentBlockNumber
   }
 }
