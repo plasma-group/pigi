@@ -11,14 +11,12 @@ export class EventListener implements EthereumEventHandler {
   }
 
   public async handleEvent(event: Event): Promise<void> {
+    log.debug(`Received event ${JSON.stringify(event)}`)
     this.eventsReceived.push(event)
   }
 
   public getEventsReceived(): Event[] {
-    const events = this.eventsReceived
-    this.eventsReceived = []
-
-    return events
+    return this.eventsReceived.splice(0)
   }
 
   public async waitForEvents(): Promise<Event[]> {

@@ -82,7 +82,7 @@ export class EventProcessor {
     for (const event of events) {
       this.handleEvent(event)
     }
-    log.debug(`Backfilling events for event ${eventName}, ${eventId}`)
+    log.debug(`Backfilling events for event ${eventName}, ${eventId}. Found ${events.length} events`)
   }
 
   private async handleEvent(event: Event): Promise<void> {

@@ -12,15 +12,21 @@ const TestToken = require('./contracts/build/TestToken.json')
 const log = getLogger('layer1-interaction', true)
 const timeout = 10_000
 describe('L1 Interaction', () => {
-  const provider = createMockProvider()
-  const wallets = getWallets(provider)
-  const ownerWallet = wallets[0]
-  const recipientWallet = wallets[1]
+  let provider
+  let wallets
+  let ownerWallet
+  let recipientWallet
+
   const initialSupply = 100_000
 
   let tokenContract
 
   beforeEach(async () => {
+    provider = createMockProvider()
+    wallets = getWallets(provider)
+    ownerWallet = wallets[0]
+    recipientWallet = wallets[1]
+
     log.debug(`Connection info: ${JSON.stringify(provider.connection)}`)
 
     const factory = new ethers.ContractFactory(
@@ -34,6 +40,10 @@ describe('L1 Interaction', () => {
 
     tokenContract = await tokenContract.deployed()
     log.debug(`tokenContract: ${JSON.stringify(tokenContract.address)}`)
+  })
+
+  afterEach(async () => {
+    provider
   })
 
   it('deploys correctly', async () => {
@@ -89,5 +99,37 @@ describe('L1 Interaction', () => {
       event.values['to'].should.equal(recipientWallet.address)
       event.values['amount'].toNumber().should.equal(sendAmount)
     }).timeout(timeout)
+
+    it('processes new and old', async () => {
+      await tokenContract.transfer(
+        ownerWallet.address,
+        recipientWallet.address,
+        sendAmount
+      )
+
+      await tokenContract.provider.send('evm_mine', {
+        jsonrpc: '2.0',
+        id: 0,
+      })
+
+      await eventProcessor.subscribe(tokenContract, 'Transfer', eventListener)
+
+      let events = await eventListener.waitForEvents()
+      events.length.should.equal(1)
+      const event1 = events[0]
+
+      await tokenContract.transfer(
+        ownerWallet.address,
+        recipientWallet.address,
+        sendAmount * 2
+      )
+
+      events = await eventListener.waitForEvents()
+      log.error(`event 1: ${JSON.stringify(event1)}, rest: ${JSON.stringify(events)}`)
+      events.length.should.equal(1)
+
+      !events[0].values['amount'].toNumber()
+        .should.not.equal(event1.values['amount'].toNumber())
+    })
   })
 })
