@@ -1,18 +1,8 @@
-import { DB, getLogger, Md5Hash } from '@pigi/core'
+import { DB, getLogger, logError, Md5Hash } from '@pigi/core'
 import { ethers } from 'ethers'
+import { EthereumEventHandler, Event } from './interfaces'
 
-const log = getLogger('event-processor')
-
-export interface EthereumEventHandler {
-  handleEvent(event: Event): Promise<void>
-}
-
-export interface Event {
-  eventID: string
-  name: string
-  signature: string
-  values: {}
-}
+const log = getLogger('ethereum- event-processor')
 
 /**
  * Ethereum Event Processor
@@ -55,11 +45,23 @@ export class EthereumEventProcessor {
       this.subscriptions.get(eventId).add(handler)
     }
 
-    contract.on(contract.filters[eventName](), (...data) => {
+    contract.on(contract.filters[eventName](), async (...data) => {
       log.debug(`Received live event: ${JSON.stringify(data)}`)
       const ethersEvent: ethers.Event = data[data.length - 1]
       const event: Event = this.createEventFromEthersEvent(ethersEvent)
-      this.handleEvent(event)
+      await this.handleEvent(event)
+      try {
+        await this.db.put(
+          Buffer.from(event.eventID),
+          Buffer.from(ethersEvent.blockNumber.toString(10))
+        )
+      } catch (e) {
+        logError(
+          log,
+          `Error storing most recent events block [${ethersEvent.blockNumber}]!`,
+          e
+        )
+      }
     })
 
     if (backfill) {
@@ -124,9 +126,10 @@ export class EthereumEventProcessor {
       event.eventID
     )
 
-    subscribers.forEach((sub) => {
+    subscribers.forEach((s) => {
       try {
-        sub.handleEvent(event)
+        // purposefully ignore promise
+        s.handleEvent(event)
       } catch (e) {
         // should be logged in subscriber
       }

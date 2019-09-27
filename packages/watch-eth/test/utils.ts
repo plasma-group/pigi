@@ -1,5 +1,5 @@
 import { getLogger, sleep } from '@pigi/core'
-import { EthereumEventHandler, Event } from '../src/ethereum-event-processor'
+import { EthereumEventHandler, Event } from '../src'
 
 const log = getLogger('watch-eth-test-utils', true)
 

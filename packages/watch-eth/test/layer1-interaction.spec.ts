@@ -1,16 +1,17 @@
 import './setup'
 import { ethers } from 'ethers'
+import { getLogger, newInMemoryDB, sleep } from '@pigi/core'
 
 import { createMockProvider, getWallets } from 'ethereum-waffle'
 import { EventListener } from './utils'
-import { getLogger, newInMemoryDB, sleep } from '@pigi/core'
-import { Event, EthereumEventProcessor } from '../src/ethereum-event-processor'
+import { Event, EthereumEventProcessor } from '../src'
 
 /* Contract Imports */
 const TestToken = require('./contracts/build/TestToken.json')
 
 const log = getLogger('layer1-interaction', true)
-const timeout = 10_000
+
+const timeout = 25_000
 describe('L1 Interaction', () => {
   let provider
   let wallets
