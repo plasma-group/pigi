@@ -4,7 +4,7 @@ import { ethers } from 'ethers'
 import { createMockProvider, getWallets } from 'ethereum-waffle'
 import { EventListener } from './utils'
 import { getLogger, newInMemoryDB, sleep } from '@pigi/core'
-import { Event, EventProcessor } from '../src/event-processor'
+import { Event, EthereumEventProcessor } from '../src/ethereum-event-processor'
 
 /* Contract Imports */
 const TestToken = require('./contracts/build/TestToken.json')
@@ -52,12 +52,12 @@ describe('L1 Interaction', () => {
   })
 
   describe('Event Subscription', () => {
-    let eventProcessor: EventProcessor
+    let eventProcessor: EthereumEventProcessor
     let eventListener: EventListener
     const sendAmount = 100
 
     beforeEach(() => {
-      eventProcessor = new EventProcessor(newInMemoryDB())
+      eventProcessor = new EthereumEventProcessor(newInMemoryDB())
       eventListener = new EventListener()
     })
 
@@ -125,10 +125,13 @@ describe('L1 Interaction', () => {
       )
 
       events = await eventListener.waitForEvents()
-      log.error(`event 1: ${JSON.stringify(event1)}, rest: ${JSON.stringify(events)}`)
+      log.error(
+        `event 1: ${JSON.stringify(event1)}, rest: ${JSON.stringify(events)}`
+      )
       events.length.should.equal(1)
 
-      !events[0].values['amount'].toNumber()
+      !events[0].values['amount']
+        .toNumber()
         .should.not.equal(event1.values['amount'].toNumber())
     })
   })
