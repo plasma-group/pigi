@@ -32,6 +32,7 @@ import {
   abiEncodeStateReceipt,
   abiEncodeTransaction,
 } from '../src'
+import { AggregatorServer } from '../src/aggregator/aggregator-server'
 
 const log = getLogger('rollup-aggregator', true)
 /*********
@@ -41,6 +42,7 @@ const log = getLogger('rollup-aggregator', true)
 describe('RollupAggregator', () => {
   let client
   let aggregator: RollupAggregator
+  let aggregatorServer: AggregatorServer
   let stateDB: DB
   let blockDB: DB
 
@@ -59,18 +61,21 @@ describe('RollupAggregator', () => {
     aggregator = new RollupAggregator(
       blockDB,
       rollupStateMachine,
-      'localhost',
-      3000,
-      AGGREGATOR_MNEMONIC
+      AGGREGATOR_MNEMONIC,
+      undefined,
+      undefined
     )
-    await aggregator.listen()
+
+    aggregatorServer = new AggregatorServer(aggregator, 'localhost', 3000)
+
+    await aggregatorServer.listen()
     // Connect to the mock aggregator
     client = new SimpleClient('http://127.0.0.1:3000')
   })
 
   afterEach(async () => {
     // Close the server
-    await aggregator.close()
+    await aggregatorServer.close()
     await stateDB.close()
     await blockDB.close()
   })

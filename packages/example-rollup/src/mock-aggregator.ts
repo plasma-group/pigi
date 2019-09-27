@@ -11,6 +11,7 @@ import {
   RollupAggregator,
   RollupStateMachine,
   DefaultRollupStateMachine,
+  AggregatorServer,
 } from '@pigi/wallet'
 import cors = require('cors')
 
@@ -61,14 +62,15 @@ async function runAggregator() {
   const aggregator = new RollupAggregator(
     blockDB,
     rollupStateMachine,
-    host,
-    port,
     AGGREGATOR_MNEMONIC,
     undefined,
-    [cors]
+    undefined
   )
+
+  const aggregatorServer = new AggregatorServer(aggregator, host, port, [cors])
+
   // Just listen for requests!
-  aggregator.listen()
+  aggregatorServer.listen()
 
   // tslint:disable-next-line
   console.log('Listening on', host + ':' + port)

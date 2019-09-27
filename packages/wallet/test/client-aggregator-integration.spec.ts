@@ -24,6 +24,7 @@ import {
   RollupClient,
   Balances,
 } from '../src'
+import { AggregatorServer } from '../src/aggregator/aggregator-server'
 
 const log = getLogger('client-aggregator-integration', true)
 
@@ -36,6 +37,7 @@ const testRecipientAddress = '0x7777b66b3C70137264BE7303812090EC42D85B4d'
 
 describe('Mock Client/Aggregator Integration', () => {
   let accountAddress: string
+  let aggregatorServer: AggregatorServer
   let aggregator: RollupAggregator
   let ovm: DummyRollupStateSolver
   let rollupClient: RollupClient
@@ -64,12 +66,14 @@ describe('Mock Client/Aggregator Integration', () => {
     aggregator = new RollupAggregator(
       newInMemoryDB(),
       rollupStateMachine,
-      'localhost',
-      3000,
-      AGGREGATOR_MNEMONIC
+      AGGREGATOR_MNEMONIC,
+      undefined,
+      undefined
     )
 
-    await aggregator.listen()
+    aggregatorServer = new AggregatorServer(aggregator, 'localhost', 3000)
+
+    await aggregatorServer.listen()
     // Connect to the mock aggregator
     rollupClient.connect(new SimpleClient('http://127.0.0.1:3000'))
   })
@@ -77,7 +81,7 @@ describe('Mock Client/Aggregator Integration', () => {
   afterEach(async () => {
     if (!!aggregator) {
       // Close the server
-      await aggregator.close()
+      await aggregatorServer.close()
     }
   })
 

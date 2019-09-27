@@ -1,11 +1,10 @@
 /* External Imports */
 import * as AsyncLock from 'async-lock'
-import { ethers } from 'ethers'
+import { Contract, ethers } from 'ethers'
 
 import {
   SignatureVerifier,
   DefaultSignatureVerifier,
-  SimpleServer,
   serializeObject,
   DefaultSignatureProvider,
   DB,
@@ -13,6 +12,11 @@ import {
   hexStrToBuf,
   SignatureProvider,
 } from '@pigi/core'
+import {
+  EthereumEventProcessor,
+  EthereumListener,
+  Event,
+} from '@pigi/watch-eth'
 
 /* Internal Imports */
 import {
@@ -24,10 +28,8 @@ import {
   AGGREGATOR_API,
   RollupTransaction,
   UNISWAP_ADDRESS,
-  AGGREGATOR_ADDRESS,
   RollupTransition,
   StateUpdate,
-  isFaucetTransaction,
   RollupBlock,
   SignedStateReceipt,
   StateSnapshot,
@@ -40,51 +42,20 @@ import {
   TransferTransition,
   abiEncodeTransaction,
   EMPTY_AGGREGATOR_SIGNATURE,
-} from './index'
-import { RollupStateMachine } from './types'
+  isFaucetTransaction,
+} from '../index'
+import { RollupStateMachine } from '../types'
+import { Provider } from 'ethers/providers'
+import { UnipigAggregator } from '../types/unipig-aggregator'
 
 const log = getLogger('rollup-aggregator')
 
 /*
- * Generate two transactions which together send the user some UNI
- * & some PIGI
+ * An aggregator implementation which allows for transfers, swaps,
+ * balance queries, & faucet requests.
  */
-const generateFaucetTxs = async (
-  recipient: Address,
-  amount: number,
-  aggregatorAddress: string = AGGREGATOR_ADDRESS,
-  signatureProvider?: SignatureProvider
-): Promise<SignedTransaction[]> => {
-  const txOne: RollupTransaction = generateTransferTx(
-    aggregatorAddress,
-    recipient,
-    UNI_TOKEN_TYPE,
-    amount
-  )
-  const txTwo: RollupTransaction = generateTransferTx(
-    aggregatorAddress,
-    recipient,
-    PIGI_TOKEN_TYPE,
-    amount
-  )
-
-  return [
-    {
-      signature: await signatureProvider.sign(abiEncodeTransaction(txOne)),
-      transaction: txOne,
-    },
-    {
-      signature: await signatureProvider.sign(abiEncodeTransaction(txTwo)),
-      transaction: txTwo,
-    },
-  ]
-}
-
-/*
- * A mock aggregator implementation which allows for transfers, swaps,
- * balance queries, & faucet requests
- */
-export class RollupAggregator extends SimpleServer {
+export class RollupAggregator
+  implements EthereumListener<Event>, UnipigAggregator {
   private static readonly lockKey: string = 'lock'
 
   private readonly db: DB
@@ -93,6 +64,9 @@ export class RollupAggregator extends SimpleServer {
   private readonly rollupStateMachine: RollupStateMachine
   private readonly signatureProvider: SignatureProvider
   private readonly signatureVerifier: SignatureVerifier
+  private readonly eventProcessor: EthereumEventProcessor
+  private readonly rollupContract: Contract
+  private readonly provider: Provider
 
   private blockNumber: number
   private transitionIndex: number
@@ -101,32 +75,11 @@ export class RollupAggregator extends SimpleServer {
   constructor(
     db: DB,
     rollupStateMachine: RollupStateMachine,
-    hostname: string,
-    port: number,
     mnemonic: string,
-    signatureVerifier: SignatureVerifier = DefaultSignatureVerifier.instance(),
-    middleware?: Function[]
+    provider: Provider,
+    rollupContract: Contract,
+    signatureVerifier: SignatureVerifier = DefaultSignatureVerifier.instance()
   ) {
-    // REST API for our aggregator
-    const methods = {
-      [AGGREGATOR_API.getState]: async (
-        account: Address
-      ): Promise<SignedStateReceipt> => this.getState(account),
-
-      [AGGREGATOR_API.getUniswapState]: async (): Promise<SignedStateReceipt> =>
-        this.getState(UNISWAP_ADDRESS),
-
-      [AGGREGATOR_API.applyTransaction]: async (
-        signedTransaction: SignedTransaction
-      ): Promise<SignedStateReceipt[]> =>
-        this.applyTransaction(signedTransaction),
-
-      [AGGREGATOR_API.requestFaucetFunds]: async (
-        signedTransaction: SignedTransaction
-      ): Promise<SignedStateReceipt> =>
-        this.requestFaucetFunds(signedTransaction),
-    }
-    super(methods, hostname, port, middleware)
     this.rollupStateMachine = rollupStateMachine
     this.wallet = ethers.Wallet.fromMnemonic(mnemonic)
     this.signatureVerifier = signatureVerifier
@@ -139,17 +92,31 @@ export class RollupAggregator extends SimpleServer {
       transitions: [],
     }
     this.lock = new AsyncLock()
+
+    this.provider = provider
+    this.rollupContract = rollupContract
+
+    this.eventProcessor = new EthereumEventProcessor(db)
+  }
+
+  public async subscribeToNewBlocks(): Promise<void> {
+    await this.eventProcessor.subscribe(
+      this.rollupContract,
+      'NewRollupBlock',
+      this
+    )
   }
 
   /**
-   * Gets the State for the provided address if State exists.
+   * Handles events from the Rollup contract
    *
-   * @param address The address in question
-   * @returns The SignedStateReceipt containing the state and the aggregator
-   * guarantee that it exists. If it does not exist, this will include the
-   * aggregator guarantee that it does not exist.
+   * @param event The event in question
    */
-  private async getState(address: string): Promise<SignedStateReceipt> {
+  public async handle(event: Event): Promise<void> {
+    // TODO: hadle events
+  }
+
+  public async getState(address: string): Promise<SignedStateReceipt> {
     try {
       const stateReceipt: StateReceipt = await this.lock.acquire(
         RollupAggregator.lockKey,
@@ -185,15 +152,8 @@ export class RollupAggregator extends SimpleServer {
     }
   }
 
-  /**
-   * Handles the provided transaction and returns the updated state and block and
-   * transition in which it will be updated, guaranteed by the aggregator's signature.
-   *
-   * @param signedTransaction The transaction to apply
-   * @returns The SignedTransactionReceipt
-   */
-  private async applyTransaction(
-    signedTransaction
+  public async applyTransaction(
+    signedTransaction: SignedTransaction
   ): Promise<SignedStateReceipt[]> {
     try {
       const [
@@ -219,15 +179,7 @@ export class RollupAggregator extends SimpleServer {
     }
   }
 
-  /**
-   * Requests faucet funds on behalf of the sender and returns the updated
-   * state resulting from the faucet allocation, including the guarantee that
-   * it will be included in a specific block and transition.
-   *
-   * @param signedTransaction The faucet transaction
-   * @returns The SignedTransactionReceipt
-   */
-  private async requestFaucetFunds(
+  public async requestFaucetFunds(
     signedTransaction: SignedTransaction
   ): Promise<SignedStateReceipt> {
     try {
@@ -248,11 +200,9 @@ export class RollupAggregator extends SimpleServer {
 
       const { sender, amount } = signedTransaction.transaction
       // Generate the faucet txs (one sending uni the other pigi)
-      const faucetTxs = await generateFaucetTxs(
+      const faucetTxs = await this.generateFaucetTxs(
         sender, // original tx sender... is actually faucet fund recipient
-        amount,
-        this.wallet.address,
-        this.signatureProvider
+        amount
       )
 
       const [
@@ -427,5 +377,47 @@ export class RollupAggregator extends SimpleServer {
     const buff = Buffer.alloc(4)
     buff.writeUInt32BE(num, 0)
     return buff
+  }
+
+  /**
+   * Generates two transactions which together send the user some UNI
+   * & some PIGI.
+   *
+   * @param recipient The address to receive the faucet tokens
+   * @param amount The amount to receive
+   * @returns The signed faucet transactions
+   */
+  private async generateFaucetTxs(
+    recipient: Address,
+    amount: number
+  ): Promise<SignedTransaction[]> {
+    const address: string = await this.signatureProvider.getAddress()
+    const txOne: RollupTransaction = generateTransferTx(
+      address,
+      recipient,
+      UNI_TOKEN_TYPE,
+      amount
+    )
+    const txTwo: RollupTransaction = generateTransferTx(
+      address,
+      recipient,
+      PIGI_TOKEN_TYPE,
+      amount
+    )
+
+    return [
+      {
+        signature: await this.signatureProvider.sign(
+          abiEncodeTransaction(txOne)
+        ),
+        transaction: txOne,
+      },
+      {
+        signature: await this.signatureProvider.sign(
+          abiEncodeTransaction(txTwo)
+        ),
+        transaction: txTwo,
+      },
+    ]
   }
 }
