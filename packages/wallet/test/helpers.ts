@@ -1,5 +1,5 @@
 /* External Imports */
-import { ImplicationProofItem } from '@pigi/core'
+import {getLogger, ImplicationProofItem, logError} from '@pigi/core'
 import * as assert from 'assert'
 
 /* Internal Imports */
@@ -13,6 +13,8 @@ import {
   UNI_TOKEN_TYPE,
   UNISWAP_ADDRESS,
 } from '../src'
+
+const log = getLogger('helpers', true)
 
 export const ALICE_GENESIS_STATE_INDEX = 0
 export const UNISWAP_GENESIS_STATE_INDEX = 1
@@ -106,7 +108,7 @@ export const calculateSwapWithFees = (
   )
 }
 
-export const assertThrows = (func: () => any, errorType: any): void => {
+export const assertThrows = (func: () => any, errorType?: any): void => {
   let succeeded = true
   try {
     func()
@@ -114,6 +116,7 @@ export const assertThrows = (func: () => any, errorType: any): void => {
   } catch (e) {
     if (!!errorType && !(e instanceof errorType)) {
       succeeded = false
+      logError(log, `Threw wrong error. Expected ${typeof(errorType)}`, e)
     }
   }
 
@@ -125,7 +128,7 @@ export const assertThrows = (func: () => any, errorType: any): void => {
 
 export const assertThrowsAsync = async (
   func: () => Promise<any>,
-  errorType: any
+  errorType?: any
 ): Promise<void> => {
   let succeeded = true
   try {

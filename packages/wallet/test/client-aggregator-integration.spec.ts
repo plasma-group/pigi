@@ -71,6 +71,9 @@ describe('Mock Client/Aggregator Integration', () => {
       undefined
     )
 
+    // Assume we're in sync completed
+    await aggregator.onSyncCompleted()
+
     aggregatorServer = new AggregatorServer(aggregator, 'localhost', 3000)
 
     await aggregatorServer.listen()

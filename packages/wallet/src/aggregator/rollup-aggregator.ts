@@ -13,7 +13,6 @@ import {
   SignatureProvider,
 } from '@pigi/core'
 import {
-  EthereumEventProcessor,
   EthereumListener,
   Event,
 } from '@pigi/watch-eth'
@@ -25,7 +24,6 @@ import {
   UNI_TOKEN_TYPE,
   PIGI_TOKEN_TYPE,
   generateTransferTx,
-  AGGREGATOR_API,
   RollupTransaction,
   UNISWAP_ADDRESS,
   RollupTransition,
@@ -42,10 +40,9 @@ import {
   TransferTransition,
   abiEncodeTransaction,
   EMPTY_AGGREGATOR_SIGNATURE,
-  isFaucetTransaction,
+  isFaucetTransaction, NotSyncedError,
 } from '../index'
 import { RollupStateMachine } from '../types'
-import { Provider } from 'ethers/providers'
 import { UnipigAggregator } from '../types/unipig-aggregator'
 
 const log = getLogger('rollup-aggregator')
@@ -64,10 +61,9 @@ export class RollupAggregator
   private readonly rollupStateMachine: RollupStateMachine
   private readonly signatureProvider: SignatureProvider
   private readonly signatureVerifier: SignatureVerifier
-  private readonly eventProcessor: EthereumEventProcessor
   private readonly rollupContract: Contract
-  private readonly provider: Provider
 
+  private synced: boolean
   private blockNumber: number
   private transitionIndex: number
   private pendingBlock: RollupBlock
@@ -76,7 +72,6 @@ export class RollupAggregator
     db: DB,
     rollupStateMachine: RollupStateMachine,
     mnemonic: string,
-    provider: Provider,
     rollupContract: Contract,
     signatureVerifier: SignatureVerifier = DefaultSignatureVerifier.instance()
   ) {
@@ -93,30 +88,26 @@ export class RollupAggregator
     }
     this.lock = new AsyncLock()
 
-    this.provider = provider
     this.rollupContract = rollupContract
-
-    this.eventProcessor = new EthereumEventProcessor(db)
+    this.synced = false
   }
 
-  public async subscribeToNewBlocks(): Promise<void> {
-    await this.eventProcessor.subscribe(
-      this.rollupContract,
-      'NewRollupBlock',
-      this
-    )
+  public async onSyncCompleted(syncIdentifier?: string): Promise<void> {
+    this.synced = true
   }
 
-  /**
-   * Handles events from the Rollup contract
-   *
-   * @param event The event in question
-   */
   public async handle(event: Event): Promise<void> {
-    // TODO: hadle events
+    // TODO: handle events
+    // Two categories:
+    // 1) I submitted this block, and this is just a confirm
+    // 2) Someone else submitted this block, and I need to get up to speed.
   }
 
   public async getState(address: string): Promise<SignedStateReceipt> {
+    if (!this.synced) {
+      throw new NotSyncedError()
+    }
+
     try {
       const stateReceipt: StateReceipt = await this.lock.acquire(
         RollupAggregator.lockKey,
@@ -155,6 +146,10 @@ export class RollupAggregator
   public async applyTransaction(
     signedTransaction: SignedTransaction
   ): Promise<SignedStateReceipt[]> {
+    if (!this.synced) {
+      throw new NotSyncedError()
+    }
+
     try {
       const [
         stateUpdate,
@@ -182,6 +177,10 @@ export class RollupAggregator
   public async requestFaucetFunds(
     signedTransaction: SignedTransaction
   ): Promise<SignedStateReceipt> {
+    if (!this.synced) {
+      throw new NotSyncedError()
+    }
+
     try {
       if (!isFaucetTransaction(signedTransaction.transaction)) {
         throw Error('Cannot handle non-Faucet Request in faucet endpoint')

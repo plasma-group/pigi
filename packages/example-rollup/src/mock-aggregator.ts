@@ -67,6 +67,9 @@ async function runAggregator() {
     undefined
   )
 
+  // TODO: sync blocks and remove this line
+  await aggregator.onSyncCompleted()
+
   const aggregatorServer = new AggregatorServer(aggregator, host, port, [cors])
 
   // Just listen for requests!

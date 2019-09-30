@@ -16,7 +16,7 @@ import {
 
 /* Internal Imports */
 import { ethers } from 'ethers'
-import { AGGREGATOR_MNEMONIC, BOB_ADDRESS, getGenesisState } from './helpers'
+import {AGGREGATOR_MNEMONIC, assertThrowsAsync, BOB_ADDRESS, getGenesisState} from './helpers'
 import {
   UNI_TOKEN_TYPE,
   DefaultRollupStateMachine,
@@ -30,7 +30,7 @@ import {
   Transfer,
   PIGI_TOKEN_TYPE,
   abiEncodeStateReceipt,
-  abiEncodeTransaction,
+  abiEncodeTransaction, NotSyncedError,
 } from '../src'
 import { AggregatorServer } from '../src/aggregator/aggregator-server'
 
@@ -167,6 +167,8 @@ describe('RollupAggregator', () => {
 
   describe('getState', () => {
     it('should allow the balance to be queried', async () => {
+      await aggregator.onSyncCompleted()
+
       const response: SignedStateReceipt = await client.handle(
         AGGREGATOR_API.getState,
         aliceWallet.address
@@ -176,22 +178,49 @@ describe('RollupAggregator', () => {
         [PIGI_TOKEN_TYPE]: 50,
       })
     })
+
+    it('should throw if aggregator is not synced', async () => {
+      await assertThrowsAsync(async () => {
+        await client.handle(
+          AGGREGATOR_API.getState,
+          aliceWallet.address
+        )
+      })
+    })
   })
 
   describe('applyTransaction', () => {
     it('should update bobs balance using applyTransaction to send 5 tokens', async () => {
+      await aggregator.onSyncCompleted()
+
       await sendFromAliceToBob(5)
+    })
+
+    it('should throw if aggregator is not synced', async () => {
+      await assertThrowsAsync(async () => {
+        await sendFromAliceToBob(5)
+      })
     })
   })
 
   describe('requestFaucetFunds', () => {
     it('should send money to the account who requested', async () => {
+      await aggregator.onSyncCompleted()
+
       await requestFaucetFundsForNewWallet(10)
+    })
+
+    it('should throw if aggregator is not synced', async () => {
+      await assertThrowsAsync(async () => {
+          await requestFaucetFundsForNewWallet(10)
+      })
     })
   })
 
   describe('RollupTransaction Receipt Tests', () => {
     it('should receive a transaction receipt signed by the aggregator', async () => {
+      await aggregator.onSyncCompleted()
+
       const receipts: SignedStateReceipt[] = await sendFromAliceToBob(5)
       const signer0: string = DefaultSignatureVerifier.instance().verifyMessage(
         abiEncodeStateReceipt(receipts[0].stateReceipt),
@@ -209,6 +238,8 @@ describe('RollupAggregator', () => {
     })
 
     it('should have subsequent transactions that build on one another', async () => {
+      await aggregator.onSyncCompleted()
+
       const receiptsOne: SignedStateReceipt[] = await sendFromAliceToBob(5)
       const receiptsTwo: SignedStateReceipt[] = await sendFromAliceToBob(5)
 
