@@ -16,7 +16,12 @@ import {
 
 /* Internal Imports */
 import { ethers } from 'ethers'
-import {AGGREGATOR_MNEMONIC, assertThrowsAsync, BOB_ADDRESS, getGenesisState} from './helpers'
+import {
+  AGGREGATOR_MNEMONIC,
+  assertThrowsAsync,
+  BOB_ADDRESS,
+  getGenesisState,
+} from './helpers'
 import {
   UNI_TOKEN_TYPE,
   DefaultRollupStateMachine,
@@ -30,7 +35,8 @@ import {
   Transfer,
   PIGI_TOKEN_TYPE,
   abiEncodeStateReceipt,
-  abiEncodeTransaction, NotSyncedError,
+  abiEncodeTransaction,
+  NotSyncedError,
 } from '../src'
 import { AggregatorServer } from '../src/aggregator/aggregator-server'
 
@@ -181,10 +187,7 @@ describe('RollupAggregator', () => {
 
     it('should throw if aggregator is not synced', async () => {
       await assertThrowsAsync(async () => {
-        await client.handle(
-          AGGREGATOR_API.getState,
-          aliceWallet.address
-        )
+        await client.handle(AGGREGATOR_API.getState, aliceWallet.address)
       })
     })
   })
@@ -212,7 +215,7 @@ describe('RollupAggregator', () => {
 
     it('should throw if aggregator is not synced', async () => {
       await assertThrowsAsync(async () => {
-          await requestFaucetFundsForNewWallet(10)
+        await requestFaucetFundsForNewWallet(10)
       })
     })
   })

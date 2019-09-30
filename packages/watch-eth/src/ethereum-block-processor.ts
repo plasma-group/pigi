@@ -42,7 +42,7 @@ export class EthereumBlockProcessor {
   public async subscribe(
     provider: Provider,
     handler: EthereumListener<Block>,
-    syncPastBlocks: boolean = true,
+    syncPastBlocks: boolean = true
   ): Promise<void> {
     this.subscriptions.add(handler)
 
@@ -132,13 +132,11 @@ export class EthereumBlockProcessor {
     this.syncCompleted = true
     this.syncInProgress = false
 
-    log.debug(
-      `Synced from block [${syncStart}] to [${currentBlock}]!`
-    )
+    log.debug(`Synced from block [${syncStart}] to [${currentBlock}]!`)
 
     for (const callback of this.subscriptions) {
       callback.onSyncCompleted().catch((e) => {
-        logError(log, "Error calling Block sync callback", e)
+        logError(log, 'Error calling Block sync callback', e)
       })
     }
   }

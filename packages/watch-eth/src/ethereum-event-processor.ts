@@ -48,7 +48,7 @@ export class EthereumEventProcessor {
     contract: Contract,
     eventName: string,
     handler: EthereumListener<Event>,
-    syncPastEvents: boolean = true,
+    syncPastEvents: boolean = true
   ): Promise<void> {
     const eventId: string = this.getEventID(contract.address, eventName)
     log.debug(`Received subscriber for event ${eventName}, ID: ${eventId}`)
@@ -145,7 +145,11 @@ export class EthereumEventProcessor {
     this.finishSync(eventId, eventName, events.length)
   }
 
-  private finishSync(eventId: string, eventName: string, numEvents: number): void {
+  private finishSync(
+    eventId: string,
+    eventName: string,
+    numEvents: number
+  ): void {
     const status: SyncStatus = this.syncStatuses.get(eventId)
     status.syncCompleted = true
     status.syncInProgress = false
@@ -156,7 +160,7 @@ export class EthereumEventProcessor {
 
     for (const subscription of this.subscriptions.get(eventId)) {
       subscription.onSyncCompleted(eventId).catch((e) => {
-        logError(log, "Error calling Event sync callback", e)
+        logError(log, 'Error calling Event sync callback', e)
       })
     }
   }

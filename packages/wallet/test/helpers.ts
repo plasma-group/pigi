@@ -1,5 +1,5 @@
 /* External Imports */
-import {getLogger, ImplicationProofItem, logError} from '@pigi/core'
+import { getLogger, ImplicationProofItem, logError } from '@pigi/core'
 import * as assert from 'assert'
 
 /* Internal Imports */
@@ -116,7 +116,7 @@ export const assertThrows = (func: () => any, errorType?: any): void => {
   } catch (e) {
     if (!!errorType && !(e instanceof errorType)) {
       succeeded = false
-      logError(log, `Threw wrong error. Expected ${typeof(errorType)}`, e)
+      logError(log, `Threw wrong error. Expected ${typeof errorType}`, e)
     }
   }
 

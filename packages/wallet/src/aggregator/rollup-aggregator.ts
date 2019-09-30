@@ -12,10 +12,7 @@ import {
   hexStrToBuf,
   SignatureProvider,
 } from '@pigi/core'
-import {
-  EthereumListener,
-  Event,
-} from '@pigi/watch-eth'
+import { EthereumListener, Event } from '@pigi/watch-eth'
 
 /* Internal Imports */
 import {
@@ -40,7 +37,8 @@ import {
   TransferTransition,
   abiEncodeTransaction,
   EMPTY_AGGREGATOR_SIGNATURE,
-  isFaucetTransaction, NotSyncedError,
+  isFaucetTransaction,
+  NotSyncedError,
 } from '../index'
 import { RollupStateMachine } from '../types'
 import { UnipigAggregator } from '../types/unipig-aggregator'
