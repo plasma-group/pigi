@@ -1,19 +1,23 @@
 /* External Imports */
 import * as Level from 'level'
 
-import { BaseDB } from '@pigi/core'
+import { BaseDB, DefaultSignatureProvider, newInMemoryDB } from '@pigi/core'
 import {
-  State,
-  UNISWAP_ADDRESS,
-  UNI_TOKEN_TYPE,
-  PIGI_TOKEN_TYPE,
+  AggregatorServer,
+  DefaultRollupStateMachine,
   AGGREGATOR_ADDRESS,
+  PIGI_TOKEN_TYPE,
+  UNI_TOKEN_TYPE,
+  UNISWAP_ADDRESS,
   RollupAggregator,
   RollupStateMachine,
-  DefaultRollupStateMachine,
-  AggregatorServer,
+  DefaultRollupBlockSubmitter,
+  State,
+  RollupBlockSubmitter,
+  RollupBlock,
 } from '@pigi/wallet'
 import cors = require('cors')
+import { Wallet } from 'ethers'
 
 export const AGGREGATOR_MNEMONIC: string =
   'rebel talent argue catalog maple duty file taxi dust hire funny steak'
@@ -35,6 +39,20 @@ export const genesisState: State[] = [
     },
   },
 ]
+
+class DummyBlockSubmitter implements RollupBlockSubmitter {
+  public async init(): Promise<void> {
+    // no-op
+  }
+
+  public async handleNewRollupBlock(rollupBlockNumber: number): Promise<void> {
+    // no-op
+  }
+
+  public async submitBlock(block: RollupBlock): Promise<void> {
+    // no-op
+  }
+}
 
 // Create a new aggregator... and then...
 const host = '0.0.0.0'
@@ -59,12 +77,14 @@ async function runAggregator() {
     stateDB
   )
 
+  // TODO: Actually populate this.
+  const blockSubmitter: RollupBlockSubmitter = new DummyBlockSubmitter()
+
   const aggregator = new RollupAggregator(
     blockDB,
     rollupStateMachine,
-    AGGREGATOR_MNEMONIC,
-    undefined,
-    undefined
+    blockSubmitter,
+    new DefaultSignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC))
   )
 
   // TODO: sync blocks and remove this line

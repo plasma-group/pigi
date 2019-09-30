@@ -6,8 +6,10 @@ import {
   BaseDB,
   BigNumber,
   DB,
+  DefaultSignatureProvider,
   DefaultSignatureVerifier,
   getLogger,
+  newInMemoryDB,
   serializeObject,
   SimpleClient,
   SparseMerkleTree,
@@ -15,11 +17,12 @@ import {
 } from '@pigi/core'
 
 /* Internal Imports */
-import { ethers } from 'ethers'
+import { ethers, Wallet } from 'ethers'
 import {
   AGGREGATOR_MNEMONIC,
   assertThrowsAsync,
   BOB_ADDRESS,
+  DummyBlockSubmitter,
   getGenesisState,
 } from './helpers'
 import {
@@ -39,6 +42,7 @@ import {
   NotSyncedError,
 } from '../src'
 import { AggregatorServer } from '../src/aggregator/aggregator-server'
+import { DefaultRollupBlockSubmitter } from '../src/default-rollup-block-submitter'
 
 const log = getLogger('rollup-aggregator', true)
 /*********
@@ -67,9 +71,8 @@ describe('RollupAggregator', () => {
     aggregator = new RollupAggregator(
       blockDB,
       rollupStateMachine,
-      AGGREGATOR_MNEMONIC,
-      undefined,
-      undefined
+      new DummyBlockSubmitter(),
+      new DefaultSignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC))
     )
 
     aggregatorServer = new AggregatorServer(aggregator, 'localhost', 3000)
@@ -174,6 +177,7 @@ describe('RollupAggregator', () => {
   describe('getState', () => {
     it('should allow the balance to be queried', async () => {
       await aggregator.onSyncCompleted()
+      await aggregator.init()
 
       const response: SignedStateReceipt = await client.handle(
         AGGREGATOR_API.getState,
@@ -189,17 +193,54 @@ describe('RollupAggregator', () => {
       await assertThrowsAsync(async () => {
         await client.handle(AGGREGATOR_API.getState, aliceWallet.address)
       })
+
+      await aggregator.init()
+
+      await assertThrowsAsync(async () => {
+        await client.handle(AGGREGATOR_API.getState, aliceWallet.address)
+      })
+    })
+
+    it('should throw if aggregator is not initialized', async () => {
+      await assertThrowsAsync(async () => {
+        await client.handle(AGGREGATOR_API.getState, aliceWallet.address)
+      })
+
+      await aggregator.onSyncCompleted()
+
+      await assertThrowsAsync(async () => {
+        await client.handle(AGGREGATOR_API.getState, aliceWallet.address)
+      })
     })
   })
 
   describe('applyTransaction', () => {
     it('should update bobs balance using applyTransaction to send 5 tokens', async () => {
       await aggregator.onSyncCompleted()
+      await aggregator.init()
 
       await sendFromAliceToBob(5)
     })
 
     it('should throw if aggregator is not synced', async () => {
+      await assertThrowsAsync(async () => {
+        await sendFromAliceToBob(5)
+      })
+
+      await aggregator.init()
+
+      await assertThrowsAsync(async () => {
+        await sendFromAliceToBob(5)
+      })
+    })
+
+    it('should throw if aggregator is not initialized', async () => {
+      await assertThrowsAsync(async () => {
+        await sendFromAliceToBob(5)
+      })
+
+      await aggregator.onSyncCompleted()
+
       await assertThrowsAsync(async () => {
         await sendFromAliceToBob(5)
       })
@@ -209,11 +250,30 @@ describe('RollupAggregator', () => {
   describe('requestFaucetFunds', () => {
     it('should send money to the account who requested', async () => {
       await aggregator.onSyncCompleted()
+      await aggregator.init()
 
       await requestFaucetFundsForNewWallet(10)
     })
 
     it('should throw if aggregator is not synced', async () => {
+      await assertThrowsAsync(async () => {
+        await requestFaucetFundsForNewWallet(10)
+      })
+
+      await aggregator.init()
+
+      await assertThrowsAsync(async () => {
+        await requestFaucetFundsForNewWallet(10)
+      })
+    })
+
+    it('should throw if aggregator is not initialized', async () => {
+      await assertThrowsAsync(async () => {
+        await requestFaucetFundsForNewWallet(10)
+      })
+
+      await aggregator.onSyncCompleted()
+
       await assertThrowsAsync(async () => {
         await requestFaucetFundsForNewWallet(10)
       })
@@ -223,6 +283,7 @@ describe('RollupAggregator', () => {
   describe('RollupTransaction Receipt Tests', () => {
     it('should receive a transaction receipt signed by the aggregator', async () => {
       await aggregator.onSyncCompleted()
+      await aggregator.init()
 
       const receipts: SignedStateReceipt[] = await sendFromAliceToBob(5)
       const signer0: string = DefaultSignatureVerifier.instance().verifyMessage(
@@ -242,6 +303,7 @@ describe('RollupAggregator', () => {
 
     it('should have subsequent transactions that build on one another', async () => {
       await aggregator.onSyncCompleted()
+      await aggregator.init()
 
       const receiptsOne: SignedStateReceipt[] = await sendFromAliceToBob(5)
       const receiptsTwo: SignedStateReceipt[] = await sendFromAliceToBob(5)

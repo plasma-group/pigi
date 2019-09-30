@@ -1,16 +1,16 @@
 /* External Imports */
 import * as AsyncLock from 'async-lock'
-import { Contract, ethers } from 'ethers'
 
 import {
   SignatureVerifier,
   DefaultSignatureVerifier,
   serializeObject,
-  DefaultSignatureProvider,
   DB,
   getLogger,
   hexStrToBuf,
   SignatureProvider,
+  hexBufToStr,
+  logError,
 } from '@pigi/core'
 import { EthereumListener, Event } from '@pigi/watch-eth'
 
@@ -34,16 +34,22 @@ import {
   isSwapTransaction,
   Transfer,
   abiEncodeTransition,
+  parseTransitionFromABI,
   TransferTransition,
   abiEncodeTransaction,
   EMPTY_AGGREGATOR_SIGNATURE,
   isFaucetTransaction,
   NotSyncedError,
+  RollupBlockSubmitter,
 } from '../index'
 import { RollupStateMachine } from '../types'
 import { UnipigAggregator } from '../types/unipig-aggregator'
+import { DefaultRollupBlockSubmitter } from '../default-rollup-block-submitter'
 
 const log = getLogger('rollup-aggregator')
+
+const PENDING_BLOCK_KEY: Buffer = Buffer.from('pending_block_number')
+const LAST_TRANSITION_KEY: Buffer = Buffer.from('last_transition')
 
 /*
  * An aggregator implementation which allows for transfers, swaps,
@@ -53,31 +59,21 @@ export class RollupAggregator
   implements EthereumListener<Event>, UnipigAggregator {
   private static readonly lockKey: string = 'lock'
 
-  private readonly db: DB
   private readonly lock: AsyncLock
-  private readonly wallet: ethers.Wallet
-  private readonly rollupStateMachine: RollupStateMachine
-  private readonly signatureProvider: SignatureProvider
-  private readonly signatureVerifier: SignatureVerifier
-  private readonly rollupContract: Contract
 
   private synced: boolean
+  private initialized: boolean
   private blockNumber: number
   private transitionIndex: number
   private pendingBlock: RollupBlock
 
   constructor(
-    db: DB,
-    rollupStateMachine: RollupStateMachine,
-    mnemonic: string,
-    rollupContract: Contract,
-    signatureVerifier: SignatureVerifier = DefaultSignatureVerifier.instance()
+    private readonly db: DB,
+    private readonly rollupStateMachine: RollupStateMachine,
+    private readonly rollupBlockSubmitter: RollupBlockSubmitter,
+    private readonly signatureProvider: SignatureProvider,
+    private readonly signatureVerifier: SignatureVerifier = DefaultSignatureVerifier.instance()
   ) {
-    this.rollupStateMachine = rollupStateMachine
-    this.wallet = ethers.Wallet.fromMnemonic(mnemonic)
-    this.signatureVerifier = signatureVerifier
-    this.signatureProvider = new DefaultSignatureProvider(this.wallet)
-    this.db = db
     this.transitionIndex = 0
     this.blockNumber = 1
     this.pendingBlock = {
@@ -85,9 +81,8 @@ export class RollupAggregator
       transitions: [],
     }
     this.lock = new AsyncLock()
-
-    this.rollupContract = rollupContract
     this.synced = false
+    this.initialized = false
   }
 
   public async onSyncCompleted(syncIdentifier?: string): Promise<void> {
@@ -95,14 +90,75 @@ export class RollupAggregator
   }
 
   public async handle(event: Event): Promise<void> {
-    // TODO: handle events
-    // Two categories:
-    // 1) I submitted this block, and this is just a confirm
-    // 2) Someone else submitted this block, and I need to get up to speed.
+    log.debug(`Aggregator received event: ${JSON.stringify(event)}`)
+    if (!!event && !!event.values && 'blockNumber' in event.values) {
+      await this.rollupBlockSubmitter.handleNewRollupBlock(
+        event.values['blockNumber']
+      )
+    }
+  }
+
+  /**
+   * Initialize method, required for the Aggregator to load existing state before
+   * it can handle requests.
+   */
+  public async init(): Promise<void> {
+    try {
+      const [
+        pendingBlockNumberBuffer,
+        lastTransitionBuffer,
+      ] = await Promise.all([
+        this.db.get(PENDING_BLOCK_KEY),
+        this.db.get(LAST_TRANSITION_KEY),
+      ])
+
+      // Fresh start -- nothing in the DB
+      if (!lastTransitionBuffer) {
+        log.info(`Init returning -- no stored last transition.`)
+        this.initialized = true
+        return
+      }
+
+      const pendingBlock: number = pendingBlockNumberBuffer
+        ? parseInt(pendingBlockNumberBuffer.toString(), 10)
+        : 1
+      const lastTransition: number = parseInt(
+        lastTransitionBuffer.toString(),
+        10
+      )
+
+      const promises: Array<Promise<Buffer>> = []
+      for (let i = 1; i <= lastTransition; i++) {
+        promises.push(this.db.get(this.getTransitionKey(i)))
+      }
+
+      const transitionBuffers: Buffer[] = await Promise.all(promises)
+      const transitions: RollupTransition[] = transitionBuffers.map((x) =>
+        parseTransitionFromABI(hexBufToStr(x))
+      )
+
+      this.pendingBlock = {
+        number: pendingBlock,
+        transitions,
+      }
+
+      this.blockNumber = pendingBlock
+      this.transitionIndex = lastTransition
+
+      this.initialized = true
+      log.info(
+        `Initialized aggregator with pending block: ${JSON.stringify(
+          this.pendingBlock
+        )}`
+      )
+    } catch (e) {
+      logError(log, 'Error initializing aggregator', e)
+      throw e
+    }
   }
 
   public async getState(address: string): Promise<SignedStateReceipt> {
-    if (!this.synced) {
+    if (!this.isReadyForRequests()) {
       throw new NotSyncedError()
     }
 
@@ -144,7 +200,7 @@ export class RollupAggregator
   public async applyTransaction(
     signedTransaction: SignedTransaction
   ): Promise<SignedStateReceipt[]> {
-    if (!this.synced) {
+    if (!this.isReadyForRequests()) {
       throw new NotSyncedError()
     }
 
@@ -175,7 +231,7 @@ export class RollupAggregator
   public async requestFaucetFunds(
     signedTransaction: SignedTransaction
   ): Promise<SignedStateReceipt> {
-    if (!this.synced) {
+    if (!this.isReadyForRequests) {
       throw new NotSyncedError()
     }
 
@@ -319,13 +375,15 @@ export class RollupAggregator
     }
 
     for (const trans of transitions) {
-      await this.db
-        .bucket(this.getDBKeyFromNumber(this.pendingBlock.number))
-        .put(
-          this.getDBKeyFromNumber(++this.transitionIndex),
-          hexStrToBuf(abiEncodeTransition(trans))
-        )
+      await this.db.put(
+        this.getTransitionKey(++this.transitionIndex),
+        hexStrToBuf(abiEncodeTransition(trans))
+      )
     }
+    await this.db.put(
+      LAST_TRANSITION_KEY,
+      Buffer.from(this.transitionIndex.toString(10))
+    )
 
     return transitions
   }
@@ -360,20 +418,23 @@ export class RollupAggregator
     return this.lock.acquire(RollupAggregator.lockKey, async () => {
       const toSubmit = this.pendingBlock
 
-      // TODO: submit block here
-
+      await this.rollupBlockSubmitter.submitBlock(toSubmit)
       this.pendingBlock = {
         number: ++this.blockNumber,
         transitions: [],
       }
       this.transitionIndex = 0
+
+      await this.db.put(LAST_TRANSITION_KEY, Buffer.from('0'))
+      await this.db.put(
+        PENDING_BLOCK_KEY,
+        Buffer.from(this.blockNumber.toString(10))
+      )
     })
   }
 
-  private getDBKeyFromNumber(num: number): Buffer {
-    const buff = Buffer.alloc(4)
-    buff.writeUInt32BE(num, 0)
-    return buff
+  private getTransitionKey(transIndex: number): Buffer {
+    return Buffer.from(`TRANS_${transIndex}`)
   }
 
   /**
@@ -416,5 +477,12 @@ export class RollupAggregator
         transaction: txTwo,
       },
     ]
+  }
+
+  /**
+   * Returns whether or not this Aggregator is ready to handle requests.
+   */
+  private isReadyForRequests() {
+    return this.initialized && this.synced
   }
 }

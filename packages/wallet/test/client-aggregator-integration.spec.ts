@@ -11,6 +11,7 @@ import {
 /* Internal Imports */
 import {
   AGGREGATOR_MNEMONIC,
+  DummyBlockSubmitter,
   DummyRollupStateSolver,
   getGenesisState,
 } from './helpers'
@@ -25,6 +26,8 @@ import {
   Balances,
 } from '../src'
 import { AggregatorServer } from '../src/aggregator/aggregator-server'
+import { DefaultRollupBlockSubmitter } from '../src/default-rollup-block-submitter'
+import { Wallet } from 'ethers'
 
 const log = getLogger('client-aggregator-integration', true)
 
@@ -66,13 +69,13 @@ describe('Mock Client/Aggregator Integration', () => {
     aggregator = new RollupAggregator(
       newInMemoryDB(),
       rollupStateMachine,
-      AGGREGATOR_MNEMONIC,
-      undefined,
-      undefined
+      new DummyBlockSubmitter(),
+      new DefaultSignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC))
     )
 
-    // Assume we're in sync completed
+    // Assume we're in sync & initialized
     await aggregator.onSyncCompleted()
+    await aggregator.init()
 
     aggregatorServer = new AggregatorServer(aggregator, 'localhost', 3000)
 

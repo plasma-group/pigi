@@ -6,6 +6,8 @@ import * as assert from 'assert'
 import {
   AGGREGATOR_ADDRESS,
   PIGI_TOKEN_TYPE,
+  RollupBlock,
+  RollupBlockSubmitter,
   RollupStateSolver,
   SignedStateReceipt,
   State,
@@ -183,5 +185,19 @@ export class DummyRollupStateSolver implements RollupStateSolver {
     if (!!this.storeErrorToThrow) {
       throw this.storeErrorToThrow
     }
+  }
+}
+
+export class DummyBlockSubmitter implements RollupBlockSubmitter {
+  public async init(): Promise<void> {
+    // no-op
+  }
+
+  public async handleNewRollupBlock(rollupBlockNumber: number): Promise<void> {
+    // no-op
+  }
+
+  public async submitBlock(block: RollupBlock): Promise<void> {
+    // no-op
   }
 }
