@@ -40,10 +40,6 @@ export const genesisState: State[] = [
 ]
 
 class DummyBlockSubmitter implements RollupBlockSubmitter {
-  public async init(): Promise<void> {
-    // no-op
-  }
-
   public async handleNewRollupBlock(rollupBlockNumber: number): Promise<void> {
     // no-op
   }

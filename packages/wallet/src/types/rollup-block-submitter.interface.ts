@@ -7,13 +7,6 @@ export interface RollupBlockSubmitter {
   getLastQueued(): number
 
   /**
-   * Performs all initialization required to bootstrap this
-   * BlockSubmitter. This will likely entail reading any existing
-   * state from a datastore.
-   */
-  init(): Promise<void>
-
-  /**
    * Submits a block or queues it for later submission.
    * @param block The block to submit
    */

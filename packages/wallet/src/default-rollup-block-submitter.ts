@@ -1,4 +1,4 @@
-import { DB, getLogger } from '@pigi/core'
+import { DB, getLogger, logError } from '@pigi/core'
 import { Block } from 'ethers/providers'
 import { Contract } from 'ethers'
 
@@ -21,11 +21,25 @@ export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
   private lastQueued: number
   private blockQueue: RollupBlock[]
 
-  constructor(private db: DB, private readonly rollupContract: Contract) {
+  public static async create(
+    db: DB,
+    rollupContract: Contract
+  ): Promise<DefaultRollupBlockSubmitter> {
+    const submitter = new DefaultRollupBlockSubmitter(db, rollupContract)
+
+    await submitter.init()
+
+    return submitter
+  }
+
+  private constructor(
+    private db: DB,
+    private readonly rollupContract: Contract
+  ) {
     this.blockQueue = []
   }
 
-  public async init(): Promise<void> {
+  private async init(): Promise<void> {
     const [
       lastSubmittedBuffer,
       lastConfirmedBuffer,
@@ -144,10 +158,20 @@ export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
     log.debug(
       `Submitting block number ${block.number}: ${JSON.stringify(block)}.`
     )
-    const receipt = await this.rollupContract.submitBlock(
-      DefaultRollupBlockSubmitter.serializeRollupBlockForSubmission(block)
-    )
-    // TODO: do something with receipt?
+
+    try {
+      const receipt = await this.rollupContract.submitBlock(
+        DefaultRollupBlockSubmitter.serializeRollupBlockForSubmission(block)
+      )
+      // TODO: do something with receipt?
+    } catch (e) {
+      logError(
+        log,
+        `Error submitting rollup block: ${JSON.stringify(block)}`,
+        e
+      )
+      throw e
+    }
 
     this.lastSubmitted = block.number
     await this.db.put(
