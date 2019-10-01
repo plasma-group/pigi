@@ -62,9 +62,9 @@ const initQueuedSubmittedConfirmed = async (
     )
   }
 
-  // @ts-ignore
   const blockSubmitter: DefaultRollupBlockSubmitter = await DefaultRollupBlockSubmitter.create(
     db,
+    // @ts-ignore
     dummyContract
   )
 
@@ -180,6 +180,7 @@ describe('DefaultRollupBlockSubmitter', () => {
       // @ts-ignore
       const blockSubmitter: DefaultRollupBlockSubmitter = await DefaultRollupBlockSubmitter.create(
         db,
+        // @ts-ignore
         dummyContract
       )
 
@@ -278,6 +279,7 @@ describe('DefaultRollupBlockSubmitter', () => {
       // @ts-ignore
       const blockSubmitter: DefaultRollupBlockSubmitter = await DefaultRollupBlockSubmitter.create(
         db,
+        // @ts-ignore
         dummyContract
       )
 
