@@ -53,17 +53,20 @@ import {
 const log = getLogger('rollup-aggregator')
 
 export class DefaultRollupStateMachine implements RollupStateMachine {
+  public static readonly ROOT_KEY: Buffer = Buffer.from('state_machine_root')
+  public static readonly LAST_OPEN_KEY: Buffer = Buffer.from('last_open_key')
+  public static readonly ADDRESS_TO_KEYS_COUNT_KEY: Buffer = Buffer.from(
+    'address_to_keys_count'
+  )
+
   private static readonly lockKey: string = 'lock'
 
   private lastOpenKey: BigNumber
-  private readonly usedKeys: Set<string>
-  private readonly addressesToKeys: Map<Address, BigNumber>
-  private readonly maxAddresses: BigNumber
-
-  private readonly tree: SparseMerkleTree
-  private readonly lock: AsyncLock = new AsyncLock({
-    domainReentrant: true,
-  })
+  private usedKeys: Set<string>
+  private addressesToKeys: Map<Address, BigNumber>
+  private maxAddresses: BigNumber
+  private tree: SparseMerkleTree
+  private readonly lock: AsyncLock
 
   public static async create(
     genesisState: State[],
@@ -79,6 +82,8 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       treeHeight
     )
 
+    await stateMachine.init()
+
     if (!!genesisState.length) {
       const promises: Array<Promise<boolean>> = []
       for (const state of genesisState) {
@@ -93,16 +98,60 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
   }
 
   private constructor(
-    db: DB,
+    private readonly db: DB,
     private readonly signatureVerifier: SignatureVerifier,
-    private swapFeeBasisPoints: number,
-    treeHeight: number = 32
+    private readonly swapFeeBasisPoints: number,
+    private readonly treeHeight: number = 32
   ) {
-    this.tree = new SparseMerkleTreeImpl(db, undefined, treeHeight)
+    this.maxAddresses = new BigNumber(Math.pow(2, this.treeHeight) - 1)
+    this.lock = new AsyncLock({
+      domainReentrant: true,
+    })
+  }
+
+  private async init(): Promise<void> {
+    const storedRoot: Buffer = await this.db.get(
+      DefaultRollupStateMachine.ROOT_KEY
+    )
+
+    this.tree = new SparseMerkleTreeImpl(this.db, storedRoot, this.treeHeight)
+    this.addressesToKeys = new Map<Address, BigNumber>()
     this.usedKeys = new Set<string>()
     this.lastOpenKey = ZERO
-    this.addressesToKeys = new Map<Address, BigNumber>()
-    this.maxAddresses = new BigNumber(Math.pow(2, this.tree.getHeight()) - 1)
+
+    if (!storedRoot) {
+      return
+    }
+
+    const [lastKeyBuffer, addressToKeyCountBuffer] = await Promise.all([
+      this.db.get(DefaultRollupStateMachine.LAST_OPEN_KEY),
+      this.db.get(DefaultRollupStateMachine.ADDRESS_TO_KEYS_COUNT_KEY),
+    ])
+
+    this.lastOpenKey = new BigNumber(lastKeyBuffer)
+    const addressCount = parseInt(addressToKeyCountBuffer.toString(), 10)
+
+    const addressPromises: Array<Promise<Buffer>> = []
+    for (let i = 0; i < addressCount; i++) {
+      addressPromises.push(
+        this.db.get(DefaultRollupStateMachine.getAddressMapDBKey(i))
+      )
+    }
+
+    const addressToKeysBuffers: Buffer[] = await Promise.all(addressPromises)
+    for (const addressKeyBuf of addressToKeysBuffers) {
+      const addressAndKey: any[] = DefaultRollupStateMachine.deserializeAddressToKeyFromDB(
+        addressKeyBuf
+      )
+      this.addressesToKeys.set(addressAndKey[0], addressAndKey[1])
+    }
+
+    for (const key of this.addressesToKeys.values()) {
+      this.usedKeys.add(key.toString())
+      if (key.gt(this.lastOpenKey)) {
+        this.lastOpenKey = key
+      }
+    }
   }
 
   public async getState(address: Address): Promise<StateSnapshot> {
@@ -211,6 +260,10 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       } else {
         throw new InvalidTransactionTypeError()
       }
+
+      const root: Buffer = await this.tree.getRootHash()
+      await this.db.put(DefaultRollupStateMachine.ROOT_KEY, root)
+
       const senderState: State = updatedStates[0]
       const receiverState: State = updatedStates[1]
 
@@ -256,7 +309,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     address: string,
     balances: Balances
   ): Promise<boolean> {
-    const addressKey: BigNumber = this.getOrCreateAddressKey(address)
+    const addressKey: BigNumber = await this.getOrCreateAddressKey(address)
     const serializedBalances: Buffer = this.serializeBalances(address, balances)
 
     const result: boolean = await this.tree.update(
@@ -400,7 +453,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     return this.addressesToKeys.get(address)
   }
 
-  private getOrCreateAddressKey(address: string): BigNumber {
+  private async getOrCreateAddressKey(address: string): Promise<BigNumber> {
     const existingKey: BigNumber = this.getAddressKey(address)
     if (!!existingKey) {
       return existingKey
@@ -416,6 +469,27 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     }
     this.addressesToKeys.set(address, this.lastOpenKey)
     this.usedKeys.add(newKey)
+
+    // Order of updates matters here, so can't parallelize
+    await this.db.put(
+      DefaultRollupStateMachine.getAddressMapDBKey(
+        this.addressesToKeys.size - 1
+      ),
+      DefaultRollupStateMachine.serializeAddressToKeyForDB(
+        address,
+        this.lastOpenKey
+      )
+    )
+    await Promise.all([
+      this.db.put(
+        DefaultRollupStateMachine.ADDRESS_TO_KEYS_COUNT_KEY,
+        Buffer.from(this.addressesToKeys.size.toString(10))
+      ),
+      this.db.put(
+        DefaultRollupStateMachine.LAST_OPEN_KEY,
+        Buffer.from(this.lastOpenKey.toString(10))
+      ),
+    ])
 
     return this.addressesToKeys.get(address)
   }
@@ -436,5 +510,21 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       pubKey,
       balances,
     }
+  }
+
+  public static getAddressMapDBKey(index: number): Buffer {
+    return Buffer.from(`ADDR_IDX_${index}`)
+  }
+
+  public static serializeAddressToKeyForDB(
+    address: Address,
+    key: BigNumber
+  ): Buffer {
+    return Buffer.from(JSON.stringify([address, key.toString()]))
+  }
+
+  public static deserializeAddressToKeyFromDB(buf: Buffer): any[] {
+    const parsed: any[] = JSON.parse(buf.toString())
+    return [parsed[0], new BigNumber(parsed[1])]
   }
 }
