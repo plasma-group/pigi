@@ -13,7 +13,8 @@ import {
   keccak256,
   newInMemoryDB,
   serializeObject,
-  SimpleClient, sleep,
+  SimpleClient,
+  sleep,
   SparseMerkleTree,
   SparseMerkleTreeImpl,
 } from '@pigi/core'
@@ -60,7 +61,7 @@ describe('RollupAggregator', () => {
   let rollupStateMachine: RollupStateMachine
   let dummyBlockSubmitter: DummyBlockSubmitter
 
-    let aliceWallet: ethers.Wallet
+  let aliceWallet: ethers.Wallet
 
   beforeEach(async () => {
     aliceWallet = ethers.Wallet.createRandom()
@@ -289,7 +290,6 @@ describe('RollupAggregator', () => {
         dummyBlockSubmitter.submitedBlocks[0].number.should.equal(1)
         dummyBlockSubmitter.submitedBlocks[0].transitions.length.should.equal(2)
 
-
         aggregator.getPendingBlockNumber().should.equal(2)
       })
 
@@ -469,7 +469,6 @@ describe('RollupAggregator', () => {
       dummyBlockSubmitter.submitedBlocks.length.should.equal(1)
       dummyBlockSubmitter.submitedBlocks[0].number.should.equal(1)
       dummyBlockSubmitter.submitedBlocks[0].transitions.length.should.equal(1)
-
     }).timeout(10_000)
   })
 
