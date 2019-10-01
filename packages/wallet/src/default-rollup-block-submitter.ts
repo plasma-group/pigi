@@ -183,7 +183,7 @@ export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
   public static serializeRollupBlockForSubmission(
     block: RollupBlock
   ): string[] {
-    return block.transitions.map((x) => x.stateRoot)
+    return block.transitions.map((x) => abiEncodeTransition(x))
   }
 
   public static serializeRollupBlockForStorage(

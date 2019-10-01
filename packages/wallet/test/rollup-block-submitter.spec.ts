@@ -10,7 +10,7 @@ import {
 
 /* Internal Imports */
 import { RollupBlock, RollupBlockSubmitter } from '../src/types'
-import { DefaultRollupBlockSubmitter } from '../src'
+import { abiEncodeTransition, DefaultRollupBlockSubmitter } from '../src'
 
 const getIntFromDB = async (db: DB, key: Buffer): Promise<number> => {
   return parseInt((await db.get(key)).toString(), 10)
@@ -89,7 +89,7 @@ const initQueuedSubmittedConfirmed = async (
     // Check that block was submitted
     dummyContract.blocksSubmitted.length.should.equal(1)
     dummyContract.blocksSubmitted[0][0].should.equal(
-      blocks[0].transitions[0].stateRoot
+      abiEncodeTransition(blocks[0].transitions[0])
     )
 
     // Check that last submitted was persisted
@@ -188,7 +188,7 @@ describe('DefaultRollupBlockSubmitter', () => {
 
       dummyContract.blocksSubmitted.length.should.equal(1)
       dummyContract.blocksSubmitted[0][0].should.equal(
-        rollupBlock.transitions[0].stateRoot
+        abiEncodeTransition(rollupBlock.transitions[0])
       )
 
       blockSubmitter.getLastConfirmed().should.equal(0)
@@ -216,7 +216,7 @@ describe('DefaultRollupBlockSubmitter', () => {
 
       dummyContract.blocksSubmitted.length.should.equal(1)
       dummyContract.blocksSubmitted[0][0].should.equal(
-        rollupBlock2.transitions[0].stateRoot
+        abiEncodeTransition(rollupBlock2.transitions[0])
       )
 
       blockSubmitter.getLastConfirmed().should.equal(1)
@@ -324,7 +324,7 @@ describe('DefaultRollupBlockSubmitter', () => {
 
       dummyContract.blocksSubmitted.length.should.equal(1)
       dummyContract.blocksSubmitted[0][0].should.equal(
-        rollupBlock2.transitions[0].stateRoot
+        abiEncodeTransition(rollupBlock2.transitions[0])
       )
 
       blockSubmitter.getLastConfirmed().should.equal(1)
@@ -367,7 +367,7 @@ describe('DefaultRollupBlockSubmitter', () => {
 
       dummyContract.blocksSubmitted.length.should.equal(1)
       dummyContract.blocksSubmitted[0][0].should.equal(
-        rollupBlock2.transitions[0].stateRoot
+        abiEncodeTransition(rollupBlock2.transitions[0])
       )
 
       blockSubmitter.getLastConfirmed().should.equal(1)
