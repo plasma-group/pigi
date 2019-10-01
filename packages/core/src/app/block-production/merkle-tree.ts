@@ -37,20 +37,34 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
   private readonly hashFunction: (Buffer) => Buffer
   private readonly hashBuffer: Buffer = Buffer.alloc(64)
 
-  constructor(
-    private readonly db: DB,
+  public static async create(
+    db: DB,
     rootHash?: Buffer,
-    private readonly height: number = 160,
+    height: number = 160,
+    hashFunction = keccak256
+  ): Promise<SparseMerkleTreeImpl> {
+    assert(!rootHash || rootHash.length === 32, 'Root hash must be 32 bytes')
+
+    const tree = new SparseMerkleTreeImpl(db, height, hashFunction)
+
+    await tree.init(rootHash)
+    return tree
+  }
+
+  private constructor(
+    private db: DB,
+    private height: number = 160,
     hashFunction: HashFunction = keccak256
   ) {
-    assert(!rootHash || rootHash.length === 32, 'Root hash must be 32 bytes')
     assert(height > 0, 'SMT height needs to be > 0')
 
     // TODO: Hack for now -- change everything to string if/when it makes sense
     this.hashFunction = (buff: Buffer) =>
       Buffer.from(hashFunction(buff.toString('hex')), 'hex')
+  }
 
-    this.populateZeroHashesAndRoot(rootHash)
+  private async init(rootHash?: Buffer): Promise<void> {
+    await this.populateZeroHashesAndRoot(rootHash)
   }
 
   public getHeight(): number {
@@ -533,7 +547,7 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
    *
    * @param rootHash The optional root hash to assign the tree
    */
-  private populateZeroHashesAndRoot(rootHash?: Buffer): void {
+  private async populateZeroHashesAndRoot(rootHash?: Buffer): Promise<void> {
     const hashes: Buffer[] = [
       this.hashFunction(SparseMerkleTreeImpl.emptyBuffer),
     ]
@@ -545,7 +559,18 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
     }
 
     this.zeroHashes = hashes.reverse()
-    this.root = this.createNode(rootHash || this.zeroHashes[0], undefined, ZERO)
+
+    if (!!rootHash) {
+      this.root = await this.getNode(rootHash, ZERO)
+    }
+
+    if (!this.root) {
+      this.root = this.createNode(
+        rootHash || this.zeroHashes[0],
+        undefined,
+        ZERO
+      )
+    }
   }
 
   /**
