@@ -1,6 +1,11 @@
 import { RollupBlock } from './types'
 
 export interface RollupBlockSubmitter {
+  /* Getters */
+  getLastSubmitted(): number
+  getLastConfirmed(): number
+  getLastQueued(): number
+
   /**
    * Performs all initialization required to bootstrap this
    * BlockSubmitter. This will likely entail reading any existing

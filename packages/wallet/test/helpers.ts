@@ -200,4 +200,16 @@ export class DummyBlockSubmitter implements RollupBlockSubmitter {
   public async submitBlock(block: RollupBlock): Promise<void> {
     // no-op
   }
+
+  public getLastConfirmed(): number {
+    return 0
+  }
+
+  public getLastQueued(): number {
+    return 0
+  }
+
+  public getLastSubmitted(): number {
+    return 0
+  }
 }

@@ -44,7 +44,6 @@ import {
 } from '../index'
 import { RollupStateMachine } from '../types'
 import { UnipigAggregator } from '../types/unipig-aggregator'
-import { DefaultRollupBlockSubmitter } from '../default-rollup-block-submitter'
 
 const log = getLogger('rollup-aggregator')
 

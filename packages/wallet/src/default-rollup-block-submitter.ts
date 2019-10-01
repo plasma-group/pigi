@@ -2,15 +2,20 @@ import { DB, getLogger } from '@pigi/core'
 import { Block } from 'ethers/providers'
 import { Contract } from 'ethers'
 
-import { RollupBlock } from './types'
+import { RollupBlock, RollupBlockSubmitter } from './types'
+import { abiEncodeTransition, parseTransitionFromABI } from './serialization'
 
 const log = getLogger('rollup-block-submitter')
 
-const LAST_CONFIRMED_KEY: Buffer = Buffer.from('last_confirmed')
-const LAST_SUBMITTED_KEY: Buffer = Buffer.from('last_submitted')
-const LAST_QUEUED_KEY: Buffer = Buffer.from('last_queued')
+export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
+  public static readonly LAST_CONFIRMED_KEY: Buffer = Buffer.from(
+    'last_confirmed'
+  )
+  public static readonly LAST_SUBMITTED_KEY: Buffer = Buffer.from(
+    'last_submitted'
+  )
+  public static readonly LAST_QUEUED_KEY: Buffer = Buffer.from('last_queued')
 
-export class DefaultRollupBlockSubmitter {
   private lastSubmitted: number
   private lastConfirmed: number
   private lastQueued: number
@@ -26,9 +31,9 @@ export class DefaultRollupBlockSubmitter {
       lastConfirmedBuffer,
       lastQueuedBuffer,
     ] = await Promise.all([
-      this.db.get(LAST_SUBMITTED_KEY),
-      this.db.get(LAST_CONFIRMED_KEY),
-      this.db.get(LAST_QUEUED_KEY),
+      this.db.get(DefaultRollupBlockSubmitter.LAST_SUBMITTED_KEY),
+      this.db.get(DefaultRollupBlockSubmitter.LAST_CONFIRMED_KEY),
+      this.db.get(DefaultRollupBlockSubmitter.LAST_QUEUED_KEY),
     ])
 
     this.lastSubmitted = !!lastSubmittedBuffer
@@ -50,14 +55,16 @@ export class DefaultRollupBlockSubmitter {
     }
 
     // We need to populate the queue from storage
-    if (this.lastSubmitted !== this.lastQueued) {
+    if (this.lastConfirmed !== this.lastQueued) {
+      let i: number = this.lastConfirmed + 1
       const promises: Array<Promise<Buffer>> = []
-      for (let i = this.lastSubmitted; i < this.lastQueued; i++) {
-        promises.push(this.db.get(this.getBlockKey(i)))
+      for (; i <= this.lastQueued; i++) {
+        promises.push(this.db.get(DefaultRollupBlockSubmitter.getBlockKey(i)))
       }
+
       const blocks: Buffer[] = await Promise.all(promises)
       this.blockQueue = blocks.map((x) =>
-        this.deserializeRollupBlockFromStorage(x)
+        DefaultRollupBlockSubmitter.deserializeRollupBlockFromStorage(x)
       )
     }
 
@@ -67,12 +74,15 @@ export class DefaultRollupBlockSubmitter {
   public async submitBlock(rollupBlock: RollupBlock): Promise<void> {
     this.blockQueue.push(rollupBlock)
     await this.db.put(
-      this.getBlockKey(rollupBlock.number),
-      this.serializeRollupBlockForStorage(rollupBlock)
+      DefaultRollupBlockSubmitter.getBlockKey(rollupBlock.number),
+      DefaultRollupBlockSubmitter.serializeRollupBlockForStorage(rollupBlock)
     )
 
     this.lastQueued = rollupBlock.number
-    await this.db.put(LAST_QUEUED_KEY, this.numberToBuffer(this.lastQueued))
+    await this.db.put(
+      DefaultRollupBlockSubmitter.LAST_QUEUED_KEY,
+      this.numberToBuffer(this.lastQueued)
+    )
 
     await this.trySubmitNextBlock()
   }
@@ -80,7 +90,7 @@ export class DefaultRollupBlockSubmitter {
   public async handleNewRollupBlock(rollupBlockNumber: number): Promise<void> {
     if (!this.blockQueue.length) {
       log.error(
-        `Received block when no blocks pending: ${JSON.stringify(
+        `Received block when no blocks pending. Block #: ${JSON.stringify(
           rollupBlockNumber
         )}`
       )
@@ -91,9 +101,18 @@ export class DefaultRollupBlockSubmitter {
       this.blockQueue.shift()
       this.lastConfirmed = rollupBlockNumber
       await this.db.put(
-        LAST_CONFIRMED_KEY,
+        DefaultRollupBlockSubmitter.LAST_CONFIRMED_KEY,
         this.numberToBuffer(this.lastConfirmed)
       )
+
+      // If we failed after submission but before storing submitted, update lastSubmitted
+      if (this.lastSubmitted < this.lastConfirmed) {
+        this.lastSubmitted = rollupBlockNumber
+        await this.db.put(
+          DefaultRollupBlockSubmitter.LAST_SUBMITTED_KEY,
+          this.numberToBuffer(this.lastSubmitted)
+        )
+      }
       await this.trySubmitNextBlock()
     }
   }
@@ -117,42 +136,62 @@ export class DefaultRollupBlockSubmitter {
       `Submitting block number ${block.number}: ${JSON.stringify(block)}.`
     )
     const receipt = await this.rollupContract.submitBlock(
-      this.serializeRollupBlockForSubmission(block)
+      DefaultRollupBlockSubmitter.serializeRollupBlockForSubmission(block)
     )
     // TODO: do something with receipt?
 
     this.lastSubmitted = block.number
     await this.db.put(
-      LAST_SUBMITTED_KEY,
+      DefaultRollupBlockSubmitter.LAST_SUBMITTED_KEY,
       this.numberToBuffer(this.lastSubmitted)
     )
   }
 
-  private getBlockKey(blockNumber: number): Buffer {
-    return Buffer.from(`BLOCK_${blockNumber.toString()}`)
-  }
-
-  private serializeRollupBlockForSubmission(block: RollupBlock): string[] {
+  public static serializeRollupBlockForSubmission(
+    block: RollupBlock
+  ): string[] {
     return block.transitions.map((x) => x.stateRoot)
   }
 
-  private serializeRollupBlockForStorage(rollupBlock: RollupBlock): Buffer {
+  public static serializeRollupBlockForStorage(
+    rollupBlock: RollupBlock
+  ): Buffer {
+    const encodedTransitions: string[] = rollupBlock.transitions.map((x) =>
+      abiEncodeTransition(x)
+    )
     return Buffer.from(
-      'TODO: Create a serialization function out of this and delete this function.'
+      `${rollupBlock.number.toString(10)}|${JSON.stringify(encodedTransitions)}`
     )
   }
 
-  private deserializeRollupBlockFromStorage(
+  public static deserializeRollupBlockFromStorage(
     rollupBlockBuffer: Buffer
   ): RollupBlock {
-    // TODO: This for real
+    const [number, json] = rollupBlockBuffer.toString().split('|')
     return {
-      number: 0,
-      transitions: [],
+      number: parseInt(number, 10),
+      transitions: JSON.parse(json).map((x) => parseTransitionFromABI(x)),
     }
+  }
+
+  public static getBlockKey(blockNumber: number): Buffer {
+    return Buffer.from(`BLOCK_${blockNumber.toString()}`)
   }
 
   private numberToBuffer(num: number): Buffer {
     return Buffer.from(num.toString(10))
+  }
+
+  /***********
+   * GETTERS *
+   ***********/
+  public getLastSubmitted(): number {
+    return this.lastSubmitted
+  }
+  public getLastConfirmed(): number {
+    return this.lastConfirmed
+  }
+  public getLastQueued(): number {
+    return this.lastQueued
   }
 }

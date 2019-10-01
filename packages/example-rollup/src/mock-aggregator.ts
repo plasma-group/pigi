@@ -41,6 +41,7 @@ export const genesisState: State[] = [
 ]
 
 class DummyBlockSubmitter implements RollupBlockSubmitter {
+
   public async init(): Promise<void> {
     // no-op
   }
@@ -51,6 +52,18 @@ class DummyBlockSubmitter implements RollupBlockSubmitter {
 
   public async submitBlock(block: RollupBlock): Promise<void> {
     // no-op
+  }
+
+  getLastConfirmed(): number {
+    return 0;
+  }
+
+  getLastQueued(): number {
+    return 0;
+  }
+
+  getLastSubmitted(): number {
+    return 0;
   }
 }
 
