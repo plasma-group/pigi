@@ -9,6 +9,8 @@ import {
   DefaultSignatureProvider,
   DefaultSignatureVerifier,
   getLogger,
+  hexStrToBuf,
+  keccak256,
   newInMemoryDB,
   serializeObject,
   SimpleClient,
@@ -39,7 +41,9 @@ import {
   PIGI_TOKEN_TYPE,
   abiEncodeStateReceipt,
   abiEncodeTransaction,
-  NotSyncedError,
+  TransferTransition,
+  SwapTransition,
+  abiEncodeTransition,
 } from '../src'
 import { AggregatorServer } from '../src/aggregator/aggregator-server'
 import { DefaultRollupBlockSubmitter } from '../src/default-rollup-block-submitter'
@@ -51,6 +55,7 @@ const log = getLogger('rollup-aggregator', true)
 
 describe('RollupAggregator', () => {
   let client
+  let aggregatorDB: DB
   let aggregator: RollupAggregator
   let aggregatorServer: AggregatorServer
 
@@ -64,11 +69,15 @@ describe('RollupAggregator', () => {
       newInMemoryDB()
     )
 
+    aggregatorDB = newInMemoryDB()
+
     aggregator = new RollupAggregator(
-      newInMemoryDB(),
+      aggregatorDB,
       rollupStateMachine,
       new DummyBlockSubmitter(),
-      new DefaultSignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC))
+      new DefaultSignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)),
+      DefaultSignatureVerifier.instance(),
+      2
     )
   })
 
@@ -107,7 +116,9 @@ describe('RollupAggregator', () => {
       return client.handle(AGGREGATOR_API.applyTransaction, tx)
     }
 
-    const sendFromAliceToBob = async (amount): Promise<SignedStateReceipt[]> => {
+    const sendFromAliceToBob = async (
+      amount
+    ): Promise<SignedStateReceipt[]> => {
       const beforeState: SignedStateReceipt = await client.handle(
         AGGREGATOR_API.getState,
         BOB_ADDRESS
@@ -149,7 +160,9 @@ describe('RollupAggregator', () => {
         sender: newWallet.address,
         amount,
       }
-      const signature = await newWallet.signMessage(serializeObject(transaction))
+      const signature = await newWallet.signMessage(
+        serializeObject(transaction)
+      )
       const signedRequest: SignedTransaction = {
         signature,
         transaction,
@@ -217,6 +230,16 @@ describe('RollupAggregator', () => {
         await aggregator.init()
 
         await sendFromAliceToBob(5)
+
+        const transIndex = parseInt(
+          (await aggregatorDB.get(
+            RollupAggregator.LAST_TRANSITION_KEY
+          )).toString(),
+          10
+        )
+        transIndex.should.equal(1)
+
+        aggregator.getPendingBlockNumber().should.equal(1)
       })
 
       it('should throw if aggregator is not synced', async () => {
@@ -250,6 +273,16 @@ describe('RollupAggregator', () => {
         await aggregator.init()
 
         await requestFaucetFundsForNewWallet(10)
+
+        const transIndex = parseInt(
+          (await aggregatorDB.get(
+            RollupAggregator.LAST_TRANSITION_KEY
+          )).toString(),
+          10
+        )
+        transIndex.should.equal(0)
+
+        aggregator.getPendingBlockNumber().should.equal(2)
       })
 
       it('should throw if aggregator is not synced', async () => {
@@ -325,7 +358,72 @@ describe('RollupAggregator', () => {
   })
 
   describe('aggregator init tests', () => {
+    let trans1: TransferTransition
+    let trans2: SwapTransition
+    beforeEach(async () => {
+      trans1 = {
+        stateRoot: keccak256(Buffer.from('trans 1').toString('hex')),
+        senderSlotIndex: 1,
+        recipientSlotIndex: 0,
+        tokenType: 0,
+        amount: 10,
+        signature: await new DefaultSignatureProvider().sign('trans 1'),
+      }
 
+      trans2 = {
+        stateRoot: keccak256(Buffer.from('trans 2').toString('hex')),
+        senderSlotIndex: 1,
+        uniswapSlotIndex: 0,
+        tokenType: 1,
+        inputAmount: 100,
+        minOutputAmount: 1,
+        timeout: 1000,
+        signature: await new DefaultSignatureProvider().sign('trans 2'),
+      }
+    })
+
+    it('should init without any DB state', async () => {
+      await aggregator.init()
+
+      aggregator.getPendingBlockNumber().should.equal(1)
+      aggregator.getNextTransitionIndex().should.equal(0)
+    })
+
+    it('should init with pending transition', async () => {
+      await aggregatorDB.put(
+        RollupAggregator.LAST_TRANSITION_KEY,
+        Buffer.from('1')
+      )
+      await aggregatorDB.put(
+        RollupAggregator.getTransitionKey(1),
+        hexStrToBuf(abiEncodeTransition(trans1))
+      )
+
+      await aggregator.init()
+
+      aggregator.getPendingBlockNumber().should.equal(1)
+      aggregator.getNextTransitionIndex().should.equal(1)
+    })
+
+    it('should init with pending transition in pending block > 1', async () => {
+      await aggregatorDB.put(
+        RollupAggregator.PENDING_BLOCK_KEY,
+        Buffer.from('2')
+      )
+      await aggregatorDB.put(
+        RollupAggregator.LAST_TRANSITION_KEY,
+        Buffer.from('1')
+      )
+      await aggregatorDB.put(
+        RollupAggregator.getTransitionKey(1),
+        hexStrToBuf(abiEncodeTransition(trans1))
+      )
+
+      await aggregator.init()
+
+      aggregator.getPendingBlockNumber().should.equal(2)
+      aggregator.getNextTransitionIndex().should.equal(1)
+    })
   })
 
   // describe('benchmarks', () => {

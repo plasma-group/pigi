@@ -11,7 +11,6 @@ import {
   UNISWAP_ADDRESS,
   RollupAggregator,
   RollupStateMachine,
-  DefaultRollupBlockSubmitter,
   State,
   RollupBlockSubmitter,
   RollupBlock,
@@ -41,7 +40,6 @@ export const genesisState: State[] = [
 ]
 
 class DummyBlockSubmitter implements RollupBlockSubmitter {
-
   public async init(): Promise<void> {
     // no-op
   }
@@ -54,16 +52,16 @@ class DummyBlockSubmitter implements RollupBlockSubmitter {
     // no-op
   }
 
-  getLastConfirmed(): number {
-    return 0;
+  public getLastConfirmed(): number {
+    return 0
   }
 
-  getLastQueued(): number {
-    return 0;
+  public getLastQueued(): number {
+    return 0
   }
 
-  getLastSubmitted(): number {
-    return 0;
+  public getLastSubmitted(): number {
+    return 0
   }
 }
 

@@ -72,6 +72,15 @@ export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
   }
 
   public async submitBlock(rollupBlock: RollupBlock): Promise<void> {
+    if (rollupBlock.number <= this.lastQueued) {
+      log.error(
+        `submitBlock(...) called on old block. Last Queued: ${
+          this.lastQueued
+        }, received: ${JSON.stringify(rollupBlock)}`
+      )
+      return
+    }
+
     this.blockQueue.push(rollupBlock)
     await this.db.put(
       DefaultRollupBlockSubmitter.getBlockKey(rollupBlock.number),

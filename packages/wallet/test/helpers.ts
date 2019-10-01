@@ -189,6 +189,8 @@ export class DummyRollupStateSolver implements RollupStateSolver {
 }
 
 export class DummyBlockSubmitter implements RollupBlockSubmitter {
+  public submitedBlocks: RollupBlock[] = []
+
   public async init(): Promise<void> {
     // no-op
   }
@@ -198,7 +200,7 @@ export class DummyBlockSubmitter implements RollupBlockSubmitter {
   }
 
   public async submitBlock(block: RollupBlock): Promise<void> {
-    // no-op
+    this.submitedBlocks.push(block)
   }
 
   public getLastConfirmed(): number {

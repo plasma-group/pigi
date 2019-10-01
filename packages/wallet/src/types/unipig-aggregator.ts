@@ -1,6 +1,9 @@
 import { Address, SignedStateReceipt, SignedTransaction } from './types'
 
 export interface UnipigAggregator {
+  getPendingBlockNumber(): number
+  getNextTransitionIndex(): number
+
   /**
    * Gets the State for the provided address if State exists.
    *
