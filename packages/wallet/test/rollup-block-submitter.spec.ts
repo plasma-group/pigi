@@ -10,7 +10,7 @@ import {
 
 /* Internal Imports */
 import { RollupBlock, RollupBlockSubmitter } from '../src/types'
-import { DefaultRollupBlockSubmitter } from '../src'
+import { abiEncodeTransition, DefaultRollupBlockSubmitter } from '../src'
 
 const getIntFromDB = async (db: DB, key: Buffer): Promise<number> => {
   return parseInt((await db.get(key)).toString(), 10)
@@ -30,13 +30,12 @@ const getLastConfirmedFromDB = async (db: DB): Promise<number> => {
 
 const initQueuedSubmittedConfirmed = async (
   db: DB,
-  blockSubmitter: RollupBlockSubmitter,
   dummyContract: DummyContract,
   queued: number,
   submitted: number,
   confirmed: number,
   blocks: RollupBlock[] = []
-): Promise<void> => {
+): Promise<DefaultRollupBlockSubmitter> => {
   if (queued > 0) {
     await db.put(
       DefaultRollupBlockSubmitter.LAST_QUEUED_KEY,
@@ -63,7 +62,11 @@ const initQueuedSubmittedConfirmed = async (
     )
   }
 
-  await blockSubmitter.init()
+  const blockSubmitter: DefaultRollupBlockSubmitter = await DefaultRollupBlockSubmitter.create(
+    db,
+    // @ts-ignore
+    dummyContract
+  )
 
   // queued and confirmed won't change
   blockSubmitter.getLastQueued().should.equal(queued)
@@ -86,17 +89,18 @@ const initQueuedSubmittedConfirmed = async (
     // Check that block was submitted
     dummyContract.blocksSubmitted.length.should.equal(1)
     dummyContract.blocksSubmitted[0][0].should.equal(
-      blocks[0].transitions[0].stateRoot
+      abiEncodeTransition(blocks[0].transitions[0])
     )
 
     // Check that last submitted was persisted
     const lastSubmittedFromDB: number = await getLastSubmittedFromDB(db)
     lastSubmittedFromDB.should.equal(expectedSubmitted)
   }
+
+  return blockSubmitter
 }
 
 describe('DefaultRollupBlockSubmitter', () => {
-  let blockSubmitter: RollupBlockSubmitter
   let dummyContract: DummyContract
   let db: DB
   let rollupBlock: RollupBlock
@@ -105,8 +109,6 @@ describe('DefaultRollupBlockSubmitter', () => {
   beforeEach(async () => {
     dummyContract = new DummyContract()
     db = newInMemoryDB()
-    // @ts-ignore
-    blockSubmitter = new DefaultRollupBlockSubmitter(db, dummyContract)
 
     rollupBlock = {
       number: 1,
@@ -143,74 +145,50 @@ describe('DefaultRollupBlockSubmitter', () => {
 
   describe('init()', () => {
     it('should init without error when DB empty', async () => {
-      await initQueuedSubmittedConfirmed(
-        db,
-        blockSubmitter,
-        dummyContract,
-        0,
-        0,
-        0
-      )
+      await initQueuedSubmittedConfirmed(db, dummyContract, 0, 0, 0)
     })
 
     it('should init without error when block one submitted but not confirmed', async () => {
-      await initQueuedSubmittedConfirmed(
-        db,
-        blockSubmitter,
-        dummyContract,
-        1,
-        1,
-        0,
-        [rollupBlock]
-      )
+      await initQueuedSubmittedConfirmed(db, dummyContract, 1, 1, 0, [
+        rollupBlock,
+      ])
     })
 
     it('should init without error when block 2 submitted but not confirmed', async () => {
-      await initQueuedSubmittedConfirmed(
-        db,
-        blockSubmitter,
-        dummyContract,
-        2,
-        2,
-        0,
-        [rollupBlock, rollupBlock2]
-      )
+      await initQueuedSubmittedConfirmed(db, dummyContract, 2, 2, 0, [
+        rollupBlock,
+        rollupBlock2,
+      ])
     })
 
     it('should try to submit when one queued but not submitted', async () => {
-      await initQueuedSubmittedConfirmed(
-        db,
-        blockSubmitter,
-        dummyContract,
-        1,
-        0,
-        0,
-        [rollupBlock]
-      )
+      await initQueuedSubmittedConfirmed(db, dummyContract, 1, 0, 0, [
+        rollupBlock,
+      ])
     })
 
     it('should only try to submit one when two queued but not submitted', async () => {
-      await initQueuedSubmittedConfirmed(
-        db,
-        blockSubmitter,
-        dummyContract,
-        2,
-        0,
-        0,
-        [rollupBlock, rollupBlock2]
-      )
+      await initQueuedSubmittedConfirmed(db, dummyContract, 2, 0, 0, [
+        rollupBlock,
+        rollupBlock2,
+      ])
     })
   })
 
   describe('submitBlock()', () => {
     it('should submit new block with no previous blocks', async () => {
-      await blockSubmitter.init()
+      // @ts-ignore
+      const blockSubmitter: DefaultRollupBlockSubmitter = await DefaultRollupBlockSubmitter.create(
+        db,
+        // @ts-ignore
+        dummyContract
+      )
 
       await blockSubmitter.submitBlock(rollupBlock)
 
       dummyContract.blocksSubmitted.length.should.equal(1)
       dummyContract.blocksSubmitted[0][0].should.equal(
-        rollupBlock.transitions[0].stateRoot
+        abiEncodeTransition(rollupBlock.transitions[0])
       )
 
       blockSubmitter.getLastConfirmed().should.equal(0)
@@ -225,9 +203,8 @@ describe('DefaultRollupBlockSubmitter', () => {
     })
 
     it('should submit new block with one previous block', async () => {
-      await initQueuedSubmittedConfirmed(
+      const blockSubmitter = await initQueuedSubmittedConfirmed(
         db,
-        blockSubmitter,
         dummyContract,
         1,
         1,
@@ -239,7 +216,7 @@ describe('DefaultRollupBlockSubmitter', () => {
 
       dummyContract.blocksSubmitted.length.should.equal(1)
       dummyContract.blocksSubmitted[0][0].should.equal(
-        rollupBlock2.transitions[0].stateRoot
+        abiEncodeTransition(rollupBlock2.transitions[0])
       )
 
       blockSubmitter.getLastConfirmed().should.equal(1)
@@ -254,9 +231,8 @@ describe('DefaultRollupBlockSubmitter', () => {
     })
 
     it('should ignore old block', async () => {
-      await initQueuedSubmittedConfirmed(
+      const blockSubmitter = await initQueuedSubmittedConfirmed(
         db,
-        blockSubmitter,
         dummyContract,
         1,
         1,
@@ -274,9 +250,8 @@ describe('DefaultRollupBlockSubmitter', () => {
     })
 
     it('should queue block when there is one pending', async () => {
-      await initQueuedSubmittedConfirmed(
+      const blockSubmitter = await initQueuedSubmittedConfirmed(
         db,
-        blockSubmitter,
         dummyContract,
         1,
         1,
@@ -301,7 +276,12 @@ describe('DefaultRollupBlockSubmitter', () => {
 
   describe('handleNewRollupBlock()', () => {
     it('should do nothing when there are no pending blocks', async () => {
-      await blockSubmitter.init()
+      // @ts-ignore
+      const blockSubmitter: DefaultRollupBlockSubmitter = await DefaultRollupBlockSubmitter.create(
+        db,
+        // @ts-ignore
+        dummyContract
+      )
 
       await blockSubmitter.handleNewRollupBlock(1)
 
@@ -311,9 +291,8 @@ describe('DefaultRollupBlockSubmitter', () => {
     })
 
     it('should confirm pending with empty queue', async () => {
-      await initQueuedSubmittedConfirmed(
+      const blockSubmitter = await initQueuedSubmittedConfirmed(
         db,
-        blockSubmitter,
         dummyContract,
         1,
         1,
@@ -332,9 +311,8 @@ describe('DefaultRollupBlockSubmitter', () => {
     })
 
     it('should confirm pending with one in queue', async () => {
-      await initQueuedSubmittedConfirmed(
+      const blockSubmitter = await initQueuedSubmittedConfirmed(
         db,
-        blockSubmitter,
         dummyContract,
         2,
         1,
@@ -346,7 +324,7 @@ describe('DefaultRollupBlockSubmitter', () => {
 
       dummyContract.blocksSubmitted.length.should.equal(1)
       dummyContract.blocksSubmitted[0][0].should.equal(
-        rollupBlock2.transitions[0].stateRoot
+        abiEncodeTransition(rollupBlock2.transitions[0])
       )
 
       blockSubmitter.getLastConfirmed().should.equal(1)
@@ -376,9 +354,8 @@ describe('DefaultRollupBlockSubmitter', () => {
           },
         ],
       }
-      await initQueuedSubmittedConfirmed(
+      const blockSubmitter = await initQueuedSubmittedConfirmed(
         db,
-        blockSubmitter,
         dummyContract,
         3,
         1,
@@ -390,7 +367,7 @@ describe('DefaultRollupBlockSubmitter', () => {
 
       dummyContract.blocksSubmitted.length.should.equal(1)
       dummyContract.blocksSubmitted[0][0].should.equal(
-        rollupBlock2.transitions[0].stateRoot
+        abiEncodeTransition(rollupBlock2.transitions[0])
       )
 
       blockSubmitter.getLastConfirmed().should.equal(1)
