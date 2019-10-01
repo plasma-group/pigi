@@ -474,6 +474,8 @@ export class RollupAggregator
         Buffer.from(this.pendingBlock.number.toString(10))
       )
 
+      this.lastBlockSubmission = new Date()
+
       this.setBlockSubmissionTimeout()
     })
   }
