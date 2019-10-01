@@ -69,7 +69,31 @@ export class RollupAggregator
   private pendingBlock: RollupBlock
   private lastBlockSubmission: Date
 
-  constructor(
+  public static async create(
+    db: DB,
+    rollupStateMachine: RollupStateMachine,
+    rollupBlockSubmitter: RollupBlockSubmitter,
+    signatureProvider: SignatureProvider,
+    signatureVerifier: SignatureVerifier = DefaultSignatureVerifier.instance(),
+    blockSubmissionTransitionCount: number = 100,
+    blockSubmissionIntervalMillis: number = 300_000
+  ): Promise<RollupAggregator> {
+    const aggregator = new RollupAggregator(
+      db,
+      rollupStateMachine,
+      rollupBlockSubmitter,
+      signatureProvider,
+      signatureVerifier,
+      blockSubmissionTransitionCount,
+      blockSubmissionIntervalMillis
+    )
+
+    await aggregator.init()
+
+    return aggregator
+  }
+
+  private constructor(
     private readonly db: DB,
     private readonly rollupStateMachine: RollupStateMachine,
     private readonly rollupBlockSubmitter: RollupBlockSubmitter,
@@ -87,24 +111,11 @@ export class RollupAggregator
     this.initialized = false
   }
 
-  public async onSyncCompleted(syncIdentifier?: string): Promise<void> {
-    this.synced = true
-  }
-
-  public async handle(event: Event): Promise<void> {
-    log.debug(`Aggregator received event: ${JSON.stringify(event)}`)
-    if (!!event && !!event.values && 'blockNumber' in event.values) {
-      await this.rollupBlockSubmitter.handleNewRollupBlock(
-        event.values['blockNumber']
-      )
-    }
-  }
-
   /**
    * Initialize method, required for the Aggregator to load existing state before
    * it can handle requests.
    */
-  public async init(): Promise<void> {
+  private async init(): Promise<void> {
     try {
       const [
         pendingBlockNumberBuffer,
@@ -157,6 +168,19 @@ export class RollupAggregator
     } catch (e) {
       logError(log, 'Error initializing aggregator', e)
       throw e
+    }
+  }
+
+  public async onSyncCompleted(syncIdentifier?: string): Promise<void> {
+    this.synced = true
+  }
+
+  public async handle(event: Event): Promise<void> {
+    log.debug(`Aggregator received event: ${JSON.stringify(event)}`)
+    if (!!event && !!event.values && 'blockNumber' in event.values) {
+      await this.rollupBlockSubmitter.handleNewRollupBlock(
+        event.values['blockNumber']
+      )
     }
   }
 

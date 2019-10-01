@@ -66,7 +66,7 @@ describe('Mock Client/Aggregator Integration', () => {
     )
 
     // Initialize a mock aggregator
-    aggregator = new RollupAggregator(
+    aggregator = await RollupAggregator.create(
       newInMemoryDB(),
       rollupStateMachine,
       new DummyBlockSubmitter(),
@@ -75,7 +75,6 @@ describe('Mock Client/Aggregator Integration', () => {
 
     // Assume we're in sync & initialized
     await aggregator.onSyncCompleted()
-    await aggregator.init()
 
     aggregatorServer = new AggregatorServer(aggregator, 'localhost', 3000)
 
