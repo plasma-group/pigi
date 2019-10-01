@@ -144,6 +144,9 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     this.lastOpenKey = ZERO
 
     if (!storedRoot) {
+      log.info(
+        `No existing state root found, starting RollupStateMachine fresh`
+      )
       return false
     }
 
@@ -154,6 +157,14 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
 
     this.lastOpenKey = new BigNumber(lastKeyBuffer)
     const addressCount = parseInt(addressToKeyCountBuffer.toString(), 10)
+
+    log.info(
+      `RollupStateMachine found root ${storedRoot.toString(
+        'hex'
+      )}, last open key: ${this.lastOpenKey.toString(
+        10
+      )}, and address key count: ${addressCount}. Initializing with this state.`
+    )
 
     const addressPromises: Array<Promise<Buffer>> = []
     for (let i = 0; i < addressCount; i++) {

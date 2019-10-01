@@ -561,6 +561,11 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
     this.zeroHashes = hashes.reverse()
 
     if (!!rootHash) {
+      log.info(
+        `Attempting to initialize SMT with root hash ${rootHash.toString(
+          'hex'
+        )}`
+      )
       this.root = await this.getNode(rootHash, ZERO)
     }
 
@@ -569,6 +574,17 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
         rootHash || this.zeroHashes[0],
         undefined,
         ZERO
+      )
+      log.info(
+        `Initialized Sparse Merkle Tree with root ${(
+          rootHash || this.zeroHashes[0]
+        ).toString('hex')}`
+      )
+    } else {
+      log.info(
+        `Initialized Sparse Merkle Tree with root ${this.root.hash.toString(
+          'hex'
+        )}`
       )
     }
   }
