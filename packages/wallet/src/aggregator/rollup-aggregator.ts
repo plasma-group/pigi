@@ -40,7 +40,7 @@ import {
   EMPTY_AGGREGATOR_SIGNATURE,
   isFaucetTransaction,
   NotSyncedError,
-  RollupBlockSubmitter,
+  RollupBlockSubmitter, SwapTransition,
 } from '../index'
 import { RollupStateMachine } from '../types'
 import { UnipigAggregator } from '../types/unipig-aggregator'
@@ -62,8 +62,6 @@ export class RollupAggregator
 
   private synced: boolean
   private initialized: boolean
-  private blockNumber: number
-  private transitionIndex: number
   private pendingBlock: RollupBlock
 
   constructor(
@@ -73,10 +71,8 @@ export class RollupAggregator
     private readonly signatureProvider: SignatureProvider,
     private readonly signatureVerifier: SignatureVerifier = DefaultSignatureVerifier.instance()
   ) {
-    this.transitionIndex = 0
-    this.blockNumber = 1
     this.pendingBlock = {
-      number: this.blockNumber,
+      number: 1,
       transitions: [],
     }
     this.lock = new AsyncLock()
@@ -141,9 +137,6 @@ export class RollupAggregator
         transitions,
       }
 
-      this.blockNumber = pendingBlock
-      this.transitionIndex = lastTransition
-
       this.initialized = true
       log.info(
         `Initialized aggregator with pending block: ${JSON.stringify(
@@ -169,8 +162,8 @@ export class RollupAggregator
             address
           )
           return {
-            blockNumber: this.blockNumber,
-            transitionIndex: this.transitionIndex,
+            blockNumber: this.pendingBlock.number,
+            transitionIndex: this.pendingBlock.transitions.length,
             ...snapshot,
           }
         }
@@ -213,7 +206,7 @@ export class RollupAggregator
           signedTransaction
         )
         await this.addToPendingBlock([update], signedTransaction)
-        return [update, this.blockNumber, this.transitionIndex]
+        return [update, this.pendingBlock.number, this.pendingBlock.transitions.length]
       })
 
       return this.respond(stateUpdate, blockNumber, transitionIndex)
@@ -270,8 +263,8 @@ export class RollupAggregator
         await this.addToPendingBlock(updates, signedTransaction)
         return [
           updates[updates.length - 1],
-          this.blockNumber,
-          this.transitionIndex,
+          this.pendingBlock.number,
+          this.pendingBlock.transitions.length,
         ]
       })
 
@@ -356,7 +349,7 @@ export class RollupAggregator
 
     if (isSwapTransaction(transaction.transaction)) {
       const update: StateUpdate = updates[0]
-      transitions.push({
+      const transition: SwapTransition = {
         stateRoot: update.stateRoot,
         senderSlotIndex: update.senderSlotIndex,
         uniswapSlotIndex: update.receiverSlotIndex,
@@ -365,23 +358,27 @@ export class RollupAggregator
         minOutputAmount: transaction.transaction.minOutputAmount,
         timeout: transaction.transaction.timeout,
         signature: transaction.signature,
-      })
+      }
+      this.pendingBlock.transitions.push(transition)
+      await this.db.put(
+        this.getTransitionKey(this.pendingBlock.transitions.length),
+        hexStrToBuf(abiEncodeTransition(transition))
+      )
     } else {
       // It's a transfer -- either faucet or p2p
       for (const u of updates) {
-        transitions.push(this.getTransferTransitionFromStateUpdate(u))
+        const transition: TransferTransition = this.getTransferTransitionFromStateUpdate(u)
+        this.pendingBlock.transitions.push(transition)
+        await this.db.put(
+          this.getTransitionKey(this.pendingBlock.transitions.length),
+          hexStrToBuf(abiEncodeTransition(transition))
+        )
       }
     }
 
-    for (const trans of transitions) {
-      await this.db.put(
-        this.getTransitionKey(++this.transitionIndex),
-        hexStrToBuf(abiEncodeTransition(trans))
-      )
-    }
     await this.db.put(
       LAST_TRANSITION_KEY,
-      Buffer.from(this.transitionIndex.toString(10))
+      Buffer.from(this.pendingBlock.transitions.length.toString(10))
     )
 
     return transitions
@@ -419,15 +416,14 @@ export class RollupAggregator
 
       await this.rollupBlockSubmitter.submitBlock(toSubmit)
       this.pendingBlock = {
-        number: ++this.blockNumber,
+        number: toSubmit.number + 1,
         transitions: [],
       }
-      this.transitionIndex = 0
 
       await this.db.put(LAST_TRANSITION_KEY, Buffer.from('0'))
       await this.db.put(
         PENDING_BLOCK_KEY,
-        Buffer.from(this.blockNumber.toString(10))
+        Buffer.from(this.pendingBlock.number.toString(10))
       )
     })
   }
