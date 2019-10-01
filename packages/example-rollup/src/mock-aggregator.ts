@@ -91,7 +91,7 @@ async function runAggregator() {
   // TODO: Actually populate this.
   const blockSubmitter: RollupBlockSubmitter = new DummyBlockSubmitter()
 
-  const aggregator = new RollupAggregator(
+  const aggregator = await RollupAggregator.create(
     blockDB,
     rollupStateMachine,
     blockSubmitter,

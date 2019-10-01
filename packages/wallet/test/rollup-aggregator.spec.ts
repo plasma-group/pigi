@@ -73,19 +73,18 @@ describe('RollupAggregator', () => {
 
     aggregatorDB = newInMemoryDB()
     dummyBlockSubmitter = new DummyBlockSubmitter()
-
-    aggregator = new RollupAggregator(
-      aggregatorDB,
-      rollupStateMachine,
-      dummyBlockSubmitter,
-      new DefaultSignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)),
-      DefaultSignatureVerifier.instance(),
-      2
-    )
   })
 
   describe('server tests', () => {
     beforeEach(async () => {
+      aggregator = await RollupAggregator.create(
+        aggregatorDB,
+        rollupStateMachine,
+        dummyBlockSubmitter,
+        new DefaultSignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)),
+        DefaultSignatureVerifier.instance(),
+        2
+      )
       aggregatorServer = new AggregatorServer(aggregator, 'localhost', 3000)
 
       await aggregatorServer.listen()
@@ -190,7 +189,6 @@ describe('RollupAggregator', () => {
     describe('getState', () => {
       it('should allow the balance to be queried', async () => {
         await aggregator.onSyncCompleted()
-        await aggregator.init()
 
         const response: SignedStateReceipt = await client.handle(
           AGGREGATOR_API.getState,
@@ -206,31 +204,12 @@ describe('RollupAggregator', () => {
         await assertThrowsAsync(async () => {
           await client.handle(AGGREGATOR_API.getState, aliceWallet.address)
         })
-
-        await aggregator.init()
-
-        await assertThrowsAsync(async () => {
-          await client.handle(AGGREGATOR_API.getState, aliceWallet.address)
-        })
-      })
-
-      it('should throw if aggregator is not initialized', async () => {
-        await assertThrowsAsync(async () => {
-          await client.handle(AGGREGATOR_API.getState, aliceWallet.address)
-        })
-
-        await aggregator.onSyncCompleted()
-
-        await assertThrowsAsync(async () => {
-          await client.handle(AGGREGATOR_API.getState, aliceWallet.address)
-        })
       })
     })
 
     describe('applyTransaction', () => {
       it('should update bobs balance using applyTransaction to send 5 tokens', async () => {
         await aggregator.onSyncCompleted()
-        await aggregator.init()
 
         await sendFromAliceToBob(5)
 
@@ -249,32 +228,12 @@ describe('RollupAggregator', () => {
         await assertThrowsAsync(async () => {
           await sendFromAliceToBob(5)
         })
-
-        await aggregator.init()
-
-        await assertThrowsAsync(async () => {
-          await sendFromAliceToBob(5)
-        })
-      })
-
-      it('should throw if aggregator is not initialized', async () => {
-        await assertThrowsAsync(async () => {
-          await sendFromAliceToBob(5)
-        })
-
-        await aggregator.onSyncCompleted()
-
-        await assertThrowsAsync(async () => {
-          await sendFromAliceToBob(5)
-        })
       })
     })
 
     describe('requestFaucetFunds', () => {
       it('should send money to the account who requested', async () => {
         await aggregator.onSyncCompleted()
-        await aggregator.init()
-
         await requestFaucetFundsForNewWallet(10)
 
         const transIndex = parseInt(
@@ -297,31 +256,12 @@ describe('RollupAggregator', () => {
         await assertThrowsAsync(async () => {
           await requestFaucetFundsForNewWallet(10)
         })
-
-        await aggregator.init()
-
-        await assertThrowsAsync(async () => {
-          await requestFaucetFundsForNewWallet(10)
-        })
-      })
-
-      it('should throw if aggregator is not initialized', async () => {
-        await assertThrowsAsync(async () => {
-          await requestFaucetFundsForNewWallet(10)
-        })
-
-        await aggregator.onSyncCompleted()
-
-        await assertThrowsAsync(async () => {
-          await requestFaucetFundsForNewWallet(10)
-        })
       })
     })
 
     describe('RollupTransaction Receipt Tests', () => {
       it('should receive a transaction receipt signed by the aggregator', async () => {
         await aggregator.onSyncCompleted()
-        await aggregator.init()
 
         const receipts: SignedStateReceipt[] = await sendFromAliceToBob(5)
         const signer0: string = DefaultSignatureVerifier.instance().verifyMessage(
@@ -341,7 +281,6 @@ describe('RollupAggregator', () => {
 
       it('should have subsequent transactions that build on one another', async () => {
         await aggregator.onSyncCompleted()
-        await aggregator.init()
 
         const receiptsOne: SignedStateReceipt[] = await sendFromAliceToBob(5)
         const receiptsTwo: SignedStateReceipt[] = await sendFromAliceToBob(5)
@@ -379,7 +318,14 @@ describe('RollupAggregator', () => {
     })
 
     it('should init without any DB state', async () => {
-      await aggregator.init()
+      aggregator = await RollupAggregator.create(
+        aggregatorDB,
+        rollupStateMachine,
+        dummyBlockSubmitter,
+        new DefaultSignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)),
+        DefaultSignatureVerifier.instance(),
+        2
+      )
 
       aggregator.getPendingBlockNumber().should.equal(1)
       aggregator.getNextTransitionIndex().should.equal(0)
@@ -397,7 +343,14 @@ describe('RollupAggregator', () => {
         hexStrToBuf(abiEncodeTransition(trans1))
       )
 
-      await aggregator.init()
+      aggregator = await RollupAggregator.create(
+        aggregatorDB,
+        rollupStateMachine,
+        dummyBlockSubmitter,
+        new DefaultSignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)),
+        DefaultSignatureVerifier.instance(),
+        2
+      )
 
       aggregator.getPendingBlockNumber().should.equal(1)
       aggregator.getNextTransitionIndex().should.equal(1)
@@ -419,7 +372,14 @@ describe('RollupAggregator', () => {
         hexStrToBuf(abiEncodeTransition(trans1))
       )
 
-      await aggregator.init()
+      aggregator = await RollupAggregator.create(
+        aggregatorDB,
+        rollupStateMachine,
+        dummyBlockSubmitter,
+        new DefaultSignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)),
+        DefaultSignatureVerifier.instance(),
+        2
+      )
 
       aggregator.getPendingBlockNumber().should.equal(2)
       aggregator.getNextTransitionIndex().should.equal(1)
@@ -439,16 +399,6 @@ describe('RollupAggregator', () => {
         amount: 10,
         signature: await new DefaultSignatureProvider().sign('trans 1'),
       }
-
-      aggregator = new RollupAggregator(
-        aggregatorDB,
-        rollupStateMachine,
-        dummyBlockSubmitter,
-        new DefaultSignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)),
-        DefaultSignatureVerifier.instance(),
-        2,
-        1_000
-      )
     })
 
     it('should init without any DB state', async () => {
@@ -461,7 +411,15 @@ describe('RollupAggregator', () => {
         hexStrToBuf(abiEncodeTransition(trans1))
       )
 
-      await aggregator.init()
+      aggregator = await RollupAggregator.create(
+        aggregatorDB,
+        rollupStateMachine,
+        dummyBlockSubmitter,
+        new DefaultSignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)),
+        DefaultSignatureVerifier.instance(),
+        2,
+        1_000
+      )
 
       // Block submission delay is set to 1s, so sleep and assert it was submitted.
       await sleep(1_900)
