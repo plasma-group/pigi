@@ -836,7 +836,7 @@ describe('SparseMerkleTreeImpl', () => {
     })
 
     it('gets empty merkle proof for disconnected empty leaf', async () => {
-      const tree: SparseMerkleTree = new SparseMerkleTreeImpl(
+      const tree: SparseMerkleTree = await SparseMerkleTreeImpl.create(
         db,
         undefined,
         3,
@@ -889,7 +889,7 @@ describe('SparseMerkleTreeImpl', () => {
     })
 
     it('gets merkle proof for disconnected empty leaf in non-empty tree', async () => {
-      const tree: SparseMerkleTree = new SparseMerkleTreeImpl(
+      const tree: SparseMerkleTree = await SparseMerkleTreeImpl.create(
         db,
         undefined,
         3,
