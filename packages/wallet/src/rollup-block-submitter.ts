@@ -114,7 +114,9 @@ export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
       }
       await this.trySubmitNextBlock()
     } else {
-      log.error(`Received confirmation for future block ${rollupBlockNumber}! First in queue is ${this.blockQueue[0].number}.`)
+      log.error(
+        `Received confirmation for future block ${rollupBlockNumber}! First in queue is ${this.blockQueue[0].number}.`
+      )
     }
   }
 
@@ -151,9 +153,14 @@ export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
       this.lastSubmitted >= this.lastQueued ||
       !this.blockQueue.length
     ) {
-      log.debug(
-        `Next block queued but not submitted because block ${this.lastSubmitted} was submitted but not yet confirmed.`
-      )
+      if (!this.blockQueue.length) {
+        log.debug(`No blocks queued for submission.`)
+      } else {
+        log.debug(
+          `Next block queued but not submitted because block ${this.lastSubmitted} was submitted but not yet confirmed.`
+        )
+      }
+
       return
     }
 

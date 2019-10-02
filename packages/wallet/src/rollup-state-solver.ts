@@ -109,11 +109,19 @@ export class DefaultRollupStateSolver implements RollupStateSolver {
       ],
     }
 
-    log.debug(`Deciding if state is valid ${JSON.stringify(stateReceipt)}, input: ${JSON.stringify(input)}`)
+    log.debug(
+      `Deciding if state is valid ${JSON.stringify(
+        stateReceipt
+      )}, input: ${JSON.stringify(input)}`
+    )
 
     const decision: Decision = await AndDecider.instance().decide(input)
 
-    log.debug(`State is ${decision.outcome ? 'valid' : 'invalid'}: ${JSON.stringify(stateReceipt)}`)
+    log.debug(
+      `State is ${decision.outcome ? 'valid' : 'invalid'}: ${JSON.stringify(
+        stateReceipt
+      )}`
+    )
 
     return decision
   }

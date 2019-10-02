@@ -1,7 +1,13 @@
 /* External Imports */
 import * as Level from 'level'
 
-import {BaseDB, DB, DefaultSignatureProvider, DefaultSignatureVerifier, getLogger} from '@pigi/core'
+import {
+  BaseDB,
+  DB,
+  DefaultSignatureProvider,
+  DefaultSignatureVerifier,
+  getLogger,
+} from '@pigi/core'
 import {
   AggregatorServer,
   DefaultRollupStateMachine,
@@ -13,21 +19,21 @@ import {
   RollupStateMachine,
   State,
   RollupBlockSubmitter,
-  RollupBlock, DefaultRollupBlockSubmitter,
+  RollupBlock,
+  DefaultRollupBlockSubmitter,
 } from '@pigi/wallet'
-import {EthereumEventProcessor} from '@pigi/watch-eth'
+import { EthereumEventProcessor } from '@pigi/watch-eth'
 
 import cors = require('cors')
-import {Contract, Wallet} from 'ethers'
-import {JsonRpcProvider} from 'ethers/providers'
+import { Contract, Wallet } from 'ethers'
+import { JsonRpcProvider } from 'ethers/providers'
 
-import {config} from 'dotenv'
-import {resolve} from 'path'
+import { config } from 'dotenv'
+import { resolve } from 'path'
 config({ path: resolve(__dirname, `../../.env`) })
 
 // Starting from build/src/mock-aggregator
 import * as RollupChain from '../contracts/RollupChain.json'
-
 
 const log = getLogger('mock-aggregator')
 
@@ -77,6 +83,10 @@ class DummyBlockSubmitter implements RollupBlockSubmitter {
 const rollupContractAddress = process.env.ROLLUP_CONTRACT_ADDRESS
 const mnemonic = process.env.WALLET_MNEMONIC
 const jsonRpcUrl = process.env.JSON_RPC_URL
+const transitionsPerBlock: number = parseInt(
+  process.env.TRANSITIONS_PER_BLOCK || '10',
+  10
+)
 
 const mockMode = !rollupContractAddress || !mnemonic || !jsonRpcUrl
 
@@ -109,7 +119,9 @@ async function runAggregator() {
     log.debug(`Using dummy block submitter`)
     blockSubmitter = new DummyBlockSubmitter()
   } else {
-    log.debug(`Connecting to contract [${rollupContractAddress}] at [${jsonRpcUrl}]`)
+    log.debug(
+      `Connecting to contract [${rollupContractAddress}] at [${jsonRpcUrl}]`
+    )
     contract = new Contract(
       rollupContractAddress,
       RollupChain.interface,
@@ -132,7 +144,7 @@ async function runAggregator() {
     blockSubmitter,
     new DefaultSignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)),
     DefaultSignatureVerifier.instance(),
-    2 // TODO: change this if you want
+    transitionsPerBlock
   )
 
   if (mockMode) {
@@ -146,7 +158,7 @@ async function runAggregator() {
     const processor: EthereumEventProcessor = new EthereumEventProcessor(
       blockProcessorDB
     )
-    await processor.subscribe(contract, "NewRollupBlock", aggregator, true)
+    await processor.subscribe(contract, 'NewRollupBlock', aggregator, true)
   }
 
   const aggregatorServer = new AggregatorServer(aggregator, host, port, [cors])

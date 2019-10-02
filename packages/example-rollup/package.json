@@ -9,7 +9,7 @@
   "scripts": {
     "lint": "tslint --format stylish --project .",
     "fix": "prettier --config ./.prettierrc.js --write 'index.ts' '{src,test}/**/*.ts'",
-    "build": "tsc -p . && browserify index.ts -p [ tsify ] > public/bundle.js && mkdir build/level",
+    "build": "tsc -p . && browserify index.ts -p [ tsify ] > public/bundle.js && mkdir -p build/level",
     "serve": "http-server ./public",
     "aggregator": "node ./build/src/mock-aggregator.js",
     "clean": "rimraf build/ && rimraf log/"
