@@ -24,7 +24,7 @@ export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
   public static async create(
     db: DB,
     rollupContract: Contract
-  ): Promise<DefaultRollupBlockSubmitter> {
+  ): Promise<RollupBlockSubmitter> {
     const submitter = new DefaultRollupBlockSubmitter(db, rollupContract)
 
     await submitter.init()
@@ -85,31 +85,6 @@ export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
     await this.trySubmitNextBlock()
   }
 
-  public async submitBlock(rollupBlock: RollupBlock): Promise<void> {
-    if (rollupBlock.number <= this.lastQueued) {
-      log.error(
-        `submitBlock(...) called on old block. Last Queued: ${
-          this.lastQueued
-        }, received: ${JSON.stringify(rollupBlock)}`
-      )
-      return
-    }
-
-    this.blockQueue.push(rollupBlock)
-    await this.db.put(
-      DefaultRollupBlockSubmitter.getBlockKey(rollupBlock.number),
-      DefaultRollupBlockSubmitter.serializeRollupBlockForStorage(rollupBlock)
-    )
-
-    this.lastQueued = rollupBlock.number
-    await this.db.put(
-      DefaultRollupBlockSubmitter.LAST_QUEUED_KEY,
-      this.numberToBuffer(this.lastQueued)
-    )
-
-    await this.trySubmitNextBlock()
-  }
-
   public async handleNewRollupBlock(rollupBlockNumber: number): Promise<void> {
     if (!this.blockQueue.length) {
       log.error(
@@ -121,6 +96,7 @@ export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
     }
 
     if (rollupBlockNumber === this.blockQueue[0].number) {
+      log.debug(`Received confirmation for block ${rollupBlockNumber}!`)
       this.blockQueue.shift()
       this.lastConfirmed = rollupBlockNumber
       await this.db.put(
@@ -137,7 +113,35 @@ export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
         )
       }
       await this.trySubmitNextBlock()
+    } else {
+      log.error(`Received confirmation for future block ${rollupBlockNumber}! First in queue is ${this.blockQueue[0].number}.`)
     }
+  }
+
+  public async submitBlock(rollupBlock: RollupBlock): Promise<void> {
+    if (rollupBlock.number <= this.lastQueued) {
+      log.error(
+        `submitBlock(...) called on old block. Last Queued: ${
+          this.lastQueued
+        }, received: ${JSON.stringify(rollupBlock)}`
+      )
+      return
+    }
+
+    log.debug(`Queueing rollup block: ${JSON.stringify(rollupBlock)}}`)
+    this.blockQueue.push(rollupBlock)
+    await this.db.put(
+      DefaultRollupBlockSubmitter.getBlockKey(rollupBlock.number),
+      DefaultRollupBlockSubmitter.serializeRollupBlockForStorage(rollupBlock)
+    )
+
+    this.lastQueued = rollupBlock.number
+    await this.db.put(
+      DefaultRollupBlockSubmitter.LAST_QUEUED_KEY,
+      this.numberToBuffer(this.lastQueued)
+    )
+
+    await this.trySubmitNextBlock()
   }
 
   private async trySubmitNextBlock() {
@@ -153,7 +157,7 @@ export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
       return
     }
 
-    const block: RollupBlock = this.blockQueue.shift()
+    const block: RollupBlock = this.blockQueue[0]
 
     log.debug(
       `Submitting block number ${block.number}: ${JSON.stringify(block)}.`

@@ -29,7 +29,8 @@ contract RollupChain {
         bytes returnData
     );
     event NewRollupBlock(
-        bytes[] block
+        bytes[] block,
+        uint256 blockNumber
     );
 
     /***************
@@ -58,7 +59,7 @@ contract RollupChain {
         });
         blocks.push(rollupBlock);
         // NOTE: Toggle the event if you'd like easier historical block queries
-        // emit NewRollupBlock(_block);
+        emit NewRollupBlock(_block, blocks.length);
         return root;
     }
 
