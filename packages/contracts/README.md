@@ -39,7 +39,7 @@ npm install
 #### Python and Vyper
 `plasma-contracts` is written in Vyper, a pythonic Ethereum smart contract language. You'll need [Python 3.6 or above](https://www.python.org/downloads/) to install Vyper.
 
-We reccomend setting up a [virtual environment](https://cewing.github.io/training.python_web/html/presentations/venv_intro.html) instead of installing globally:
+We recommend setting up a [virtual environment](https://cewing.github.io/training.python_web/html/presentations/venv_intro.html) instead of installing globally:
 
 ```sh
 python3 -m venv venv
@@ -67,3 +67,20 @@ Run all tests with:
 npm test
 ```
 So that Python and Vyper aren't requirements for our other components, we do include a `compiled-contracts` folder which contains JS exports of the bytecode and ABI. Compilation is done automatically before testing.
+
+### Deploying
+You can deploy by running:
+
+```sh
+yarn run deploy:<contract-specific-task-here> <environment>
+```
+
+The `environment` parameter tells the deployment script which config file to use (expected filename `.<environment>.env`).
+
+For instance, to deploy the RollupChain contract using `.local.env` as the config file, you would run:
+
+```sh
+yarn run deploy:rollup-chain local
+```
+
+See `.env.example` for more information.

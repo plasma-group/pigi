@@ -7,8 +7,16 @@ import * as UnipigTransitionEvaluator from '../build/UnipigTransitionEvaluator.j
 import * as RollupMerkleUtils from '../build/RollupMerkleUtils.json'
 import { Provider } from 'ethers/providers'
 
+// Make sure an environment argument was passed
+if (!process.argv.length || process.argv[process.argv.length -1].endsWith(".js")) {
+  console.log('\n\nError: Environment argument not provided. Usage: "yarn run deploy:rollup-chain <env>"\n')
+  process.exit(0)
+}
+
+// Get the environment and read the appropriate environment file
+const environment = process.argv[process.argv.length - 1]
 // Note: Path is from 'build/deploy/deploy-rollup-chain.js'
-config({ path: resolve(__dirname, '../../.env') })
+config({ path: resolve(__dirname, `../../.${environment}.env`) })
 
 const deployContract = async (
   contractJson: any,
@@ -71,7 +79,7 @@ const deploy = async (): Promise<void> => {
   // Make sure mnemonic exists
   const deployMnemonic = process.env.DEPLOY_MNEMONIC
   if (!deployMnemonic) {
-    console.log(`No DEPLOY_MNEMONIC env var set. Please set it and try again.`)
+    console.log(`Error: No DEPLOY_MNEMONIC env var set. Please add it to .<environment>.env file it and try again. See .env.example for more info.\n`)
     return
   }
 
