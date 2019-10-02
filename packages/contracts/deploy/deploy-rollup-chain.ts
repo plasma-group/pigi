@@ -8,8 +8,13 @@ import * as RollupMerkleUtils from '../build/RollupMerkleUtils.json'
 import { Provider } from 'ethers/providers'
 
 // Make sure an environment argument was passed
-if (!process.argv.length || process.argv[process.argv.length -1].endsWith(".js")) {
-  console.log('\n\nError: Environment argument not provided. Usage: "yarn run deploy:rollup-chain <env>"\n')
+if (
+  !process.argv.length ||
+  process.argv[process.argv.length - 1].endsWith('.js')
+) {
+  console.log(
+    '\n\nError: Environment argument not provided. Usage: "yarn run deploy:rollup-chain <env>"\n'
+  )
   process.exit(0)
 }
 
@@ -79,7 +84,9 @@ const deploy = async (): Promise<void> => {
   // Make sure mnemonic exists
   const deployMnemonic = process.env.DEPLOY_MNEMONIC
   if (!deployMnemonic) {
-    console.log(`Error: No DEPLOY_MNEMONIC env var set. Please add it to .<environment>.env file it and try again. See .env.example for more info.\n`)
+    console.log(
+      `Error: No DEPLOY_MNEMONIC env var set. Please add it to .<environment>.env file it and try again. See .env.example for more info.\n`
+    )
     return
   }
 
