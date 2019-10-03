@@ -1,4 +1,5 @@
 /* External Imports */
+import * as AsyncLock from 'async-lock'
 import { Event, EthereumListener } from '@pigi/watch-eth'
 import { DB, getLogger, logError } from '@pigi/core'
 
@@ -19,7 +20,9 @@ export class RollupFraudGuard implements EthereumListener<Event> {
   public static readonly LAST_BLOCK_VALIDATED_KEY = Buffer.from(
     'LAST_VALIDATED_BLOCK'
   )
+  private static readonly lockKey: string = 'lock'
 
+  private readonly lock: AsyncLock
   private lastBlockValidated: number
 
   public static async create(
@@ -32,6 +35,7 @@ export class RollupFraudGuard implements EthereumListener<Event> {
       validator,
       contract
     )
+
     await fraudGuard.init()
 
     return fraudGuard
@@ -41,7 +45,9 @@ export class RollupFraudGuard implements EthereumListener<Event> {
     private readonly db: DB,
     private readonly validator: RollupStateValidator,
     private readonly contract: Contract
-  ) {}
+  ) {
+    this.lock = new AsyncLock()
+  }
 
   private async init(): Promise<void> {
     const lastValidatedBuffer: Buffer = await this.db.get(
@@ -49,11 +55,13 @@ export class RollupFraudGuard implements EthereumListener<Event> {
     )
 
     if (!lastValidatedBuffer) {
+      log.info(`Starting fresh. Last validated block: 0`)
       this.lastBlockValidated = 0
       return
     }
 
     this.lastBlockValidated = parseInt(lastValidatedBuffer.toString(), 10)
+    log.info(`Starting from previous run. Last validated block: ${this.lastBlockValidated}`)
   }
 
   public async onSyncCompleted(syncIdentifier?: string): Promise<void> {
@@ -63,56 +71,70 @@ export class RollupFraudGuard implements EthereumListener<Event> {
   public async handle(event: Event): Promise<void> {
     log.debug(`Fraud Guard received event: ${JSON.stringify(event)}`)
     if (
-      !!event &&
-      !!event.values &&
-      'block' in event.values &&
-      'blockNumber' in event.values
+      !event ||
+      !event.values &&
+      !('block' in event.values) &&
+      !('blockNumber' in event.values)
     ) {
-      let block: RollupBlock
-      try {
-        block = {
-          blockNumber: (event.values['blockNumber'] as any).toNumber(),
-          transitions: (event.values['block'] as string[]).map((x) =>
-            parseTransitionFromABI(x)
-          ),
-        }
-      } catch (e) {
-        logError(
-          log,
-          `Error trying to parse event: ${JSON.stringify(event)}`,
-          e
-        )
-        return
+      log.error(`Unrecognized event. Returning`)
+      return
+    }
+
+    let block: RollupBlock
+    try {
+      block = {
+        blockNumber: (event.values['blockNumber'] as any).toNumber(),
+        transitions: (event.values['block'] as string[]).map((x) =>
+          parseTransitionFromABI(x)
+        ),
       }
 
-      if (this.lastBlockValidated >= block.blockNumber) {
-        log.debug(
-          `Received event for old block. Ignoring. lastValidated: ${
-            this.lastBlockValidated
-          }. Received: ${JSON.stringify(block)}`
-        )
-      } else if (this.lastBlockValidated + 1 !== block.blockNumber) {
-        log.error(
-          `Received event with block number greater than expected! lastValidated: ${
-            this.lastBlockValidated
-          }. Received: ${JSON.stringify(block)}`
-        )
-        process.exit(1)
-      }
-
-      await this.validator.storeBlock(block)
-      const proof: ContractFraudProof = await this.validator.validateStoredBlock(
-        block.blockNumber
+      return this.lock.acquire(RollupFraudGuard.lockKey, async () => {
+        await this.handleNewRollupBlock(block)
+      })
+    } catch (e) {
+      logError(
+        log,
+        `Error trying to parsing and handling event: ${JSON.stringify(event)}`,
+        e
       )
-      if (!!proof) {
-        await this.submitFraudProof(proof)
-      } else {
-        this.lastBlockValidated = block.blockNumber
-        await this.db.put(
-          RollupFraudGuard.LAST_BLOCK_VALIDATED_KEY,
-          Buffer.from(this.lastBlockValidated.toString(10))
-        )
-      }
+      return
+    }
+  }
+
+  private async handleNewRollupBlock(block: RollupBlock): Promise<void> {
+    if (this.lastBlockValidated >= block.blockNumber) {
+      log.debug(
+        `Received event for old block. Ignoring. lastValidated: ${
+          this.lastBlockValidated
+        }. Received: ${JSON.stringify(block)}`
+      )
+    } else if (this.lastBlockValidated + 1 !== block.blockNumber) {
+      log.error(
+        `Received event with block number greater than expected! lastValidated: ${
+          this.lastBlockValidated
+        }. Received: ${JSON.stringify(block)}`
+      )
+      process.exit(1)
+    }
+
+    await this.validator.storeBlock(block)
+    let proof: ContractFraudProof
+    try {
+      proof = await this.validator.validateStoredBlock(block.blockNumber)
+    } catch (e) {
+      logError(log, `Error validating block: ${JSON.stringify(block)}`, e)
+      process.exit(1)
+    }
+
+    if (!!proof) {
+      await this.submitFraudProof(proof)
+    } else {
+      this.lastBlockValidated = block.blockNumber
+      await this.db.put(
+        RollupFraudGuard.LAST_BLOCK_VALIDATED_KEY,
+        Buffer.from(this.lastBlockValidated.toString(10))
+      )
     }
   }
 
@@ -120,10 +142,17 @@ export class RollupFraudGuard implements EthereumListener<Event> {
     log.error(
       `Detected fraud. Submitting Fraud Proof: ${JSON.stringify(proof)}`
     )
-    const receipt: TransactionReceipt = await this.contract.proveTransitionInvalid(
-      ...proof
-    )
-    log.error(`Fraud proof submitted. Receipt: ${JSON.stringify(receipt)}`)
+
+    try {
+      const receipt: TransactionReceipt = await this.contract.proveTransitionInvalid(
+        ...proof
+      )
+      log.error(`Fraud proof submitted. Receipt: ${JSON.stringify(receipt)}`)
+    } catch (e) {
+      logError(log, "Error submitting fraud proof!", e)
+      process.exit(1)
+    }
+
 
     log.info('Congrats! You helped the good guys win. +2 points for you!')
     process.exit(0)

@@ -13,7 +13,7 @@ import {
   runInDomain,
   MerkleTreeInclusionProof,
   ZERO,
-  getLogger,
+  getLogger, NULL_ADDRESS,
 } from '@pigi/core'
 
 /* Internal Imports */
@@ -50,7 +50,7 @@ import {
   SlippageError,
 } from './types'
 
-const log = getLogger('rollup-aggregator')
+const log = getLogger('rollup-state-machine')
 
 /**
  * A Tree-backed Rollup State Machine, facilitating state transitions for
@@ -102,7 +102,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       const promises: Array<Promise<boolean>> = []
       for (const state of genesisState) {
         promises.push(
-          stateMachine.setAddressState(state.pubKey, state.balances)
+          stateMachine.setAddressState(state.pubkey, state.balances)
         )
       }
       await Promise.all(promises)
@@ -278,6 +278,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
   ): Promise<StateUpdate> {
     let signer: Address
 
+    log.debug(`Validating Signature: ${JSON.stringify(signedTransaction)}`)
     signer = this.signatureVerifier.verifyMessage(
       abiEncodeTransaction(signedTransaction.transaction),
       signedTransaction.signature
@@ -330,9 +331,9 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
 
       const inclusionProof = async (state: State): Promise<InclusionProof> => {
         const proof: MerkleTreeInclusionProof = await this.tree.getMerkleProof(
-          this.getAddressKey(state.pubKey),
+          this.getAddressKey(state.pubkey),
           DefaultRollupStateMachine.serializeBalances(
-            state.pubKey,
+            state.pubkey,
             state.balances
           )
         )
@@ -389,9 +390,9 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     let state: State
     let inclusionProof: InclusionProof
     state =
-      accountState && accountState !== SparseMerkleTreeImpl.emptyBuffer
+      !!accountState && !accountState.equals(SparseMerkleTreeImpl.emptyBuffer)
         ? DefaultRollupStateMachine.deserializeState(accountState)
-        : undefined
+        : { pubkey: NULL_ADDRESS, balances: { [UNI_TOKEN_TYPE]: 0, [PIGI_TOKEN_TYPE]: 0 } }
     inclusionProof = proof.siblings.map((x: Buffer) => x.toString('hex'))
 
     return {
@@ -679,7 +680,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     balances: Balances
   ): State {
     return {
-      pubKey,
+      pubkey: pubKey,
       balances,
     }
   }

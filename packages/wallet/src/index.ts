@@ -28,14 +28,14 @@ export const AGGREGATOR_API = {
 /* Set the initial balances/state */
 export const genesisState: State[] = [
   {
-    pubKey: UNISWAP_ADDRESS,
+    pubkey: UNISWAP_ADDRESS,
     balances: {
-      [UNI_TOKEN_TYPE]: 1_000_000_000_000,
-      [PIGI_TOKEN_TYPE]: 1_000_000_000_000,
+      [UNI_TOKEN_TYPE]: 1_000_000_000,
+      [PIGI_TOKEN_TYPE]: 1_000_000_000,
     },
   },
   {
-    pubKey: AGGREGATOR_ADDRESS,
+    pubkey: AGGREGATOR_ADDRESS,
     balances: {
       [UNI_TOKEN_TYPE]: 500_000,
       [PIGI_TOKEN_TYPE]: 500_000,

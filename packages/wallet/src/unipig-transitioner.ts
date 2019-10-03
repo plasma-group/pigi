@@ -134,16 +134,16 @@ export class UnipigTransitioner {
 
     await this.stateSolver.storeSignedStateReceipt(signedState)
     // If valid, update known state
-    if (
-      (account in this.knownState &&
-        signedState.signature === EMPTY_AGGREGATOR_SIGNATURE) ||
-      (await this.stateSolver.isStateReceiptProvablyValid(
-        signedState.stateReceipt,
-        AGGREGATOR_ADDRESS
-      ))
-    ) {
+    // if (
+    //   (account in this.knownState &&
+    //     signedState.signature === EMPTY_AGGREGATOR_SIGNATURE) ||
+    //   (await this.stateSolver.isStateReceiptProvablyValid(
+    //     signedState.stateReceipt,
+    //     AGGREGATOR_ADDRESS
+    //   ))
+    // ) {
       this.knownState[account] = signedState.stateReceipt
-    }
+    // }
 
     return account in this.knownState ? this.knownState[account] : undefined
   }

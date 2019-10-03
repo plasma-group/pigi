@@ -17,6 +17,7 @@ config({ path: resolve(__dirname, `../../../.env`) })
 import * as RollupChain from './contracts/RollupChain.json'
 import { RollupStateValidator } from '../types'
 import {
+  DefaultRollupStateMachine,
   DefaultRollupStateValidator,
   genesisState,
   RollupFraudGuard,
@@ -54,9 +55,13 @@ async function runValidator() {
   )
   log.debug(`Connected`)
 
-  const validator: RollupStateValidator = await DefaultRollupStateValidator.create(
+  const rollupStateMachine: DefaultRollupStateMachine = await DefaultRollupStateMachine.create(
     genesisState,
     validatorDB
+  ) as DefaultRollupStateMachine
+
+  const validator: RollupStateValidator = new DefaultRollupStateValidator(
+    rollupStateMachine
   )
 
   const fraudGuard: RollupFraudGuard = await RollupFraudGuard.create(

@@ -2,7 +2,7 @@ import '../setup'
 import * as assert from 'assert'
 
 /* External Imports */
-import { DB, bufToHexString, newInMemoryDB } from '@pigi/core'
+import {DB, bufToHexString, newInMemoryDB, ChecksumAgnosticIdentityVerifier} from '@pigi/core'
 
 /* Internal Imports */
 import {
@@ -28,7 +28,7 @@ import {
   RollupBlock,
   ValidationOutOfOrderError,
   AggregatorUnsupportedError,
-  ContractFraudProof,
+  ContractFraudProof, RollupStateMachine, DefaultRollupStateMachine,
 } from '../../src'
 
 /***********
@@ -43,28 +43,28 @@ function getMultiBalanceGenesis(
 ): State[] {
   return [
     {
-      pubKey: UNISWAP_ADDRESS,
+      pubkey: UNISWAP_ADDRESS,
       balances: {
         [UNI_TOKEN_TYPE]: 650_000,
         [PIGI_TOKEN_TYPE]: 650_000,
       },
     },
     {
-      pubKey: aliceAddress,
+      pubkey: aliceAddress,
       balances: {
         [UNI_TOKEN_TYPE]: 5_000,
         [PIGI_TOKEN_TYPE]: 5_000,
       },
     },
     {
-      pubKey: AGGREGATOR_ADDRESS,
+      pubkey: AGGREGATOR_ADDRESS,
       balances: {
         [UNI_TOKEN_TYPE]: 1_000_000,
         [PIGI_TOKEN_TYPE]: 1_000_000,
       },
     },
     {
-      pubKey: bobAddress,
+      pubkey: bobAddress,
       balances: {
         [UNI_TOKEN_TYPE]: 5_000,
         [PIGI_TOKEN_TYPE]: 5_000,
@@ -83,10 +83,13 @@ describe('RollupStateValidator', () => {
 
   beforeEach(async () => {
     stateDb = newInMemoryDB()
-    rollupGuard = await DefaultRollupStateValidator.create(
+    const rollupStateMachine: DefaultRollupStateMachine = await DefaultRollupStateMachine.create(
       getMultiBalanceGenesis(),
-      stateDb
-    )
+      stateDb,
+      ChecksumAgnosticIdentityVerifier.instance()
+    ) as DefaultRollupStateMachine
+
+    rollupGuard = new DefaultRollupStateValidator(rollupStateMachine)
   })
 
   afterEach(async () => {
@@ -122,8 +125,8 @@ describe('RollupStateValidator', () => {
       snaps[0].stateRoot.should.equal(genesisStateRoot.replace('0x', ''))
       snaps[1].stateRoot.should.equal(genesisStateRoot.replace('0x', ''))
       // make sure the right pubkeys were pulled
-      snaps[0].state.pubKey.should.equal(ALICE_ADDRESS)
-      snaps[1].state.pubKey.should.equal(UNISWAP_ADDRESS)
+      snaps[0].state.pubkey.should.equal(ALICE_ADDRESS)
+      snaps[1].state.pubkey.should.equal(UNISWAP_ADDRESS)
     })
     it('should get right inclusion proof for a non creation transfer', async () => {
       // pull initial root to compare later
@@ -145,8 +148,8 @@ describe('RollupStateValidator', () => {
       snaps[0].stateRoot.should.equal(genesisStateRoot.replace('0x', ''))
       snaps[1].stateRoot.should.equal(genesisStateRoot.replace('0x', ''))
       // make sure the right pubkeys were pulled
-      snaps[0].state.pubKey.should.equal(ALICE_ADDRESS)
-      snaps[1].state.pubKey.should.equal(BOB_ADDRESS)
+      snaps[0].state.pubkey.should.equal(ALICE_ADDRESS)
+      snaps[1].state.pubkey.should.equal(BOB_ADDRESS)
     })
     it('should get right inclusion proof for a createAndTransfer', async () => {
       // pull initial root to compare later
@@ -169,7 +172,7 @@ describe('RollupStateValidator', () => {
       snaps[0].stateRoot.should.equal(genesisStateRoot.replace('0x', ''))
       snaps[1].stateRoot.should.equal(genesisStateRoot.replace('0x', ''))
       // make sure the right pubkeys were pulled
-      snaps[0].state.pubKey.should.equal(ALICE_ADDRESS)
+      snaps[0].state.pubkey.should.equal(ALICE_ADDRESS)
       assert(
         snaps[1].state === undefined,
         'Empty slot should give an undefined state.'

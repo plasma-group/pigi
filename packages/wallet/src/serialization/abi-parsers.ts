@@ -96,7 +96,7 @@ export const parseStateFromABI = (abiEncoded: string): State => {
     abiEncoded
   )
   return {
-    pubKey,
+    pubkey: pubKey,
     balances: {
       [UNI_TOKEN_TYPE]: uniBalance,
       [PIGI_TOKEN_TYPE]: pigiBalance,
