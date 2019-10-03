@@ -12,7 +12,7 @@
     "fix": "prettier --config ./.prettierrc.js --write 'index.ts' '{src,test}/**/*.ts'",
     "build": "tsc -p . && mkdir -p build/level",
     "clean": "rimraf build/ && rimraf log/",
-    "aggregator": "node ./build/src/validator/monitor-and-validate.js"
+    "validator": "node ./build/src/validator/monitor-and-validate.js"
   },
   "keywords": [
     "plasma",
