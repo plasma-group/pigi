@@ -1,4 +1,4 @@
-import './setup'
+import '../setup'
 
 /* External Imports */
 import {
@@ -12,8 +12,6 @@ import {
   InclusionProof,
   TransferTransition,
   CreateAndTransferTransition,
-} from '../src/types'
-import {
   abiEncodeSignedTransaction,
   abiEncodeState,
   abiEncodeStateReceipt,
@@ -24,10 +22,11 @@ import {
   parseStateReceiptFromABI,
   parseTransactionFromABI,
   parseTransitionFromABI,
-} from '../src/serialization'
-import { BOB_ADDRESS } from './helpers'
-import { AGGREGATOR_ADDRESS, PIGI_TOKEN_TYPE, UNI_TOKEN_TYPE } from '../src'
-import { ethers } from 'ethers'
+  AGGREGATOR_ADDRESS,
+  PIGI_TOKEN_TYPE,
+  UNI_TOKEN_TYPE,
+} from '../../src/'
+import { BOB_ADDRESS } from '../helpers'
 
 /* Internal Imports */
 

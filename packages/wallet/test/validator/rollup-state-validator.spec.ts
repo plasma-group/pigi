@@ -1,63 +1,40 @@
-import MemDown from 'memdown'
-import './setup'
-import {
-  DB,
-  BaseDB,
-  IdentityVerifier,
-  hexStrToBuf,
-  bufToHexString,
-  SignatureVerifier,
-  ForAllSuchThatDecider,
-} from '@pigi/core'
+import '../setup'
+import * as assert from 'assert'
 
+/* External Imports */
+import { DB, BaseDB, bufToHexString, newInMemoryDB } from '@pigi/core'
+
+/* Internal Imports */
 import {
   ALICE_ADDRESS,
   ALICE_GENESIS_STATE_INDEX,
-  assertThrowsAsync,
   BOB_ADDRESS,
-  calculateSwapWithFees,
-  getGenesisState,
-  getGenesisStateLargeEnoughForFees,
   UNISWAP_GENESIS_STATE_INDEX,
-} from './helpers'
+} from '../helpers'
 
 import {
   UNI_TOKEN_TYPE,
   UNISWAP_ADDRESS,
   AGGREGATOR_ADDRESS,
-  InsufficientBalanceError,
-  DefaultRollupStateMachine,
   DefaultRollupStateValidator,
-  SignedTransaction,
   PIGI_TOKEN_TYPE,
   RollupStateValidator,
   LocalFraudProof,
   CreateAndTransferTransition,
   StateSnapshot,
-  RollupTransition,
   TransferTransition,
-  abiEncodeTransition,
   State,
   SwapTransition,
   RollupBlock,
   ValidationOutOfOrderError,
   AggregatorUnsupportedError,
-  parseTransactionFromABI,
-  parseTransitionFromABI,
-} from '../src'
-import { resolve } from 'dns'
-import { Transaction } from 'ethers/utils'
-import { DH_CHECK_P_NOT_SAFE_PRIME } from 'constants'
+} from '../../src'
 
-/* External Imports */
-
-import * as assert from 'assert'
-
-/* Internal Imports */
-
-/*********
+/***********
  * HELPERS *
- *********/
+ ***********/
+
+const BOB_GENESIS_STATE_INDEX = 3
 
 function getMultiBalanceGenesis(
   aliceAddress: string = ALICE_ADDRESS,
@@ -65,17 +42,17 @@ function getMultiBalanceGenesis(
 ): State[] {
   return [
     {
-      pubKey: aliceAddress,
-      balances: {
-        [UNI_TOKEN_TYPE]: 5_000,
-        [PIGI_TOKEN_TYPE]: 5_000,
-      },
-    },
-    {
       pubKey: UNISWAP_ADDRESS,
       balances: {
         [UNI_TOKEN_TYPE]: 650_000,
         [PIGI_TOKEN_TYPE]: 650_000,
+      },
+    },
+    {
+      pubKey: aliceAddress,
+      balances: {
+        [UNI_TOKEN_TYPE]: 5_000,
+        [PIGI_TOKEN_TYPE]: 5_000,
       },
     },
     {
@@ -104,7 +81,7 @@ describe('RollupStateValidator', () => {
   let stateDb: DB
 
   beforeEach(async () => {
-    stateDb = new BaseDB(new MemDown('') as any, 256)
+    stateDb = newInMemoryDB()
     rollupGuard = await DefaultRollupStateValidator.create(
       getMultiBalanceGenesis(),
       stateDb
@@ -155,7 +132,7 @@ describe('RollupStateValidator', () => {
       const transferTransition: TransferTransition = {
         stateRoot: 'DOESNT_MATTER',
         senderSlotIndex: ALICE_GENESIS_STATE_INDEX,
-        recipientSlotIndex: 3, // Bob hardcoded in our genesis state helper
+        recipientSlotIndex: BOB_GENESIS_STATE_INDEX,
         tokenType: UNI_TOKEN_TYPE,
         amount: 10,
         signature: ALICE_ADDRESS,
@@ -178,7 +155,7 @@ describe('RollupStateValidator', () => {
       const creationTransition: CreateAndTransferTransition = {
         stateRoot: 'DOESNT_MATTER',
         senderSlotIndex: ALICE_GENESIS_STATE_INDEX,
-        recipientSlotIndex: 40, // Bob hardcoded in our genesis state helper as index 3
+        recipientSlotIndex: 40,
         tokenType: UNI_TOKEN_TYPE,
         amount: 10,
         signature: ALICE_ADDRESS,
@@ -204,9 +181,9 @@ describe('RollupStateValidator', () => {
       // create a valid transfer from genesis
       const transitionAliceToBob: TransferTransition = {
         stateRoot:
-          '0x8bb6f1bd59e26928f8f1531af52224d59d76d6951db31c403bf1e215c99372e6',
-        senderSlotIndex: 0,
-        recipientSlotIndex: 3,
+          '0x68cb03c6cace1db3a6f7e58db36e8e480ade32e1cba9451a0a63a750b8c48e1a',
+        senderSlotIndex: ALICE_GENESIS_STATE_INDEX,
+        recipientSlotIndex: BOB_GENESIS_STATE_INDEX,
         tokenType: 0,
         amount: 100,
         signature: ALICE_ADDRESS,
@@ -225,8 +202,8 @@ describe('RollupStateValidator', () => {
       // create a valid swap from genesis
       const transitionAliceSwap: SwapTransition = {
         stateRoot:
-          '0x773015e9b833c9e1086ded944c9fbe011248203e586d81f9fe0922434632dcde',
-        senderSlotIndex: 0,
+          '0x351f9762c0826a3c53eb990d3b69f6f27d6a8793b29f2edf825658065f7a991e',
+        senderSlotIndex: ALICE_GENESIS_STATE_INDEX,
         uniswapSlotIndex: UNISWAP_GENESIS_STATE_INDEX,
         tokenType: UNI_TOKEN_TYPE,
         inputAmount: 100,
@@ -248,8 +225,8 @@ describe('RollupStateValidator', () => {
       // create a valid create-and-transfer transition from genesis
       const transitionAliceToCreatedBob: CreateAndTransferTransition = {
         stateRoot:
-          '0xf65a687f44d534512a1878e84de3d29489f9c8c12a7de37c46bfc2b0d898d3ee',
-        senderSlotIndex: 0,
+          '0x24a9c3fdd45a8fadb92d89ab74bb249edbe9a415f1d82a488c2efc5372979710',
+        senderSlotIndex: ALICE_GENESIS_STATE_INDEX,
         recipientSlotIndex: 4, // genesis fills first few
         tokenType: 0,
         amount: 100,
@@ -271,7 +248,7 @@ describe('RollupStateValidator', () => {
       const transitionAliceSwap: SwapTransition = {
         stateRoot:
           '0xdeadbeefb833c9e1086ded944c9fbe011248203e586d81f9fe0922434632dcde',
-        senderSlotIndex: 0,
+        senderSlotIndex: ALICE_GENESIS_STATE_INDEX,
         uniswapSlotIndex: UNISWAP_GENESIS_STATE_INDEX,
         tokenType: UNI_TOKEN_TYPE,
         inputAmount: 100,
@@ -290,7 +267,7 @@ describe('RollupStateValidator', () => {
       const outOfOrderCreation: CreateAndTransferTransition = {
         stateRoot:
           '0x8bb6f1bd59e26928f8f1531af52224d59d76d6951db31c403bf1e215c99372e6',
-        senderSlotIndex: 0,
+        senderSlotIndex: ALICE_GENESIS_STATE_INDEX,
         recipientSlotIndex: 300, // not suported yet, only sequential
         tokenType: 0,
         amount: 100,
@@ -330,9 +307,9 @@ describe('RollupStateValidator', () => {
       // create a svalid end
       const transitionAliceToBob: TransferTransition = {
         stateRoot:
-          '0x8bb6f1bd59e26928f8f1531af52224d59d76d6951db31c403bf1e215c99372e6',
-        senderSlotIndex: 0,
-        recipientSlotIndex: 3,
+          '0x68cb03c6cace1db3a6f7e58db36e8e480ade32e1cba9451a0a63a750b8c48e1a',
+        senderSlotIndex: ALICE_GENESIS_STATE_INDEX,
+        recipientSlotIndex: BOB_GENESIS_STATE_INDEX,
         tokenType: 0,
         amount: 100,
         signature: ALICE_ADDRESS,
@@ -340,8 +317,8 @@ describe('RollupStateValidator', () => {
       // create a valid swap
       const transitionAliceSwap: SwapTransition = {
         stateRoot:
-          '0x3b1537dac24e21efd3fa80ce5698f5838e45c62efca5ecde0152f9b165ce6813',
-        senderSlotIndex: 0,
+          '0x0ae582fd70c6fa55ced00cc5a7f5a0f0e0d68447ee7ece74d841548142ba9d32',
+        senderSlotIndex: ALICE_GENESIS_STATE_INDEX,
         uniswapSlotIndex: UNISWAP_GENESIS_STATE_INDEX,
         tokenType: UNI_TOKEN_TYPE,
         inputAmount: 100,
@@ -370,9 +347,9 @@ describe('RollupStateValidator', () => {
       // create valid transition from genesis
       const transitionAliceToBob: TransferTransition = {
         stateRoot:
-          '0x8bb6f1bd59e26928f8f1531af52224d59d76d6951db31c403bf1e215c99372e6',
-        senderSlotIndex: 0,
-        recipientSlotIndex: 3,
+          '0x68cb03c6cace1db3a6f7e58db36e8e480ade32e1cba9451a0a63a750b8c48e1a',
+        senderSlotIndex: ALICE_GENESIS_STATE_INDEX,
+        recipientSlotIndex: BOB_GENESIS_STATE_INDEX,
         tokenType: 0,
         amount: 100,
         signature: ALICE_ADDRESS,
@@ -381,7 +358,7 @@ describe('RollupStateValidator', () => {
       const transitionAliceSwap: SwapTransition = {
         stateRoot:
           '0xdeadbeef3b1531efd3fa80ce5698f5838e45c62efca5ecde0152f9b165ce6813',
-        senderSlotIndex: 0,
+        senderSlotIndex: ALICE_GENESIS_STATE_INDEX,
         uniswapSlotIndex: UNISWAP_GENESIS_STATE_INDEX,
         tokenType: UNI_TOKEN_TYPE,
         inputAmount: 100,
@@ -407,9 +384,9 @@ describe('RollupStateValidator', () => {
       // create a valid transaction for block 0
       const transitionAliceToBob: TransferTransition = {
         stateRoot:
-          '0x8bb6f1bd59e26928f8f1531af52224d59d76d6951db31c403bf1e215c99372e6',
-        senderSlotIndex: 0,
-        recipientSlotIndex: 3,
+          '0x68cb03c6cace1db3a6f7e58db36e8e480ade32e1cba9451a0a63a750b8c48e1a',
+        senderSlotIndex: ALICE_GENESIS_STATE_INDEX,
+        recipientSlotIndex: BOB_GENESIS_STATE_INDEX,
         tokenType: 0,
         amount: 100,
         signature: ALICE_ADDRESS,
@@ -417,8 +394,8 @@ describe('RollupStateValidator', () => {
       // create another valid transaction for block 0
       const transitionAliceSwap: SwapTransition = {
         stateRoot:
-          '0x3b1537dac24e21efd3fa80ce5698f5838e45c62efca5ecde0152f9b165ce6813',
-        senderSlotIndex: 0,
+          '0x0ae582fd70c6fa55ced00cc5a7f5a0f0e0d68447ee7ece74d841548142ba9d32',
+        senderSlotIndex: ALICE_GENESIS_STATE_INDEX,
         uniswapSlotIndex: UNISWAP_GENESIS_STATE_INDEX,
         tokenType: UNI_TOKEN_TYPE,
         inputAmount: 100,
@@ -435,8 +412,8 @@ describe('RollupStateValidator', () => {
       const invalidSendTransition: TransferTransition = {
         stateRoot:
           '0xdeadbeef000000efd3fa80ce5698f5838e45c62efca5ecde0152f9b165ce6813',
-        senderSlotIndex: 0,
-        recipientSlotIndex: 3,
+        senderSlotIndex: ALICE_GENESIS_STATE_INDEX,
+        recipientSlotIndex: BOB_GENESIS_STATE_INDEX,
         tokenType: 0,
         amount: 100,
         signature: ALICE_ADDRESS,

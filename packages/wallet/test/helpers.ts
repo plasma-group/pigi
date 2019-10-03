@@ -14,12 +14,13 @@ import {
   StateReceipt,
   UNI_TOKEN_TYPE,
   UNISWAP_ADDRESS,
+  UNISWAP_STORAGE_SLOT,
 } from '../src'
 
 const log = getLogger('helpers', true)
 
-export const ALICE_GENESIS_STATE_INDEX = 0
-export const UNISWAP_GENESIS_STATE_INDEX = 1
+export const UNISWAP_GENESIS_STATE_INDEX = UNISWAP_STORAGE_SLOT
+export const ALICE_GENESIS_STATE_INDEX = 1
 export const ALICE_ADDRESS = '0xaaaf2795C3013711c240244aFF600aD9e8D9727D'
 export const BOB_ADDRESS = '0xbbbCAAe85dfE709a25545E610Dba4082f6D02D73'
 
@@ -31,14 +32,14 @@ export const getGenesisState = (
 ): State[] => {
   return [
     {
-      pubKey: aliceAddress,
+      pubKey: UNISWAP_ADDRESS,
       balances: {
         [UNI_TOKEN_TYPE]: 50,
         [PIGI_TOKEN_TYPE]: 50,
       },
     },
     {
-      pubKey: UNISWAP_ADDRESS,
+      pubKey: aliceAddress,
       balances: {
         [UNI_TOKEN_TYPE]: 50,
         [PIGI_TOKEN_TYPE]: 50,
@@ -59,17 +60,17 @@ export const getGenesisStateLargeEnoughForFees = (
 ): State[] => {
   return [
     {
-      pubKey: aliceAddress,
-      balances: {
-        [UNI_TOKEN_TYPE]: 5_000,
-        [PIGI_TOKEN_TYPE]: 5_000,
-      },
-    },
-    {
       pubKey: UNISWAP_ADDRESS,
       balances: {
         [UNI_TOKEN_TYPE]: 650_000,
         [PIGI_TOKEN_TYPE]: 650_000,
+      },
+    },
+    {
+      pubKey: aliceAddress,
+      balances: {
+        [UNI_TOKEN_TYPE]: 5_000,
+        [PIGI_TOKEN_TYPE]: 5_000,
       },
     },
     {

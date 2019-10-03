@@ -3,7 +3,9 @@ import {
   ChecksumAgnosticIdentityVerifier,
   DB,
   getLogger,
+  hexBufToStr,
   hexStrToBuf,
+  logError,
 } from '@pigi/core'
 
 /* Internal Imports */
@@ -14,7 +16,6 @@ import {
   isTransferTransition,
   RollupTransaction,
   SignedTransaction,
-  UNISWAP_ADDRESS,
   UNI_TOKEN_TYPE,
   PIGI_TOKEN_TYPE,
   State,
@@ -24,7 +25,8 @@ import {
   ValidationOutOfOrderError,
   AggregatorUnsupportedError,
   DefaultRollupBlock,
-} from './index'
+  UNISWAP_STORAGE_SLOT,
+} from '../index'
 
 import {
   RollupBlock,
@@ -35,9 +37,7 @@ import {
   LocalFraudProof,
   UniTokenType,
   PigiTokenType,
-} from './types'
-import { UNISWAP_GENESIS_STATE_INDEX } from '../test/helpers'
-import { type } from 'os'
+} from '../types'
 
 const log = getLogger('rollup-validator')
 export class DefaultRollupStateValidator implements RollupStateValidator {
@@ -77,7 +77,7 @@ export class DefaultRollupStateValidator implements RollupStateValidator {
     let secondSlot: number
     if (isSwapTransition(transition)) {
       firstSlot = transition.senderSlotIndex
-      secondSlot = UNISWAP_GENESIS_STATE_INDEX
+      secondSlot = UNISWAP_STORAGE_SLOT
       log.info(`Returning snapshots prepper for fraud`)
     } else if (isCreateAndTransferTransition(transition)) {
       firstSlot = transition.senderSlotIndex
@@ -177,8 +177,10 @@ export class DefaultRollupStateValidator implements RollupStateValidator {
       generatedPostRoot = await this.rollupMachine.getStateRoot()
     } catch (error) {
       if (isStateTransitionError(error)) {
-        log.info(
-          'The transaction did not pass the state machine, must be badly formed!  Returning fraud proof.'
+        log.error(
+          `The transaction did not pass the state machine, must be badly formed!  Returning fraud proof. Transition: ${JSON.stringify(
+            nextTransition
+          )}`
         )
         return {
           fraudPosition: this.currentPosition,
@@ -186,9 +188,11 @@ export class DefaultRollupStateValidator implements RollupStateValidator {
           fraudTransition: nextTransition,
         }
       } else {
-        log.error(
+        logError(
           log,
-          'Transaction ingestion threw an error--but for a reason unrelated to the transition itself not passing the state machine. Uh oh!',
+          `Transaction ingestion threw an error--but for a reason unrelated to the transition itself not passing the state machine. Uh oh! Transition: ${JSON.stringify(
+            nextTransition
+          )}`,
           error
         )
         throw new LocalMachineError()
@@ -196,14 +200,16 @@ export class DefaultRollupStateValidator implements RollupStateValidator {
     }
 
     if (generatedPostRoot.equals(transitionPostRoot)) {
-      log.info(
-        'Ingested valid transition and postRoot matched the aggregator claim.'
+      log.debug(
+        `Ingested valid transition and postRoot matched the aggregator claim.`
       )
       this.currentPosition.transitionIndex++
       return undefined
     } else {
-      log.info(
-        'Ingested valid transition and postRoot disagreed with the aggregator claim--returning fraud'
+      log.error(
+        `Ingested valid transition and postRoot disagreed with the aggregator claim--returning fraud. Transition: ${JSON.stringify(
+          nextTransition
+        )}. Expected State Root: ${hexBufToStr(generatedPostRoot)}`
       )
       return {
         fraudPosition: this.currentPosition,
