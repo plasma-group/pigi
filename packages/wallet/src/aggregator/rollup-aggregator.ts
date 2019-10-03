@@ -102,7 +102,7 @@ export class RollupAggregator
     private readonly blockSubmissionIntervalMillis: number = 300_000
   ) {
     this.pendingBlock = {
-      number: 1,
+      blockNumber: 1,
       transitions: [],
     }
     this.lock = new AsyncLock()
@@ -149,7 +149,7 @@ export class RollupAggregator
       )
 
       this.pendingBlock = {
-        number: pendingBlock,
+        blockNumber: pendingBlock,
         transitions,
       }
 
@@ -193,7 +193,7 @@ export class RollupAggregator
             address
           )
           return {
-            blockNumber: this.pendingBlock.number,
+            blockNumber: this.pendingBlock.blockNumber,
             transitionIndex: this.pendingBlock.transitions.length,
             ...snapshot,
           }
@@ -239,7 +239,7 @@ export class RollupAggregator
         await this.addToPendingBlock([update], signedTransaction)
         return [
           update,
-          this.pendingBlock.number,
+          this.pendingBlock.blockNumber,
           this.pendingBlock.transitions.length,
         ]
       })
@@ -305,7 +305,7 @@ export class RollupAggregator
         await this.addToPendingBlock(updates, signedTransaction)
         return [
           updates[updates.length - 1],
-          this.pendingBlock.number,
+          this.pendingBlock.blockNumber,
           this.pendingBlock.transitions.length,
         ]
       })
@@ -484,14 +484,14 @@ export class RollupAggregator
 
       await this.rollupBlockSubmitter.submitBlock(toSubmit)
       this.pendingBlock = {
-        number: toSubmit.number + 1,
+        blockNumber: toSubmit.blockNumber + 1,
         transitions: [],
       }
 
       await this.db.put(RollupAggregator.LAST_TRANSITION_KEY, Buffer.from('0'))
       await this.db.put(
         RollupAggregator.PENDING_BLOCK_KEY,
-        Buffer.from(this.pendingBlock.number.toString(10))
+        Buffer.from(this.pendingBlock.blockNumber.toString(10))
       )
 
       this.lastBlockSubmission = new Date()
@@ -557,7 +557,7 @@ export class RollupAggregator
    ***********/
 
   public getPendingBlockNumber(): number {
-    return this.pendingBlock.number
+    return this.pendingBlock.blockNumber
   }
 
   public getNextTransitionIndex(): number {
