@@ -1,6 +1,6 @@
 /* External Imports */
 import { Event, EthereumListener } from '@pigi/watch-eth'
-import { getLogger, logError } from '@pigi/core'
+import { DB, getLogger, logError } from '@pigi/core'
 
 import { Contract } from 'ethers'
 import { TransactionReceipt } from 'ethers/providers'
@@ -16,10 +16,45 @@ const log = getLogger('rollup-fraud-guard')
  * Handles NewRollupBlock events, checks for fraud, submits proof when there is fraud.
  */
 export class RollupFraudGuard implements EthereumListener<Event> {
-  public constructor(
+  public static readonly LAST_BLOCK_VALIDATED_KEY = Buffer.from(
+    'LAST_VALIDATED_BLOCK'
+  )
+
+  private lastBlockValidated: number
+
+  public static async create(
+    db: DB,
+    validator: RollupStateValidator,
+    contract: Contract
+  ): Promise<RollupFraudGuard> {
+    const fraudGuard: RollupFraudGuard = new RollupFraudGuard(
+      db,
+      validator,
+      contract
+    )
+    await fraudGuard.init()
+
+    return fraudGuard
+  }
+
+  private constructor(
+    private readonly db: DB,
     private readonly validator: RollupStateValidator,
     private readonly contract: Contract
   ) {}
+
+  private async init(): Promise<void> {
+    const lastValidatedBuffer: Buffer = await this.db.get(
+      RollupFraudGuard.LAST_BLOCK_VALIDATED_KEY
+    )
+
+    if (!lastValidatedBuffer) {
+      this.lastBlockValidated = 0
+      return
+    }
+
+    this.lastBlockValidated = parseInt(lastValidatedBuffer.toString(), 10)
+  }
 
   public async onSyncCompleted(syncIdentifier?: string): Promise<void> {
     // no-op
@@ -50,12 +85,33 @@ export class RollupFraudGuard implements EthereumListener<Event> {
         return
       }
 
+      if (this.lastBlockValidated >= block.blockNumber) {
+        log.debug(
+          `Received event for old block. Ignoring. lastValidated: ${
+            this.lastBlockValidated
+          }. Received: ${JSON.stringify(block)}`
+        )
+      } else if (this.lastBlockValidated + 1 !== block.blockNumber) {
+        log.error(
+          `Received event with block number greater than expected! lastValidated: ${
+            this.lastBlockValidated
+          }. Received: ${JSON.stringify(block)}`
+        )
+        process.exit(1)
+      }
+
       await this.validator.storeBlock(block)
       const proof: ContractFraudProof = await this.validator.validateStoredBlock(
         block.blockNumber
       )
       if (!!proof) {
         await this.submitFraudProof(proof)
+      } else {
+        this.lastBlockValidated = block.blockNumber
+        await this.db.put(
+          RollupFraudGuard.LAST_BLOCK_VALIDATED_KEY,
+          Buffer.from(this.lastBlockValidated.toString(10))
+        )
       }
     }
   }
@@ -70,6 +126,6 @@ export class RollupFraudGuard implements EthereumListener<Event> {
     log.error(`Fraud proof submitted. Receipt: ${JSON.stringify(receipt)}`)
 
     log.info('Congrats! You helped the good guys win. +2 points for you!')
-    process.exit(1)
+    process.exit(0)
   }
 }

@@ -53,7 +53,7 @@ export class DefaultRollupStateValidator implements RollupStateValidator {
     genesisState: State[],
     stateMachineDb: DB
   ): Promise<DefaultRollupStateValidator> {
-    // The validator spins up a local statte machine
+    // The validator spins up a local state machine
     const theRollupMachine = (await DefaultRollupStateMachine.create(
       genesisState,
       stateMachineDb,

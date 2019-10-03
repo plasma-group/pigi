@@ -59,7 +59,11 @@ async function runValidator() {
     validatorDB
   )
 
-  const fraudGuard: RollupFraudGuard = new RollupFraudGuard(validator, contract)
+  const fraudGuard: RollupFraudGuard = await RollupFraudGuard.create(
+    validatorDB,
+    validator,
+    contract
+  )
 
   const blockProcessorDB: DB = new BaseDB(
     (await Level('build/level/validator-blockProcessor', levelOptions)) as any,
