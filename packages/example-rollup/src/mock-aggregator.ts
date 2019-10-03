@@ -148,7 +148,6 @@ async function runAggregator() {
   )
 
   if (mockMode) {
-    // TODO: sync blocks and remove this line
     await aggregator.onSyncCompleted()
   } else {
     const blockProcessorDB: DB = new BaseDB(
