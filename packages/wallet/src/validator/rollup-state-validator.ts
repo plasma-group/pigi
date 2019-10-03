@@ -26,6 +26,7 @@ import {
   AggregatorUnsupportedError,
   DefaultRollupBlock,
   UNISWAP_STORAGE_SLOT,
+  ContractFraudProof,
 } from '../index'
 
 import {
@@ -224,7 +225,9 @@ export class DefaultRollupStateValidator implements RollupStateValidator {
     return
   }
 
-  public async validateStoredBlock(blockNumber: number): Promise<any> {
+  public async validateStoredBlock(
+    blockNumber: number
+  ): Promise<ContractFraudProof> {
     // grab the block itself from our stored blocks
     const blockToValidate: RollupBlock = this.storedBlocks[blockNumber]
     if (!blockToValidate) {
@@ -257,7 +260,7 @@ export class DefaultRollupStateValidator implements RollupStateValidator {
           }.  Submitting fraud proof.`
         )
         const generatedProof = await this.generateContractFraudProof(
-          fraudCheck as LocalFraudProof,
+          fraudCheck,
           blockToValidate
         )
         return generatedProof
@@ -275,7 +278,7 @@ export class DefaultRollupStateValidator implements RollupStateValidator {
   public async generateContractFraudProof(
     localProof: LocalFraudProof,
     block: RollupBlock
-  ): Promise<any> {
+  ): Promise<ContractFraudProof> {
     const fraudInputs: StateSnapshot[] = localProof.fraudInputs as StateSnapshot[]
     log.info(
       `Converting the LocalFraudProof's snapshots into contract-friendly includedStorageSlots...`
@@ -356,7 +359,6 @@ export class DefaultRollupStateValidator implements RollupStateValidator {
         lastTransitionInLastBlockIndex
       )
     }
-    // TODO: submit to L1, these would be the arguments fed directly into the contract
     return [
       validIncludedTransition,
       fraudulentIncludedTransition,

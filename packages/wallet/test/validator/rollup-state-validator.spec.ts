@@ -2,7 +2,7 @@ import '../setup'
 import * as assert from 'assert'
 
 /* External Imports */
-import { DB, BaseDB, bufToHexString, newInMemoryDB } from '@pigi/core'
+import { DB, bufToHexString, newInMemoryDB } from '@pigi/core'
 
 /* Internal Imports */
 import {
@@ -28,6 +28,7 @@ import {
   RollupBlock,
   ValidationOutOfOrderError,
   AggregatorUnsupportedError,
+  ContractFraudProof,
 } from '../../src'
 
 /***********
@@ -335,7 +336,7 @@ describe('RollupStateValidator', () => {
       // store the block
       await rollupGuard.storeBlock(sendThenSwapBlock)
       // validate it
-      const res: LocalFraudProof = await rollupGuard.validateStoredBlock(
+      const res: ContractFraudProof = await rollupGuard.validateStoredBlock(
         blockNumber
       )
       assert(
@@ -375,7 +376,7 @@ describe('RollupStateValidator', () => {
       // store it
       await rollupGuard.storeBlock(sendThenSwapBlock)
       // check it, expecting fraud
-      const res: LocalFraudProof = await rollupGuard.validateStoredBlock(
+      const res: ContractFraudProof = await rollupGuard.validateStoredBlock(
         blockNumber
       )
       res.should.not.equal(undefined)
@@ -432,7 +433,7 @@ describe('RollupStateValidator', () => {
       await rollupGuard.validateStoredBlock(0)
       // store and validate the invalid block 1
       await rollupGuard.storeBlock(invalidFirstTransitionBlock)
-      const res: LocalFraudProof = await rollupGuard.validateStoredBlock(1)
+      const res: ContractFraudProof = await rollupGuard.validateStoredBlock(1)
       // Fraud roof should give last transition of block 0 and the first transition of block 1
       res[0].inclusionProof.transitionIndex.should.equal(1)
       res[0].inclusionProof.blockNumber.should.equal(0)

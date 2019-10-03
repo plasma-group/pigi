@@ -10,6 +10,9 @@ import {
 /* Internal Imports */
 import { RollupTransition, abiEncodeTransition, RollupBlock } from '../../'
 
+// TODO: Make a local representation and do all contract formatting in abiEncode utility function
+export type ContractFraudProof = any[]
+
 interface TransitionInclusionProof {
   blockNumber: number
   transitionIndex: number
