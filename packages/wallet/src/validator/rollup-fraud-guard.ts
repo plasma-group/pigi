@@ -111,6 +111,7 @@ export class RollupFraudGuard implements EthereumListener<Event> {
           this.lastBlockValidated
         }. Received: ${JSON.stringify(block)}`
       )
+      return
     } else if (this.lastBlockValidated + 1 !== block.blockNumber) {
       log.error(
         `Received event with block number greater than expected! lastValidated: ${

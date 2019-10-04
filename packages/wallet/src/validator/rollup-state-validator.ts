@@ -1,5 +1,5 @@
 /* External Imports */
-import { getLogger, hexBufToStr, hexStrToBuf, logError } from '@pigi/core'
+import {add0x, getLogger, hexBufToStr, hexStrToBuf, logError} from '@pigi/core'
 
 /* Internal Imports */
 import {
@@ -210,7 +210,7 @@ export class DefaultRollupStateValidator implements RollupStateValidator {
     const blockToValidate: RollupBlock = this.storedBlocks[blockNumber - 1]
     if (!blockToValidate) {
       log.error(
-        'Tried to check next block, but it has not yet been stored yet.'
+        `Tried to check next block, but it has not yet been stored yet. Block Number: ${blockNumber}`
       )
       throw new ValidationOutOfOrderError()
     }
@@ -221,6 +221,7 @@ export class DefaultRollupStateValidator implements RollupStateValidator {
     const nextBlockNumberToValidate: number = (await this.getCurrentVerifiedPosition())
       .blockNumber
     if (blockToValidate.blockNumber !== nextBlockNumberToValidate) {
+      log.error(`Next block to validate is ${nextBlockNumberToValidate} but trying to validate block ${blockToValidate.blockNumber}!`)
       throw new ValidationOutOfOrderError()
     }
 
@@ -269,7 +270,7 @@ export class DefaultRollupStateValidator implements RollupStateValidator {
       {
         storageSlot: {
           value: {
-            pubKey: fraudInputs[0].state.pubkey,
+            pubkey: fraudInputs[0].state.pubkey,
             balances: [
               fraudInputs[0].state.balances[UNI_TOKEN_TYPE],
               fraudInputs[0].state.balances[PIGI_TOKEN_TYPE],
@@ -277,12 +278,12 @@ export class DefaultRollupStateValidator implements RollupStateValidator {
           },
           slotIndex: fraudInputs[0].slotIndex,
         },
-        siblings: fraudInputs[0].inclusionProof,
+        siblings: fraudInputs[1].inclusionProof.map(x => add0x(x)),
       },
       {
         storageSlot: {
           value: {
-            pubKey: fraudInputs[1].state.pubkey,
+            pubkey: fraudInputs[1].state.pubkey,
             balances: [
               fraudInputs[1].state.balances[UNI_TOKEN_TYPE],
               fraudInputs[1].state.balances[PIGI_TOKEN_TYPE],
@@ -290,7 +291,7 @@ export class DefaultRollupStateValidator implements RollupStateValidator {
           },
           slotIndex: fraudInputs[1].slotIndex,
         },
-        siblings: fraudInputs[1].inclusionProof,
+        siblings: fraudInputs[1].inclusionProof.map(x => add0x(x)),
       },
     ]
     log.info(
