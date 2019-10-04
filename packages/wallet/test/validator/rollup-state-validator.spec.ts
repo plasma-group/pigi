@@ -6,7 +6,8 @@ import {
   DB,
   bufToHexString,
   newInMemoryDB,
-  ChecksumAgnosticIdentityVerifier, NULL_ADDRESS,
+  ChecksumAgnosticIdentityVerifier,
+  NULL_ADDRESS,
 } from '@pigi/core'
 
 /* Internal Imports */

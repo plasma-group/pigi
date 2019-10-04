@@ -1,5 +1,11 @@
 /* External Imports */
-import {add0x, getLogger, hexBufToStr, hexStrToBuf, logError} from '@pigi/core'
+import {
+  add0x,
+  getLogger,
+  hexBufToStr,
+  hexStrToBuf,
+  logError,
+} from '@pigi/core'
 
 /* Internal Imports */
 import {
@@ -215,13 +221,13 @@ export class DefaultRollupStateValidator implements RollupStateValidator {
       throw new ValidationOutOfOrderError()
     }
 
-    log.info(
-      `Starting validation for block ${blockToValidate.blockNumber}...`
-    )
+    log.info(`Starting validation for block ${blockToValidate.blockNumber}...`)
     const nextBlockNumberToValidate: number = (await this.getCurrentVerifiedPosition())
       .blockNumber
     if (blockToValidate.blockNumber !== nextBlockNumberToValidate) {
-      log.error(`Next block to validate is ${nextBlockNumberToValidate} but trying to validate block ${blockToValidate.blockNumber}!`)
+      log.error(
+        `Next block to validate is ${nextBlockNumberToValidate} but trying to validate block ${blockToValidate.blockNumber}!`
+      )
       throw new ValidationOutOfOrderError()
     }
 
@@ -278,7 +284,7 @@ export class DefaultRollupStateValidator implements RollupStateValidator {
           },
           slotIndex: fraudInputs[0].slotIndex,
         },
-        siblings: fraudInputs[1].inclusionProof.map(x => add0x(x)),
+        siblings: fraudInputs[1].inclusionProof.map((x) => add0x(x)),
       },
       {
         storageSlot: {
@@ -291,7 +297,7 @@ export class DefaultRollupStateValidator implements RollupStateValidator {
           },
           slotIndex: fraudInputs[1].slotIndex,
         },
-        siblings: fraudInputs[1].inclusionProof.map(x => add0x(x)),
+        siblings: fraudInputs[1].inclusionProof.map((x) => add0x(x)),
       },
     ]
     log.info(
