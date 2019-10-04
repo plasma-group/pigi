@@ -133,6 +133,7 @@ export class UnipigTransitioner {
     )
 
     await this.stateSolver.storeSignedStateReceipt(signedState)
+    // TODO: commenting this out until we figure out how to support Buffers in the browser
     // If valid, update known state
     // if (
     //   (account in this.knownState &&

@@ -244,7 +244,7 @@ export class DefaultRollupStateValidator implements RollupStateValidator {
         return generatedProof
       }
     }
-    
+
     log.info(
       `Found no fraud in block ${nextBlockNumberToValidate}, incrementing block number and reseting transition index`
     )
