@@ -414,7 +414,7 @@ describe('RollupChain', () => {
       // 2) Update our state objects (send some money) and get our postStateRoot
       //
       const postStateObjects = preStateObjects.map((obj, index) => {
-        return { pubKey: obj.pubkey, balances: postBalances[index] }
+        return { pubkey: obj.pubkey, balances: postBalances[index] }
       })
       // Update the tree
       for (let i = 0; i < preStateObjects.length; i++) {

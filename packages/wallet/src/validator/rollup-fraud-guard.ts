@@ -61,7 +61,9 @@ export class RollupFraudGuard implements EthereumListener<Event> {
     }
 
     this.lastBlockValidated = parseInt(lastValidatedBuffer.toString(), 10)
-    log.info(`Starting from previous run. Last validated block: ${this.lastBlockValidated}`)
+    log.info(
+      `Starting from previous run. Last validated block: ${this.lastBlockValidated}`
+    )
   }
 
   public async onSyncCompleted(syncIdentifier?: string): Promise<void> {
@@ -72,9 +74,9 @@ export class RollupFraudGuard implements EthereumListener<Event> {
     log.debug(`Fraud Guard received event: ${JSON.stringify(event)}`)
     if (
       !event ||
-      !event.values &&
-      !('block' in event.values) &&
-      !('blockNumber' in event.values)
+      (!event.values &&
+        !('block' in event.values) &&
+        !('blockNumber' in event.values))
     ) {
       log.error(`Unrecognized event. Returning`)
       return
@@ -149,10 +151,9 @@ export class RollupFraudGuard implements EthereumListener<Event> {
       )
       log.error(`Fraud proof submitted. Receipt: ${JSON.stringify(receipt)}`)
     } catch (e) {
-      logError(log, "Error submitting fraud proof!", e)
+      logError(log, 'Error submitting fraud proof!', e)
       process.exit(1)
     }
-
 
     log.info('Congrats! You helped the good guys win. +2 points for you!')
     process.exit(0)

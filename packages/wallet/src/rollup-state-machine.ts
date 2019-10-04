@@ -13,7 +13,8 @@ import {
   runInDomain,
   MerkleTreeInclusionProof,
   ZERO,
-  getLogger, NULL_ADDRESS,
+  getLogger,
+  NULL_ADDRESS,
 } from '@pigi/core'
 
 /* Internal Imports */
@@ -392,7 +393,10 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     state =
       !!accountState && !accountState.equals(SparseMerkleTreeImpl.emptyBuffer)
         ? DefaultRollupStateMachine.deserializeState(accountState)
-        : { pubkey: NULL_ADDRESS, balances: { [UNI_TOKEN_TYPE]: 0, [PIGI_TOKEN_TYPE]: 0 } }
+        : {
+            pubkey: NULL_ADDRESS,
+            balances: { [UNI_TOKEN_TYPE]: 0, [PIGI_TOKEN_TYPE]: 0 },
+          }
     inclusionProof = proof.siblings.map((x: Buffer) => x.toString('hex'))
 
     return {

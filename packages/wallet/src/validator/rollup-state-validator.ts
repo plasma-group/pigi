@@ -1,10 +1,5 @@
 /* External Imports */
-import {
-  getLogger,
-  hexBufToStr,
-  hexStrToBuf,
-  logError,
-} from '@pigi/core'
+import { getLogger, hexBufToStr, hexStrToBuf, logError } from '@pigi/core'
 
 /* Internal Imports */
 import {
@@ -24,7 +19,9 @@ import {
   AggregatorUnsupportedError,
   DefaultRollupBlock,
   UNISWAP_STORAGE_SLOT,
-  ContractFraudProof, TokenType, SignatureError,
+  ContractFraudProof,
+  TokenType,
+  SignatureError,
 } from '../index'
 
 import {
@@ -156,8 +153,6 @@ export class DefaultRollupStateValidator implements RollupStateValidator {
       )}.  Attempting to apply it to local state machine.`
     )
     try {
-      log.info(`JUST THROWING INSTEAD OF APPLYING!`)
-      throw new SignatureError()
       await this.rollupMachine.applyTransaction(inputAsTransaction)
       generatedPostRoot = await this.rollupMachine.getStateRoot()
     } catch (error) {
@@ -205,7 +200,7 @@ export class DefaultRollupStateValidator implements RollupStateValidator {
   }
 
   public async storeBlock(newBlock: RollupBlock): Promise<void> {
-    this.storedBlocks[newBlock.blockNumber -1] = newBlock
+    this.storedBlocks[newBlock.blockNumber - 1] = newBlock
   }
 
   public async validateStoredBlock(
@@ -218,43 +213,41 @@ export class DefaultRollupStateValidator implements RollupStateValidator {
         'Tried to check next block, but it has not yet been stored yet.'
       )
       throw new ValidationOutOfOrderError()
-    } else if (blockNumber > 1) {
-      log.info(
-        `Starting validation for block ${blockToValidate.blockNumber}...`
-      )
-      const nextBlockNumberToValidate: number = (await this.getCurrentVerifiedPosition())
-        .blockNumber
-      if (blockToValidate.blockNumber !== nextBlockNumberToValidate) {
-        throw new ValidationOutOfOrderError()
-      }
-
-      // Now loop through and apply the transitions one by one
-      for (const transition of blockToValidate.transitions) {
-        const fraudCheck: LocalFraudProof = await this.checkNextTransition(
-          transition
-        )
-        if (!!fraudCheck) {
-          log.info(
-            `Found evidence of fraud at transition ${JSON.stringify(
-              transition
-            )}.  The current index is ${
-              (await this.getCurrentVerifiedPosition()).transitionIndex
-            }.  Submitting fraud proof.`
-          )
-          const generatedProof = await this.generateContractFraudProof(
-            fraudCheck,
-            blockToValidate
-          )
-          return generatedProof
-        }
-      }
-      log.info(
-        `Found no fraud in block ${nextBlockNumberToValidate}, incrementing block number and reseting transition index`
-      )
-    } else {
-      // TODO: Make block 0 automatically from genesis state so this isn't an issue
-      log.info(`Cannot validate block 1 at the moment. So... uhhh, everything looks good!`)
     }
+
+    log.info(
+      `Starting validation for block ${blockToValidate.blockNumber}...`
+    )
+    const nextBlockNumberToValidate: number = (await this.getCurrentVerifiedPosition())
+      .blockNumber
+    if (blockToValidate.blockNumber !== nextBlockNumberToValidate) {
+      throw new ValidationOutOfOrderError()
+    }
+
+    // Now loop through and apply the transitions one by one
+    for (const transition of blockToValidate.transitions) {
+      const fraudCheck: LocalFraudProof = await this.checkNextTransition(
+        transition
+      )
+      if (!!fraudCheck) {
+        log.info(
+          `Found evidence of fraud at transition ${JSON.stringify(
+            transition
+          )}.  The current index is ${
+            (await this.getCurrentVerifiedPosition()).transitionIndex
+          }.  Submitting fraud proof.`
+        )
+        const generatedProof = await this.generateContractFraudProof(
+          fraudCheck,
+          blockToValidate
+        )
+        return generatedProof
+      }
+    }
+    
+    log.info(
+      `Found no fraud in block ${nextBlockNumberToValidate}, incrementing block number and reseting transition index`
+    )
 
     // otherwise
     this.currentPosition.blockNumber++

@@ -55,10 +55,10 @@ async function runValidator() {
   )
   log.debug(`Connected`)
 
-  const rollupStateMachine: DefaultRollupStateMachine = await DefaultRollupStateMachine.create(
+  const rollupStateMachine: DefaultRollupStateMachine = (await DefaultRollupStateMachine.create(
     genesisState,
     validatorDB
-  ) as DefaultRollupStateMachine
+  )) as DefaultRollupStateMachine
 
   const validator: RollupStateValidator = new DefaultRollupStateValidator(
     rollupStateMachine

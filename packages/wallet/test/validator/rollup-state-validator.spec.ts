@@ -2,7 +2,12 @@ import '../setup'
 import * as assert from 'assert'
 
 /* External Imports */
-import {DB, bufToHexString, newInMemoryDB, ChecksumAgnosticIdentityVerifier} from '@pigi/core'
+import {
+  DB,
+  bufToHexString,
+  newInMemoryDB,
+  ChecksumAgnosticIdentityVerifier, NULL_ADDRESS,
+} from '@pigi/core'
 
 /* Internal Imports */
 import {
@@ -28,7 +33,9 @@ import {
   RollupBlock,
   ValidationOutOfOrderError,
   AggregatorUnsupportedError,
-  ContractFraudProof, RollupStateMachine, DefaultRollupStateMachine,
+  ContractFraudProof,
+  RollupStateMachine,
+  DefaultRollupStateMachine,
 } from '../../src'
 
 /***********
@@ -83,11 +90,11 @@ describe('RollupStateValidator', () => {
 
   beforeEach(async () => {
     stateDb = newInMemoryDB()
-    const rollupStateMachine: DefaultRollupStateMachine = await DefaultRollupStateMachine.create(
+    const rollupStateMachine: DefaultRollupStateMachine = (await DefaultRollupStateMachine.create(
       getMultiBalanceGenesis(),
       stateDb,
       ChecksumAgnosticIdentityVerifier.instance()
-    ) as DefaultRollupStateMachine
+    )) as DefaultRollupStateMachine
 
     rollupGuard = new DefaultRollupStateValidator(rollupStateMachine)
   })
@@ -174,8 +181,11 @@ describe('RollupStateValidator', () => {
       // make sure the right pubkeys were pulled
       snaps[0].state.pubkey.should.equal(ALICE_ADDRESS)
       assert(
-        snaps[1].state === undefined,
-        'Empty slot should give an undefined state.'
+        snaps[1].state.should.deep.equal({
+          pubkey: NULL_ADDRESS,
+          balances: { [UNI_TOKEN_TYPE]: 0, [PIGI_TOKEN_TYPE]: 0 },
+        }),
+        'Empty slot should give a default state.'
       )
     })
   })
@@ -331,7 +341,7 @@ describe('RollupStateValidator', () => {
         signature: ALICE_ADDRESS,
       }
       // create the block
-      const blockNumber: number = 0
+      const blockNumber: number = 1
       const sendThenSwapBlock: RollupBlock = {
         blockNumber,
         transitions: [transitionAliceToBob, transitionAliceSwap],
@@ -371,7 +381,7 @@ describe('RollupStateValidator', () => {
         signature: ALICE_ADDRESS,
       }
       // create block
-      const blockNumber: number = 0
+      const blockNumber: number = 1
       const sendThenSwapBlock: RollupBlock = {
         blockNumber,
         transitions: [transitionAliceToBob, transitionAliceSwap],
@@ -409,7 +419,7 @@ describe('RollupStateValidator', () => {
       }
       // create valid block 0
       const validFirstBlock: RollupBlock = {
-        blockNumber: 0,
+        blockNumber: 1,
         transitions: [transitionAliceToBob, transitionAliceSwap],
       }
       // create an invalid state transition for block 1
@@ -424,7 +434,7 @@ describe('RollupStateValidator', () => {
       }
       // create invalid block 1
       const invalidFirstTransitionBlock: RollupBlock = {
-        blockNumber: 1,
+        blockNumber: 2,
         transitions: [
           invalidSendTransition,
           invalidSendTransition, // there could be multiple invalid transitions, but we need to confirm we get the first.
@@ -433,15 +443,15 @@ describe('RollupStateValidator', () => {
       }
       // store and validate the first valid block 0
       await rollupGuard.storeBlock(validFirstBlock)
-      await rollupGuard.validateStoredBlock(0)
+      await rollupGuard.validateStoredBlock(1)
       // store and validate the invalid block 1
       await rollupGuard.storeBlock(invalidFirstTransitionBlock)
-      const res: ContractFraudProof = await rollupGuard.validateStoredBlock(1)
+      const res: ContractFraudProof = await rollupGuard.validateStoredBlock(2)
       // Fraud roof should give last transition of block 0 and the first transition of block 1
       res[0].inclusionProof.transitionIndex.should.equal(1)
-      res[0].inclusionProof.blockNumber.should.equal(0)
+      res[0].inclusionProof.blockNumber.should.equal(1)
       res[1].inclusionProof.transitionIndex.should.equal(0)
-      res[1].inclusionProof.blockNumber.should.equal(1)
+      res[1].inclusionProof.blockNumber.should.equal(2)
     })
   })
 })

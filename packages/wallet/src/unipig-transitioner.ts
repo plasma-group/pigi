@@ -142,7 +142,7 @@ export class UnipigTransitioner {
     //     AGGREGATOR_ADDRESS
     //   ))
     // ) {
-      this.knownState[account] = signedState.stateReceipt
+    this.knownState[account] = signedState.stateReceipt
     // }
 
     return account in this.knownState ? this.knownState[account] : undefined
