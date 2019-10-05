@@ -10,6 +10,7 @@ import {
   keccak256,
   newInMemoryDB,
   serializeObject,
+  serializeObjectAsHexString,
   SimpleClient,
   sleep,
 } from '@pigi/core'
@@ -104,7 +105,8 @@ describe('RollupAggregator', () => {
         amount,
       }
       const signature = await senderWallet.signMessage(
-        abiEncodeTransaction(transaction)
+        // right now, we are actually signing the hash of our messages to make the contract work.  (See DefaultSignatureProvider)
+        hexStrToBuf(ethers.utils.keccak256(abiEncodeTransaction(transaction)))
       )
       const tx = {
         signature,
@@ -158,7 +160,10 @@ describe('RollupAggregator', () => {
         amount,
       }
       const signature = await newWallet.signMessage(
-        serializeObject(transaction)
+        // right now, we are actually signing the hash of our messages to make the contract work.  (See DefaultSignatureProvider)
+        hexStrToBuf(
+          ethers.utils.keccak256(serializeObjectAsHexString(transaction))
+        )
       )
       const signedRequest: SignedTransaction = {
         signature,

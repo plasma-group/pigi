@@ -67,7 +67,7 @@ export class RollupFraudGuard implements EthereumListener<Event> {
   }
 
   public async onSyncCompleted(syncIdentifier?: string): Promise<void> {
-    // no-op
+    log.info(`Synced with rollup chain. Awaiting new events to validate...`)
   }
 
   public async handle(event: Event): Promise<void> {
