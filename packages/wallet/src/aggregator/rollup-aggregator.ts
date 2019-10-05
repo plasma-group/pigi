@@ -86,8 +86,7 @@ export class RollupAggregator
       signatureVerifier,
       blockSubmissionTransitionCount,
       blockSubmissionIntervalMillis,
-      authorizedFaucetAddress,
-
+      authorizedFaucetAddress
     )
 
     await aggregator.init()
