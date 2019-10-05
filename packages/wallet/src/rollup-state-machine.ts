@@ -14,6 +14,7 @@ import {
   MerkleTreeInclusionProof,
   ZERO,
   getLogger,
+  NULL_ADDRESS,
 } from '@pigi/core'
 
 /* Internal Imports */
@@ -50,7 +51,7 @@ import {
   SlippageError,
 } from './types'
 
-const log = getLogger('rollup-aggregator')
+const log = getLogger('rollup-state-machine')
 
 /**
  * A Tree-backed Rollup State Machine, facilitating state transitions for
@@ -102,7 +103,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       const promises: Array<Promise<boolean>> = []
       for (const state of genesisState) {
         promises.push(
-          stateMachine.setAddressState(state.pubKey, state.balances)
+          stateMachine.setAddressState(state.pubkey, state.balances)
         )
       }
       await Promise.all(promises)
@@ -278,6 +279,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
   ): Promise<StateUpdate> {
     let signer: Address
 
+    log.debug(`Validating Signature: ${JSON.stringify(signedTransaction)}`)
     signer = this.signatureVerifier.verifyMessage(
       abiEncodeTransaction(signedTransaction.transaction),
       signedTransaction.signature
@@ -289,7 +291,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       log.info(
         `Received transaction with invalid signature: ${serializeObject(
           signedTransaction
-        )}`
+        )}, which recovered a signer of ${signer}`
       )
       throw new SignatureError()
     }
@@ -330,9 +332,9 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
 
       const inclusionProof = async (state: State): Promise<InclusionProof> => {
         const proof: MerkleTreeInclusionProof = await this.tree.getMerkleProof(
-          this.getAddressKey(state.pubKey),
+          this.getAddressKey(state.pubkey),
           DefaultRollupStateMachine.serializeBalances(
-            state.pubKey,
+            state.pubkey,
             state.balances
           )
         )
@@ -349,6 +351,60 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       stateUpdate['stateRoot'] = (await this.tree.getRootHash()).toString('hex')
       return stateUpdate
     })
+  }
+
+  public async getStateRoot(): Promise<Buffer> {
+    const lockedRoot = await this.lock.acquire(
+      DefaultRollupStateMachine.lockKey,
+      async () => {
+        return this.tree.getRootHash()
+      }
+    )
+    return lockedRoot
+  }
+
+  public getNextNewAccountSlot(): number {
+    return this.lastOpenKey.toNumber() + 1
+  }
+
+  public async getSnapshotFromSlot(key: number): Promise<StateSnapshot> {
+    const [accountState, proof, stateRoot]: [
+      Buffer,
+      MerkleTreeInclusionProof,
+      string
+    ] = await this.lock.acquire(DefaultRollupStateMachine.lockKey, async () => {
+      const bigKey: BigNumber = new BigNumber(key)
+      let leaf: Buffer = await this.tree.getLeaf(bigKey)
+
+      if (!leaf) {
+        // if we didn't get the leaf it must be empty
+        leaf = SparseMerkleTreeImpl.emptyBuffer
+      }
+
+      const merkleProof: MerkleTreeInclusionProof = await this.tree.getMerkleProof(
+        new BigNumber(key),
+        leaf
+      )
+      return [leaf, merkleProof, merkleProof.rootHash.toString('hex')]
+    })
+
+    let state: State
+    let inclusionProof: InclusionProof
+    state =
+      !!accountState && !accountState.equals(SparseMerkleTreeImpl.emptyBuffer)
+        ? DefaultRollupStateMachine.deserializeState(accountState)
+        : {
+            pubkey: NULL_ADDRESS,
+            balances: { [UNI_TOKEN_TYPE]: 0, [PIGI_TOKEN_TYPE]: 0 },
+          }
+    inclusionProof = proof.siblings.map((x: Buffer) => x.toString('hex'))
+
+    return {
+      slotIndex: key,
+      state,
+      stateRoot,
+      inclusionProof,
+    }
   }
 
   /**
@@ -628,7 +684,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     balances: Balances
   ): State {
     return {
-      pubKey,
+      pubkey: pubKey,
       balances,
     }
   }

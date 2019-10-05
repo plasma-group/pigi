@@ -1,10 +1,9 @@
-import './setup'
-import MemDown from 'memdown'
+import '../setup'
 
 /* External Imports */
+import * as assert from 'assert'
+
 import {
-  BaseDB,
-  BigNumber,
   DB,
   DefaultSignatureProvider,
   DefaultSignatureVerifier,
@@ -13,10 +12,9 @@ import {
   keccak256,
   newInMemoryDB,
   serializeObject,
+  serializeObjectAsHexString,
   SimpleClient,
   sleep,
-  SparseMerkleTree,
-  SparseMerkleTreeImpl,
 } from '@pigi/core'
 
 /* Internal Imports */
@@ -27,7 +25,7 @@ import {
   BOB_ADDRESS,
   DummyBlockSubmitter,
   getGenesisState,
-} from './helpers'
+} from '../helpers'
 import {
   UNI_TOKEN_TYPE,
   DefaultRollupStateMachine,
@@ -43,11 +41,9 @@ import {
   abiEncodeStateReceipt,
   abiEncodeTransaction,
   TransferTransition,
-  SwapTransition,
+  AggregatorServer,
   abiEncodeTransition,
-} from '../src'
-import { AggregatorServer } from '../src/aggregator/aggregator-server'
-import * as assert from 'assert'
+} from '../../src'
 
 const log = getLogger('rollup-aggregator', true)
 /*********
@@ -110,7 +106,8 @@ describe('RollupAggregator', () => {
         amount,
       }
       const signature = await senderWallet.signMessage(
-        abiEncodeTransaction(transaction)
+        // right now, we are actually signing the hash of our messages to make the contract work.  (See DefaultSignatureProvider)
+        hexStrToBuf(ethers.utils.keccak256(abiEncodeTransaction(transaction)))
       )
       const tx = {
         signature,
@@ -164,7 +161,10 @@ describe('RollupAggregator', () => {
         amount,
       }
       const signature = await newWallet.signMessage(
-        serializeObject(transaction)
+        // right now, we are actually signing the hash of our messages to make the contract work.  (See DefaultSignatureProvider)
+        hexStrToBuf(
+          ethers.utils.keccak256(serializeObjectAsHexString(transaction))
+        )
       )
       const signedRequest: SignedTransaction = {
         signature,
@@ -254,7 +254,7 @@ describe('RollupAggregator', () => {
         // It should have submitted a block
         transIndex.should.equal(0)
         dummyBlockSubmitter.submitedBlocks.length.should.equal(1)
-        dummyBlockSubmitter.submitedBlocks[0].number.should.equal(1)
+        dummyBlockSubmitter.submitedBlocks[0].blockNumber.should.equal(1)
         dummyBlockSubmitter.submitedBlocks[0].transitions.length.should.equal(2)
 
         aggregator.getPendingBlockNumber().should.equal(2)
@@ -461,7 +461,7 @@ describe('RollupAggregator', () => {
       await sleep(1_900)
 
       dummyBlockSubmitter.submitedBlocks.length.should.equal(1)
-      dummyBlockSubmitter.submitedBlocks[0].number.should.equal(1)
+      dummyBlockSubmitter.submitedBlocks[0].blockNumber.should.equal(1)
       dummyBlockSubmitter.submitedBlocks[0].transitions.length.should.equal(1)
     }).timeout(10_000)
   })

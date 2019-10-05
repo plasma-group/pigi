@@ -111,28 +111,40 @@ export class UnipigTransitioner {
   }
 
   public async getState(account: Address): Promise<StateReceipt> {
+    log.debug(`Fetching state for ${account}`)
+
     // For now we only have one client so just get the rollup balance
     const signedState: SignedStateReceipt = await this.rollupClient.getState(
       account
+    )
+
+    log.debug(
+      `State for ${account}: ${JSON.stringify(signedState.stateReceipt)}`
     )
 
     if (signedState.signature === EMPTY_AGGREGATOR_SIGNATURE) {
       return signedState.stateReceipt
     }
 
-    await this.stateSolver.storeSignedStateReceipt(signedState)
+    log.debug(
+      `Storing state for ${account}: ${JSON.stringify(
+        signedState.stateReceipt
+      )}`
+    )
 
+    await this.stateSolver.storeSignedStateReceipt(signedState)
+    // TODO: commenting this out until we figure out how to support Buffers in the browser
     // If valid, update known state
-    if (
-      (account in this.knownState &&
-        signedState.signature === EMPTY_AGGREGATOR_SIGNATURE) ||
-      (await this.stateSolver.isStateReceiptProvablyValid(
-        signedState.stateReceipt,
-        AGGREGATOR_ADDRESS
-      ))
-    ) {
-      this.knownState[account] = signedState.stateReceipt
-    }
+    // if (
+    //   (account in this.knownState &&
+    //     signedState.signature === EMPTY_AGGREGATOR_SIGNATURE) ||
+    //   (await this.stateSolver.isStateReceiptProvablyValid(
+    //     signedState.stateReceipt,
+    //     AGGREGATOR_ADDRESS
+    //   ))
+    // ) {
+    this.knownState[account] = signedState.stateReceipt
+    // }
 
     return account in this.knownState ? this.knownState[account] : undefined
   }

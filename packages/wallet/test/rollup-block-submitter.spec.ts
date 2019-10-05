@@ -35,7 +35,7 @@ const initQueuedSubmittedConfirmed = async (
   submitted: number,
   confirmed: number,
   blocks: RollupBlock[] = []
-): Promise<DefaultRollupBlockSubmitter> => {
+): Promise<RollupBlockSubmitter> => {
   if (queued > 0) {
     await db.put(
       DefaultRollupBlockSubmitter.LAST_QUEUED_KEY,
@@ -57,7 +57,7 @@ const initQueuedSubmittedConfirmed = async (
 
   for (const block of blocks) {
     await db.put(
-      DefaultRollupBlockSubmitter.getBlockKey(block.number),
+      DefaultRollupBlockSubmitter.getBlockKey(block.blockNumber),
       DefaultRollupBlockSubmitter.serializeRollupBlockForStorage(block)
     )
   }
@@ -111,7 +111,7 @@ describe('DefaultRollupBlockSubmitter', () => {
     db = newInMemoryDB()
 
     rollupBlock = {
-      number: 1,
+      blockNumber: 1,
       transitions: [
         {
           stateRoot: keccak256(
@@ -127,7 +127,7 @@ describe('DefaultRollupBlockSubmitter', () => {
     }
 
     rollupBlock2 = {
-      number: 2,
+      blockNumber: 2,
       transitions: [
         {
           stateRoot: keccak256(
@@ -178,7 +178,7 @@ describe('DefaultRollupBlockSubmitter', () => {
   describe('submitBlock()', () => {
     it('should submit new block with no previous blocks', async () => {
       // @ts-ignore
-      const blockSubmitter: DefaultRollupBlockSubmitter = await DefaultRollupBlockSubmitter.create(
+      const blockSubmitter: RollupBlockSubmitter = await DefaultRollupBlockSubmitter.create(
         db,
         // @ts-ignore
         dummyContract
@@ -277,7 +277,7 @@ describe('DefaultRollupBlockSubmitter', () => {
   describe('handleNewRollupBlock()', () => {
     it('should do nothing when there are no pending blocks', async () => {
       // @ts-ignore
-      const blockSubmitter: DefaultRollupBlockSubmitter = await DefaultRollupBlockSubmitter.create(
+      const blockSubmitter: RollupBlockSubmitter = await DefaultRollupBlockSubmitter.create(
         db,
         // @ts-ignore
         dummyContract
@@ -340,7 +340,7 @@ describe('DefaultRollupBlockSubmitter', () => {
 
     it('should confirm pending with two in queue', async () => {
       const rollupBlock3: RollupBlock = {
-        number: 3,
+        blockNumber: 3,
         transitions: [
           {
             stateRoot: keccak256(

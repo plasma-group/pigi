@@ -5,6 +5,7 @@ import {
   SignatureVerifier,
   DefaultSignatureVerifier,
   serializeObject,
+  serializeObjectAsHexString,
   DB,
   getLogger,
   hexStrToBuf,
@@ -68,7 +69,6 @@ export class RollupAggregator
   private readonly lock: AsyncLock
 
   private synced: boolean
-  private initialized: boolean
 
   private transactionCount: number
   private pendingBlock: RollupBlock
@@ -108,12 +108,11 @@ export class RollupAggregator
     private readonly blockSubmissionIntervalMillis: number = 300_000
   ) {
     this.pendingBlock = {
-      number: 1,
+      blockNumber: 1,
       transitions: [],
     }
     this.lock = new AsyncLock()
     this.synced = false
-    this.initialized = false
   }
 
   /**
@@ -136,7 +135,6 @@ export class RollupAggregator
       if (!lastTransitionBuffer) {
         log.info(`Init returning -- no stored last transition.`)
         this.transactionCount = 0
-        this.initialized = true
         this.lastBlockSubmission = new Date()
         return
       }
@@ -165,11 +163,10 @@ export class RollupAggregator
       )
 
       this.pendingBlock = {
-        number: pendingBlock,
+        blockNumber: pendingBlock,
         transitions,
       }
 
-      this.initialized = true
       log.info(
         `Initialized aggregator with pending block: ${JSON.stringify(
           this.pendingBlock
@@ -192,7 +189,7 @@ export class RollupAggregator
     log.debug(`Aggregator received event: ${JSON.stringify(event)}`)
     if (!!event && !!event.values && 'blockNumber' in event.values) {
       await this.rollupBlockSubmitter.handleNewRollupBlock(
-        event.values['blockNumber']
+        (event.values['blockNumber'] as any).toNumber()
       )
     }
   }
@@ -202,7 +199,7 @@ export class RollupAggregator
   }
 
   public async getState(address: string): Promise<SignedStateReceipt> {
-    if (!this.isReadyForRequests()) {
+    if (!this.synced) {
       throw new NotSyncedError()
     }
 
@@ -214,7 +211,7 @@ export class RollupAggregator
             address
           )
           return {
-            blockNumber: this.pendingBlock.number,
+            blockNumber: this.pendingBlock.blockNumber,
             transitionIndex: this.pendingBlock.transitions.length,
             ...snapshot,
           }
@@ -244,7 +241,7 @@ export class RollupAggregator
   public async applyTransaction(
     signedTransaction: SignedTransaction
   ): Promise<SignedStateReceipt[]> {
-    if (!this.isReadyForRequests()) {
+    if (!this.synced) {
       throw new NotSyncedError()
     }
 
@@ -260,7 +257,7 @@ export class RollupAggregator
         await this.addToPendingBlock([update], signedTransaction)
         return [
           update,
-          this.pendingBlock.number,
+          this.pendingBlock.blockNumber,
           this.pendingBlock.transitions.length,
         ]
       })
@@ -288,7 +285,7 @@ export class RollupAggregator
   public async requestFaucetFunds(
     signedTransaction: SignedTransaction
   ): Promise<SignedStateReceipt> {
-    if (!this.isReadyForRequests) {
+    if (!this.synced) {
       throw new NotSyncedError()
     }
 
@@ -297,7 +294,7 @@ export class RollupAggregator
         throw Error('Cannot handle non-Faucet Request in faucet endpoint')
       }
       const messageSigner: Address = this.signatureVerifier.verifyMessage(
-        serializeObject(signedTransaction.transaction),
+        serializeObjectAsHexString(signedTransaction.transaction),
         signedTransaction.signature
       )
       if (messageSigner !== signedTransaction.transaction.sender) {
@@ -328,7 +325,7 @@ export class RollupAggregator
         await this.addToPendingBlock(updates, signedTransaction)
         return [
           updates[updates.length - 1],
-          this.pendingBlock.number,
+          this.pendingBlock.blockNumber,
           this.pendingBlock.transitions.length,
         ]
       })
@@ -385,7 +382,7 @@ export class RollupAggregator
       stateReceipt: senderReceipt,
     })
 
-    if (stateUpdate.receiverState.pubKey !== UNISWAP_ADDRESS) {
+    if (stateUpdate.receiverState.pubkey !== UNISWAP_ADDRESS) {
       const recipientReceipt: StateReceipt = {
         slotIndex: stateUpdate.receiverSlotIndex,
         stateRoot: stateUpdate.stateRoot,
@@ -480,7 +477,7 @@ export class RollupAggregator
       signature: update.transaction.signature,
     }
     if (update.receiverCreated) {
-      transition['createdAccountPubkey'] = update.receiverState.pubKey
+      transition['createdAccountPubkey'] = update.receiverState.pubkey
     }
     return transition
   }
@@ -509,14 +506,14 @@ export class RollupAggregator
 
       await this.rollupBlockSubmitter.submitBlock(toSubmit)
       this.pendingBlock = {
-        number: toSubmit.number + 1,
+        blockNumber: toSubmit.blockNumber + 1,
         transitions: [],
       }
 
       await this.db.put(RollupAggregator.LAST_TRANSITION_KEY, Buffer.from('0'))
       await this.db.put(
         RollupAggregator.PENDING_BLOCK_KEY,
-        Buffer.from(this.pendingBlock.number.toString(10))
+        Buffer.from(this.pendingBlock.blockNumber.toString(10))
       )
 
       this.lastBlockSubmission = new Date()
@@ -597,19 +594,12 @@ export class RollupAggregator
     }
   }
 
-  /**
-   * Returns whether or not this Aggregator is ready to handle requests.
-   */
-  private isReadyForRequests() {
-    return this.initialized && this.synced
-  }
-
   /***********
    * GETTERS *
    ***********/
 
   public getPendingBlockNumber(): number {
-    return this.pendingBlock.number
+    return this.pendingBlock.blockNumber
   }
 
   public getNextTransitionIndex(): number {

@@ -4,7 +4,6 @@ import '../setup'
 import {
   Transition,
   generateNTransitions,
-  RollupBlock,
   makeRepeatedBytes,
   makePaddedBytes,
   makePaddedUint,
@@ -37,14 +36,18 @@ import {
   BigNumber,
   BaseDB,
   SparseMerkleTreeImpl,
+  DefaultSignatureProvider,
 } from '@pigi/core'
 import {
   SwapTransition,
   TransferTransition,
   CreateAndTransferTransition,
+  Transfer,
   abiEncodeTransition,
+  abiEncodeTransaction,
   State,
   abiEncodeState,
+  DefaultRollupBlock,
 } from '@pigi/wallet'
 
 /* Logging */
@@ -166,8 +169,8 @@ describe('RollupChain', () => {
     beforeEach(async () => {
       // Create two blocks from some default transitions
       blocks = [
-        new RollupBlock(generateNTransitions(10), 0),
-        new RollupBlock(generateNTransitions(10), 1),
+        new DefaultRollupBlock(generateNTransitions(10), 0),
+        new DefaultRollupBlock(generateNTransitions(10), 1),
       ]
       for (const block of blocks) {
         await block.generateTree()
@@ -248,7 +251,7 @@ describe('RollupChain', () => {
   describe('checkTransitionIncluded()', async () => {
     it('should verify n included transitions for the first block', async () => {
       // Create a block from some default transitions
-      const block = new RollupBlock(generateNTransitions(10), 0)
+      const block = new DefaultRollupBlock(generateNTransitions(10), 0)
       await block.generateTree()
       // Actually submit the block
       await rollupChain.submitBlock(block.encodedTransitions)
@@ -266,8 +269,8 @@ describe('RollupChain', () => {
 
     it('should verify n included transitions for the second block', async () => {
       // Create two blocks from some default transitions
-      const block0 = new RollupBlock(generateNTransitions(5), 0)
-      const block1 = new RollupBlock(generateNTransitions(5), 1)
+      const block0 = new DefaultRollupBlock(generateNTransitions(5), 0)
+      const block1 = new DefaultRollupBlock(generateNTransitions(5), 1)
       await block0.generateTree()
       await block1.generateTree()
       // Submit the blocks
@@ -287,7 +290,7 @@ describe('RollupChain', () => {
 
     it('should fail to verify inclusion for a transition which is not included', async () => {
       // Create a block from some default transitions
-      const block0 = new RollupBlock(generateNTransitions(5), 0)
+      const block0 = new DefaultRollupBlock(generateNTransitions(5), 0)
       await block0.generateTree()
       // Submit the blocks
       await rollupChain.submitBlock(block0.encodedTransitions)
@@ -336,7 +339,7 @@ describe('RollupChain', () => {
       )
 
       // Create a rollup block
-      const block = new RollupBlock(transferTransitions, 0)
+      const block = new DefaultRollupBlock(transferTransitions, 0)
       await block.generateTree()
       // Get two included transitions
       const includedTransitions = [
@@ -357,9 +360,11 @@ describe('RollupChain', () => {
    */
   describe('proveTransitionInvalid() ', async () => {
     it('should throw if attempting to prove invalid a valid transition', async () => {
+      const signatureProvider = new DefaultSignatureProvider()
       const sentAmount = 5
+      const tokenType = 0
       const storageSlots = [5, 10]
-      const pubkeys = [getAddress('11'), getAddress('22')]
+      const pubkeys = [await signatureProvider.getAddress(), getAddress('22')]
       const balances = [{ '0': 10, '1': 20 }, { '0': 100, '1': 200 }]
       // Post balances after a send of 5 uni
       const postBalances = [
@@ -373,11 +378,11 @@ describe('RollupChain', () => {
       // Create the two state objects
       const preStateObjects: State[] = [
         {
-          pubKey: pubkeys[0],
+          pubkey: pubkeys[0],
           balances: balances[0],
         },
         {
-          pubKey: pubkeys[1],
+          pubkey: pubkeys[1],
           balances: balances[1],
         },
       ]
@@ -414,7 +419,7 @@ describe('RollupChain', () => {
       // 2) Update our state objects (send some money) and get our postStateRoot
       //
       const postStateObjects = preStateObjects.map((obj, index) => {
-        return { pubKey: obj.pubKey, balances: postBalances[index] }
+        return { pubkey: obj.pubkey, balances: postBalances[index] }
       })
       // Update the tree
       for (let i = 0; i < preStateObjects.length; i++) {
@@ -426,6 +431,16 @@ describe('RollupChain', () => {
       // Store the post state root
       const postStateRoot = bufToHexString(await stateTree.getRootHash())
 
+      // create a valid transfer transaction and signature (this will be the second transfer transition--the one being checked) to pass the unipig transition verifier.
+      const transactionForSecondTransfer: Transfer = {
+        sender: pubkeys[0],
+        recipient: pubkeys[1],
+        tokenType,
+        amount: sentAmount,
+      }
+      const signature = await signatureProvider.sign(
+        abiEncodeTransaction(transactionForSecondTransfer)
+      )
       // 3) Create transfer transitions
       //
       const transferTransitions: TransferTransition[] = [
@@ -433,7 +448,7 @@ describe('RollupChain', () => {
           stateRoot: preStateRoot,
           senderSlotIndex: storageSlots[0],
           recipientSlotIndex: storageSlots[1],
-          tokenType: 0,
+          tokenType,
           amount: 1,
           signature: getSignature('42'),
         },
@@ -441,9 +456,9 @@ describe('RollupChain', () => {
           stateRoot: postStateRoot,
           senderSlotIndex: storageSlots[0],
           recipientSlotIndex: storageSlots[1],
-          tokenType: 0,
+          tokenType,
           amount: sentAmount,
-          signature: getSignature('42'),
+          signature,
         },
       ]
       // Encode them!
@@ -453,7 +468,7 @@ describe('RollupChain', () => {
 
       // 4) Create a rollup block with our two transitions
       //
-      const block = new RollupBlock(transferTransitions, 0)
+      const block = new DefaultRollupBlock(transferTransitions, 0)
       await block.generateTree()
       // Submit the rollup block
       await rollupChain.submitBlock(block.encodedTransitions)

@@ -1,5 +1,4 @@
 import { DB, getLogger, logError } from '@pigi/core'
-import { Block } from 'ethers/providers'
 import { Contract } from 'ethers'
 
 import { RollupBlock, RollupBlockSubmitter } from './types'
@@ -24,7 +23,7 @@ export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
   public static async create(
     db: DB,
     rollupContract: Contract
-  ): Promise<DefaultRollupBlockSubmitter> {
+  ): Promise<RollupBlockSubmitter> {
     const submitter = new DefaultRollupBlockSubmitter(db, rollupContract)
 
     await submitter.init()
@@ -86,7 +85,7 @@ export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
   }
 
   public async submitBlock(rollupBlock: RollupBlock): Promise<void> {
-    if (rollupBlock.number <= this.lastQueued) {
+    if (rollupBlock.blockNumber <= this.lastQueued) {
       log.error(
         `submitBlock(...) called on old block. Last Queued: ${
           this.lastQueued
@@ -95,13 +94,14 @@ export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
       return
     }
 
+    log.info(`Queueing rollup block: ${JSON.stringify(rollupBlock)}}`)
     this.blockQueue.push(rollupBlock)
     await this.db.put(
-      DefaultRollupBlockSubmitter.getBlockKey(rollupBlock.number),
+      DefaultRollupBlockSubmitter.getBlockKey(rollupBlock.blockNumber),
       DefaultRollupBlockSubmitter.serializeRollupBlockForStorage(rollupBlock)
     )
 
-    this.lastQueued = rollupBlock.number
+    this.lastQueued = rollupBlock.blockNumber
     await this.db.put(
       DefaultRollupBlockSubmitter.LAST_QUEUED_KEY,
       this.numberToBuffer(this.lastQueued)
@@ -120,7 +120,8 @@ export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
       return
     }
 
-    if (rollupBlockNumber === this.blockQueue[0].number) {
+    if (rollupBlockNumber === this.blockQueue[0].blockNumber) {
+      log.info(`Received confirmation for block ${rollupBlockNumber}!`)
       this.blockQueue.shift()
       this.lastConfirmed = rollupBlockNumber
       await this.db.put(
@@ -137,6 +138,10 @@ export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
         )
       }
       await this.trySubmitNextBlock()
+    } else {
+      log.error(
+        `Received confirmation for future block ${rollupBlockNumber}! First in queue is ${this.blockQueue[0].blockNumber}.`
+      )
     }
   }
 
@@ -147,16 +152,21 @@ export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
       this.lastSubmitted >= this.lastQueued ||
       !this.blockQueue.length
     ) {
-      log.debug(
-        `Next block queued but not submitted because block ${this.lastSubmitted} was submitted but not yet confirmed.`
-      )
+      if (!this.blockQueue.length) {
+        log.info(`No blocks queued for submission.`)
+      } else {
+        log.debug(
+          `Next block queued but not submitted because block ${this.lastSubmitted} was submitted but not yet confirmed.`
+        )
+      }
+
       return
     }
 
-    const block: RollupBlock = this.blockQueue.shift()
+    const block: RollupBlock = this.blockQueue[0]
 
-    log.debug(
-      `Submitting block number ${block.number}: ${JSON.stringify(block)}.`
+    log.info(
+      `Submitting block number ${block.blockNumber}: ${JSON.stringify(block)}.`
     )
 
     try {
@@ -173,7 +183,7 @@ export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
       throw e
     }
 
-    this.lastSubmitted = block.number
+    this.lastSubmitted = block.blockNumber
     await this.db.put(
       DefaultRollupBlockSubmitter.LAST_SUBMITTED_KEY,
       this.numberToBuffer(this.lastSubmitted)
@@ -193,16 +203,18 @@ export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
       abiEncodeTransition(x)
     )
     return Buffer.from(
-      `${rollupBlock.number.toString(10)}|${JSON.stringify(encodedTransitions)}`
+      `${rollupBlock.blockNumber.toString(10)}|${JSON.stringify(
+        encodedTransitions
+      )}`
     )
   }
 
   public static deserializeRollupBlockFromStorage(
     rollupBlockBuffer: Buffer
   ): RollupBlock {
-    const [number, json] = rollupBlockBuffer.toString().split('|')
+    const [blockNumber, json] = rollupBlockBuffer.toString().split('|')
     return {
-      number: parseInt(number, 10),
+      blockNumber: parseInt(blockNumber, 10),
       transitions: JSON.parse(json).map((x) => parseTransitionFromABI(x)),
     }
   }
