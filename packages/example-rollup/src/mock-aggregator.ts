@@ -16,7 +16,8 @@ import {
   RollupBlockSubmitter,
   RollupBlock,
   DefaultRollupBlockSubmitter,
-  genesisState, Address,
+  genesisState,
+  Address,
 } from '@pigi/wallet'
 import { EthereumEventProcessor } from '@pigi/watch-eth'
 
