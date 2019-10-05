@@ -18,6 +18,7 @@ export const AGGREGATOR_API = {
   getUniswapState: 'getUniswapBalances',
   applyTransaction: 'applyTransaction',
   requestFaucetFunds: 'requestFaucetFunds',
+  getTransactionCount: 'getTxCount',
 }
 
 /* Set the initial balances/state */
