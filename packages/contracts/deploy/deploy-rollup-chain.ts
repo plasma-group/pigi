@@ -21,7 +21,7 @@ if (
 // Get the environment and read the appropriate environment file
 const environment = process.argv[process.argv.length - 1]
 // Note: Path is from 'build/deploy/deploy-rollup-chain.js'
-config({ path: resolve(__dirname, `../../.${environment}.env`) })
+config({ path: resolve(__dirname, `../../config/.${environment}.env`) })
 
 const deployContract = async (
   contractJson: any,
@@ -69,12 +69,15 @@ const deployContracts = async (wallet: Wallet): Promise<void> => {
     )
   }
 
+  const aggregatorAddress: string = process.env.AGGREGATOR_ADDRESS
+
   console.log('Deploying RollupChain...')
   const rollupChain = await deployContract(
     RollupChain,
     wallet,
     evaluatorContractAddress,
-    merkleUtilsCnontractAddress
+    merkleUtilsCnontractAddress,
+    aggregatorAddress
   )
   console.log('RollupChain deployed!\n\n')
 }
