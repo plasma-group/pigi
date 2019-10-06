@@ -56,27 +56,27 @@ const deployContracts = async (wallet: Wallet): Promise<void> => {
     )
   }
 
-  let merkleUtilsCnontractAddress =
+  let merkleUtilsContractAddress =
     process.env.DEPLOY_MERKLE_UTILS_CONTRACT_ADDRESS
-  if (!merkleUtilsCnontractAddress) {
+  if (!merkleUtilsContractAddress) {
     console.log('Deploying RollupMerkleUtils...')
     const merkleUtils = await deployContract(RollupMerkleUtils, wallet)
-    merkleUtilsCnontractAddress = merkleUtils.address
+    merkleUtilsContractAddress = merkleUtils.address
     console.log('RollupMerkleUtils deployed!\n\n')
   } else {
     console.log(
-      `Using RollupMerkleUtils contract at ${merkleUtilsCnontractAddress}\n`
+      `Using RollupMerkleUtils contract at ${merkleUtilsContractAddress}\n`
     )
   }
 
   const aggregatorAddress: string = process.env.AGGREGATOR_ADDRESS
 
   console.log('Deploying RollupChain...')
-  const rollupChain = await deployContract(
+  await deployContract(
     RollupChain,
     wallet,
     evaluatorContractAddress,
-    merkleUtilsCnontractAddress,
+    merkleUtilsContractAddress,
     aggregatorAddress
   )
   console.log('RollupChain deployed!\n\n')
