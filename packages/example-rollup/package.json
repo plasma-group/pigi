@@ -36,7 +36,6 @@
     "level": "^5.0.1"
   },
   "devDependencies": {
-    "@pigi/core": "0.0.8-alpha.0",
     "@pigi/prettier-config": "0.0.9-alpha.0",
     "@types/chai": "^4.1.7",
     "@types/debug": "^4.1.2",
