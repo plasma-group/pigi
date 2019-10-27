@@ -1,6 +1,6 @@
 {
   "name": "@pigi/types",
-  "version": "0.0.9-alpha.0",
+  "version": "0.0.10-alpha.0",
   "description": "PG typescript typings",
   "main": "build/index.js",
   "files": [
@@ -24,7 +24,7 @@
     "url": "https://github.com/plasma-group/pigi.git"
   },
   "devDependencies": {
-    "@pigi/prettier-config": "0.0.9-alpha.0",
+    "@pigi/prettier-config": "0.0.10-alpha.0",
     "typescript": "^3.3.3333"
   },
   "publishConfig": {
