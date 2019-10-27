@@ -841,16 +841,6 @@
     universal-user-agent "^2.0.0"
     url-template "^2.0.8"
 
-"@pigi/core@^0.0.1-alpha.1":
-  version "0.0.1-alpha.1"
-  resolved "https://registry.yarnpkg.com/@pigi/core/-/core-0.0.1-alpha.1.tgz#09afa39eedd6d988a8a24173c4f01a060c8d1e3b"
-  integrity sha512-OggIZxHB5ZApeT3s14GIiqzZolzA+8UVk2Y1J0sRDyPW55G+Bc+OzcmXGhQeKLHslT54K1Y5DhW+YyrE9z/utg==
-
-"@pigi/prettier-config@latest":
-  version "0.0.14"
-  resolved "https://registry.yarnpkg.com/@pigi/prettier-config/-/prettier-config-0.0.14.tgz#51352cd61c0e47ac8badf7a209d144d67577bcfd"
-  integrity sha512-RKBTWhW7LLLQBlMc6tF3gm3sWCdIP82USblmPefk+Xpk2lu4lPg9tp3vMK4wQwtSKdJLYqKwWZRuuNjy22ApRw==
-
 "@resolver-engine/core@^0.3.0":
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/@resolver-engine/core/-/core-0.3.0.tgz#8d0e254ab0a73ed60f1bdd4e89d1aa081e8ecf11"
