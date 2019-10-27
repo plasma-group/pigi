@@ -841,6 +841,11 @@
     universal-user-agent "^2.0.0"
     url-template "^2.0.8"
 
+"@pigi/types@latest":
+  version "0.0.7-alpha.0"
+  resolved "https://registry.yarnpkg.com/@pigi/types/-/types-0.0.7-alpha.0.tgz#ffef6d2cda60f31d8edfcb939b2304f76016aaf3"
+  integrity sha512-8N132jb3dm+rAwyxlAnGbS9r3qWy/EhS+7ZImK8ngOPLXFgDCyV5I1p+XkB3lts0C76lfzcgW3NlTeiNbNw61Q==
+
 "@resolver-engine/core@^0.3.0":
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/@resolver-engine/core/-/core-0.3.0.tgz#8d0e254ab0a73ed60f1bdd4e89d1aa081e8ecf11"
