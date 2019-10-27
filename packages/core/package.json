@@ -4,7 +4,7 @@
   "description": "Plasma Group client",
   "main": "build/index.js",
   "files": [
-    "build/**/.js"
+    "build/**/*.js"
   ],
   "scripts": {
     "build": "tsc -p .",

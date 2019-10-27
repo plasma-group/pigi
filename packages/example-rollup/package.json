@@ -4,7 +4,7 @@
   "description": "Example rollup project",
   "main": "build/index.js",
   "files": [
-    "build/**/.js"
+    "build/**/*.js"
   ],
   "scripts": {
     "lint": "tslint --format stylish --project .",

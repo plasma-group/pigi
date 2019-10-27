@@ -4,7 +4,7 @@
   "description": "PG smart contracts",
   "main": "build/index.js",
   "files": [
-    "build/**/.js"
+    "build/**/*.js"
   ],
   "scripts": {
     "test": "waffle waffle-config.json && mocha --require ts-node/register 'test/**/*.spec.ts' --timeout 5000",
