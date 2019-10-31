@@ -2,9 +2,9 @@ import { Contract, ContractFactory, Wallet, ethers } from 'ethers'
 import { config } from 'dotenv'
 import { resolve } from 'path'
 
-import * as RollupChain from '../build/RollupChain.json'
-import * as UnipigTransitionEvaluator from '../build/UnipigTransitionEvaluator.json'
-import * as RollupMerkleUtils from '../build/RollupMerkleUtils.json'
+import * as RollupChain from '../build/contracts/RollupChain.json'
+import * as UnipigTransitionEvaluator from '../build/contracts/UnipigTransitionEvaluator.json'
+import * as RollupMerkleUtils from '../build/contracts/RollupMerkleUtils.json'
 import { Provider } from 'ethers/providers'
 
 // Make sure an environment argument was passed

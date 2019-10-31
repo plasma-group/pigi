@@ -37,9 +37,9 @@ import debug from 'debug'
 const log = debug('test:info:rollup-chain-manager')
 
 /* Contract Imports */
-import * as RollupChain from '../../build/RollupChain.json'
-import * as UnipigTransitionEvaluator from '../../build/UnipigTransitionEvaluator.json'
-import * as RollupMerkleUtils from '../../build/RollupMerkleUtils.json'
+import * as RollupChain from '../../build/contracts/RollupChain.json'
+import * as UnipigTransitionEvaluator from '../../build/contracts/UnipigTransitionEvaluator.json'
+import * as RollupMerkleUtils from '../../build/contracts/RollupMerkleUtils.json'
 import { Contract, ContractFactory, Wallet } from 'ethers'
 import { assertThrowsAsync } from '@pigi/wallet/build/test/helpers'
 

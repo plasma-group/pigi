@@ -22,7 +22,7 @@ import {
 import MemDown from 'memdown'
 
 /* Contract Imports */
-import * as RollupMerkleUtils from '../../build/RollupMerkleUtils.json'
+import * as RollupMerkleUtils from '../../build/contracts/RollupMerkleUtils.json'
 
 /* Logging */
 import debug from 'debug'

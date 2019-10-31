@@ -55,7 +55,7 @@ import debug from 'debug'
 const log = debug('test:info:unipig-transition-evaluator')
 
 /* Contract Imports */
-import * as UnipigTransitionEvaluator from '../../build/UnipigTransitionEvaluator.json'
+import * as UnipigTransitionEvaluator from '../../build/contracts/UnipigTransitionEvaluator.json'
 
 /* Begin tests */
 describe('UnipigTransitionEvaluator', () => {
