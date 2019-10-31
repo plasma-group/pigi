@@ -5,5 +5,9 @@
     "baseUrl": "./",
     "resolveJsonModule": true
   },
-  "include": ["*.ts", "**/*.ts"]
+  "include": ["*.ts", "**/*.ts"],
+  "exclude": [
+    "*.sol", "**/*.sol",
+    "*.json", "**/*.json"
+  ]
 }

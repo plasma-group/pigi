@@ -1,6 +1,4 @@
 /* Imports */
-import { keccak256, abi, hexStrToBuf, bufToHexString } from '@pigi/core'
-import { RollupTransition, TransferTransition } from '@pigi/wallet'
 
 /**********************************
  * Byte String Generation Helpers *
@@ -43,25 +41,6 @@ export function makePaddedUint(value: string, length: number): string {
  ******************************/
 export type Transition = string
 
-// Generates some number of dummy transitions
-export function generateNTransitions(
-  numTransitions: number
-): RollupTransition[] {
-  const transitions = []
-  for (let i = 0; i < numTransitions; i++) {
-    const transfer: TransferTransition = {
-      stateRoot: getStateRoot('ab'),
-      senderSlotIndex: 2,
-      recipientSlotIndex: 2,
-      tokenType: 0,
-      amount: 1,
-      signature: getSignature('01'),
-    }
-    transitions.push(transfer)
-  }
-  return transitions
-}
-
 /****************
  * Misc Helpers *
  ***************/
@@ -82,6 +61,3 @@ export const getAddress = (address: string) => makeRepeatedBytes(address, 20)
 export const getSignature = (sig: string) => makeRepeatedBytes(sig, 65)
 export const getStateRoot = (bytes: string) => makeRepeatedBytes(bytes, 32)
 export const getBytes32 = (bytes: string) => makeRepeatedBytes(bytes, 32)
-
-export const UNISWAP_ADDRESS = getAddress('00')
-export const UNISWAP_STORAGE_SLOT = 0

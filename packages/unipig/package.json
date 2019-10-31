@@ -7,12 +7,15 @@
     "build/**/.js"
   ],
   "scripts": {
-    "test": "waffle waffle-config.json && mocha --require ts-node/register 'test/**/*.spec.ts' --timeout 5000",
+    "test": "waffle waffle-config.json && mocha --require ts-node/register 'test/**/*.spec.ts' --timeout 5000 --exit",
     "lint": "tslint --format stylish --project .",
     "fix": "prettier --config ./.prettierrc.js --write 'index.ts' '{deploy,test,src}/**/*.ts'",
-    "build": "mkdir build && waffle waffle-config.json && tsc -p .",
+    "build": "mkdir build && waffle waffle-config.json && tsc -p . && browserify src/web/index.ts -p [ tsify ] > public/bundle.js",
     "clean": "rimraf build/",
-    "deploy:rollup-chain": "rimraf build/ && waffle waffle-config.json && tsc -p . && node ./build/deploy/deploy-rollup-chain.js"
+    "deploy:rollup-chain": "rimraf build/ && mkdir build && waffle waffle-config.json && tsc -p . && node ./build/src/contracts/deploy/deploy-rollup-chain.js",
+    "serve": "http-server ./public",
+    "aggregator": "node ./build/src/aggregator/exec/unipig-aggregator.js",
+    "validator": "node ./build/src/validator/exec/unipig-validator.js"
   },
   "keywords": [
     "plasma",
@@ -44,13 +47,17 @@
     "typescript": "^3.3.3333"
   },
   "dependencies": {
-    "@pigi/core": "^0.0.1-alpha.1",
-    "@pigi/wallet": "^0.0.1-alpha.1",
+    "@pigi/core": "^0.0.10-alpha.0",
+    "@pigi/watch-eth": "^0.0.10-alpha.0",
+    "@pigi/wallet": "^0.0.10-alpha.0",
     "@types/sinon-chai": "^3.2.2",
+    "async-lock": "^1.2.2",
     "chai": "^4.2.0",
+    "cors": "^2.8.5",
     "debug": "^4.1.1",
     "ethereum-waffle": "^2.0.12",
     "ethers": "^4.0.37",
+    "level": "^6.0.0",
     "merkletreejs": "^0.1.7",
     "openzeppelin-solidity": "^2.2.0",
     "dotenv": "^8.1.0"
