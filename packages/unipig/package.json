@@ -10,9 +10,9 @@
     "test": "waffle waffle-config.json && mocha --require ts-node/register 'test/**/*.spec.ts' --timeout 5000 --exit",
     "lint": "tslint --format stylish --project .",
     "fix": "prettier --config ./.prettierrc.js --write 'index.ts' '{deploy,test,src}/**/*.ts'",
-    "build": "mkdir build && waffle waffle-config.json && tsc -p . && browserify src/web/index.ts -p [ tsify ] > public/bundle.js",
+    "build": "mkdir build && waffle waffle-config.json && tsc -p . && browserify src/web/index.ts -p [ tsify ] > public/bundle.js && mkdir -p build/level",
     "clean": "rimraf build/",
-    "deploy:rollup-chain": "rimraf build/ && mkdir build && waffle waffle-config.json && tsc -p . && node ./build/src/contracts/deploy/deploy-rollup-chain.js",
+    "deploy:rollup-chain": "yarn clean && yarn build && node ./build/src/contracts/deploy/deploy-rollup-chain.js",
     "serve": "http-server ./public",
     "aggregator": "node ./build/src/aggregator/exec/unipig-aggregator.js",
     "validator": "node ./build/src/validator/exec/unipig-validator.js"

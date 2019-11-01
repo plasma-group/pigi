@@ -21,7 +21,7 @@ if (
 // Get the environment and read the appropriate environment file
 const environment = process.argv[process.argv.length - 1]
 // Note: Path is from 'build/deploy/deploy-rollup-chain.js'
-config({ path: resolve(__dirname, `../../../config/.${environment}.env`) })
+config({ path: resolve(__dirname, `../../../../config/.${environment}.env`) })
 
 const deployContract = async (
   contractJson: any,

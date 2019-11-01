@@ -18,7 +18,7 @@ import * as fs from 'fs'
 import { config } from 'dotenv'
 import { resolve } from 'path'
 // Starting from build/src/
-config({ path: resolve(__dirname, `../../../config/.env`) })
+config({ path: resolve(__dirname, `../../../../config/.env`) })
 
 /* Internal Imports */
 import * as RollupChain from '../../../build/contracts/RollupChain.json'
