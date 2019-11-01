@@ -7,14 +7,14 @@ import { createMockProvider, getWallets } from 'ethereum-waffle'
 import { deployTokenContract, TestListener } from './utils'
 import {getLogger} from '../../../src/app/utils'
 import {EthereumEventProcessor} from '../../../src/app/ethereum'
-import {Event} from '../../../src/types/ethereum'
+import {EthereumEvent} from '../../../src/types/ethereum'
 import {newInMemoryDB} from '../../../src/app/db'
 
 
 const log = getLogger('ethereum-event-processor', true)
 
 const timeout = 25_000
-describe('Event Subscription', () => {
+describe('EthereumEvent Subscription', () => {
   let provider
   let wallets
   let ownerWallet
@@ -25,7 +25,7 @@ describe('Event Subscription', () => {
 
   let tokenContract
   let eventProcessor: EthereumEventProcessor
-  let eventListener: TestListener<Event>
+  let eventListener: TestListener<EthereumEvent>
 
   beforeEach(async () => {
     provider = createMockProvider()
@@ -38,7 +38,7 @@ describe('Event Subscription', () => {
     tokenContract = await deployTokenContract(ownerWallet, initialSupply)
 
     eventProcessor = new EthereumEventProcessor(newInMemoryDB())
-    eventListener = new TestListener<Event>()
+    eventListener = new TestListener<EthereumEvent>()
   })
 
   it('deploys correctly', async () => {
@@ -62,7 +62,7 @@ describe('Event Subscription', () => {
 
     const events = await eventListener.waitForReceive()
     events.length.should.equal(1)
-    const event: Event = events[0]
+    const event: EthereumEvent = events[0]
     event.values['from'].should.equal(ownerWallet.address)
     event.values['to'].should.equal(recipientWallet.address)
     event.values['amount'].toNumber().should.equal(sendAmount)
@@ -84,7 +84,7 @@ describe('Event Subscription', () => {
 
     const events = await eventListener.waitForSyncToComplete()
     events.length.should.equal(1)
-    const event: Event = events[0]
+    const event: EthereumEvent = events[0]
     event.values['from'].should.equal(ownerWallet.address)
     event.values['to'].should.equal(recipientWallet.address)
     event.values['amount'].toNumber().should.equal(sendAmount)

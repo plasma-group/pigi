@@ -8,7 +8,7 @@ import {
   serializeObjectAsHexString,
   DB,
   EthereumListener,
-  Event,
+  EthereumEvent,
   getLogger,
   hexStrToBuf,
   SignatureProvider,
@@ -59,7 +59,7 @@ const log = getLogger('rollup-aggregator')
  * balance queries, & faucet requests.
  */
 export class RollupAggregator
-  implements EthereumListener<Event>, UnipigAggregator {
+  implements EthereumListener<EthereumEvent>, UnipigAggregator {
   public static readonly PENDING_BLOCK_KEY: Buffer = Buffer.from(
     'pending_block_number'
   )
@@ -193,7 +193,7 @@ export class RollupAggregator
     this.synced = true
   }
 
-  public async handle(event: Event): Promise<void> {
+  public async handle(event: EthereumEvent): Promise<void> {
     log.debug(`Aggregator received event: ${JSON.stringify(event)}`)
     if (!!event && !!event.values && 'blockNumber' in event.values) {
       await this.rollupBlockSubmitter.handleNewRollupBlock(

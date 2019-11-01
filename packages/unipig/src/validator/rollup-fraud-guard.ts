@@ -1,6 +1,6 @@
 /* External Imports */
 import * as AsyncLock from 'async-lock'
-import { DB, getLogger, logError, Event, EthereumListener } from '@pigi/core'
+import { DB, getLogger, logError, EthereumEvent, EthereumListener } from '@pigi/core'
 
 import { Contract } from 'ethers'
 import { TransactionReceipt } from 'ethers/providers'
@@ -15,7 +15,7 @@ const log = getLogger('rollup-fraud-guard')
 /**
  * Handles NewRollupBlock events, checks for fraud, submits proof when there is fraud.
  */
-export class RollupFraudGuard implements EthereumListener<Event> {
+export class RollupFraudGuard implements EthereumListener<EthereumEvent> {
   public static readonly LAST_BLOCK_VALIDATED_KEY = Buffer.from(
     'LAST_VALIDATED_BLOCK'
   )
@@ -69,7 +69,7 @@ export class RollupFraudGuard implements EthereumListener<Event> {
     log.info(`Synced with rollup chain. Awaiting new events to validate...`)
   }
 
-  public async handle(event: Event): Promise<void> {
+  public async handle(event: EthereumEvent): Promise<void> {
     log.debug(`Fraud Guard received event: ${JSON.stringify(event)}`)
     if (
       !event ||

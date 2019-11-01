@@ -4,7 +4,7 @@ import { LogDescription } from 'ethers/utils'
 import { Filter, Log, Provider } from 'ethers/providers'
 
 /* Internal Imports */
-import { Event, EthereumListener } from '../../types/ethereum'
+import { EthereumEvent, EthereumListener } from '../../types/ethereum'
 import {getLogger, logError, Md5Hash} from '../utils'
 import {DB} from '../../types/db'
 
@@ -16,11 +16,11 @@ interface SyncStatus {
 }
 
 /**
- * Ethereum Event Processor
- * The single class to process and disseminate all Ethereum Event subscriptions.
+ * Ethereum EthereumEvent Processor
+ * The single class to process and disseminate all Ethereum EthereumEvent subscriptions.
  */
 export class EthereumEventProcessor {
-  private readonly subscriptions: Map<string, Set<EthereumListener<Event>>>
+  private readonly subscriptions: Map<string, Set<EthereumListener<EthereumEvent>>>
   private currentBlockNumber: number
 
   private syncStatuses: Map<string, SyncStatus>
@@ -29,7 +29,7 @@ export class EthereumEventProcessor {
     private readonly db: DB,
     private readonly earliestBlock: number = 0
   ) {
-    this.subscriptions = new Map<string, Set<EthereumListener<Event>>>()
+    this.subscriptions = new Map<string, Set<EthereumListener<EthereumEvent>>>()
     this.currentBlockNumber = 0
 
     this.syncStatuses = new Map<string, SyncStatus>()
@@ -48,7 +48,7 @@ export class EthereumEventProcessor {
   public async subscribe(
     contract: Contract,
     eventName: string,
-    handler: EthereumListener<Event>,
+    handler: EthereumListener<EthereumEvent>,
     syncPastEvents: boolean = true
   ): Promise<void> {
     const eventId: string = this.getEventID(contract.address, eventName)
@@ -57,7 +57,7 @@ export class EthereumEventProcessor {
     if (!this.subscriptions.has(eventId)) {
       this.subscriptions.set(
         eventId,
-        new Set<EthereumListener<Event>>([handler])
+        new Set<EthereumListener<EthereumEvent>>([handler])
       )
     } else {
       this.subscriptions.get(eventId).add(handler)
@@ -67,7 +67,7 @@ export class EthereumEventProcessor {
     contract.on(contract.filters[eventName](), async (...data) => {
       log.debug(`Received live event: ${JSON.stringify(data)}`)
       const ethersEvent: ethers.Event = data[data.length - 1]
-      const event: Event = this.createEventFromEthersEvent(ethersEvent)
+      const event: EthereumEvent = this.createEventFromEthersEvent(ethersEvent)
       await this.handleEvent(event)
       try {
         await this.db.put(
@@ -135,7 +135,7 @@ export class EthereumEventProcessor {
     filter.toBlock = 'latest'
 
     const logs: Log[] = await contract.provider.getLogs(filter)
-    const events: Event[] = logs.map((l) => {
+    const events: EthereumEvent[] = logs.map((l) => {
       const logDesc: LogDescription = contract.interface.parseLog(l)
       return EthereumEventProcessor.createEventFromLogDesc(logDesc, eventId)
     })
@@ -162,7 +162,7 @@ export class EthereumEventProcessor {
 
     for (const subscription of this.subscriptions.get(eventId)) {
       subscription.onSyncCompleted(eventId).catch((e) => {
-        logError(log, 'Error calling Event sync callback', e)
+        logError(log, 'Error calling EthereumEvent sync callback', e)
       })
     }
   }
@@ -172,9 +172,9 @@ export class EthereumEventProcessor {
    *
    * @param event The event to disseminate.
    */
-  private async handleEvent(event: Event): Promise<void> {
+  private async handleEvent(event: EthereumEvent): Promise<void> {
     log.debug(`Handling event ${JSON.stringify(event)}`)
-    const subscribers: Set<EthereumListener<Event>> = this.subscriptions.get(
+    const subscribers: Set<EthereumListener<EthereumEvent>> = this.subscriptions.get(
       event.eventID
     )
 
@@ -203,16 +203,16 @@ export class EthereumEventProcessor {
   }
 
   /**
-   * Creates a local Event from the provided Ethers LogDesc.
+   * Creates a local EthereumEvent from the provided Ethers LogDesc.
    *
    * @param logDesc The LogDesc in question
    * @param eventID The local event ID
-   * @returns The local Event
+   * @returns The local EthereumEvent
    */
   private static createEventFromLogDesc(
     logDesc: LogDescription,
     eventID: string
-  ): Event {
+  ): EthereumEvent {
     const values = EthereumEventProcessor.getLogValues(logDesc.values)
     return {
       eventID,
@@ -223,12 +223,12 @@ export class EthereumEventProcessor {
   }
 
   /**
-   * Creates a local Event from the provided Ethers event.
+   * Creates a local EthereumEvent from the provided Ethers event.
    *
    * @param event The event in question
-   * @returns The local Event
+   * @returns The local EthereumEvent
    */
-  private createEventFromEthersEvent(event: ethers.Event): Event {
+  private createEventFromEthersEvent(event: ethers.Event): EthereumEvent {
     const values = EthereumEventProcessor.getLogValues(event.args)
     return {
       eventID: this.getEventID(event.address, event.event),
