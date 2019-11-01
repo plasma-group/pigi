@@ -1,6 +1,7 @@
 export * from './aggregator'
 export * from './block-production.types'
 export * from './db'
+export * from './ethereum'
 export * from './keystore'
 export * from './miscellaneous'
 export * from './number'

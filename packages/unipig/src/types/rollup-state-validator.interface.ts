@@ -3,7 +3,6 @@ import {
   RollupBlock,
   RollupTransitionPosition,
   RollupTransition,
-  RollupTransaction,
   LocalFraudProof,
   StateSnapshot,
 } from './types'

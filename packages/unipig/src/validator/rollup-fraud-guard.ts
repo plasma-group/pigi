@@ -1,7 +1,6 @@
 /* External Imports */
 import * as AsyncLock from 'async-lock'
-import { Event, EthereumListener } from '@pigi/watch-eth'
-import { DB, getLogger, logError } from '@pigi/core'
+import { DB, getLogger, logError, Event, EthereumListener } from '@pigi/core'
 
 import { Contract } from 'ethers'
 import { TransactionReceipt } from 'ethers/providers'

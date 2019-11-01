@@ -1,5 +1,3 @@
-import { BigNumber } from '@pigi/core/build/index'
-
 export type UniTokenType = 0
 export type PigiTokenType = 1
 export type TokenType = UniTokenType | PigiTokenType

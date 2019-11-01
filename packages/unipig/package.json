@@ -12,7 +12,7 @@
     "fix": "prettier --config ./.prettierrc.js --write 'index.ts' '{deploy,test,src}/**/*.ts'",
     "build": "yarn clean && mkdir build && waffle waffle-config.json && tsc -p . && browserify src/web/index.ts -p [ tsify ] > public/bundle.js && mkdir -p build/level",
     "clean": "rimraf build/",
-    "deploy:rollup-chain": "yarn clean && yarn build && node ./build/src/contracts/deploy/deploy-rollup-chain.js",
+    "deploy:rollup-chain": "yarn build && node ./build/src/contracts/deploy/deploy-rollup-chain.js",
     "serve": "http-server ./public",
     "aggregator": "node ./build/src/aggregator/exec/unipig-aggregator.js",
     "validator": "node ./build/src/validator/exec/unipig-validator.js"
@@ -48,7 +48,6 @@
   },
   "dependencies": {
     "@pigi/core": "^0.0.10-alpha.0",
-    "@pigi/watch-eth": "^0.0.10-alpha.0",
     "@types/sinon-chai": "^3.2.2",
     "async-lock": "^1.2.2",
     "browserify": "^16.5.0",

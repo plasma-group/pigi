@@ -1,9 +1,10 @@
 /* External Imports */
-import { DB, getLogger, logError } from '@pigi/core'
 import { Block, Provider } from 'ethers/providers'
 
 /* Internal Imports */
-import { EthereumListener } from './interfaces/listener'
+import { EthereumListener } from '../../types/ethereum'
+import {getLogger, logError} from '../utils'
+import {DB} from '../../types/db'
 
 const log = getLogger('ethereum-block-processor')
 const blockKey: Buffer = Buffer.from('latestBlock')

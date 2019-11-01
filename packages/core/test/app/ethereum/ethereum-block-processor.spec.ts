@@ -1,13 +1,15 @@
-import './setup'
+import '../../setup'
 
 /* External Imports */
 import { Block } from 'ethers/providers'
-import { DB, getLogger, newInMemoryDB, sleep } from '@pigi/core'
-import { createMockProvider, deployContract, getWallets } from 'ethereum-waffle'
+import { createMockProvider, getWallets } from 'ethereum-waffle'
 
 /* Internal Imports */
 import { deployTokenContract, TestListener } from './utils'
-import { EthereumBlockProcessor } from '../src'
+import {getLogger} from '../../../src/app/utils'
+import {DB} from '../../../src/types/db'
+import {EthereumBlockProcessor} from '../../../src/app/ethereum'
+import {newInMemoryDB} from '../../../src/app/db'
 
 const log = getLogger('ethereum-block-processor-test', true)
 

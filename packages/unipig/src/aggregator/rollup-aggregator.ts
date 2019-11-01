@@ -7,13 +7,14 @@ import {
   serializeObject,
   serializeObjectAsHexString,
   DB,
+  EthereumListener,
+  Event,
   getLogger,
   hexStrToBuf,
   SignatureProvider,
   hexBufToStr,
   logError,
 } from '@pigi/core'
-import { EthereumListener, Event } from '@pigi/watch-eth'
 
 /* Internal Imports */
 import { UnipigAggregator } from '../types/unipig-aggregator'

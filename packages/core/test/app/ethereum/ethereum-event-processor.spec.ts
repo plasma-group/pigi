@@ -1,11 +1,15 @@
-import './setup'
+import '../../setup'
+
 /* External Imports */
-import { getLogger, newInMemoryDB } from '@pigi/core'
 import { createMockProvider, getWallets } from 'ethereum-waffle'
 
 /* Internal Imports */
 import { deployTokenContract, TestListener } from './utils'
-import { Event, EthereumEventProcessor } from '../src'
+import {getLogger} from '../../../src/app/utils'
+import {EthereumEventProcessor} from '../../../src/app/ethereum'
+import {Event} from '../../../src/types/ethereum'
+import {newInMemoryDB} from '../../../src/app/db'
+
 
 const log = getLogger('ethereum-event-processor', true)
 

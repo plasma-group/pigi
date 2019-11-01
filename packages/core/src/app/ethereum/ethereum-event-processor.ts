@@ -2,10 +2,11 @@
 import { ethers, Contract } from 'ethers'
 import { LogDescription } from 'ethers/utils'
 import { Filter, Log, Provider } from 'ethers/providers'
-import { DB, getLogger, logError, Md5Hash } from '@pigi/core'
 
 /* Internal Imports */
-import { Event, EthereumListener } from './interfaces'
+import { Event, EthereumListener } from '../../types/ethereum'
+import {getLogger, logError, Md5Hash} from '../utils'
+import {DB} from '../../types/db'
 
 const log = getLogger('ethereum- event-processor')
 

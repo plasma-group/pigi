@@ -1,9 +1,10 @@
-import { getLogger, sleep } from '@pigi/core'
 import { ethers } from 'ethers'
-import { EthereumListener } from '../src/interfaces/listener'
 import * as assert from 'assert'
 
-const log = getLogger('watch-eth-test-utils', true)
+import {getLogger, sleep} from '../../../src/app/utils'
+import {EthereumListener} from '../../../src/types/ethereum'
+
+const log = getLogger('ethereum-test-utils', true)
 
 export class TestListener<T> implements EthereumListener<T> {
   private received: T[]

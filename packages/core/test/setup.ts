@@ -7,6 +7,8 @@ import chaiAsPromised = require('chai-as-promised')
 /* Internal Imports */
 import { rootPath } from '../index'
 
+import { solidity } from 'ethereum-waffle'
+
 chai.use(chaiAsPromised)
 const should = chai.should()
 

@@ -1,5 +1,5 @@
 /* External Imports */
-import { add0x, BigNumber, getLogger, serializeObject } from '@pigi/core/build'
+import { add0x, BigNumber, getLogger, serializeObject } from '@pigi/core'
 
 /* Internal Imports */
 import {
