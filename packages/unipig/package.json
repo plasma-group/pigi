@@ -51,6 +51,7 @@
     "@pigi/watch-eth": "^0.0.10-alpha.0",
     "@types/sinon-chai": "^3.2.2",
     "async-lock": "^1.2.2",
+    "browserify": "^16.5.0",
     "chai": "^4.2.0",
     "cors": "^2.8.5",
     "debug": "^4.1.1",
