@@ -55,11 +55,12 @@
     "chai": "^4.2.0",
     "cors": "^2.8.5",
     "debug": "^4.1.1",
+    "dotenv": "^8.1.0",
     "ethereum-waffle": "^2.0.12",
     "ethers": "^4.0.37",
     "level": "^6.0.0",
     "merkletreejs": "^0.1.7",
     "openzeppelin-solidity": "^2.2.0",
-    "dotenv": "^8.1.0"
+    "tsify": "^4.0.1"
   }
 }
