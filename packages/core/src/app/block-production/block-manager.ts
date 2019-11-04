@@ -1,12 +1,14 @@
+/* External Imports */
 import { Mutex } from 'async-mutex'
+import { BigNumber } from '@pigi/core-utils'
 
+/* Internal Imports */
 import {
   BlockDB,
   BlockManager,
   CommitmentContract,
 } from '../../types/block-production'
 import { StateUpdate } from '../../types/serialization'
-import { BigNumber } from '../utils'
 
 /**
  * Simple BlockManager implementation.

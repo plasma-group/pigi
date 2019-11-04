@@ -1,5 +1,8 @@
+/* External Imports */
+import { BigNumber } from '@pigi/core-utils'
+
+/* Internal Imports */
 import {
-  BigNumber,
   Message,
   ParsedMessage,
   Property,
@@ -10,12 +13,10 @@ import {
   AndDecider,
   ForAllSuchThatDecider,
   MessageNonceLessThanDecider,
-} from '../../ovm/deciders'
-import {
   SignedByDecider,
   SignedByInput,
-} from '../../ovm/deciders/signed-by-decider'
-import { SignedByQuantifier } from '../../ovm/quantifiers/signed-by-quantifier'
+} from '../../ovm/deciders'
+import { SignedByQuantifier } from '../../ovm/quantifiers'
 import {
   deserializeMessage,
   deserializeMessageString,

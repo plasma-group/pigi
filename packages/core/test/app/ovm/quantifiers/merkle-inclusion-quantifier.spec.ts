@@ -1,13 +1,16 @@
 import '../../../setup'
 
+/* External Imports */
+import { BigNumber, TWO, ZERO } from '@pigi/core-utils'
 import * as assert from 'assert'
 
+/* Internal Imports */
 import {
   MerkleTree,
   MerkleTreeInclusionProof,
   MerkleUpdate,
-} from '../../../../src/types/utils'
-import { BigNumber, QuantifierResult, TWO, ZERO } from '../../../../src/types'
+  QuantifierResult,
+} from '../../../../src/types'
 import { MerkleInclusionQuantifier } from '../../../../src/app/ovm/quantifiers'
 
 class MockedMerkleTree implements MerkleTree {

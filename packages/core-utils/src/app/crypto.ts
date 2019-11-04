@@ -1,7 +1,10 @@
+/* External Imports */
 import { Md5 } from 'ts-md5'
-import { HashAlgorithm, HashFunction } from '../../types/utils'
-import { add0x, remove0x } from './misc'
 import { ethers } from 'ethers'
+
+/* Internal Imports */
+import { HashAlgorithm, HashFunction } from '../types'
+import { add0x, remove0x } from './misc'
 
 /**
  * Creates an Md5 hash of the provided input

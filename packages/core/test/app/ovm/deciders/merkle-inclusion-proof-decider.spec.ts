@@ -1,15 +1,18 @@
 import '../../../setup'
+/* External Imports */
+import { BigNumber, ONE } from '@pigi/core-utils'
+import * as assert from 'assert'
 
+/* Internal Imports */
 import {
   Decider,
   Decision,
   ImplicationProofItem,
 } from '../../../../src/types/ovm'
-import * as assert from 'assert'
 import { MerkleInclusionProofDecider } from '../../../../src/app/ovm/deciders'
 import { SparseMerkleTreeImpl } from '../../../../src/app/block-production'
 import { newInMemoryDB } from '../../../../src/app/db'
-import { BigNumber, MerkleTreeInclusionProof, ONE } from '../../../../src/types'
+import { MerkleTreeInclusionProof } from '../../../../src/types'
 import { objectsEqual } from '../../../../src/app/utils'
 
 describe('MerkleTreeInclusionProofDecider', () => {

@@ -1,5 +1,8 @@
+/* External Imports */
+import { BigNumber } from '@pigi/core-utils'
+
+/* Internal Imports */
 import { StateDB, VerifiedStateUpdate } from '../../../types'
-import { BigNumber } from '../../utils'
 
 /**
  * StateDB used to store the state for different ranges.

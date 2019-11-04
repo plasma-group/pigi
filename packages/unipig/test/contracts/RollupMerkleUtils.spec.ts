@@ -2,13 +2,9 @@ import '../setup'
 
 /* External Imports */
 import { createMockProvider, deployContract, getWallets } from 'ethereum-waffle'
-import {
-  hexStrToBuf,
-  bufToHexString,
-  BigNumber,
-  SparseMerkleTreeImpl,
-  newInMemoryDB,
-} from '@pigi/core'
+import { SparseMerkleTreeImpl, newInMemoryDB } from '@pigi/core'
+
+import { hexStrToBuf, bufToHexString, BigNumber } from '@pigi/core-utils'
 
 /* Internal Imports */
 import { makeRepeatedBytes } from '../helpers'

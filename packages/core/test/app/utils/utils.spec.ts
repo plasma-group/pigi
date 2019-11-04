@@ -1,7 +1,7 @@
 import '../../setup'
 
-/* Internal Imports */
-import { keccak256 } from '../../../src/app'
+/* External Imports */
+import { keccak256 } from '@pigi/core-utils'
 
 describe('Ethereum Utils', () => {
   describe('keccak256', () => {

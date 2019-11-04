@@ -1,5 +1,6 @@
 /* External Imports */
-import { getLogger, ImplicationProofItem, logError } from '@pigi/core'
+import { ImplicationProofItem } from '@pigi/core'
+import { getLogger, logError } from '@pigi/core-utils'
 import * as assert from 'assert'
 
 /* Internal Imports */

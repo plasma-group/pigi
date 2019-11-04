@@ -1,9 +1,13 @@
 import '../../../setup'
 
-import { ONE, SignatureVerifier, SignedMessage } from '../../../../src/types'
-import { SignedByQuantifier } from '../../../../src/app/ovm/quantifiers/signed-by-quantifier'
+/* External Imports */
+import { ONE } from '@pigi/core-utils'
+
+/* Internal Imports */
+import { SignatureVerifier, SignedMessage } from '../../../../src/types'
+import { SignedByQuantifier } from '../../../../src/app/ovm/quantifiers'
 import { QuantifierResult } from '../../../../src/types/ovm'
-import { SignedByDBInterface } from '../../../../src/types/ovm/db/signed-by-db.interface'
+import { SignedByDBInterface } from '../../../..'
 import { serializeObject } from '../../../../src/app/serialization'
 import { IdentityVerifier } from '../../../../src/app/keystore'
 

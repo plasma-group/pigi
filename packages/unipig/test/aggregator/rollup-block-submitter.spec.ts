@@ -1,12 +1,9 @@
 import '../setup'
 
 /* External Imports */
-import {
-  DB,
-  DefaultSignatureProvider,
-  keccak256,
-  newInMemoryDB,
-} from '@pigi/core'
+import { DB, DefaultSignatureProvider, newInMemoryDB } from '@pigi/core'
+
+import { keccak256 } from '@pigi/core-utils'
 
 /* Internal Imports */
 import {

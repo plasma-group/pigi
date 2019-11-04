@@ -1,13 +1,18 @@
 import '../../../setup'
 
+/* External Imports */
+import { BigNumber, ONE } from '@pigi/core-utils'
+
+/* Internal Imports */
 import {
   AndDecider,
   ForAllSuchThatDecider,
   MessageNonceLessThanDecider,
   MessageNonceLessThanInput,
+  SignedByDecider,
   Utils,
 } from '../../../../src/app/ovm/deciders'
-import { BigNumber, objectsEqual, ONE } from '../../../../src/app/utils'
+import { objectsEqual } from '../../../../src/app/utils'
 import {
   ImplicationProofItem,
   StateChannelMessageDBInterface,
@@ -18,8 +23,7 @@ import {
   SignedMessage,
 } from '../../../../src/types/serialization'
 import { StateChannelClient } from '../../../../src/app/ovm/examples'
-import { SignedByDecider } from '../../../../src/app/ovm/deciders/signed-by-decider'
-import { SignedByQuantifier } from '../../../../src/app/ovm/quantifiers/signed-by-quantifier'
+import { SignedByQuantifier } from '../../../../src/app/ovm/quantifiers'
 import {
   AddressBalance,
   parseStateChannelSignedMessage,

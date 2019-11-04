@@ -1,8 +1,8 @@
 import { should } from '../../setup'
 
 /* External Imports */
-import debug from 'debug'
-const log = debug('test:info:merkle-index-tree')
+import { BigNumber, getLogger } from '@pigi/core-utils'
+const log = getLogger('merkle-index-tree', true)
 
 /* Internal Imports */
 import {
@@ -12,7 +12,6 @@ import {
   GenericMerkleIntervalTreeNode,
   MerkleStateIntervalTree,
   PlasmaBlock,
-  BigNumber,
 } from '../../../src/app/'
 import { TestUtils } from '../utils/test-utils'
 
@@ -23,7 +22,7 @@ describe('Interval Trees and Plasma Blocks', () => {
         Buffer.from([255]),
         Buffer.from([0])
       )
-      log('New merkle index tree node:', node)
+      log.debug('New merkle index tree node:', node)
       const expected = Buffer.concat([Buffer.from([255]), Buffer.from([0])])
       node.data.should.deep.equal(expected)
     })
@@ -71,8 +70,8 @@ describe('Interval Trees and Plasma Blocks', () => {
         )
       }
       const IntervalTree = new GenericMerkleIntervalTree(leaves)
-      log(IntervalTree.levels)
-      log(IntervalTree.root)
+      log.debug(IntervalTree.levels)
+      log.debug(IntervalTree.root)
     })
     it('should generate and verify inclusion proofs for generic tree', async () => {
       const leaves = []
@@ -98,7 +97,7 @@ describe('Interval Trees and Plasma Blocks', () => {
     it("'new MerkleStateIntervalTree' generate a tree without throwing", async () => {
       const stateUpdates = TestUtils.generateNSequentialStateUpdates(4)
       const merkleStateIntervalTree = new MerkleStateIntervalTree(stateUpdates)
-      log('root', merkleStateIntervalTree.root())
+      log.debug('root', merkleStateIntervalTree.root())
     })
     it("'MerkleStateIntervalTree.verifyExectedRoot' should throw if state update range intersects branch bounds", async () => {
       // generate some valid tree contents
@@ -156,7 +155,7 @@ describe('Interval Trees and Plasma Blocks', () => {
         },
       ]
       const plasmaBlock = new PlasmaBlock(blockContents)
-      log(plasmaBlock)
+      log.debug(plasmaBlock)
     })
     it('should generate and verify a StateUpdateInclusionProof', async () => {
       const stateUpdates = TestUtils.generateNSequentialStateUpdates(4)

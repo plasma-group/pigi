@@ -1,27 +1,28 @@
 import '../../setup'
 
-import MemDown from 'memdown'
-import * as assert from 'assert'
-
-import { BaseDB } from '../../../src/app/db'
+/* External Imports */
 import {
   BigNumber,
+  HashFunction,
   keccak256,
   ONE,
   THREE,
   TWO,
   ZERO,
-} from '../../../src/app/utils'
+} from '@pigi/core-utils'
+import * as assert from 'assert'
+
+/* Internal Imports */
 import { TestUtils } from '../utils/test-utils'
 import {
-  HashFunction,
+  DB,
   MerkleTree,
   MerkleTreeInclusionProof,
   MerkleUpdate,
   SparseMerkleTree,
-} from '../../../src/types/utils'
-import { DB } from '../../../src/types'
+} from '../../../src/types'
 import { SparseMerkleTreeImpl } from '../../../src/app/block-production'
+import { newInMemoryDB } from '../../../src/app/db'
 
 const hashBuffer: Buffer = Buffer.alloc(64)
 const hashFunction: HashFunction = keccak256
@@ -103,16 +104,9 @@ const getRootHashOnlyHashingWithEmptySiblings = (
 }
 
 describe('SparseMerkleTreeImpl', () => {
-  let db: BaseDB
-  let memdown: any
+  let db: DB
   beforeEach(() => {
-    memdown = new MemDown('') as any
-    db = new BaseDB(memdown, 256)
-  })
-
-  afterEach(async () => {
-    await Promise.all([db.close()])
-    memdown = undefined
+    db = newInMemoryDB()
   })
 
   describe('Constructor', () => {

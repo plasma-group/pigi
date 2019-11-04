@@ -1,9 +1,8 @@
-import {
-  QuantifierResult,
-  Quantifier,
-  BigNumber,
-  MerkleTree,
-} from '../../../types'
+/* External Imports */
+import { BigNumber } from '@pigi/core-utils'
+
+/* Internal Imports */
+import { QuantifierResult, Quantifier, MerkleTree } from '../../../types'
 
 interface MerkleInclusionQuantifierParameters {
   root: Buffer

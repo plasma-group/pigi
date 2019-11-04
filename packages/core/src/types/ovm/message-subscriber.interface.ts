@@ -1,5 +1,3 @@
-import { Message, SignedMessage } from '../serialization'
-
 /**
  * Interface to allow generic Message subscription and processing.
  */

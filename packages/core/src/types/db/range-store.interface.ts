@@ -1,4 +1,5 @@
-import { BigNumber } from '../../app/utils'
+/* External Imports */
+import { BigNumber } from '@pigi/core-utils'
 
 export interface Range {
   start: BigNumber

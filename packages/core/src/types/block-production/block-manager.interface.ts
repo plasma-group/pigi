@@ -1,5 +1,8 @@
+/* External Imports */
+import { BigNumber } from '@pigi/core-utils'
+
+/* Internal Imports */
 import { StateUpdate } from '../serialization'
-import { BigNumber } from '../../app/utils'
 
 /**
  * Block Manager wrapping Block CRUD operations.

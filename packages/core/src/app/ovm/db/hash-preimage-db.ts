@@ -1,7 +1,14 @@
+/* External Imports */
+import {
+  HashAlgorithm,
+  Logger,
+  getLogger,
+  hashFunctionFor,
+} from '@pigi/core-utils'
+
+/* Internal Imports */
 import { HashPreimageDBInterface } from '../../../types/ovm/db'
-import { HashAlgorithm, Logger } from '../../../types/utils'
 import { DB } from '../../../types/db'
-import { getLogger, hashFunctionFor } from '../../utils'
 import { Message } from '../../../types/serialization'
 import { deserializeObject } from '../../serialization'
 

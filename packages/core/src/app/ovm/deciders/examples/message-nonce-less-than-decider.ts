@@ -1,6 +1,9 @@
+/* External Imports */
+import { BigNumber } from '@pigi/core-utils'
+
+/* Internal Imports */
 import { Decider, Decision, ImplicationProofItem } from '../../../../types/ovm'
 import { Message } from '../../../../types/serialization'
-import { BigNumber } from '../../../utils'
 
 export interface MessageNonceLessThanInput {
   messageWithNonce: Message

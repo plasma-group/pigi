@@ -1,4 +1,7 @@
-import { BigNumber } from '../../number'
+/* External Imports */
+import { BigNumber } from '@pigi/core-utils'
+
+/* Internal Imports */
 import { ParsedMessage } from '../../serialization'
 
 export interface MessageDB {

@@ -1,8 +1,8 @@
 import '../../setup'
 
 /* External Imports */
-import debug from 'debug'
-const log = debug('test:info:abi-stuff')
+import { BigNumber, getLogger } from '@pigi/core-utils'
+const log = getLogger('abi-stuff', true)
 
 /* Internal Imports */
 import {
@@ -11,7 +11,6 @@ import {
   AbiRange,
   AbiOwnershipBody,
   AbiOwnershipTransaction,
-  BigNumber,
 } from '../../../src/app'
 
 describe('AbiEncoding', () => {
@@ -29,10 +28,10 @@ describe('AbiEncoding', () => {
     )
     const stateUpdateEncoding = stateUpdate.encoded
     const decodedStateUpdate = AbiStateUpdate.from(stateUpdateEncoding)
-    log('Original state object:\n', stateUpdate)
-    log('State object encoded:\n', stateUpdateEncoding)
-    log('Decoded state object:\n', decodedStateUpdate)
-    log('Decoded state object encoded:\n', decodedStateUpdate.encoded)
+    log.debug('Original state object:\n', stateUpdate)
+    log.debug('State object encoded:\n', stateUpdateEncoding)
+    log.debug('Decoded state object:\n', decodedStateUpdate)
+    log.debug('Decoded state object encoded:\n', decodedStateUpdate.encoded)
     decodedStateUpdate.should.deep.equal(stateUpdate)
   })
   it('should encoded & decode AbiOwnershipParameters without throwing', async () => {
@@ -49,8 +48,8 @@ describe('AbiEncoding', () => {
     const decodedTransactionBody = AbiOwnershipBody.from(
       transactionBodyEncoding
     )
-    log('body encoded:\n', transactionBodyEncoding)
-    log('Decoded body encoded:\n', decodedTransactionBody.encoded)
+    log.debug('body encoded:\n', transactionBodyEncoding)
+    log.debug('Decoded body encoded:\n', decodedTransactionBody.encoded)
     decodedTransactionBody.should.deep.equal(transactionBody)
   })
   it('should encoded & decode AbiOwnershipTransaction without throwing', async () => {

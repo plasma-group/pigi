@@ -1,5 +1,8 @@
+/* External Imports */
+import { BigNumber } from '@pigi/core-utils'
+
 /* Internal Imports */
-import { AbiStateUpdate, BigNumber } from '../app'
+import { AbiStateUpdate } from '../app'
 
 export interface MerkleIntervalTreeNode {
   hash: Buffer // Hash of the sibling or leaf data.

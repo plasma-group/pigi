@@ -1,5 +1,5 @@
 import { Quantifier, QuantifierResult } from '../../../types/ovm'
-import { SignedByDBInterface } from '../../../types/ovm/db/signed-by-db.interface'
+import { SignedByDBInterface } from '../../../..'
 import { deserializeMessage } from '../../serialization'
 import { Message, SignedMessage } from '../../../types/serialization'
 

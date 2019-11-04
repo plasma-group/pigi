@@ -1,6 +1,5 @@
 export * from './aggregator'
 export * from './block-production'
-export * from './constants'
 export * from './db'
 export * from './ethereum'
 export * from './keystore'

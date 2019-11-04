@@ -1,10 +1,8 @@
 /* External Imports */
-import debug from 'debug'
-const log = debug('info:state-update')
+import { abi, BigNumber, hexStringify } from '@pigi/core-utils'
 
 /* Internal Imports */
-import { abi, BigNumber, hexStringify } from '../../app'
-import { StateUpdate, AbiEncodable, Range, StateObject } from '../../types'
+import { StateUpdate, AbiEncodable } from '../../types'
 import { AbiStateObject } from './state-object'
 import { AbiRange } from './abi-range'
 

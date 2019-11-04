@@ -2,9 +2,7 @@
 import {
   SignatureProvider,
   DB,
-  getLogger,
   serializeObject,
-  logError,
   SignedByDBInterface,
   SignedByDB,
   SignedByDecider,
@@ -12,6 +10,8 @@ import {
   DefaultSignatureProvider,
   SimpleClient,
 } from '@pigi/core'
+
+import { getLogger, logError } from '@pigi/core-utils'
 
 /* Internal Imports */
 import {

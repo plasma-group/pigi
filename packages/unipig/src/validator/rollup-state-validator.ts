@@ -1,11 +1,12 @@
 /* External Imports */
+
 import {
   add0x,
   getLogger,
   hexBufToStr,
   hexStrToBuf,
   logError,
-} from '@pigi/core'
+} from '@pigi/core-utils'
 
 /* Internal Imports */
 import {

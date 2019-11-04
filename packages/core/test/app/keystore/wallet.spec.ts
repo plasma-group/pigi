@@ -1,16 +1,11 @@
 import { should } from '../../setup'
 
 /* External Imports */
-import MemDown from 'memdown'
+import { NULL_ADDRESS } from '@pigi/core-utils'
 import { ethers } from 'ethers'
 
 /* Internal Imports */
-import {
-  DefaultWallet,
-  DefaultWalletDB,
-  BaseDB,
-  NULL_ADDRESS,
-} from '../../../src/app'
+import { DefaultWallet, DefaultWalletDB, newInMemoryDB } from '../../../src/app'
 
 const timeout = 15_000
 
@@ -20,7 +15,7 @@ describe('DefaultWallet', () => {
 
   beforeEach(() => {
     // Typings for MemDown are wrong so we need to cast to `any`.
-    walletdb = new DefaultWalletDB(new BaseDB(new MemDown('') as any))
+    walletdb = new DefaultWalletDB(newInMemoryDB())
     wallet = new DefaultWallet(walletdb)
   })
 

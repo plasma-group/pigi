@@ -1,15 +1,13 @@
 /* External Imports */
-import debug from 'debug'
-const log = debug('info:merkle-interval-tree')
+import { BigNumber, keccak256, reverse, ZERO } from '@pigi/core-utils'
 
 /* Internal Imports */
-import { reverse, keccak256, BigNumber, ZERO } from '../'
 import {
-  MerkleIntervalTreeNode,
-  MerkleIntervalTree,
   MerkleIntervalInclusionProof,
   MerkleIntervalProofOutput,
-} from '../../types'
+  MerkleIntervalTree,
+  MerkleIntervalTreeNode,
+} from '../../types/block-production.types'
 
 export class GenericMerkleIntervalTreeNode implements MerkleIntervalTreeNode {
   public data: Buffer

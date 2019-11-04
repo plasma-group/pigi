@@ -1,6 +1,8 @@
 /* External Imports */
-import { Range } from '../../types'
-import { BigNumber } from '../../app/utils'
+import { BigNumber } from '@pigi/core-utils'
+
+/* Internal Imports */
+import { Range } from '../db'
 
 export interface StateObject {
   predicateAddress: string

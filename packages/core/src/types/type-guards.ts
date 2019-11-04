@@ -1,3 +1,7 @@
+/* External Imports */
+import { ZERO } from '@pigi/core-utils'
+
+/* Internal Imports */
 import {
   JsonRpcResponse,
   JsonRpcErrorResponse,
@@ -8,7 +12,6 @@ import {
   StateUpdate,
   StateObject,
 } from '../types'
-import { ZERO } from '../app/utils'
 
 /**
  * Checks if a JSON-RPC response is an error response.

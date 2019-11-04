@@ -1,6 +1,9 @@
+/* External Imports */
+import { hexStrToBuf } from '@pigi/core-utils'
+
+/* Internal Imports */
 import { SignatureProvider, SignatureVerifier } from '../../types/keystore'
 import { ethers } from 'ethers'
-import { hexStrToBuf } from '../../../'
 
 export class DefaultSignatureVerifier implements SignatureVerifier {
   private static _instance: SignatureVerifier

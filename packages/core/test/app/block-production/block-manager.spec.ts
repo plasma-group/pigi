@@ -1,13 +1,12 @@
-import * as assert from 'assert'
 import { should } from '../../setup'
 
+/* External Imports */
+import { BigNumber, ONE } from '@pigi/core-utils'
+import * as assert from 'assert'
+
+/* Internal Imports */
 import { StateUpdate } from '../../../src/types'
-import {
-  BigNumber,
-  DefaultBlockManager,
-  ONE,
-  stateUpdatesEqual,
-} from '../../../src/app/'
+import { DefaultBlockManager, stateUpdatesEqual } from '../../../src/app/'
 import { TestUtils } from '../utils/test-utils'
 import {
   BlockDB,

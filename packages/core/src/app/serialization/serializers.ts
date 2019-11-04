@@ -1,6 +1,9 @@
+/* External Imports */
+import { hexStrToBuf, BigNumber, remove0x } from '@pigi/core-utils'
+
+/* Internal Imports */
 import { AddressBalance, StateChannelMessage } from './examples'
-import { BigNumber, Message } from '../../types'
-import { hexStrToBuf, remove0x } from '../utils'
+import { Message } from '../../types'
 
 /**
  * Serializes the provided object to its canonical string representation.

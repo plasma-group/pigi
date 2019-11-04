@@ -1,12 +1,11 @@
 import '../../setup'
 
 /* External Imports */
-import MemDown from 'memdown'
 import { ethers } from 'ethers'
 
 /* Internal Imports */
 import { Keystore } from '../../../src/types'
-import { BaseDB, DefaultWalletDB } from '../../../src/app'
+import { DefaultWalletDB, newInMemoryDB } from '../../../src/app'
 
 const keystore: Keystore = {
   address: '2600a448db443dc49f3c0b6bf46e6f9110914568',
@@ -36,7 +35,7 @@ describe('DefaultWalletDB', () => {
   let walletdb: DefaultWalletDB
   beforeEach(() => {
     // Typings for MemDown are wrong so we need to cast to `any`.
-    walletdb = new DefaultWalletDB(new BaseDB(new MemDown('') as any))
+    walletdb = new DefaultWalletDB(newInMemoryDB())
   })
 
   describe('putKeystore', () => {

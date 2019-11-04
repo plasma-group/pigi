@@ -1,4 +1,5 @@
-import { BigNumber } from '../number'
+/* External Imports */
+import { BigNumber } from '@pigi/core-utils'
 
 export interface MerkleTreeNode {
   key: BigNumber

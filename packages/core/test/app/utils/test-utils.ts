@@ -1,11 +1,14 @@
+/* External Imports */
+import { BigNumber, ONE } from '@pigi/core-utils'
+import * as assert from 'assert'
+
+/* Internal Imports */
 import {
   AbiRange,
   AbiStateObject,
   AbiStateUpdate,
 } from '../../../src/app/serialization'
 import { TransactionResult } from '../../../src/types/serialization'
-import { BigNumber, ONE } from '../../../src/app/utils'
-import * as assert from 'assert'
 
 export class TestUtils {
   public static generateNSequentialStateUpdates(

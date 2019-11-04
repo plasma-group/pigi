@@ -1,5 +1,5 @@
 import { Address, TokenType, RollupTransaction, State } from '../index'
-import { NULL_ADDRESS } from '@pigi/core'
+import { NULL_ADDRESS } from '@pigi/core-utils'
 
 /* Constants */
 export const UNISWAP_ADDRESS = NULL_ADDRESS

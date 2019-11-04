@@ -1,6 +1,8 @@
+/* External Imports */
+import { abi } from '@pigi/core-utils'
+
 /* Internal Imports */
-import { abi } from '../../app'
-import { StateObject, AbiEncodable, StateUpdate } from '../../types'
+import { StateObject, AbiEncodable } from '../../types'
 
 /**
  * Creates a StateObject from an encoded StateObject.

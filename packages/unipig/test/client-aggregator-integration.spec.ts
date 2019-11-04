@@ -5,10 +5,10 @@ import { Wallet } from 'ethers'
 
 import {
   SimpleClient,
-  getLogger,
   newInMemoryDB,
   DefaultSignatureProvider,
 } from '@pigi/core'
+import { getLogger } from '@pigi/core-utils'
 
 /* Internal Imports */
 import {

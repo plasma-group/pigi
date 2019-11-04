@@ -6,12 +6,11 @@ import {
 } from './'
 import { AbiStateUpdate } from '../'
 import {
-  SubtreeContents,
-  MerkleIntervalProofOutput,
-  DoubleMerkleIntervalTree,
   DoubleMerkleInclusionProof,
+  DoubleMerkleIntervalTree,
   MerkleIntervalTreeNode,
-} from '../../types'
+  SubtreeContents,
+} from '../../types/block-production.types'
 
 export class PlasmaBlock extends GenericMerkleIntervalTree
   implements DoubleMerkleIntervalTree {

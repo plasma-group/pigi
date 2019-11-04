@@ -1,12 +1,15 @@
+import { should } from '../../setup'
+/* External Imports */
+import { BigNumber, ONE } from '@pigi/core-utils'
 import MemDown from 'memdown'
 import * as assert from 'assert'
 
-import { should } from '../../setup'
+/* Internal Imports */
 import { KeyValueStore } from '../../../src/types/db'
 import { BaseBucket, BaseDB, DEFAULT_PREFIX_LENGTH } from '../../../src/app/db'
 import { BlockDB } from '../../../src/types/block-production'
 import { DefaultBlockDB } from '../../../src/app/block-production'
-import { BigNumber, ONE, stateUpdatesEqual } from '../../../src/app/utils'
+import { stateUpdatesEqual } from '../../../src/app/utils'
 import { StateUpdate } from '../../../src/types/serialization'
 import { TestUtils } from '../utils/test-utils'
 

@@ -1,15 +1,14 @@
 /* External Imports */
 import {
   AndDecider,
-  BigNumber,
   Decider,
   Decision,
-  getLogger,
   ImplicationProofItem,
   MerkleInclusionProofDecider,
   SignedByDBInterface,
-  hexStrToBuf,
 } from '@pigi/core'
+
+import { BigNumber, getLogger, hexStrToBuf } from '@pigi/core-utils'
 
 /* Internal Imports */
 import {

@@ -1,4 +1,5 @@
 /* External Imports */
+import { BigNumber, ZERO } from '@pigi/core-utils'
 import debug from 'debug'
 import level = require('level')
 import MemDown from 'memdown'
@@ -6,7 +7,7 @@ import MemDown from 'memdown'
 /* Internal Imports */
 import { dbRootPath } from '../../setup'
 import { RangeEntry, RangeBucket } from '../../../src/types'
-import { BaseDB, BigNumber, ZERO } from '../../../src/app'
+import { BaseDB } from '../../../src/app'
 
 const log = debug('test:info:range-db')
 

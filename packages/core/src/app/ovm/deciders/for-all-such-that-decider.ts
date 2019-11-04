@@ -6,7 +6,6 @@ import {
   PropertyFactory,
   Quantifier,
   QuantifierResult,
-  WitnessFactory,
 } from '../../../types/ovm'
 import { CannotDecideError } from './utils'
 

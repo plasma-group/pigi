@@ -1,5 +1,8 @@
 import '../../../setup'
 
+import { HashAlgorithm, HashFunction, keccak256 } from '@pigi/core-utils'
+import * as assert from 'assert'
+
 import {
   CannotDecideError,
   ForAllSuchThatDecider,
@@ -7,16 +10,13 @@ import {
   HashPreimageExistenceDecider,
 } from '../../../../src/app/ovm/deciders'
 import { newInMemoryDB } from '../../../../src/app/db'
-import { keccak256 } from '../../../../src/app/utils'
 import { IntegerRangeQuantifier } from '../../../../src/app/ovm/quantifiers'
 import {
   Decision,
   HashPreimageDBInterface,
   PropertyFactory,
 } from '../../../../src/types/ovm'
-import * as assert from 'assert'
-import { HashAlgorithm, HashFunction } from '../../../../src/types/utils'
-import { HashPreimageDB } from '../../../../src/app/ovm/db/hash-preimage-db'
+import { HashPreimageDB } from '../../../../src/app/ovm/db'
 
 describe('PreimageExistenceOnRangeOfHashes', () => {
   const forAllDecider: ForAllSuchThatDecider = new ForAllSuchThatDecider()

@@ -1,12 +1,12 @@
 /* External Imports */
+import { getLogger, logError, Md5Hash } from '@pigi/core-utils'
 import { ethers, Contract } from 'ethers'
 import { LogDescription } from 'ethers/utils'
 import { Filter, Log, Provider } from 'ethers/providers'
 
 /* Internal Imports */
 import { EthereumEvent, EthereumListener } from '../../types/ethereum'
-import {getLogger, logError, Md5Hash} from '../utils'
-import {DB} from '../../types/db'
+import { DB } from '../../types/db'
 
 const log = getLogger('ethereum- event-processor')
 
@@ -20,7 +20,10 @@ interface SyncStatus {
  * The single class to process and disseminate all Ethereum EthereumEvent subscriptions.
  */
 export class EthereumEventProcessor {
-  private readonly subscriptions: Map<string, Set<EthereumListener<EthereumEvent>>>
+  private readonly subscriptions: Map<
+    string,
+    Set<EthereumListener<EthereumEvent>>
+  >
   private currentBlockNumber: number
 
   private syncStatuses: Map<string, SyncStatus>
@@ -174,9 +177,9 @@ export class EthereumEventProcessor {
    */
   private async handleEvent(event: EthereumEvent): Promise<void> {
     log.debug(`Handling event ${JSON.stringify(event)}`)
-    const subscribers: Set<EthereumListener<EthereumEvent>> = this.subscriptions.get(
-      event.eventID
-    )
+    const subscribers: Set<
+      EthereumListener<EthereumEvent>
+    > = this.subscriptions.get(event.eventID)
 
     subscribers.forEach((s) => {
       try {

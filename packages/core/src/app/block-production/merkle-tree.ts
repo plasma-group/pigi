@@ -1,24 +1,27 @@
 /* External Imports */
+import {
+  getLogger,
+  keccak256,
+  runInDomain,
+  BigNumber,
+  BIG_ENDIAN,
+  HashFunction,
+  ONE,
+  ZERO,
+  TWO,
+} from '@pigi/core-utils'
 import * as AsyncLock from 'async-lock'
 import * as domain from 'domain'
 import * as assert from 'assert'
 
 /* Internal Imports */
 import {
-  BIG_ENDIAN,
-  BigNumber,
   DB,
-  HashFunction,
   MerkleTreeInclusionProof,
   MerkleTreeNode,
   MerkleUpdate,
-  ONE,
   SparseMerkleTree,
-  TWO,
-  ZERO,
 } from '../../types'
-import { getLogger, keccak256, runInDomain } from '../utils'
-
 const log = getLogger('merkle-tree')
 
 /**

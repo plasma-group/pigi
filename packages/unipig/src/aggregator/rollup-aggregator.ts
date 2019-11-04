@@ -9,12 +9,10 @@ import {
   DB,
   EthereumListener,
   EthereumEvent,
-  getLogger,
-  hexStrToBuf,
   SignatureProvider,
-  hexBufToStr,
-  logError,
 } from '@pigi/core'
+
+import { getLogger, hexStrToBuf, hexBufToStr, logError } from '@pigi/core-utils'
 
 /* Internal Imports */
 import { UnipigAggregator } from '../types/unipig-aggregator'

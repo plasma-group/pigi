@@ -1,11 +1,8 @@
 /* External Imports */
-import debug from 'debug'
-const log = debug('info:state-update')
+import { abi, BigNumber, hexStringify } from '@pigi/core-utils'
 
 /* Internal Imports */
-import { abi, BigNumber } from '../../app'
 import { AbiEncodable, Range } from '../../types'
-import { hexStringify } from '../utils'
 
 /**
  * Creates a AbiStateUpdate from an encoded AbiStateUpdate.

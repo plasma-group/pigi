@@ -1,12 +1,5 @@
 import '../../setup'
-import {
-  BigNumber,
-  ZERO,
-  ONE,
-  LITTLE_ENDIAN,
-  BIG_ENDIAN,
-  TWO,
-} from '../../../src/app/utils'
+import { BigNumber, ZERO, ONE, TWO } from '../../../src/app'
 import * as assert from 'assert'
 
 describe('BigNumber', () => {

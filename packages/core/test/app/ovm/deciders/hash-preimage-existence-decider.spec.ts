@@ -1,12 +1,13 @@
 import '../../../setup'
 
-import MemDown from 'memdown'
+/* External Imports */
+import { HashAlgorithm, HashFunction, keccak256 } from '@pigi/core-utils'
+
+/* Internal Imports */
 import {
   CannotDecideError,
   HashPreimageExistenceDecider,
 } from '../../../../src/app/ovm/deciders'
-import { BaseDB } from '../../../../src/app/db'
-import { keccak256 } from '../../../../src/app/utils'
 import {
   Decision,
   HashPreimageDBInterface,
@@ -14,9 +15,9 @@ import {
 } from '../../../../src/types/ovm'
 import * as assert from 'assert'
 import { DB } from '../../../../src/types/db'
-import { HashPreimageDB } from '../../../../src/app/ovm/db/hash-preimage-db'
-import { HashAlgorithm, HashFunction } from '../../../../src/types/utils'
+import { HashPreimageDB } from '../../../../src/app/ovm/db'
 import { serializeObject } from '../../../../src/app/serialization'
+import { newInMemoryDB } from '../../../../src/app/db'
 
 describe('HashPreimageExistenceDecider', () => {
   const preimage: string = Buffer.from('really great preimage').toString('hex')
@@ -28,7 +29,7 @@ describe('HashPreimageExistenceDecider', () => {
   describe('Constructor', () => {
     it('should initialize', async () => {
       new HashPreimageExistenceDecider(
-        new HashPreimageDB(new BaseDB(new MemDown('') as any, 256)),
+        new HashPreimageDB(newInMemoryDB()),
         hashAlgorithm
       )
     })
@@ -38,18 +39,11 @@ describe('HashPreimageExistenceDecider', () => {
     let decider: HashPreimageExistenceDecider
     let preimageDB: HashPreimageDBInterface
     let db: DB
-    let memdown: any
 
     beforeEach(() => {
-      memdown = new MemDown('')
-      db = new BaseDB(memdown, 256)
+      db = newInMemoryDB()
       preimageDB = new HashPreimageDB(db)
       decider = new HashPreimageExistenceDecider(preimageDB, hashAlgorithm)
-    })
-
-    afterEach(async () => {
-      await db.close()
-      memdown = undefined
     })
 
     it('should decide true for valid preimage', async () => {

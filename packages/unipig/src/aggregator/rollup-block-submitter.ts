@@ -1,5 +1,6 @@
 /* External Imports */
-import { DB, getLogger, logError } from '@pigi/core'
+import { DB } from '@pigi/core'
+import { getLogger, logError } from '@pigi/core-utils'
 import { Contract } from 'ethers'
 
 /* Internal Imports */

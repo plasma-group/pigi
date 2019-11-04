@@ -3,13 +3,12 @@ import '../setup'
 /* External Imports */
 import { createMockProvider, deployContract, getWallets } from 'ethereum-waffle'
 import {
-  hexStrToBuf,
-  bufToHexString,
-  BigNumber,
   SparseMerkleTreeImpl,
   DefaultSignatureProvider,
   newInMemoryDB,
 } from '@pigi/core'
+
+import { hexStrToBuf, bufToHexString, BigNumber } from '@pigi/core-utils'
 
 /* Internal Imports */
 import {

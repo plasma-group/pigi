@@ -1,3 +1,7 @@
+/* External Imports */
+import { BigNumber } from '@pigi/core-utils'
+
+/* Internal Imports */
 import {
   HistoryProof,
   StateQuery,
@@ -5,7 +9,6 @@ import {
   Transaction,
   TransactionResult,
 } from '../../types'
-import { BigNumber } from '../../app/utils'
 
 export interface StateManager {
   /**

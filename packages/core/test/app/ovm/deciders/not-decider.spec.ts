@@ -1,5 +1,7 @@
 import '../../../setup'
 
+import * as assert from 'assert'
+
 import {
   CannotDecideDecider,
   CannotDecideError,
@@ -9,7 +11,6 @@ import {
   TrueDecider,
 } from '../../../../src/app/ovm/deciders'
 import { Decision } from '../../../../src/types/ovm'
-import * as assert from 'assert'
 
 describe('NotDecider', () => {
   let decider: NotDecider

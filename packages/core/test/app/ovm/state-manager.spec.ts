@@ -1,13 +1,12 @@
 import '../../setup'
 
 /* External Imports */
-import debug from 'debug'
-const log = debug('test:info:state-manager')
+import { BigNumber, getLogger, ONE } from '@pigi/core-utils'
+
+/* Internal Imports */
 import {
-  BigNumber,
   DefaultStateDB,
   DefaultStateManager,
-  ONE,
   stateUpdatesEqual,
 } from '../../../src/app'
 import {

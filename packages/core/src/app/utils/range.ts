@@ -1,6 +1,8 @@
+/* External Imports */
+import { BigNumber, bufferUtils, ONE } from '@pigi/core-utils'
+
 /* Internal Imports */
-import { BlockRange, Range } from '../../types'
-import { BigNumber, bufferUtils, ONE } from '../../app'
+import { BlockRange, Range } from '../../types/db'
 
 /**
  * Checks if two ranges intersect, eg. [1,10) & [8,11) would return true.

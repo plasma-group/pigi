@@ -1,11 +1,11 @@
 /* External Imports */
 import { Mutex } from 'async-mutex'
+import { BIG_ENDIAN, BigNumber, MAX_BIG_NUM, ONE, ZERO } from '@pigi/core-utils'
 
 import { BaseKey, BaseRangeBucket } from '../db'
 import { BlockDB } from '../../types/block-production'
 import { KeyValueStore, RangeStore } from '../../types/db'
 import { StateUpdate } from '../../types/serialization'
-import { BIG_ENDIAN, BigNumber, MAX_BIG_NUM, ONE, ZERO } from '../utils'
 import { GenericMerkleIntervalTree } from './merkle-interval-tree'
 import { deserializeStateUpdate, serializeStateUpdate } from '../serialization'
 

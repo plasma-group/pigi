@@ -1,13 +1,10 @@
 /* External Imports */
-import debug from 'debug'
-const log = debug('info:state-update')
+import { abi, BigNumber, hexStringify } from '@pigi/core-utils'
 
 /* Internal Imports */
-import { abi, BigNumber } from '../../app'
 import { AbiEncodable, Transaction, OwnershipBody } from '../../types'
 import { AbiStateObject } from './state-object'
 import { AbiRange } from './abi-range'
-import { hexStringify } from '../utils'
 
 /**
  * Creates a AbiOwnershipBody from an encoded AbiOwnershipBody.

@@ -1,3 +1,7 @@
+/* External Imports */
+import { BigNumber, ONE } from '@pigi/core-utils'
+
+/* Internal Imports */
 import {
   HistoryProof,
   PluginManager,
@@ -14,7 +18,7 @@ import {
   isValidVerifiedStateUpdate,
   StateObject,
 } from '../../types'
-import { BigNumber, getOverlappingRange, ONE, rangesIntersect } from '../../app'
+import { getOverlappingRange, rangesIntersect } from '../utils/range'
 
 /**
  * StateManager that validates transactions and wraps and modifies StateDB as necessary.

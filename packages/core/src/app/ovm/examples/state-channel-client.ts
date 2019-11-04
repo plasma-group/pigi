@@ -1,24 +1,21 @@
+/* External Imports */
+import { ZERO, ONE, BigNumber } from '@pigi/core-utils'
 import uuid = require('uuid')
 
+/* Internal Imports */
 import {
-  ONE,
-  ZERO,
   ParsedMessage,
   SignedMessage,
   StateChannelMessageDBInterface,
   ImplicationProofItem,
   Decision,
-  BigNumber,
   SignatureProvider,
 } from '../../../types'
 import {
   AddressBalance,
-  deserializeBuffer,
   deserializeMessage,
   deserializeMessageString,
-  messageToBuffer,
   messageToString,
-  objectToBuffer,
   parseStateChannelSignedMessage,
   StateChannelExitClaim,
   StateChannelMessage,
@@ -30,10 +27,10 @@ import {
   CannotDecideError,
   ForAllSuchThatDecider,
   MessageNonceLessThanDecider,
+  SignedByDecider,
   Utils,
 } from '../deciders'
-import { SignedByDecider } from '../deciders/signed-by-decider'
-import { SignedByQuantifier } from '../quantifiers/signed-by-quantifier'
+import { SignedByQuantifier } from '../quantifiers'
 
 /**
  * Client responsible for State Channel communication

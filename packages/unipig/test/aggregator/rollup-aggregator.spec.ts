@@ -7,15 +7,13 @@ import {
   DB,
   DefaultSignatureProvider,
   DefaultSignatureVerifier,
-  getLogger,
-  hexStrToBuf,
-  keccak256,
   newInMemoryDB,
   serializeObject,
   serializeObjectAsHexString,
   SimpleClient,
-  sleep,
 } from '@pigi/core'
+
+import { getLogger, hexStrToBuf, keccak256, sleep } from '@pigi/core-utils'
 
 /* Internal Imports */
 import { ethers, Wallet } from 'ethers'

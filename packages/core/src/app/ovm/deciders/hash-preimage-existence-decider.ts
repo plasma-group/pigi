@@ -1,6 +1,9 @@
+/* External Imports */
+import { HashAlgorithm } from '@pigi/core-utils'
+
+/* Internal Imports */
 import { Decider, Decision, HashPreimageDBInterface } from '../../../types/ovm'
 import { CannotDecideError } from './utils'
-import { HashAlgorithm } from '../../../types/utils'
 
 export interface HashInput {
   hash: string

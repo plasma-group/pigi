@@ -1,6 +1,9 @@
-import { SignedByDBInterface } from '../../../types/ovm/db/signed-by-db.interface'
+/* External Imports */
+import { Logger, getLogger, Md5Hash } from '@pigi/core-utils'
+
+/* Internal Imports */
+import { SignedByDBInterface } from '../../../..'
 import { DB } from '../../../types/db'
-import { getLogger, Logger, Md5Hash } from '../../utils'
 import { SignatureVerifier } from '../../../types/keystore'
 import { DefaultSignatureVerifier } from '../../keystore'
 import { deserializeObject, serializeObject } from '../../serialization'

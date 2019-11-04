@@ -6,8 +6,10 @@ import {
   IdentityVerifier,
   newInMemoryDB,
   SparseMerkleTreeImpl,
-  ZERO,
 } from '@pigi/core'
+
+import { ZERO } from '@pigi/core-utils'
+
 import * as assert from 'assert'
 
 /* Internal Imports */

@@ -1,9 +1,17 @@
-import { GenericMerkleIntervalTree, GenericMerkleIntervalTreeNode } from './'
-import { AbiStateUpdate, BIG_ENDIAN, STATE_ID_LENGTH } from '../'
+/* External Imports */
+import { BIG_ENDIAN } from '@pigi/core-utils'
+
+/* Internal Imports */
 import {
-  MerkleIntervalTreeNode,
+  GenericMerkleIntervalTree,
+  GenericMerkleIntervalTreeNode,
+  STATE_ID_LENGTH,
+} from './'
+import { AbiStateUpdate } from '../'
+import {
   MerkleIntervalInclusionProof,
-} from '../../types'
+  MerkleIntervalTreeNode,
+} from '../../types/block-production.types'
 
 export class MerkleStateIntervalTree extends GenericMerkleIntervalTree {
   public generateLeafNode(

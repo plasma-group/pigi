@@ -1,5 +1,6 @@
 import { should } from '../../setup'
-import { ethers } from 'ethers'
+
+import { BigNumber, ONE } from '@pigi/core-utils'
 
 import {
   Aggregator,
@@ -14,10 +15,8 @@ import {
   TransactionResult,
 } from '../../../src/types'
 import {
-  BigNumber,
   DefaultAggregator,
   DefaultSignatureProvider,
-  ONE,
   serializeObject,
   transactionsEqual,
 } from '../../../src/app/'

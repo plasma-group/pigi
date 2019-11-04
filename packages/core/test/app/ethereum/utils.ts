@@ -1,8 +1,10 @@
-import { ethers } from 'ethers'
+/* External Imports */
+import { getLogger, sleep } from '@pigi/core-utils'
 import * as assert from 'assert'
+import { ethers } from 'ethers'
 
-import {getLogger, sleep} from '../../../src/app/utils'
-import {EthereumListener} from '../../../src/types/ethereum'
+/* Internal Imports */
+import { EthereumListener } from '../../../src/types/ethereum'
 
 const log = getLogger('ethereum-test-utils', true)
 

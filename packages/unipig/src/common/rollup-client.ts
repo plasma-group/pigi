@@ -1,7 +1,7 @@
 /* External Imports */
+import { getLogger } from '@pigi/core-utils'
 import {
   DefaultSignatureVerifier,
-  getLogger,
   KeyValueStore,
   RpcClient,
   serializeObject,

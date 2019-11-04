@@ -7,8 +7,9 @@ import {
   DefaultSignatureProvider,
   DefaultSignatureVerifier,
   EthereumEventProcessor,
-  getLogger,
 } from '@pigi/core'
+
+import { getLogger } from '@pigi/core-utils'
 
 import cors = require('cors')
 import { Contract, Wallet } from 'ethers'

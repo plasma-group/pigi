@@ -4,11 +4,9 @@
  */
 
 /* External Imports */
-import {
-  AbstractOpenOptions,
-  AbstractLevelDOWN,
-  AbstractChainedBatch,
-} from 'abstract-leveldown'
+import { BigNumber, bufferUtils, getLogger, ONE, ZERO } from '@pigi/core-utils'
+
+import { AbstractOpenOptions, AbstractLevelDOWN } from 'abstract-leveldown'
 
 import MemDown from 'memdown'
 
@@ -22,14 +20,10 @@ import {
   Iterator,
   Bucket,
   RangeBucket,
-  BigNumber,
-  ZERO,
-  ONE,
 } from '../../types'
 import { BaseIterator } from './iterator'
 import { BaseBucket } from './bucket'
 import { BaseRangeBucket } from './range-bucket'
-import { bufferUtils, getLogger } from '../utils'
 
 const log = getLogger('db')
 export const DEFAULT_PREFIX_LENGTH = 3
@@ -243,7 +237,7 @@ export class BaseDB implements DB {
 }
 
 let memId: BigNumber = ZERO
-export const newInMemoryDB = (prefixLength: number = 256): DB => {
+export const newInMemoryDB = (prefixLength: number = 256, options?: {}): DB => {
   memId = memId.add(ONE)
   return new BaseDB(
     new MemDown(`newInMemoryDB/${memId.toString()}`) as any,

@@ -1,5 +1,8 @@
+/* External Imports */
+import { BigNumber } from '@pigi/core-utils'
+
+/* Internal Imports */
 import { VerifiedStateUpdate } from '../../types'
-import { BigNumber } from '../../app/utils'
 
 export interface StateDB {
   /**

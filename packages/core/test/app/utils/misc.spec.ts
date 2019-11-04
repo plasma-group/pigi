@@ -1,13 +1,13 @@
 import '../../setup'
 
-/* Internal Imports */
+/* External Imports */
 import {
-  sleep,
-  remove0x,
   add0x,
   getNullString,
   isObject,
-} from '../../../src/app'
+  remove0x,
+  sleep,
+} from '@pigi/core-utils'
 
 describe('Miscellanous Utils', () => {
   describe('sleep', () => {

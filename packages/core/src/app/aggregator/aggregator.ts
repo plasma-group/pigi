@@ -1,3 +1,7 @@
+/* External Imports */
+import { BigNumber } from '@pigi/core-utils'
+
+/* Internal Imports */
 import { Aggregator } from '../../types/aggregator'
 import { StateManager } from '../../types/ovm'
 import {
@@ -6,10 +10,10 @@ import {
   Transaction,
   TransactionResult,
 } from '../../types/serialization'
-import { BigNumber, doRangesSpanRange } from '../utils'
 import { BlockManager } from '../../types/block-production'
 import { SignatureProvider } from '../../types/keystore'
 import { serializeObject } from '../serialization'
+import { doRangesSpanRange } from '../utils/range'
 
 export class DefaultAggregator implements Aggregator {
   public constructor(

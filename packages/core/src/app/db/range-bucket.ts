@@ -3,6 +3,15 @@
  * Credit to the original author, Christopher Jeffrey (https://github.com/chjj).
  */
 
+/* External Imports */
+import {
+  BIG_ENDIAN,
+  BigNumber,
+  Endianness,
+  getLogger,
+  ZERO,
+} from '@pigi/core-utils'
+
 /* Internal Imports */
 import {
   Bucket,
@@ -15,18 +24,11 @@ import {
   PUT_BATCH_TYPE,
   RangeIterator,
 } from '../../types'
-import {
-  intersects,
-  BigNumber,
-  BIG_ENDIAN,
-  Endianness,
-  ZERO,
-  BaseRangeIterator,
-} from '../../app'
+import { BaseRangeIterator } from '../../app'
 
 /* Logging */
-import debug from 'debug'
-const log = debug('debug:range-db')
+import { intersects } from '../utils/range'
+const log = getLogger('range-db')
 
 /**
  * Simple bucket implementation that forwards all
@@ -184,7 +186,7 @@ export class BaseRangeBucket implements RangeBucket {
     value: Buffer
   ): Promise<void> {
     this.validateRange(start, end)
-    log(
+    log.debug(
       'Putting range: [',
       start.toString(16),
       ',',
@@ -259,7 +261,13 @@ export class BaseRangeBucket implements RangeBucket {
    */
   public async get(start: BigNumber, end: BigNumber): Promise<RangeEntry[]> {
     this.validateRange(start, end)
-    log('Getting range: [', start.toString(16), ',', end.toString(16), ')')
+    log.debug(
+      'Getting range: [',
+      start.toString(16),
+      ',',
+      end.toString(16),
+      ')'
+    )
     // Seek to the beginning
     const it = this.db.iterator({
       gt: this.bnToKey(start),

@@ -1,5 +1,6 @@
 /* External Imports */
 import level from 'level'
+import { BigNumber, Endianness } from '@pigi/core-utils'
 
 /* Internal Imports */
 import {
@@ -9,7 +10,6 @@ import {
   IteratorOptions,
   RangeIterator,
 } from './db.interface'
-import { BigNumber, Endianness } from '../../app/utils'
 
 /**
  * Represents a range of values. Note start & end are big numbers!

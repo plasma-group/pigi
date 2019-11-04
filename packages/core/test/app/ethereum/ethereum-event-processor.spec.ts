@@ -1,15 +1,14 @@
 import '../../setup'
 
 /* External Imports */
+import { getLogger } from '@pigi/core-utils'
 import { createMockProvider, getWallets } from 'ethereum-waffle'
 
 /* Internal Imports */
 import { deployTokenContract, TestListener } from './utils'
-import {getLogger} from '../../../src/app/utils'
-import {EthereumEventProcessor} from '../../../src/app/ethereum'
-import {EthereumEvent} from '../../../src/types/ethereum'
-import {newInMemoryDB} from '../../../src/app/db'
-
+import { EthereumEventProcessor } from '../../../src/app/ethereum'
+import { EthereumEvent } from '../../../src/types/ethereum'
+import { newInMemoryDB } from '../../../src/app/db'
 
 const log = getLogger('ethereum-event-processor', true)
 
@@ -115,7 +114,7 @@ describe('EthereumEvent Subscription', () => {
     )
 
     events = await eventListener.waitForReceive()
-    log.error(
+    log.debug(
       `event 1: ${JSON.stringify(event1)}, rest: ${JSON.stringify(events)}`
     )
     events.length.should.equal(1)

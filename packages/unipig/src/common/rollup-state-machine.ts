@@ -8,14 +8,17 @@ import {
   DB,
   SparseMerkleTree,
   SparseMerkleTreeImpl,
+  MerkleTreeInclusionProof,
+} from '@pigi/core'
+
+import {
   BigNumber,
   ONE,
-  runInDomain,
-  MerkleTreeInclusionProof,
   ZERO,
   getLogger,
+  runInDomain,
   NULL_ADDRESS,
-} from '@pigi/core'
+} from '@pigi/core-utils'
 
 /* Internal Imports */
 import {

@@ -1,5 +1,5 @@
 import debug from 'debug'
-import { Logger } from '../../types/utils'
+import { Logger } from '../types'
 
 export const getLogger = (
   identifier: string,
