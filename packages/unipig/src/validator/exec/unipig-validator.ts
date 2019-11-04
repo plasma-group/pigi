@@ -61,7 +61,7 @@ async function runValidator() {
   )
   const contract: Contract = new Contract(
     rollupContractAddress,
-    RollupChain.interface,
+    RollupChain.interface as any,
     Wallet.fromMnemonic(mnemonic).connect(new JsonRpcProvider(jsonRpcUrl))
   )
   log.debug(`Connected`)

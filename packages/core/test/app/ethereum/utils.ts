@@ -23,7 +23,12 @@ export class TestListener<T> implements EthereumListener<T> {
 
   public async handle(t: T): Promise<void> {
     log.debug(`Received ${JSON.stringify(t)}`)
-    this.received.push(t)
+    if (
+      this.received.length === 0 ||
+      t !== this.received[this.received.length - 1]
+    ) {
+      this.received.push(t)
+    }
   }
 
   public getReceived(): T[] {
