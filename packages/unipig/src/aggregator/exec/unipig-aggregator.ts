@@ -1,15 +1,13 @@
 /* External Imports */
 import * as Level from 'level'
 
+import { BaseDB, DB, EthereumEventProcessor } from '@pigi/core-db'
+
 import {
-  BaseDB,
-  DB,
   DefaultSignatureProvider,
   DefaultSignatureVerifier,
-  EthereumEventProcessor,
-} from '@pigi/core'
-
-import { getLogger } from '@pigi/core-utils'
+  getLogger,
+} from '@pigi/core-utils'
 
 import cors = require('cors')
 import { Contract, Wallet } from 'ethers'

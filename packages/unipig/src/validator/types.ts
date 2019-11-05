@@ -1,6 +1,5 @@
 /* External Imports */
-import { SparseMerkleTreeImpl, newInMemoryDB } from '@pigi/core'
-
+import { SparseMerkleTreeImpl, newInMemoryDB } from '@pigi/core-db'
 import { hexStrToBuf, bufToHexString, BigNumber } from '@pigi/core-utils'
 
 /* Internal Imports */

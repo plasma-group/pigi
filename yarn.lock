@@ -1030,7 +1030,7 @@ abstract-leveldown@^5.0.0, abstract-leveldown@~5.0.0:
   dependencies:
     xtend "~4.0.0"
 
-abstract-leveldown@^6.0.3, abstract-leveldown@^6.2.1, abstract-leveldown@~6.2.1:
+abstract-leveldown@^6.0.3, abstract-leveldown@^6.2.1, abstract-leveldown@^6.2.2, abstract-leveldown@~6.2.1:
   version "6.2.2"
   resolved "https://registry.yarnpkg.com/abstract-leveldown/-/abstract-leveldown-6.2.2.tgz#677425beeb28204367c7639e264e93ea4b49971a"
   integrity sha512-/a+Iwj0rn//CX0EJOasNyZJd2o8xur8Ce9C57Sznti/Ilt/cb6Qd8/k98A4ZOklXgTG+iAYYUs1OTG0s1eH+zQ==
@@ -4200,7 +4200,7 @@ ethers@4.0.0-beta.3:
     uuid "2.0.1"
     xmlhttprequest "1.8.0"
 
-ethers@^4.0.0, ethers@^4.0.37:
+ethers@^4.0.0, ethers@^4.0.37, ethers@^4.0.39:
   version "4.0.39"
   resolved "https://registry.yarnpkg.com/ethers/-/ethers-4.0.39.tgz#5ce9dfffedb03936415743f63b37d96280886a47"
   integrity sha512-QVtC8TTUgTrnlQjQvdFJ7fkSWKwp8HVTbKRmrdbVryrPzJHMTf3WSeRNvLF2enGyAFtyHJyFNnjN0fSshcEr9w==
@@ -10332,7 +10332,7 @@ uuid@3.3.2:
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.3.2.tgz#1b4af4955eb3077c501c23872fc6513811587131"
   integrity sha512-yXJmeNaw3DnnKAOKJE51sL/ZaYfWJRl1pK9dr19YFCu0ObS231AB1/LbqTKRAQ5kw8A90rA6fr4riOUpTZvQZA==
 
-uuid@^3.0.1, uuid@^3.2.1, uuid@^3.3.2:
+uuid@^3.0.1, uuid@^3.2.1, uuid@^3.3.2, uuid@^3.3.3:
   version "3.3.3"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.3.3.tgz#4568f0216e78760ee1dbf3a4d2cf53e224112866"
   integrity sha512-pW0No1RGHgzlpHJO1nsVrHKpOEIxkGg1xB+v0ZmdNH5OAeAwzAVrCnI2/6Mtx+Uys6iaylxa+D3g4j63IKKjSQ==

@@ -1,14 +1,14 @@
 import './setup'
 
 /* External Imports */
-import { Wallet } from 'ethers'
-
+import { newInMemoryDB } from '@pigi/core-db'
 import {
-  SimpleClient,
-  newInMemoryDB,
+  getLogger,
   DefaultSignatureProvider,
-} from '@pigi/core'
-import { getLogger } from '@pigi/core-utils'
+  SimpleClient,
+} from '@pigi/core-utils'
+
+import { Wallet } from 'ethers'
 
 /* Internal Imports */
 import {

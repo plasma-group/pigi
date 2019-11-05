@@ -2,9 +2,13 @@ import '../setup'
 
 /* External Imports */
 import * as assert from 'assert'
-import { DB, newInMemoryDB, ChecksumAgnosticIdentityVerifier } from '@pigi/core'
+import { DB, newInMemoryDB } from '@pigi/core-db'
 
-import { bufToHexString, NULL_ADDRESS } from '@pigi/core-utils'
+import {
+  bufToHexString,
+  ChecksumAgnosticIdentityVerifier,
+  NULL_ADDRESS,
+} from '@pigi/core-utils'
 
 /* Internal Imports */
 import {

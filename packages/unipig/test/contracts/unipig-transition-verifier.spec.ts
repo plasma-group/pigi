@@ -7,7 +7,7 @@ import {
   SignatureProvider,
   SignatureVerifier,
   DefaultSignatureVerifier,
-} from '@pigi/core'
+} from '@pigi/core-utils'
 import {
   SwapTransition,
   TransferTransition,

@@ -1,4 +1,4 @@
-import { SimpleServer } from '@pigi/core'
+import { SimpleServer } from '@pigi/core-utils'
 import { RollupAggregator } from './rollup-aggregator'
 import { Address, SignedStateReceipt, SignedTransaction } from '../index'
 import { AGGREGATOR_API, UNISWAP_ADDRESS } from '../common'

@@ -1,14 +1,9 @@
 import '../setup'
 
 /* External Imports */
-import {
-  DB,
-  IdentityVerifier,
-  newInMemoryDB,
-  SparseMerkleTreeImpl,
-} from '@pigi/core'
+import { DB, newInMemoryDB, SparseMerkleTreeImpl } from '@pigi/core-db'
 
-import { ZERO } from '@pigi/core-utils'
+import { ZERO, IdentityVerifier } from '@pigi/core-utils'
 
 import * as assert from 'assert'
 

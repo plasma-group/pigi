@@ -6,7 +6,7 @@ import {
   ImplicationProofItem,
   MerkleInclusionProofDecider,
   SignedByDBInterface,
-} from '@pigi/core'
+} from '@pigi/ovm'
 
 import { BigNumber, getLogger, hexStrToBuf } from '@pigi/core-utils'
 

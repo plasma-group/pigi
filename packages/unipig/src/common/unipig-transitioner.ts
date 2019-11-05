@@ -1,17 +1,21 @@
 /* External Imports */
 import {
+  getLogger,
+  logError,
   SignatureProvider,
-  DB,
   serializeObject,
+  DefaultSignatureProvider,
+  SimpleClient,
+} from '@pigi/core-utils'
+
+import {
   SignedByDBInterface,
   SignedByDB,
   SignedByDecider,
   MerkleInclusionProofDecider,
-  DefaultSignatureProvider,
-  SimpleClient,
-} from '@pigi/core'
+} from '@pigi/ovm'
 
-import { getLogger, logError } from '@pigi/core-utils'
+import { DB } from '@pigi/core-db'
 
 /* Internal Imports */
 import {

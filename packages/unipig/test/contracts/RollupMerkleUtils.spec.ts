@@ -2,7 +2,7 @@ import '../setup'
 
 /* External Imports */
 import { createMockProvider, deployContract, getWallets } from 'ethereum-waffle'
-import { SparseMerkleTreeImpl, newInMemoryDB } from '@pigi/core'
+import { SparseMerkleTreeImpl, newInMemoryDB } from '@pigi/core-db'
 
 import { hexStrToBuf, bufToHexString, BigNumber } from '@pigi/core-utils'
 

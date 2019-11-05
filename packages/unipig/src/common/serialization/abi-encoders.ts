@@ -1,6 +1,5 @@
 /* External Imports */
-import { serializeObject } from '@pigi/core'
-import { add0x, getLogger } from '@pigi/core-utils'
+import { add0x, getLogger, serializeObject } from '@pigi/core-utils'
 
 /* Internal Imports */
 import {

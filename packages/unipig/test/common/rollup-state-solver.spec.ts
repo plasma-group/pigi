@@ -1,17 +1,18 @@
 import '../setup'
 
 /* External Imports */
-import * as assert from 'assert'
+import { newInMemoryDB } from '@pigi/core-db'
+import { IdentityVerifier } from '@pigi/core-utils'
 
 import {
   SignedByDB,
-  newInMemoryDB,
   Decider,
   FalseDecider,
   TrueDecider,
   ImplicationProofItem,
-  IdentityVerifier,
-} from '@pigi/core'
+} from '@pigi/ovm'
+
+import * as assert from 'assert'
 
 /* Internal Imports */
 import {

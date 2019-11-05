@@ -2,16 +2,16 @@
 import * as AsyncLock from 'async-lock'
 
 import {
-  DefaultSignatureVerifier,
-  serializeObject,
-  SignatureVerifier,
   DB,
   SparseMerkleTree,
   SparseMerkleTreeImpl,
   MerkleTreeInclusionProof,
-} from '@pigi/core'
+} from '@pigi/core-db'
 
 import {
+  DefaultSignatureVerifier,
+  serializeObject,
+  SignatureVerifier,
   BigNumber,
   ONE,
   ZERO,

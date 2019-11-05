@@ -35,7 +35,8 @@
   },
   "dependencies": {
     "@pigi/core-utils": "^0.0.10-alpha.0",
-    "@pigi/core": "^0.0.10-alpha.0",
+    "@pigi/core-db": "^0.0.10-alpha.0",
+    "@pigi/ovm": "^0.0.10-alpha.0",
     "@types/sinon-chai": "^3.2.2",
     "async-lock": "^1.2.2",
     "browserify": "^16.5.0",

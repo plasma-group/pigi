@@ -1,19 +1,19 @@
 import '../setup'
 
 /* External Imports */
-import * as assert from 'assert'
-
 import {
-  DB,
   DefaultSignatureProvider,
   DefaultSignatureVerifier,
-  newInMemoryDB,
+  getLogger,
+  hexStrToBuf,
+  keccak256,
   serializeObject,
   serializeObjectAsHexString,
   SimpleClient,
-} from '@pigi/core'
-
-import { getLogger, hexStrToBuf, keccak256, sleep } from '@pigi/core-utils'
+  sleep,
+} from '@pigi/core-utils'
+import { DB, newInMemoryDB } from '@pigi/core-db'
+import * as assert from 'assert'
 
 /* Internal Imports */
 import { ethers, Wallet } from 'ethers'

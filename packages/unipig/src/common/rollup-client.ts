@@ -1,14 +1,15 @@
 /* External Imports */
-import { getLogger } from '@pigi/core-utils'
 import {
+  getLogger,
   DefaultSignatureVerifier,
-  KeyValueStore,
   RpcClient,
   serializeObject,
   serializeObjectAsHexString,
   SignatureProvider,
   SignatureVerifier,
-} from '@pigi/core'
+} from '@pigi/core-utils'
+
+import { KeyValueStore } from '@pigi/core-db'
 
 /* Internal Imports */
 import {

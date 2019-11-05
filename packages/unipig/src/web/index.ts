@@ -1,15 +1,13 @@
 import * as Level from 'level'
 
 /* External Imports */
+import { SignedByDB, SignedByDecider } from '@pigi/ovm'
 import {
-  DB,
-  SignedByDB,
-  SignedByDecider,
+  getLogger,
   SimpleClient,
   DefaultSignatureProvider,
-  BaseDB,
-} from '@pigi/core'
-import { getLogger } from '@pigi/core-utils'
+} from '@pigi/core-utils'
+import { DB, BaseDB } from '@pigi/core-db'
 import { ethers } from 'ethers'
 
 /* Internal Imports */

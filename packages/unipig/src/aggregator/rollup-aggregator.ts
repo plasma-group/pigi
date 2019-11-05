@@ -2,17 +2,18 @@
 import * as AsyncLock from 'async-lock'
 
 import {
+  getLogger,
+  hexStrToBuf,
+  hexBufToStr,
+  logError,
   SignatureVerifier,
   DefaultSignatureVerifier,
   serializeObject,
   serializeObjectAsHexString,
-  DB,
-  EthereumListener,
-  EthereumEvent,
   SignatureProvider,
-} from '@pigi/core'
+} from '@pigi/core-utils'
 
-import { getLogger, hexStrToBuf, hexBufToStr, logError } from '@pigi/core-utils'
+import { DB, EthereumListener, EthereumEvent } from '@pigi/core-db'
 
 /* Internal Imports */
 import { UnipigAggregator } from '../types/unipig-aggregator'

@@ -3,7 +3,7 @@ import * as Level from 'level'
 import { Contract, Wallet } from 'ethers'
 import { JsonRpcProvider } from 'ethers/providers'
 
-import { BaseDB, DB, EthereumEventProcessor } from '@pigi/core'
+import { BaseDB, DB, EthereumEventProcessor } from '@pigi/core-db'
 import { getLogger } from '@pigi/core-utils'
 
 import { config } from 'dotenv'

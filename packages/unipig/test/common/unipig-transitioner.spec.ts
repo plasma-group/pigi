@@ -1,12 +1,12 @@
 import '../setup'
 
 /* External Imports */
+import { newInMemoryDB } from '@pigi/core-db'
 import {
   SimpleServer,
   SimpleClient,
-  newInMemoryDB,
   DefaultSignatureProvider,
-} from '@pigi/core'
+} from '@pigi/core-utils'
 
 /* Internal Imports */
 import {
