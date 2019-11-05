@@ -55,7 +55,7 @@ export class TestListener<T> implements EthereumListener<T> {
   }
 }
 
-const TestToken = require('./contracts/build/TestToken.json')
+const TestToken = require('./contracts/TestToken.json')
 
 export const deployTokenContract = async (
   ownerWallet: ethers.Wallet,
