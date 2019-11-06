@@ -2,7 +2,7 @@ import '../setup'
 
 /* External Imports */
 import * as assert from 'assert'
-import { DB, newInMemoryDB } from '@pigi/core-db'
+import { DBInterface, newInMemoryDB } from '@pigi/core-db'
 
 import {
   bufToHexString,
@@ -86,7 +86,7 @@ function getMultiBalanceGenesis(
 
 describe('RollupStateValidator', () => {
   let rollupGuard: RollupStateValidator
-  let stateDb: DB
+  let stateDb: DBInterface
 
   beforeEach(async () => {
     stateDb = newInMemoryDB()

@@ -4,8 +4,8 @@ import { should } from '../../setup'
 import { BigNumber, ONE } from '@pigi/core-utils'
 import {
   KeyValueStore,
-  BaseBucket,
-  BaseDB,
+  Bucket,
+  DB,
   DEFAULT_PREFIX_LENGTH,
 } from '@pigi/core-db'
 
@@ -33,12 +33,12 @@ describe('DefaultBlockDB', () => {
   let blockDB: BlockDBInterface
 
   beforeEach(async () => {
-    varStore = new BaseBucket(
-      new BaseDB(new MemDown('') as any, DEFAULT_PREFIX_LENGTH * 2),
+    varStore = new Bucket(
+      new DB(new MemDown('') as any, DEFAULT_PREFIX_LENGTH * 2),
       Buffer.from('v')
     )
-    blockStore = new BaseBucket(
-      new BaseDB(new MemDown('') as any, DEFAULT_PREFIX_LENGTH * 2),
+    blockStore = new Bucket(
+      new DB(new MemDown('') as any, DEFAULT_PREFIX_LENGTH * 2),
       Buffer.from('b')
     )
     blockDB = new BlockDB(varStore, blockStore)

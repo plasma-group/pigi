@@ -18,8 +18,8 @@ export interface StateDBInterface {
   ): Promise<VerifiedStateUpdate[]>
 
   /**
-   * Adds the provided VerifiedStateUpdate to the State DB, overwriting, modifying, and/or breaking apart any existing
-   * objects in the DB that intersect with this one.
+   * Adds the provided VerifiedStateUpdate to the State DBInterface, overwriting, modifying, and/or breaking apart any existing
+   * objects in the DBInterface that intersect with this one.
    *
    * @param verifiedStateUpdate the VerifiedStateUpdate to add
    * @returns an empty Promise that will resolve successfully on success or with an error if the insert fails.

@@ -17,7 +17,7 @@ export class PersistedWallet implements Wallet {
 
   /**
    * Initializes the wallet.
-   * @param walletdb DB wrapper to get values from.
+   * @param walletdb DBInterface wrapper to get values from.
    */
 
   constructor(private walletdb: WalletDB) {}

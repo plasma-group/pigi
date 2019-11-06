@@ -13,7 +13,7 @@ import {
   SignatureProvider,
 } from '@pigi/core-utils'
 
-import { DB, EthereumListener, EthereumEvent } from '@pigi/core-db'
+import { DBInterface, EthereumListener, EthereumEvent } from '@pigi/core-db'
 
 /* Internal Imports */
 import { UnipigAggregator } from '../types/unipig-aggregator'
@@ -79,7 +79,7 @@ export class RollupAggregator
   private lastBlockSubmission: Date
 
   public static async create(
-    db: DB,
+    db: DBInterface,
     rollupStateMachine: RollupStateMachineInterface,
     rollupBlockSubmitter: RollupBlockSubmitterInterface,
     signatureProvider: SignatureProvider,
@@ -105,7 +105,7 @@ export class RollupAggregator
   }
 
   private constructor(
-    private readonly db: DB,
+    private readonly db: DBInterface,
     private readonly rollupStateMachine: RollupStateMachineInterface,
     private readonly rollupBlockSubmitter: RollupBlockSubmitterInterface,
     private readonly signatureProvider: SignatureProvider,
@@ -138,7 +138,7 @@ export class RollupAggregator
         this.db.get(RollupAggregator.TRANSACTION_COUNT_KEY),
       ])
 
-      // Fresh start -- nothing in the DB
+      // Fresh start -- nothing in the DBInterface
       if (!lastTransitionBuffer) {
         log.info(`Init returning -- no stored last transition.`)
         this.transactionCount = 0

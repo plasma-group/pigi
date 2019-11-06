@@ -8,7 +8,7 @@ import { createMockProvider, getWallets } from 'ethereum-waffle'
 /* Internal Imports */
 import { deployTokenContract, TestListener } from './utils'
 import { EthereumBlockProcessor, newInMemoryDB } from '../../../src/app'
-import { DB } from '../../../src/types'
+import { DBInterface } from '../../../src/types'
 
 const log = getLogger('ethereum-block-processor-test', true)
 
@@ -18,7 +18,7 @@ describe('Block Subscription', () => {
   let wallets
   let ownerWallet
   let recipientWallet
-  let db: DB
+  let db: DBInterface
 
   const sendAmount = 100
   const initialSupply = 100_000

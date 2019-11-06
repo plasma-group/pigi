@@ -20,7 +20,7 @@ import {
   MerkleTreeInclusionProof,
   MerkleUpdate,
   SparseMerkleTree,
-  DB,
+  DBInterface,
   newInMemoryDB,
 } from '../../../src'
 
@@ -58,7 +58,7 @@ const verifyEmptyTreeWithDepth = async (
 }
 
 const createAndVerifyEmptyTreeDepthWithDepth = async (
-  db: DB,
+  db: DBInterface,
   key: BigNumber,
   depth: number
 ): Promise<SparseMerkleTree> => {
@@ -104,7 +104,7 @@ const getRootHashOnlyHashingWithEmptySiblings = (
 }
 
 describe('SparseMerkleTreeImpl', () => {
-  let db: DB
+  let db: DBInterface
   beforeEach(() => {
     db = newInMemoryDB()
   })

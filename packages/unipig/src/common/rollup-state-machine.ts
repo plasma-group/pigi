@@ -2,7 +2,7 @@
 import * as AsyncLock from 'async-lock'
 
 import {
-  DB,
+  DBInterface,
   SparseMerkleTree,
   PersistedSparseMerkleTree,
   MerkleTreeInclusionProof,
@@ -81,7 +81,7 @@ export class RollupStateMachine implements RollupStateMachineInterface {
    * Creates and initializes a RollupStateMachine.
    *
    * @param genesisState The genesis state to set
-   * @param db The DB to use
+   * @param db The DBInterface to use
    * @param aggregatorAddress The address of the aggregator
    * @param signatureVerifier The signature verifier to use
    * @param swapFeeBasisPoints The fee for swapping, in basis points
@@ -90,7 +90,7 @@ export class RollupStateMachine implements RollupStateMachineInterface {
    */
   public static async create(
     genesisState: State[],
-    db: DB,
+    db: DBInterface,
     aggregatorAddress: Address,
     signatureVerifier: SignatureVerifier = Secp256k1SignatureVerifier.instance(),
     swapFeeBasisPoints: number = 30,
@@ -116,7 +116,7 @@ export class RollupStateMachine implements RollupStateMachineInterface {
   }
 
   private constructor(
-    private readonly db: DB,
+    private readonly db: DBInterface,
     private readonly aggregatorAddress: Address,
     private readonly signatureVerifier: SignatureVerifier,
     private readonly swapFeeBasisPoints: number,
@@ -129,7 +129,7 @@ export class RollupStateMachine implements RollupStateMachineInterface {
   }
 
   /**
-   * Initializes this RollupStateMachineInterface, reading stored state from the DB
+   * Initializes this RollupStateMachineInterface, reading stored state from the DBInterface
    * and populating local variables from saved state if there is any.
    *
    * @returns True if there was existing state, false otherwise.

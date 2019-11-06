@@ -1,7 +1,7 @@
 import '../setup'
 
 /* External Imports */
-import { DB, newInMemoryDB } from '@pigi/core-db'
+import { DBInterface, newInMemoryDB } from '@pigi/core-db'
 import { keccak256, Secp256k1SignatureProvider } from '@pigi/core-utils'
 
 /* Internal Imports */
@@ -12,24 +12,24 @@ import {
   RollupBlockSubmitterInterface,
 } from '../../src'
 
-const getIntFromDB = async (db: DB, key: Buffer): Promise<number> => {
+const getIntFromDB = async (db: DBInterface, key: Buffer): Promise<number> => {
   return parseInt((await db.get(key)).toString(), 10)
 }
 
-const getLastQueuedFromDB = async (db: DB): Promise<number> => {
+const getLastQueuedFromDB = async (db: DBInterface): Promise<number> => {
   return getIntFromDB(db, RollupBlockSubmitter.LAST_QUEUED_KEY)
 }
 
-const getLastSubmittedFromDB = async (db: DB): Promise<number> => {
+const getLastSubmittedFromDB = async (db: DBInterface): Promise<number> => {
   return getIntFromDB(db, RollupBlockSubmitter.LAST_SUBMITTED_KEY)
 }
 
-const getLastConfirmedFromDB = async (db: DB): Promise<number> => {
+const getLastConfirmedFromDB = async (db: DBInterface): Promise<number> => {
   return getIntFromDB(db, RollupBlockSubmitter.LAST_CONFIRMED_KEY)
 }
 
 const initQueuedSubmittedConfirmed = async (
-  db: DB,
+  db: DBInterface,
   dummyContract: DummyContract,
   queued: number,
   submitted: number,
@@ -102,7 +102,7 @@ const initQueuedSubmittedConfirmed = async (
 
 describe('DefaultRollupBlockSubmitter', () => {
   let dummyContract: DummyContract
-  let db: DB
+  let db: DBInterface
   let rollupBlock: RollupBlock
   let rollupBlock2: RollupBlock
 
@@ -144,7 +144,7 @@ describe('DefaultRollupBlockSubmitter', () => {
   })
 
   describe('init()', () => {
-    it('should init without error when DB empty', async () => {
+    it('should init without error when DBInterface empty', async () => {
       await initQueuedSubmittedConfirmed(db, dummyContract, 0, 0, 0)
     })
 

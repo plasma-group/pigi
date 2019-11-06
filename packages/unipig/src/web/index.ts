@@ -7,7 +7,7 @@ import {
   SimpleClient,
   Secp256k1SignatureProvider,
 } from '@pigi/core-utils'
-import { DB, BaseDB } from '@pigi/core-db'
+import { DBInterface, DB } from '@pigi/core-db'
 import { ethers } from 'ethers'
 
 /* Internal Imports */
@@ -79,7 +79,7 @@ async function initialize() {
     valueEncoding: 'binary',
   }
 
-  const walletDB = new BaseDB(
+  const walletDB = new DB(
     (await Level('build/level/wallet', levelOptions)) as any,
     256
   )
@@ -94,7 +94,7 @@ async function initialize() {
     await walletDB.put(mnemonicKey, Buffer.from(wallet.mnemonic))
   }
 
-  const signatureDB: DB = new BaseDB(
+  const signatureDB: DBInterface = new DB(
     (await Level('build/level/signatures', levelOptions)) as any,
     256
   )
@@ -108,11 +108,11 @@ async function initialize() {
     signedByDecider
   )
 
-  const clientDB: DB = new BaseDB(
+  const clientDB: DBInterface = new DB(
     (await Level('build/level/client', levelOptions)) as any,
     256
   )
-  const transitionerDB: DB = new BaseDB(
+  const transitionerDB: DBInterface = new DB(
     (await Level('build/level/transitioner', levelOptions)) as any,
     256
   )

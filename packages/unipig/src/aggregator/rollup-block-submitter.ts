@@ -1,5 +1,5 @@
 /* External Imports */
-import { DB } from '@pigi/core-db'
+import { DBInterface } from '@pigi/core-db'
 import { getLogger, logError } from '@pigi/core-utils'
 import { Contract } from 'ethers'
 
@@ -27,7 +27,7 @@ export class RollupBlockSubmitter implements RollupBlockSubmitterInterface {
   private blockQueue: RollupBlock[]
 
   public static async create(
-    db: DB,
+    db: DBInterface,
     rollupContract: Contract
   ): Promise<RollupBlockSubmitterInterface> {
     const submitter = new RollupBlockSubmitter(db, rollupContract)
@@ -38,7 +38,7 @@ export class RollupBlockSubmitter implements RollupBlockSubmitterInterface {
   }
 
   private constructor(
-    private db: DB,
+    private db: DBInterface,
     private readonly rollupContract: Contract
   ) {
     this.blockQueue = []

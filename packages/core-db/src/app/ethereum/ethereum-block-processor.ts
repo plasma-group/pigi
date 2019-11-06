@@ -4,7 +4,7 @@ import { getLogger, logError } from '@pigi/core-utils'
 
 /* Internal Imports */
 import { EthereumListener } from '../../types/ethereum'
-import { DB } from '../../types/db'
+import { DBInterface } from '../../types/db'
 
 const log = getLogger('ethereum-block-processor')
 const blockKey: Buffer = Buffer.from('latestBlock')
@@ -21,7 +21,7 @@ export class EthereumBlockProcessor {
   private syncCompleted: boolean
 
   constructor(
-    private readonly db: DB,
+    private readonly db: DBInterface,
     private readonly earliestBlock: number = 0
   ) {
     this.subscriptions = new Set<EthereumListener<Block>>()

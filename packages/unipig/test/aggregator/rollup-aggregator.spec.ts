@@ -12,7 +12,7 @@ import {
   SimpleClient,
   sleep,
 } from '@pigi/core-utils'
-import { DB, newInMemoryDB } from '@pigi/core-db'
+import { DBInterface, newInMemoryDB } from '@pigi/core-db'
 import * as assert from 'assert'
 
 /* Internal Imports */
@@ -52,7 +52,7 @@ const log = getLogger('rollup-aggregator', true)
 
 describe('RollupAggregator', () => {
   let client
-  let aggregatorDB: DB
+  let aggregatorDB: DBInterface
   let aggregator: RollupAggregator
   let aggregatorServer: AggregatorServer
   let rollupStateMachine: RollupStateMachineInterface
@@ -345,7 +345,7 @@ describe('RollupAggregator', () => {
       }
     })
 
-    it('should init without any DB state', async () => {
+    it('should init without any DBInterface state', async () => {
       aggregator = await RollupAggregator.create(
         aggregatorDB,
         rollupStateMachine,

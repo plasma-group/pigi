@@ -15,7 +15,7 @@ import {
   MerkleInclusionProofDecider,
 } from '@pigi/ovm'
 
-import { DB } from '@pigi/core-db'
+import { DBInterface } from '@pigi/core-db'
 
 /* Internal Imports */
 import {
@@ -50,7 +50,7 @@ export class UnipigTransitioner {
   private knownState: KnownState
 
   public static async new(
-    db: DB,
+    db: DBInterface,
     aggregatorAddress: Address,
     signatureProvider?: SignatureProvider,
     aggregatorURL: string = 'http://127.0.0.1:3000'
@@ -81,7 +81,7 @@ export class UnipigTransitioner {
   }
 
   constructor(
-    private readonly db: DB,
+    private readonly db: DBInterface,
     private readonly stateSolver: RollupStateSolverInterface,
     private readonly rollupClient: RollupClient,
     private readonly signatureProvider: SignatureProvider,

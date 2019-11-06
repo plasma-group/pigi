@@ -21,7 +21,7 @@ import {
   MerkleUpdate,
   SparseMerkleTree,
 } from '../../types/block-production'
-import { DB } from '../../types/db'
+import { DBInterface } from '../../types/db'
 
 const log = getLogger('merkle-tree')
 
@@ -42,7 +42,7 @@ export class PersistedSparseMerkleTree implements SparseMerkleTree {
   private readonly hashBuffer: Buffer = Buffer.alloc(64)
 
   public static async create(
-    db: DB,
+    db: DBInterface,
     rootHash?: Buffer,
     height: number = 160,
     hashFunction = keccak256
@@ -56,7 +56,7 @@ export class PersistedSparseMerkleTree implements SparseMerkleTree {
   }
 
   private constructor(
-    private db: DB,
+    private db: DBInterface,
     private height: number = 160,
     hashFunction: HashFunction = keccak256
   ) {
@@ -487,7 +487,7 @@ export class PersistedSparseMerkleTree implements SparseMerkleTree {
 
   /**
    * Creates a Merkle Proof sibling node if a node with this hash has not already been stored
-   * in the DB.
+   * in the DBInterface.
    *
    * NOTE: If the tree is modified in parallel with a call to this function,
    * results are non-deterministic.
@@ -516,7 +516,7 @@ export class PersistedSparseMerkleTree implements SparseMerkleTree {
   }
 
   /**
-   * Gets the MerkleTreeNode with the provided hash from the DB, if one exists.
+   * Gets the MerkleTreeNode with the provided hash from the DBInterface, if one exists.
    *
    * @param nodeHash The node hash uniquely identifying the node
    * @param nodeKey The key identifying the location of the node in question
@@ -655,7 +655,7 @@ export class PersistedSparseMerkleTree implements SparseMerkleTree {
   }
 
   /**
-   * Gets the unique ID for the provided node used for lookup in the DB.
+   * Gets the unique ID for the provided node used for lookup in the DBInterface.
    *
    * @param node The node in question
    */

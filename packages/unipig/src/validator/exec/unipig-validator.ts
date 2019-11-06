@@ -3,7 +3,7 @@ import * as Level from 'level'
 import { Contract, Wallet } from 'ethers'
 import { JsonRpcProvider } from 'ethers/providers'
 
-import { BaseDB, DB, EthereumEventProcessor } from '@pigi/core-db'
+import { DB, DBInterface, EthereumEventProcessor } from '@pigi/core-db'
 import { getLogger } from '@pigi/core-utils'
 
 import { config } from 'dotenv'
@@ -51,7 +51,7 @@ async function runValidator() {
     keyEncoding: 'binary',
     valueEncoding: 'binary',
   }
-  const validatorDB = new BaseDB((await Level(
+  const validatorDB = new DB((await Level(
     'build/level/validator',
     levelOptions
   )) as any)
@@ -82,7 +82,7 @@ async function runValidator() {
     contract
   )
 
-  const blockProcessorDB: DB = new BaseDB(
+  const blockProcessorDB: DBInterface = new DB(
     (await Level('build/level/validator-blockProcessor', levelOptions)) as any,
     256
   )

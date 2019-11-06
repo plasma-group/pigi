@@ -104,7 +104,7 @@ describe('SignedByQuantifier', () => {
   })
 
   describe('getAllQuantified without channelID', () => {
-    it('returns messages from the DB with my address', async () => {
+    it('returns messages from the DBInterface with my address', async () => {
       await db.storeSignedMessage(serializedMessage1, myAddress)
       await db.storeSignedMessage(serializedMessage2, myAddress)
       const quantifier: SignedByQuantifier = new SignedByQuantifier(
@@ -123,7 +123,7 @@ describe('SignedByQuantifier', () => {
       result.results[1].signature.should.equal(myAddress)
     })
 
-    it('returns messages from the DB not with my address', async () => {
+    it('returns messages from the DBInterface not with my address', async () => {
       await db.storeSignedMessage(serializedMessage1, notMyAddress)
       await db.storeSignedMessage(serializedMessage2, notMyAddress)
       const quantifier: SignedByQuantifier = new SignedByQuantifier(
@@ -142,7 +142,7 @@ describe('SignedByQuantifier', () => {
       result.results[1].signature.should.equal(notMyAddress)
     })
 
-    it('returns empty list from DB with my address', async () => {
+    it('returns empty list from DBInterface with my address', async () => {
       const quantifier: SignedByQuantifier = new SignedByQuantifier(
         db,
         myAddress
@@ -155,7 +155,7 @@ describe('SignedByQuantifier', () => {
       result.results.length.should.equal(0)
     })
 
-    it('returns empty list from the DB not with my address', async () => {
+    it('returns empty list from the DBInterface not with my address', async () => {
       const quantifier: SignedByQuantifier = new SignedByQuantifier(
         db,
         myAddress
@@ -171,7 +171,7 @@ describe('SignedByQuantifier', () => {
 
   describe('getAllQuantified with channelID', () => {
     const channelID: string = '10'
-    it('returns messages from the DB with my address', async () => {
+    it('returns messages from the DBInterface with my address', async () => {
       const serializedMessage: string = serializeObject({
         channelID,
         nonce: ONE,

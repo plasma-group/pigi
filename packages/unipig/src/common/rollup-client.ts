@@ -36,7 +36,7 @@ export class RollupClient {
   /**
    * Initializes the RollupClient
    * @param db the KeyValueStore used by the Rollup Client. Note this is mocked
-   *           and so we don't currently use the DB.
+   *           and so we don't currently use the DBInterface.
    * @param aggregatorAddress The address of the aggregator with which this client interacts
    * @param signatureVerifier The signature verifier for this client, able to verify
    * response signatures

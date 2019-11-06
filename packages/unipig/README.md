@@ -58,4 +58,4 @@ Make sure the project is built and run:
 ```
 
 ## Clearing Data
-All data is stored within the `/build` directory at the moment, so if you'd like to blow away data, just run `yarn clean && yarn build` and run the aggregator / validator again. The DB for the aggregator & validator is leveldb, which persists to files in the `/build` directory that get blown away when you `yarn clean`
+All data is stored within the `/build` directory at the moment, so if you'd like to blow away data, just run `yarn clean && yarn build` and run the aggregator / validator again. The DBInterface for the aggregator & validator is leveldb, which persists to files in the `/build` directory that get blown away when you `yarn clean`

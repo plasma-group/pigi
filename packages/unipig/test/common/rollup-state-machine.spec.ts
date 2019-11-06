@@ -1,7 +1,7 @@
 import '../setup'
 
 /* External Imports */
-import { DB, newInMemoryDB, PersistedSparseMerkleTree } from '@pigi/core-db'
+import { DBInterface, newInMemoryDB, PersistedSparseMerkleTree } from '@pigi/core-db'
 
 import { ZERO, IdentityVerifier } from '@pigi/core-utils'
 
@@ -36,7 +36,7 @@ import {
 
 describe('RollupStateMachine', () => {
   let rollupState: RollupStateMachine
-  let db: DB
+  let db: DBInterface
 
   beforeEach(async () => {
     db = newInMemoryDB()

@@ -1,7 +1,7 @@
 /* External Imports */
 import * as Level from 'level'
 
-import { BaseDB, DB, EthereumEventProcessor } from '@pigi/core-db'
+import { DB, DBInterface, EthereumEventProcessor } from '@pigi/core-db'
 
 import {
   Secp256k1SignatureProvider,
@@ -68,11 +68,11 @@ async function runAggregator() {
     keyEncoding: 'binary',
     valueEncoding: 'binary',
   }
-  const stateDB = new BaseDB((await Level(
+  const stateDB = new DB((await Level(
     'build/level/state',
     levelOptions
   )) as any)
-  const blockDB = new BaseDB(
+  const blockDB = new DB(
     (await Level('build/level/blocks', levelOptions)) as any,
     4
   )
@@ -94,7 +94,7 @@ async function runAggregator() {
     RollupChain.interface,
     aggregatorWallet
   )
-  const blockSubmitterDB: DB = new BaseDB(
+  const blockSubmitterDB: DBInterface = new DB(
     (await Level('build/level/blockSubmitter', levelOptions)) as any,
     256
   )
@@ -115,7 +115,7 @@ async function runAggregator() {
     authorizedFaucetAddress
   )
 
-  const blockProcessorDB: DB = new BaseDB(
+  const blockProcessorDB: DBInterface = new DB(
     (await Level('build/level/blockProcessor', levelOptions)) as any,
     256
   )

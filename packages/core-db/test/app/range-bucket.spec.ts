@@ -6,7 +6,7 @@ import MemDown from 'memdown'
 
 /* Internal Imports */
 import { dbRootPath } from '../setup'
-import { BaseDB, RangeEntry, RangeBucket } from '../../src'
+import { DB, RangeEntry, RangeBucketInterface } from '../../src'
 
 const log = debug('test:info:range-db')
 
@@ -21,7 +21,7 @@ const addDefaultRangesToDB = async (rangeDB) => {
       end,
     })
   }
-  // Put them in our DB
+  // Put them in our DBInterface
   for (const range of ranges) {
     log(range.start.toString(16))
     await rangeDB.put(range.start, range.end, Buffer.from('Hello'))
@@ -41,7 +41,7 @@ class StringRangeEntry {
 }
 
 const testPutResults = async (
-  db: RangeBucket,
+  db: RangeBucketInterface,
   putContents: any[],
   expectedResults: any[]
 ): Promise<void> => {
@@ -55,7 +55,7 @@ const testPutResults = async (
 }
 
 const putRanges = async (
-  db: RangeBucket,
+  db: RangeBucketInterface,
   putContents: any[]
 ): Promise<void> => {
   for (const putContent of putContents) {
@@ -81,7 +81,7 @@ describe('RangeDB', () => {
   let rangeDB
 
   beforeEach(async () => {
-    const baseDB = new BaseDB(new MemDown('') as any)
+    const baseDB = new DB(new MemDown('') as any)
     rangeDB = baseDB.rangeBucket(Buffer.from([prefixCounter++]))
   })
 
@@ -109,7 +109,7 @@ describe('RangeDB', () => {
   })
 
   it('returns a range which surrounds the range which you are getting', async () => {
-    // This covers the case where the DB has one element of range 0-10, and you get 3-4, then it
+    // This covers the case where the DBInterface has one element of range 0-10, and you get 3-4, then it
     // should return the entire element which "surrounds" your get query.
     const start = 0
     const end = 10
@@ -132,7 +132,7 @@ describe('RangeDB', () => {
   it('allows gets on all of the values that have been put', async () => {
     // Add some ranges to our db
     const ranges = await addDefaultRangesToDB(rangeDB)
-    // Get them from our DB
+    // Get them from our DBInterface
     const gottenRanges = await rangeDB.get(
       ranges[0].start,
       ranges[ranges.length - 1].end

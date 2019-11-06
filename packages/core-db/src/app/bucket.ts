@@ -5,11 +5,11 @@
 
 /* Internal Imports */
 import {
-  RangeBucket,
+  RangeBucketInterface,
   Batch,
-  Bucket,
-  DB,
-  Iterator,
+  BucketInterface,
+  DBInterface,
+  IteratorInterface,
   IteratorOptions,
   K,
   V,
@@ -19,12 +19,12 @@ import {
  * Simple bucket implementation that forwards all
  * calls up to the database but appends a prefix.
  */
-export class BaseBucket implements Bucket {
-  constructor(readonly db: DB, readonly prefix: Buffer) {}
+export class Bucket implements BucketInterface {
+  constructor(readonly db: DBInterface, readonly prefix: Buffer) {}
 
   /**
    * Queries the value at a given key.
-   * @param key Key to query.
+   * @param key KeyInterface to query.
    * @returns the value at that key.
    */
   public async get(key: K): Promise<V> {
@@ -33,7 +33,7 @@ export class BaseBucket implements Bucket {
 
   /**
    * Sets the value at a given key.
-   * @param key Key to set.
+   * @param key KeyInterface to set.
    * @param value Value to set to.
    */
   public async put(key: K, value: V): Promise<void> {
@@ -42,7 +42,7 @@ export class BaseBucket implements Bucket {
 
   /**
    * Deletes a given key.
-   * @param key Key to delete.
+   * @param key KeyInterface to delete.
    */
   public async del(key: K): Promise<void> {
     return this.db.del(this.addPrefix(key))
@@ -50,7 +50,7 @@ export class BaseBucket implements Bucket {
 
   /**
    * Checks whether a given key is set.
-   * @param key Key to query.
+   * @param key KeyInterface to query.
    * @returns `true` if the key is set, `false` otherwise.
    */
   public async has(key: K): Promise<boolean> {
@@ -77,7 +77,7 @@ export class BaseBucket implements Bucket {
    * @param options Parameters for the iterator.
    * @returns the iterator instance.
    */
-  public iterator(options?: IteratorOptions): Iterator {
+  public iterator(options?: IteratorOptions): IteratorInterface {
     return this.db.iterator({
       ...options,
       prefix: this.addPrefix(options.prefix),
@@ -90,7 +90,7 @@ export class BaseBucket implements Bucket {
    * @param prefix Prefix to use for the bucket.
    * @returns the bucket instance.
    */
-  public bucket(prefix: Buffer): Bucket {
+  public bucket(prefix: Buffer): BucketInterface {
     return this.db.bucket(this.addPrefix(prefix))
   }
 
@@ -100,7 +100,7 @@ export class BaseBucket implements Bucket {
    * @param prefix Prefix to use for the bucket.
    * @returns the range bucket instance.
    */
-  public rangeBucket(prefix: Buffer): RangeBucket {
+  public rangeBucket(prefix: Buffer): RangeBucketInterface {
     return this.db.rangeBucket(this.addPrefix(prefix))
   }
 

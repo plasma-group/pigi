@@ -1,5 +1,5 @@
 /* External Imports */
-import { DB, EthereumEvent, EthereumListener } from '@pigi/core-db'
+import { DBInterface, EthereumEvent, EthereumListener } from '@pigi/core-db'
 import { getLogger, logError } from '@pigi/core-utils'
 import * as AsyncLock from 'async-lock'
 
@@ -26,7 +26,7 @@ export class RollupFraudGuard implements EthereumListener<EthereumEvent> {
   private lastBlockValidated: number
 
   public static async create(
-    db: DB,
+    db: DBInterface,
     validator: RollupStateValidatorInterface,
     contract: Contract
   ): Promise<RollupFraudGuard> {
@@ -42,7 +42,7 @@ export class RollupFraudGuard implements EthereumListener<EthereumEvent> {
   }
 
   private constructor(
-    private readonly db: DB,
+    private readonly db: DBInterface,
     private readonly validator: RollupStateValidatorInterface,
     private readonly contract: Contract
   ) {

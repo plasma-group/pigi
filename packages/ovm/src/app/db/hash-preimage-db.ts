@@ -6,7 +6,7 @@ import {
   hashFunctionFor,
   deserializeObject,
 } from '@pigi/core-utils'
-import { DB } from '@pigi/core-db'
+import { DBInterface } from '@pigi/core-db'
 
 /* Internal Imports */
 import { HashPreimageDBInterface } from '../../types/db'
@@ -21,10 +21,10 @@ interface Record {
 }
 
 /*
- * DB to store and access hashes and their associated preimages.
+ * DBInterface to store and access hashes and their associated preimages.
  */
 export class HashPreimageDB implements HashPreimageDBInterface {
-  public constructor(private readonly db: DB) {}
+  public constructor(private readonly db: DBInterface) {}
 
   public async handleMessage(serializedMessage: string): Promise<void> {
     try {

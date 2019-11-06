@@ -11,18 +11,18 @@ import MemDown from 'memdown'
 
 /* Internal Imports */
 import {
-  RangeBucket,
-  DB,
+  RangeBucketInterface,
+  DBInterface,
   K,
   V,
   Batch,
   IteratorOptions,
-  Iterator,
-  Bucket,
+  IteratorInterface,
+  BucketInterface,
 } from '../types'
-import { BaseIterator } from './iterator'
-import { BaseBucket } from './bucket'
-import { BaseRangeBucket } from './range-bucket'
+import { Iterator } from './iterator'
+import { Bucket } from './bucket'
+import { RangeBucket } from './range-bucket'
 
 const log = getLogger('db')
 export const DEFAULT_PREFIX_LENGTH = 3
@@ -45,9 +45,9 @@ const isNotFound = (err: any): boolean => {
 }
 
 /**
- * Basic DB implementation that wraps some underlying store.
+ * Basic DBInterface implementation that wraps some underlying store.
  */
-export class BaseDB implements DB {
+export class DB implements DBInterface {
   constructor(
     readonly db: AbstractLevelDOWN,
     readonly prefixLength: number = DEFAULT_PREFIX_LENGTH
@@ -96,7 +96,7 @@ export class BaseDB implements DB {
 
   /**
    * Queries the value at a given key.
-   * @param key Key to query.
+   * @param key KeyInterface to query.
    * @returns the value at that key or `null` if the key was not found.
    */
   public async get(key: K): Promise<V> {
@@ -123,7 +123,7 @@ export class BaseDB implements DB {
 
   /**
    * Sets the value at a given key.
-   * @param key Key to set.
+   * @param key KeyInterface to set.
    * @param value Value to set to.
    */
   public async put(key: K, value: V): Promise<void> {
@@ -145,7 +145,7 @@ export class BaseDB implements DB {
 
   /**
    * Deletes a given key.
-   * @param key Key to delete.
+   * @param key KeyInterface to delete.
    */
   public async del(key: K): Promise<void> {
     return new Promise<void>((resolve, reject) => {
@@ -166,7 +166,7 @@ export class BaseDB implements DB {
 
   /**
    * Checks whether a given key is set.
-   * @param key Key to query.
+   * @param key KeyInterface to query.
    * @returns `true` if the key is set, `false` otherwise.
    */
   public async has(key: K): Promise<boolean> {
@@ -207,8 +207,8 @@ export class BaseDB implements DB {
    * @param options Parameters for the iterator.
    * @returns the iterator instance.
    */
-  public iterator(options?: IteratorOptions): Iterator {
-    return new BaseIterator(this, options)
+  public iterator(options?: IteratorOptions): IteratorInterface {
+    return new Iterator(this, options)
   }
 
   /**
@@ -217,8 +217,8 @@ export class BaseDB implements DB {
    * @param prefix Prefix to use for the bucket.
    * @returns the bucket instance.
    */
-  public bucket(prefix: Buffer): Bucket {
-    return new BaseBucket(this, bufferUtils.padLeft(prefix, this.prefixLength))
+  public bucket(prefix: Buffer): BucketInterface {
+    return new Bucket(this, bufferUtils.padLeft(prefix, this.prefixLength))
   }
 
   /**
@@ -227,8 +227,8 @@ export class BaseDB implements DB {
    * @param prefix Prefix to use for the bucket.
    * @returns the bucket instance.
    */
-  public rangeBucket(prefix: Buffer): RangeBucket {
-    return new BaseRangeBucket(
+  public rangeBucket(prefix: Buffer): RangeBucketInterface {
+    return new RangeBucket(
       this,
       bufferUtils.padLeft(prefix, this.prefixLength)
     )
@@ -236,9 +236,9 @@ export class BaseDB implements DB {
 }
 
 let memId: BigNumber = ZERO
-export const newInMemoryDB = (prefixLength: number = 256, options?: {}): DB => {
+export const newInMemoryDB = (prefixLength: number = 256, options?: {}): DBInterface => {
   memId = memId.add(ONE)
-  return new BaseDB(
+  return new DB(
     new MemDown(`newInMemoryDB/${memId.toString()}`) as any,
     prefixLength
   )
