@@ -1,7 +1,11 @@
 import '../setup'
 
 /* External Imports */
-import { DBInterface, newInMemoryDB, PersistedSparseMerkleTree } from '@pigi/core-db'
+import {
+  DBInterface,
+  newInMemoryDB,
+  PersistedSparseMerkleTree,
+} from '@pigi/core-db'
 
 import { ZERO, IdentityVerifier } from '@pigi/core-utils'
 
@@ -258,10 +262,7 @@ describe('RollupStateMachine', () => {
       )
 
       await Promise.all([
-        db.put(
-          RollupStateMachine.ADDRESS_TO_KEYS_COUNT_KEY,
-          Buffer.from('1')
-        ),
+        db.put(RollupStateMachine.ADDRESS_TO_KEYS_COUNT_KEY, Buffer.from('1')),
         db.put(RollupStateMachine.LAST_OPEN_KEY, ZERO.toBuffer()),
         db.put(
           RollupStateMachine.getAddressMapDBKey(0),

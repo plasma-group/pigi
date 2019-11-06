@@ -228,15 +228,15 @@ export class DB implements DBInterface {
    * @returns the bucket instance.
    */
   public rangeBucket(prefix: Buffer): RangeBucketInterface {
-    return new RangeBucket(
-      this,
-      bufferUtils.padLeft(prefix, this.prefixLength)
-    )
+    return new RangeBucket(this, bufferUtils.padLeft(prefix, this.prefixLength))
   }
 }
 
 let memId: BigNumber = ZERO
-export const newInMemoryDB = (prefixLength: number = 256, options?: {}): DBInterface => {
+export const newInMemoryDB = (
+  prefixLength: number = 256,
+  options?: {}
+): DBInterface => {
   memId = memId.add(ONE)
   return new DB(
     new MemDown(`newInMemoryDB/${memId.toString()}`) as any,

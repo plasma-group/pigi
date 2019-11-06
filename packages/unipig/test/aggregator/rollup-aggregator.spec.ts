@@ -79,7 +79,9 @@ describe('RollupAggregator', () => {
         aggregatorDB,
         rollupStateMachine,
         dummyBlockSubmitter,
-        new Secp256k1SignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)),
+        new Secp256k1SignatureProvider(
+          Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)
+        ),
         Secp256k1SignatureVerifier.instance(),
         2
       )
@@ -350,7 +352,9 @@ describe('RollupAggregator', () => {
         aggregatorDB,
         rollupStateMachine,
         dummyBlockSubmitter,
-        new Secp256k1SignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)),
+        new Secp256k1SignatureProvider(
+          Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)
+        ),
         Secp256k1SignatureVerifier.instance(),
         2
       )
@@ -381,7 +385,9 @@ describe('RollupAggregator', () => {
         aggregatorDB,
         rollupStateMachine,
         dummyBlockSubmitter,
-        new Secp256k1SignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)),
+        new Secp256k1SignatureProvider(
+          Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)
+        ),
         Secp256k1SignatureVerifier.instance(),
         2
       )
@@ -413,7 +419,9 @@ describe('RollupAggregator', () => {
         aggregatorDB,
         rollupStateMachine,
         dummyBlockSubmitter,
-        new Secp256k1SignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)),
+        new Secp256k1SignatureProvider(
+          Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)
+        ),
         Secp256k1SignatureVerifier.instance(),
         2
       )
@@ -452,7 +460,9 @@ describe('RollupAggregator', () => {
         aggregatorDB,
         rollupStateMachine,
         dummyBlockSubmitter,
-        new Secp256k1SignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)),
+        new Secp256k1SignatureProvider(
+          Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)
+        ),
         Secp256k1SignatureVerifier.instance(),
         2,
         1_000
@@ -471,7 +481,9 @@ describe('RollupAggregator', () => {
         aggregatorDB,
         rollupStateMachine,
         dummyBlockSubmitter,
-        new Secp256k1SignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)),
+        new Secp256k1SignatureProvider(
+          Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)
+        ),
         Secp256k1SignatureVerifier.instance(),
         2,
         1_000

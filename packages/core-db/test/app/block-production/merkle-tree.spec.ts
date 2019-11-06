@@ -28,7 +28,9 @@ const hashBuffer: Buffer = Buffer.alloc(64)
 const hashFunction: HashFunction = keccak256
 const bufferHashFunction: (buffer: Buffer) => Buffer = (buff: Buffer) =>
   Buffer.from(hashFunction(buff.toString('hex')), 'hex')
-const zeroHash: Buffer = bufferHashFunction(PersistedSparseMerkleTree.emptyBuffer)
+const zeroHash: Buffer = bufferHashFunction(
+  PersistedSparseMerkleTree.emptyBuffer
+)
 
 const verifyEmptyTreeWithDepth = async (
   tree: SparseMerkleTree,
@@ -115,12 +117,18 @@ describe('SparseMerkleTreeImpl', () => {
     })
 
     it('accepts a non-empty root hash', async () => {
-      await PersistedSparseMerkleTree.create(db, Buffer.alloc(32).fill('root', 0))
+      await PersistedSparseMerkleTree.create(
+        db,
+        Buffer.alloc(32).fill('root', 0)
+      )
     })
 
     it('throws if root is not 32 bytes', async () => {
       await TestUtils.assertThrowsAsync(async () => {
-        await PersistedSparseMerkleTree.create(db, Buffer.alloc(31).fill('root', 0))
+        await PersistedSparseMerkleTree.create(
+          db,
+          Buffer.alloc(31).fill('root', 0)
+        )
       }, assert.AssertionError)
     })
 
@@ -207,7 +215,11 @@ describe('SparseMerkleTreeImpl', () => {
       const value: Buffer = Buffer.from('non-empty')
       const root: Buffer = bufferHashFunction(
         hashBuffer
-          .fill(bufferHashFunction(PersistedSparseMerkleTree.emptyBuffer), 0, 32)
+          .fill(
+            bufferHashFunction(PersistedSparseMerkleTree.emptyBuffer),
+            0,
+            32
+          )
           .fill(bufferHashFunction(value), 32)
       )
 

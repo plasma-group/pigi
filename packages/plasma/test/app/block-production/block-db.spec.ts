@@ -2,12 +2,7 @@ import { should } from '../../setup'
 
 /* External Imports */
 import { BigNumber, ONE } from '@pigi/core-utils'
-import {
-  KeyValueStore,
-  Bucket,
-  DB,
-  DEFAULT_PREFIX_LENGTH,
-} from '@pigi/core-db'
+import { KeyValueStore, Bucket, DB, DEFAULT_PREFIX_LENGTH } from '@pigi/core-db'
 
 import MemDown from 'memdown'
 import * as assert from 'assert'

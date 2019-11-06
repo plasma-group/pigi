@@ -135,9 +135,7 @@ export class RollupStateMachine implements RollupStateMachineInterface {
    * @returns True if there was existing state, false otherwise.
    */
   private async init(): Promise<boolean> {
-    const storedRoot: Buffer = await this.db.get(
-      RollupStateMachine.ROOT_KEY
-    )
+    const storedRoot: Buffer = await this.db.get(RollupStateMachine.ROOT_KEY)
 
     this.tree = await PersistedSparseMerkleTree.create(
       this.db,
@@ -337,10 +335,7 @@ export class RollupStateMachine implements RollupStateMachineInterface {
       const inclusionProof = async (state: State): Promise<InclusionProof> => {
         const proof: MerkleTreeInclusionProof = await this.tree.getMerkleProof(
           this.getAddressKey(state.pubkey),
-          RollupStateMachine.serializeBalances(
-            state.pubkey,
-            state.balances
-          )
+          RollupStateMachine.serializeBalances(state.pubkey, state.balances)
         )
         return proof.siblings.map((p) => p.toString('hex'))
       }
@@ -404,7 +399,8 @@ export class RollupStateMachine implements RollupStateMachineInterface {
     let state: State
     let inclusionProof: InclusionProof
     state =
-      !!accountState && !accountState.equals(PersistedSparseMerkleTree.emptyBuffer)
+      !!accountState &&
+      !accountState.equals(PersistedSparseMerkleTree.emptyBuffer)
         ? RollupStateMachine.deserializeState(accountState)
         : {
             pubkey: NULL_ADDRESS,
@@ -532,10 +528,7 @@ export class RollupStateMachine implements RollupStateMachineInterface {
     ])
 
     return [
-      RollupStateMachine.getStateFromBalances(
-        transfer.sender,
-        senderBalances
-      ),
+      RollupStateMachine.getStateFromBalances(transfer.sender, senderBalances),
       RollupStateMachine.getStateFromBalances(
         transfer.recipient,
         recipientBalances
@@ -611,10 +604,7 @@ export class RollupStateMachine implements RollupStateMachineInterface {
 
     return [
       RollupStateMachine.getStateFromBalances(sender, senderBalances),
-      RollupStateMachine.getStateFromBalances(
-        UNISWAP_ADDRESS,
-        uniswapBalances
-      ),
+      RollupStateMachine.getStateFromBalances(UNISWAP_ADDRESS, uniswapBalances),
     ]
   }
 
@@ -654,13 +644,8 @@ export class RollupStateMachine implements RollupStateMachineInterface {
 
     // Order of updates matters here, so can't parallelize
     await this.db.put(
-      RollupStateMachine.getAddressMapDBKey(
-        this.addressesToKeys.size - 1
-      ),
-      RollupStateMachine.serializeAddressToKeyForDB(
-        address,
-        this.lastOpenKey
-      )
+      RollupStateMachine.getAddressMapDBKey(this.addressesToKeys.size - 1),
+      RollupStateMachine.serializeAddressToKeyForDB(address, this.lastOpenKey)
     )
     await Promise.all([
       this.db.put(
@@ -682,9 +667,7 @@ export class RollupStateMachine implements RollupStateMachineInterface {
 
   public static serializeBalances(address: string, balances: Balances): Buffer {
     return Buffer.from(
-      abiEncodeState(
-        RollupStateMachine.getStateFromBalances(address, balances)
-      )
+      abiEncodeState(RollupStateMachine.getStateFromBalances(address, balances))
     )
   }
 

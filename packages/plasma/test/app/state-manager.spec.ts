@@ -190,7 +190,9 @@ describe('DefaultStateManager', () => {
 
       const plugin: PredicatePlugin = getPluginThatReturns([endStateObject])
 
-      const stateDB: StateDBInterface = getStateDBThatReturns(verifiedStateUpdates)
+      const stateDB: StateDBInterface = getStateDBThatReturns(
+        verifiedStateUpdates
+      )
       const pluginManager: PluginManager = getPluginManagerThatReturns(
         new Map<string, PredicatePlugin>([[predicateAddress, plugin]])
       )
@@ -242,7 +244,9 @@ describe('DefaultStateManager', () => {
 
       const plugin: PredicatePlugin = getPluginThatReturns([endStateObject])
 
-      const stateDB: StateDBInterface = getStateDBThatReturns(verifiedStateUpdates)
+      const stateDB: StateDBInterface = getStateDBThatReturns(
+        verifiedStateUpdates
+      )
       const pluginManager: PluginManager = getPluginManagerThatReturns(
         new Map<string, PredicatePlugin>([[predicateAddress, plugin]])
       )
@@ -302,7 +306,9 @@ describe('DefaultStateManager', () => {
 
       const plugin: PredicatePlugin = getPluginThatReturns([endStateObject])
 
-      const stateDB: StateDBInterface = getStateDBThatReturns(verifiedStateUpdates)
+      const stateDB: StateDBInterface = getStateDBThatReturns(
+        verifiedStateUpdates
+      )
       const pluginManager: PluginManager = getPluginManagerThatReturns(
         new Map<string, PredicatePlugin>([[predicateAddress, plugin]])
       )
@@ -360,7 +366,9 @@ describe('DefaultStateManager', () => {
 
       const plugin: PredicatePlugin = getPluginThatReturns([endStateObject])
 
-      const stateDB: StateDBInterface = getStateDBThatReturns(verifiedStateUpdates)
+      const stateDB: StateDBInterface = getStateDBThatReturns(
+        verifiedStateUpdates
+      )
       const pluginManager: PluginManager = getPluginManagerThatReturns(
         new Map<string, PredicatePlugin>([[predicateAddress, plugin]])
       )
@@ -402,7 +410,9 @@ describe('DefaultStateManager', () => {
       // This should never be called
       const plugin: PredicatePlugin = undefined
 
-      const stateDB: StateDBInterface = getStateDBThatReturns(verifiedStateUpdates)
+      const stateDB: StateDBInterface = getStateDBThatReturns(
+        verifiedStateUpdates
+      )
       const pluginManager: PluginManager = getPluginManagerThatReturns(
         new Map<string, PredicatePlugin>([[predicateAddress, plugin]])
       )
@@ -441,7 +451,9 @@ describe('DefaultStateManager', () => {
 
       const plugin: PredicatePlugin = getPluginThatReturns([endStateObject])
 
-      const stateDB: StateDBInterface = getStateDBThatReturns(verifiedStateUpdates)
+      const stateDB: StateDBInterface = getStateDBThatReturns(
+        verifiedStateUpdates
+      )
       const pluginManager: PluginManager = getPluginManagerThatReturns(
         new Map<string, PredicatePlugin>([[predicateAddress, plugin]])
       )
@@ -500,7 +512,9 @@ describe('DefaultStateManager', () => {
         secondStateObject,
       ])
 
-      const stateDB: StateDBInterface = getStateDBThatReturns(verifiedStateUpdates)
+      const stateDB: StateDBInterface = getStateDBThatReturns(
+        verifiedStateUpdates
+      )
       const pluginManager: PluginManager = getPluginManagerThatReturns(
         new Map<string, PredicatePlugin>([
           [predicateAddress, plugin],
@@ -560,7 +574,9 @@ describe('DefaultStateManager', () => {
         secondStateObject,
       ])
 
-      const stateDB: StateDBInterface = getStateDBThatReturns(verifiedStateUpdates)
+      const stateDB: StateDBInterface = getStateDBThatReturns(
+        verifiedStateUpdates
+      )
       const pluginManager: PluginManager = getPluginManagerThatReturns(
         new Map<string, PredicatePlugin>([[predicateAddress, plugin]])
       )
@@ -594,7 +610,9 @@ describe('DefaultStateManager', () => {
 
       const plugin: PredicatePlugin = getPluginThatReturns([endStateObject])
 
-      const stateDB: StateDBInterface = getStateDBThatReturns(verifiedStateUpdates)
+      const stateDB: StateDBInterface = getStateDBThatReturns(
+        verifiedStateUpdates
+      )
       const pluginManager: PluginManager = getPluginManagerThatReturns(
         new Map<string, PredicatePlugin>([[predicateAddress, plugin]])
       )

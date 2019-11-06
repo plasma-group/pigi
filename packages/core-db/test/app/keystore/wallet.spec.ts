@@ -5,7 +5,10 @@ import { NULL_ADDRESS } from '@pigi/core-utils'
 import { ethers } from 'ethers'
 
 /* Internal Imports */
-import { PersistedWallet, WalletKeyValueStoreDB } from '../../../src/app/keystore'
+import {
+  PersistedWallet,
+  WalletKeyValueStoreDB,
+} from '../../../src/app/keystore'
 import { newInMemoryDB } from '../../../src/app'
 
 const timeout = 15_000

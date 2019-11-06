@@ -28,8 +28,14 @@ async function createSMTfromDataBlocks(
   return tree
 }
 
-async function getNewSMT(treeHeight: number): Promise<PersistedSparseMerkleTree> {
-  return PersistedSparseMerkleTree.create(newInMemoryDB(), undefined, treeHeight)
+async function getNewSMT(
+  treeHeight: number
+): Promise<PersistedSparseMerkleTree> {
+  return PersistedSparseMerkleTree.create(
+    newInMemoryDB(),
+    undefined,
+    treeHeight
+  )
 }
 
 function makeRandomBlockOfSize(blockSize: number): string[] {
