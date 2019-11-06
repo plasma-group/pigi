@@ -2,7 +2,7 @@
 import { HashAlgorithm } from '@pigi/core-utils'
 
 /* Internal Imports */
-import { MessageSubscriber } from '../message-subscriber.interface'
+import { MessageSubscriber } from '../message-subscriber'
 
 export interface HashPreimageDBInterface extends MessageSubscriber {
   /**

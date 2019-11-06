@@ -1,5 +1,5 @@
 /* External Imports */
-import { SparseMerkleTreeImpl, newInMemoryDB } from '@pigi/core-db'
+import { PersistedSparseMerkleTree, newInMemoryDB } from '@pigi/core-db'
 import { hexStrToBuf, bufToHexString, BigNumber } from '@pigi/core-utils'
 
 /* Internal Imports */
@@ -30,7 +30,7 @@ export class DefaultRollupBlock implements RollupBlock {
   public transitions: RollupTransition[]
   public encodedTransitions: string[]
   public blockNumber: number
-  public tree: SparseMerkleTreeImpl
+  public tree: PersistedSparseMerkleTree
 
   constructor(transitions: RollupTransition[], blockNumber: number) {
     this.transitions = transitions
@@ -43,7 +43,7 @@ export class DefaultRollupBlock implements RollupBlock {
   public async generateTree(): Promise<void> {
     // Create a tree!
     const treeHeight = Math.ceil(Math.log2(this.transitions.length)) + 1 // The height should actually not be plus 1
-    this.tree = await SparseMerkleTreeImpl.create(
+    this.tree = await PersistedSparseMerkleTree.create(
       newInMemoryDB(),
       undefined,
       treeHeight

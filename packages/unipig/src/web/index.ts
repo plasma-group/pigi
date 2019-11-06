@@ -5,15 +5,15 @@ import { SignedByDB, SignedByDecider } from '@pigi/ovm'
 import {
   getLogger,
   SimpleClient,
-  DefaultSignatureProvider,
+  Secp256k1SignatureProvider,
 } from '@pigi/core-utils'
 import { DB, BaseDB } from '@pigi/core-db'
 import { ethers } from 'ethers'
 
 /* Internal Imports */
-import { Address, Balances, RollupStateSolver } from '../types'
+import { Address, Balances, RollupStateSolverInterface } from '../types'
 import {
-  DefaultRollupStateSolver,
+  RollupStateSolver,
   PIGI_TOKEN_TYPE,
   RollupClient,
   UNI_TOKEN_TYPE,
@@ -103,7 +103,7 @@ async function initialize() {
     signedByDB,
     wallet.address
   )
-  const rollupStateSolver: RollupStateSolver = new DefaultRollupStateSolver(
+  const rollupStateSolver: RollupStateSolverInterface = new RollupStateSolver(
     signedByDB,
     signedByDecider
   )
@@ -125,7 +125,7 @@ async function initialize() {
     transitionerDB,
     rollupStateSolver,
     rollupClient,
-    new DefaultSignatureProvider(wallet),
+    new Secp256k1SignatureProvider(wallet),
     aggregatorAddress
   )
   // Update account address

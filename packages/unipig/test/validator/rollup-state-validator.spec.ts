@@ -23,8 +23,8 @@ import {
   UNI_TOKEN_TYPE,
   UNISWAP_ADDRESS,
   PIGI_TOKEN_TYPE,
-  DefaultRollupStateValidator,
   RollupStateValidator,
+  RollupStateValidatorInterface,
   LocalFraudProof,
   CreateAndTransferTransition,
   StateSnapshot,
@@ -35,7 +35,7 @@ import {
   ValidationOutOfOrderError,
   AggregatorUnsupportedError,
   ContractFraudProof,
-  DefaultRollupStateMachine,
+  RollupStateMachine,
 } from '../../src'
 
 /***********
@@ -85,19 +85,19 @@ function getMultiBalanceGenesis(
  *********/
 
 describe('RollupStateValidator', () => {
-  let rollupGuard: DefaultRollupStateValidator
+  let rollupGuard: RollupStateValidator
   let stateDb: DB
 
   beforeEach(async () => {
     stateDb = newInMemoryDB()
-    const rollupStateMachine: DefaultRollupStateMachine = (await DefaultRollupStateMachine.create(
+    const rollupStateMachine: RollupStateMachine = (await RollupStateMachine.create(
       getMultiBalanceGenesis(),
       stateDb,
       AGGREGATOR_ADDRESS,
       ChecksumAgnosticIdentityVerifier.instance()
-    )) as DefaultRollupStateMachine
+    )) as RollupStateMachine
 
-    rollupGuard = new DefaultRollupStateValidator(rollupStateMachine)
+    rollupGuard = new RollupStateValidator(rollupStateMachine)
   })
 
   afterEach(async () => {

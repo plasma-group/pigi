@@ -1,4 +1,4 @@
-import { MessageSubscriber } from '../message-subscriber.interface'
+import { MessageSubscriber } from '../message-subscriber'
 import { SignedMessage } from '../serialization'
 
 export interface SignedByDBInterface extends MessageSubscriber {

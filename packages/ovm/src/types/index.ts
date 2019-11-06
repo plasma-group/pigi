@@ -1,5 +1,5 @@
 export * from './db'
 export * from './serialization'
 
-export * from './decider.interface'
-export * from './quantifier.interface'
+export * from './decider'
+export * from './quantifier'

@@ -1,7 +1,7 @@
 /* External Imports */
 import { ethers } from 'ethers'
 import {
-  DefaultSignatureProvider,
+  Secp256k1SignatureProvider,
   SignatureProvider,
   Wallet,
 } from '@pigi/core-utils'
@@ -12,7 +12,7 @@ import { WalletDB } from '../../types'
 /**
  * Simple Wallet implementation.
  */
-export class DefaultWallet implements Wallet {
+export class PersistedWallet implements Wallet {
   private unlocked: Record<string, ethers.Wallet> = {}
 
   /**
@@ -87,7 +87,7 @@ export class DefaultWallet implements Wallet {
       throw new Error('Account is not unlocked.')
     }
 
-    return new DefaultSignatureProvider(this.unlocked[address])
+    return new Secp256k1SignatureProvider(this.unlocked[address])
   }
 
   /**

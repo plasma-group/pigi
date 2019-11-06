@@ -6,7 +6,7 @@ import {
 } from 'abstract-leveldown'
 
 /* Internal Imports */
-import { RangeBucket, RangeEntry } from './range-db.interface'
+import { RangeBucket, RangeEntry } from './range-db'
 
 export type K = NonNullable<Buffer>
 export type V = NonNullable<Buffer>

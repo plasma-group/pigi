@@ -2,9 +2,9 @@
 import { BigNumber } from '@pigi/core-utils'
 
 /* Internal Imports */
-import { VerifiedStateUpdate } from './state.interface'
+import { VerifiedStateUpdate } from './state'
 
-export interface StateDB {
+export interface StateDBInterface {
   /**
    * Gets the VerifiedStateUpdates for the provided Range.
    *

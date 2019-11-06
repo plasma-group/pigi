@@ -11,7 +11,7 @@ import { Mutex } from 'async-mutex'
 
 /* Internal Imports */
 
-import { BlockDB, StateUpdate } from '../../types'
+import { BlockDBInterface, StateUpdate } from '../../types'
 import { deserializeStateUpdate, serializeStateUpdate } from '../serialization'
 
 const KEYS = {
@@ -20,9 +20,9 @@ const KEYS = {
 }
 
 /**
- * Simple BlockDB implementation.
+ * Simple BlockDBInterface implementation.
  */
-export class DefaultBlockDB implements BlockDB {
+export class BlockDB implements BlockDBInterface {
   private readonly blockMutex: Mutex
 
   /**

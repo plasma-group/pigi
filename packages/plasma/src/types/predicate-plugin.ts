@@ -1,4 +1,4 @@
-import { StateObject, StateUpdate, Transaction } from './state.interface'
+import { StateObject, StateUpdate, Transaction } from './state'
 
 export interface PredicatePlugin {
   /**

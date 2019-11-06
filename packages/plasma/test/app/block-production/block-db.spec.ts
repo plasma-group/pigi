@@ -13,8 +13,8 @@ import MemDown from 'memdown'
 import * as assert from 'assert'
 
 /* Internal Imports */
-import { DefaultBlockDB } from '../../../src/app/block-production'
-import { BlockDB } from '../../../src/types/block-production'
+import { BlockDB } from '../../../src/app/block-production'
+import { BlockDBInterface } from '../../../src/types/block-production'
 import { StateUpdate } from '../../../src/types'
 import { TestUtils } from '../test-utils'
 import { stateUpdatesEqual } from '../../../src/app/utils'
@@ -30,7 +30,7 @@ import { stateUpdatesEqual } from '../../../src/app/utils'
 describe('DefaultBlockDB', () => {
   let varStore: KeyValueStore
   let blockStore: KeyValueStore
-  let blockDB: BlockDB
+  let blockDB: BlockDBInterface
 
   beforeEach(async () => {
     varStore = new BaseBucket(
@@ -41,7 +41,7 @@ describe('DefaultBlockDB', () => {
       new BaseDB(new MemDown('') as any, DEFAULT_PREFIX_LENGTH * 2),
       Buffer.from('b')
     )
-    blockDB = new DefaultBlockDB(varStore, blockStore)
+    blockDB = new BlockDB(varStore, blockStore)
   })
 
   describe('getNextBlockNumber', () => {

@@ -7,7 +7,7 @@ import {
   StateUpdate,
   Transaction,
   VerifiedStateUpdate,
-} from './state.interface'
+} from './state'
 
 /**
  * Validates that the provided StateObject has all of the necessary fields populated with valid data.

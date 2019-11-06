@@ -1,4 +1,4 @@
-import { PredicatePlugin } from './predicate-plugin.interface'
+import { PredicatePlugin } from './predicate-plugin'
 
 export interface PluginManager {
   /**

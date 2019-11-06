@@ -2,7 +2,7 @@ import '../setup'
 
 /* External Imports */
 import { createMockProvider, deployContract, getWallets } from 'ethereum-waffle'
-import { SparseMerkleTreeImpl, newInMemoryDB } from '@pigi/core-db'
+import { PersistedSparseMerkleTree, newInMemoryDB } from '@pigi/core-db'
 
 import { hexStrToBuf, bufToHexString, BigNumber } from '@pigi/core-utils'
 
@@ -18,7 +18,7 @@ const log = debug('test:info:merkle-utils')
 
 async function createSMTfromDataBlocks(
   dataBlocks: Buffer[]
-): Promise<SparseMerkleTreeImpl> {
+): Promise<PersistedSparseMerkleTree> {
   const treeHeight = Math.ceil(Math.log2(dataBlocks.length)) + 1 // The height should actually not be plus 1
   log('Creating tree of height:', treeHeight - 1)
   const tree = await getNewSMT(treeHeight)
@@ -28,8 +28,8 @@ async function createSMTfromDataBlocks(
   return tree
 }
 
-async function getNewSMT(treeHeight: number): Promise<SparseMerkleTreeImpl> {
-  return SparseMerkleTreeImpl.create(newInMemoryDB(), undefined, treeHeight)
+async function getNewSMT(treeHeight: number): Promise<PersistedSparseMerkleTree> {
+  return PersistedSparseMerkleTree.create(newInMemoryDB(), undefined, treeHeight)
 }
 
 function makeRandomBlockOfSize(blockSize: number): string[] {

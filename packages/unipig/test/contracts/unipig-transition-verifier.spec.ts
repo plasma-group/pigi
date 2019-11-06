@@ -3,10 +3,10 @@ import '../setup'
 /* External Imports */
 import { createMockProvider, deployContract, getWallets } from 'ethereum-waffle'
 import {
-  DefaultSignatureProvider,
+  Secp256k1SignatureProvider,
   SignatureProvider,
   SignatureVerifier,
-  DefaultSignatureVerifier,
+  Secp256k1SignatureVerifier,
 } from '@pigi/core-utils'
 import {
   SwapTransition,
@@ -45,8 +45,8 @@ describe('UnipigTransitionEvaluator', () => {
 
   /* Prep a signature provider and verifier for validating sends */
   before(async () => {
-    signatureProvider = new DefaultSignatureProvider()
-    signatureVerifier = DefaultSignatureVerifier.instance()
+    signatureProvider = new Secp256k1SignatureProvider()
+    signatureVerifier = Secp256k1SignatureVerifier.instance()
   })
 
   /* Deploy a new RollupChain before each test */

@@ -1,5 +1,4 @@
 /* External Imports */
-
 import {
   HashAlgorithm,
   Logger,

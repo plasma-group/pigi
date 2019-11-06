@@ -21,14 +21,14 @@ import {
   MerkleUpdate,
   SparseMerkleTree,
 } from '../../types/block-production'
-import { DB } from '../../types/db/db.interface'
+import { DB } from '../../types/db'
 
 const log = getLogger('merkle-tree')
 
 /**
  * SparseMerkleTree implementation assuming a 256-bit hash algorithm is used.
  */
-export class SparseMerkleTreeImpl implements SparseMerkleTree {
+export class PersistedSparseMerkleTree implements SparseMerkleTree {
   public static readonly emptyBuffer: Buffer = Buffer.alloc(32).fill('\x00')
   public static readonly siblingBuffer: Buffer = Buffer.alloc(1).fill('\x00')
 
@@ -46,10 +46,10 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
     rootHash?: Buffer,
     height: number = 160,
     hashFunction = keccak256
-  ): Promise<SparseMerkleTreeImpl> {
+  ): Promise<PersistedSparseMerkleTree> {
     assert(!rootHash || rootHash.length === 32, 'Root hash must be 32 bytes')
 
-    const tree = new SparseMerkleTreeImpl(db, height, hashFunction)
+    const tree = new PersistedSparseMerkleTree(db, height, hashFunction)
 
     await tree.init(rootHash)
     return tree
@@ -83,7 +83,7 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
 
   public async getLeaf(leafKey: BigNumber, rootHash?: Buffer): Promise<Buffer> {
     log.debug(`Trying to get leaf [${leafKey.toString(10)}]`)
-    return this.treeLock.acquire(SparseMerkleTreeImpl.lockKey, async () => {
+    return this.treeLock.acquire(PersistedSparseMerkleTree.lockKey, async () => {
       if (!!rootHash && !rootHash.equals(this.root.hash)) {
         log.debug(
           `Cannot get Leaf [${leafKey.toString(
@@ -127,7 +127,7 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
       return false
     }
 
-    return this.treeLock.acquire(SparseMerkleTreeImpl.lockKey, async () => {
+    return this.treeLock.acquire(PersistedSparseMerkleTree.lockKey, async () => {
       const leafHash: Buffer = this.hashFunction(inclusionProof.value)
       if (!!(await this.getNode(leafHash, inclusionProof.key))) {
         return true
@@ -192,7 +192,7 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
     d?: domain.Domain
   ): Promise<boolean> {
     return runInDomain(d, async () => {
-      return this.treeLock.acquire(SparseMerkleTreeImpl.lockKey, async () => {
+      return this.treeLock.acquire(PersistedSparseMerkleTree.lockKey, async () => {
         let nodesToUpdate: MerkleTreeNode[] = await this.getNodesInPath(leafKey)
 
         if (!nodesToUpdate) {
@@ -243,7 +243,7 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
     const d: domain.Domain = domain.create()
 
     return runInDomain(d, () => {
-      return this.treeLock.acquire(SparseMerkleTreeImpl.lockKey, async () => {
+      return this.treeLock.acquire(PersistedSparseMerkleTree.lockKey, async () => {
         for (const update of updates) {
           if (
             !(await this.verifyAndStore({
@@ -275,7 +275,7 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
     leafValue: Buffer
   ): Promise<MerkleTreeInclusionProof> {
     const result: MerkleTreeInclusionProof = await this.treeLock.acquire(
-      SparseMerkleTreeImpl.lockKey,
+      PersistedSparseMerkleTree.lockKey,
       async () => {
         if (!this.root || !this.root.hash) {
           return undefined
@@ -333,7 +333,7 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
     }
 
     // If this is for an empty leaf, we can store it and create a MerkleProof
-    if (leafValue.equals(SparseMerkleTreeImpl.emptyBuffer)) {
+    if (leafValue.equals(PersistedSparseMerkleTree.emptyBuffer)) {
       if (await this.verifyAndStorePartiallyEmptyPath(leafKey)) {
         return this.getMerkleProof(leafKey, leafValue)
       }
@@ -368,7 +368,7 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
     return this.verifyAndStore({
       rootHash: this.root.hash,
       key: leafKey,
-      value: SparseMerkleTreeImpl.emptyBuffer,
+      value: PersistedSparseMerkleTree.emptyBuffer,
       siblings: siblings.reverse(),
     })
   }
@@ -510,7 +510,7 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
     }
     return this.createNode(
       nodeHash,
-      SparseMerkleTreeImpl.siblingBuffer,
+      PersistedSparseMerkleTree.siblingBuffer,
       nodeKey
     )
   }
@@ -579,7 +579,7 @@ export class SparseMerkleTreeImpl implements SparseMerkleTree {
    */
   private async populateZeroHashesAndRoot(rootHash?: Buffer): Promise<void> {
     const hashes: Buffer[] = [
-      this.hashFunction(SparseMerkleTreeImpl.emptyBuffer),
+      this.hashFunction(PersistedSparseMerkleTree.emptyBuffer),
     ]
 
     for (let i = 1; i < this.height; i++) {

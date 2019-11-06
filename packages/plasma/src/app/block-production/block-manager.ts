@@ -4,25 +4,25 @@ import { Mutex } from 'async-mutex'
 
 /* Internal Imports */
 import {
-  BlockDB,
-  BlockManager,
+  BlockDBInterface,
+  BlockManagerInterface,
   CommitmentContract,
 } from '../../types/block-production'
 import { StateUpdate } from '../../types'
 
 /**
- * Simple BlockManager implementation.
+ * Simple BlockManagerInterface implementation.
  */
-export class DefaultBlockManager implements BlockManager {
+export class BlockManager implements BlockManagerInterface {
   private readonly blockSubmissionMutex: Mutex
 
   /**
    * Initializes the manager.
-   * @param blockdb BlockDB instance to store/query data from.
+   * @param blockdb BlockDBInterface instance to store/query data from.
    * @param commitmentContract Contract wrapper used to publish block roots.
    */
   constructor(
-    private blockdb: BlockDB,
+    private blockdb: BlockDBInterface,
     private commitmentContract: CommitmentContract
   ) {
     this.blockSubmissionMutex = new Mutex()

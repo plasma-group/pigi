@@ -1,7 +1,7 @@
 /* External Imports */
 import {
   getLogger,
-  DefaultSignatureVerifier,
+  Secp256k1SignatureVerifier,
   RpcClient,
   serializeObject,
   serializeObjectAsHexString,
@@ -44,7 +44,7 @@ export class RollupClient {
   constructor(
     private readonly db: KeyValueStore,
     private readonly aggregatorAddress: Address,
-    private readonly signatureVerifier: SignatureVerifier = DefaultSignatureVerifier.instance()
+    private readonly signatureVerifier: SignatureVerifier = Secp256k1SignatureVerifier.instance()
   ) {}
 
   /**

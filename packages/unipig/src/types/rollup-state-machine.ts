@@ -1,6 +1,6 @@
 import { Address, SignedTransaction, StateSnapshot, StateUpdate } from './types'
 
-export interface RollupStateMachine {
+export interface RollupStateMachineInterface {
   /**
    * Gets the state for the provided address, if one exists.
    *

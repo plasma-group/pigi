@@ -4,14 +4,14 @@ import {
   getLogger,
   Md5Hash,
   SignatureVerifier,
-  DefaultSignatureVerifier,
+  Secp256k1SignatureVerifier,
   serializeObject,
   deserializeObject,
 } from '@pigi/core-utils'
 import { DB } from '@pigi/core-db'
 
 /* Internal Imports */
-import { SignedByDBInterface } from '../../types/db/signed-by-db.interface'
+import { SignedByDBInterface } from '../../types/db/signed-by-db'
 import { SignedMessage } from '../../types/serialization'
 
 const log: Logger = getLogger('signed-by-db')
@@ -22,7 +22,7 @@ const log: Logger = getLogger('signed-by-db')
 export class SignedByDB implements SignedByDBInterface {
   public constructor(
     private readonly db: DB,
-    private readonly singatureVerifier: SignatureVerifier = DefaultSignatureVerifier.instance()
+    private readonly singatureVerifier: SignatureVerifier = Secp256k1SignatureVerifier.instance()
   ) {}
 
   public async handleMessage(

@@ -2,7 +2,7 @@
 import {
   BigNumber,
   SignatureVerifier,
-  DefaultSignatureVerifier,
+  Secp256k1SignatureVerifier,
 } from '@pigi/core-utils'
 
 /* Internal Imports */
@@ -75,7 +75,7 @@ export interface StateChannelMessage {
 export const parseStateChannelSignedMessage = async (
   signedMessage: SignedMessage,
   myAddress: string,
-  signatureVerifier: SignatureVerifier = DefaultSignatureVerifier.instance()
+  signatureVerifier: SignatureVerifier = Secp256k1SignatureVerifier.instance()
 ): Promise<ParsedMessage> => {
   // TODO: Would usually decrypt message based on sender key, but that part omitted for simplicity
   const message: Message = deserializeMessageString(

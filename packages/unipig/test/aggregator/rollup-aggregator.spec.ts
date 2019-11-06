@@ -2,8 +2,8 @@ import '../setup'
 
 /* External Imports */
 import {
-  DefaultSignatureProvider,
-  DefaultSignatureVerifier,
+  Secp256k1SignatureProvider,
+  Secp256k1SignatureVerifier,
   getLogger,
   hexStrToBuf,
   keccak256,
@@ -30,7 +30,7 @@ import {
   SignedTransaction,
   SignedStateReceipt,
   RollupAggregator,
-  RollupStateMachine,
+  RollupStateMachineInterface,
   Transfer,
   abiEncodeStateReceipt,
   abiEncodeTransaction,
@@ -40,7 +40,7 @@ import {
 } from '../../src'
 import {
   AGGREGATOR_API,
-  DefaultRollupStateMachine,
+  RollupStateMachine,
   PIGI_TOKEN_TYPE,
   UNI_TOKEN_TYPE,
 } from '../../src/common'
@@ -55,7 +55,7 @@ describe('RollupAggregator', () => {
   let aggregatorDB: DB
   let aggregator: RollupAggregator
   let aggregatorServer: AggregatorServer
-  let rollupStateMachine: RollupStateMachine
+  let rollupStateMachine: RollupStateMachineInterface
   let dummyBlockSubmitter: DummyBlockSubmitter
 
   let aliceWallet: ethers.Wallet
@@ -63,7 +63,7 @@ describe('RollupAggregator', () => {
   beforeEach(async () => {
     aliceWallet = ethers.Wallet.createRandom()
 
-    rollupStateMachine = await DefaultRollupStateMachine.create(
+    rollupStateMachine = await RollupStateMachine.create(
       getGenesisState(aliceWallet.address),
       newInMemoryDB(),
       AGGREGATOR_ADDRESS
@@ -79,8 +79,8 @@ describe('RollupAggregator', () => {
         aggregatorDB,
         rollupStateMachine,
         dummyBlockSubmitter,
-        new DefaultSignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)),
-        DefaultSignatureVerifier.instance(),
+        new Secp256k1SignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)),
+        Secp256k1SignatureVerifier.instance(),
         2
       )
       aggregatorServer = new AggregatorServer(aggregator, 'localhost', 3000)
@@ -107,7 +107,7 @@ describe('RollupAggregator', () => {
         amount,
       }
       const signature = await senderWallet.signMessage(
-        // right now, we are actually signing the hash of our messages to make the contract work.  (See DefaultSignatureProvider)
+        // right now, we are actually signing the hash of our messages to make the contract work.  (See Secp256k1SignatureProvider)
         hexStrToBuf(ethers.utils.keccak256(abiEncodeTransaction(transaction)))
       )
       const tx = {
@@ -162,7 +162,7 @@ describe('RollupAggregator', () => {
         amount,
       }
       const signature = await newWallet.signMessage(
-        // right now, we are actually signing the hash of our messages to make the contract work.  (See DefaultSignatureProvider)
+        // right now, we are actually signing the hash of our messages to make the contract work.  (See Secp256k1SignatureProvider)
         hexStrToBuf(
           ethers.utils.keccak256(serializeObjectAsHexString(transaction))
         )
@@ -273,14 +273,14 @@ describe('RollupAggregator', () => {
         await aggregator.onSyncCompleted()
 
         const receipts: SignedStateReceipt[] = await sendFromAliceToBob(5)
-        const signer0: string = DefaultSignatureVerifier.instance().verifyMessage(
+        const signer0: string = Secp256k1SignatureVerifier.instance().verifyMessage(
           abiEncodeStateReceipt(receipts[0].stateReceipt),
           receipts[0].signature
         )
 
         signer0.should.equal(AGGREGATOR_ADDRESS)
 
-        const signer1: string = DefaultSignatureVerifier.instance().verifyMessage(
+        const signer1: string = Secp256k1SignatureVerifier.instance().verifyMessage(
           abiEncodeStateReceipt(receipts[1].stateReceipt),
           receipts[1].signature
         )
@@ -341,7 +341,7 @@ describe('RollupAggregator', () => {
         recipientSlotIndex: 0,
         tokenType: 0,
         amount: 10,
-        signature: await new DefaultSignatureProvider().sign('trans 1'),
+        signature: await new Secp256k1SignatureProvider().sign('trans 1'),
       }
     })
 
@@ -350,8 +350,8 @@ describe('RollupAggregator', () => {
         aggregatorDB,
         rollupStateMachine,
         dummyBlockSubmitter,
-        new DefaultSignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)),
-        DefaultSignatureVerifier.instance(),
+        new Secp256k1SignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)),
+        Secp256k1SignatureVerifier.instance(),
         2
       )
 
@@ -381,8 +381,8 @@ describe('RollupAggregator', () => {
         aggregatorDB,
         rollupStateMachine,
         dummyBlockSubmitter,
-        new DefaultSignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)),
-        DefaultSignatureVerifier.instance(),
+        new Secp256k1SignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)),
+        Secp256k1SignatureVerifier.instance(),
         2
       )
 
@@ -413,8 +413,8 @@ describe('RollupAggregator', () => {
         aggregatorDB,
         rollupStateMachine,
         dummyBlockSubmitter,
-        new DefaultSignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)),
-        DefaultSignatureVerifier.instance(),
+        new Secp256k1SignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)),
+        Secp256k1SignatureVerifier.instance(),
         2
       )
 
@@ -434,7 +434,7 @@ describe('RollupAggregator', () => {
         recipientSlotIndex: 0,
         tokenType: 0,
         amount: 10,
-        signature: await new DefaultSignatureProvider().sign('trans 1'),
+        signature: await new Secp256k1SignatureProvider().sign('trans 1'),
       }
     })
 
@@ -452,8 +452,8 @@ describe('RollupAggregator', () => {
         aggregatorDB,
         rollupStateMachine,
         dummyBlockSubmitter,
-        new DefaultSignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)),
-        DefaultSignatureVerifier.instance(),
+        new Secp256k1SignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)),
+        Secp256k1SignatureVerifier.instance(),
         2,
         1_000
       )
@@ -471,8 +471,8 @@ describe('RollupAggregator', () => {
         aggregatorDB,
         rollupStateMachine,
         dummyBlockSubmitter,
-        new DefaultSignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)),
-        DefaultSignatureVerifier.instance(),
+        new Secp256k1SignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC)),
+        Secp256k1SignatureVerifier.instance(),
         2,
         1_000
       )
@@ -503,12 +503,12 @@ describe('RollupAggregator', () => {
   //     console.log(
   //       'Duration:',
   //       durationInMiliseconds,
-  //       ', Aggregator TPS: ',
+  //       ', AggregatorInterface TPS: ',
   //       numTxs / (durationInMiliseconds / 1_000.0)
   //     )
   //   }
   //
-  //   it('Applies 100 Aggregator Transactions', async () => {
+  //   it('Applies 100 AggregatorInterface Transactions', async () => {
   //     await runTransactionTest(100)
   //   }).timeout(20_000)
   // })

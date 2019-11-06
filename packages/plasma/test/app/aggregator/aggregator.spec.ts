@@ -2,7 +2,7 @@ import { should } from '../..//setup'
 
 import {
   BigNumber,
-  DefaultSignatureProvider,
+  Secp256k1SignatureProvider,
   ONE,
   serializeObject,
   SignatureProvider,
@@ -10,18 +10,18 @@ import {
 import * as assert from 'assert'
 
 import {
-  Aggregator,
+  AggregatorInterface,
   BlockTransactionCommitment,
   HistoryProof,
-  StateManager,
+  StateManagerInterface,
   StateQuery,
   StateQueryResult,
   StateUpdate,
   Transaction,
   TransactionResult,
-  BlockManager,
+  BlockManagerInterface,
 } from '../../../src'
-import { DefaultAggregator } from '../../../src/app/aggregator'
+import { Aggregator } from '../../../src/app/aggregator'
 import { TestUtils } from '../test-utils'
 import { transactionsEqual } from '../../../src/app/utils'
 
@@ -29,7 +29,7 @@ import { transactionsEqual } from '../../../src/app/utils'
  * Mocks & Helpers *
  *******************/
 
-class DummyBlockManager implements BlockManager {
+class DummyBlockManager implements BlockManagerInterface {
   private nextBlockNumber: BigNumber
   private readonly stateUpdates: StateUpdate[]
 
@@ -56,7 +56,7 @@ class DummyBlockManager implements BlockManager {
   }
 }
 
-class DummyStateManager implements StateManager {
+class DummyStateManager implements StateManagerInterface {
   private throwOnExecute: boolean = false
   private executeTransactionResults: TransactionResult[]
 
@@ -98,16 +98,16 @@ class DummyStateManager implements StateManager {
 describe('DefaultAggregator', () => {
   let blockManager: DummyBlockManager
   let stateManager: DummyStateManager
-  let aggregator: Aggregator
+  let aggregator: AggregatorInterface
   let aggregatorAddress: string
   let signatureProvider: SignatureProvider
 
   beforeEach(async () => {
     blockManager = new DummyBlockManager()
     stateManager = new DummyStateManager()
-    signatureProvider = new DefaultSignatureProvider()
+    signatureProvider = new Secp256k1SignatureProvider()
     aggregatorAddress = await signatureProvider.getAddress()
-    aggregator = new DefaultAggregator(
+    aggregator = new Aggregator(
       stateManager,
       blockManager,
       aggregatorAddress,

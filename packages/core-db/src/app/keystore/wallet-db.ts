@@ -5,7 +5,7 @@ import { ethers } from 'ethers'
 /* Internal Imports */
 import { KeyValueStore, WalletDB } from '../../types'
 
-export class DefaultWalletDB implements WalletDB {
+export class WalletKeyValueStoreDB implements WalletDB {
   /**
    * Initializes the database wrapper.
    * @param db Database instance to insert data into.

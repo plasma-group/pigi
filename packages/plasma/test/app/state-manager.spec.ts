@@ -6,12 +6,12 @@ import * as assert from 'assert'
 
 /* Internal Imports */
 import {
-  DefaultStateDB,
-  DefaultStateManager,
-  PluginManager,
-  PredicatePlugin,
   StateDB,
   StateManager,
+  PluginManager,
+  PredicatePlugin,
+  StateDBInterface,
+  StateManagerInterface,
   StateObject,
   StateUpdate,
   Transaction,
@@ -73,8 +73,8 @@ function getPluginManagerThatReturns(
 
 function getStateDBThatReturns(
   verifiedStateUpdates: VerifiedStateUpdate[]
-): StateDB {
-  const stateDB = new DefaultStateDB()
+): StateDBInterface {
+  const stateDB = new StateDB()
   stateDB.getVerifiedStateUpdates = async (
     start: BigNumber,
     end: BigNumber
@@ -149,7 +149,7 @@ function getTransaction(
 describe('DefaultStateManager', () => {
   describe('Construction', () => {
     it('should initialize', async () => {
-      new DefaultStateManager(new DefaultStateDB(), new DummyPluginManager())
+      new StateManager(new StateDB(), new DummyPluginManager())
     })
   })
 
@@ -190,11 +190,11 @@ describe('DefaultStateManager', () => {
 
       const plugin: PredicatePlugin = getPluginThatReturns([endStateObject])
 
-      const stateDB: StateDB = getStateDBThatReturns(verifiedStateUpdates)
+      const stateDB: StateDBInterface = getStateDBThatReturns(verifiedStateUpdates)
       const pluginManager: PluginManager = getPluginManagerThatReturns(
         new Map<string, PredicatePlugin>([[predicateAddress, plugin]])
       )
-      const stateManager: StateManager = new DefaultStateManager(
+      const stateManager: StateManagerInterface = new StateManager(
         stateDB,
         pluginManager
       )
@@ -242,11 +242,11 @@ describe('DefaultStateManager', () => {
 
       const plugin: PredicatePlugin = getPluginThatReturns([endStateObject])
 
-      const stateDB: StateDB = getStateDBThatReturns(verifiedStateUpdates)
+      const stateDB: StateDBInterface = getStateDBThatReturns(verifiedStateUpdates)
       const pluginManager: PluginManager = getPluginManagerThatReturns(
         new Map<string, PredicatePlugin>([[predicateAddress, plugin]])
       )
-      const stateManager: StateManager = new DefaultStateManager(
+      const stateManager: StateManagerInterface = new StateManager(
         stateDB,
         pluginManager
       )
@@ -302,11 +302,11 @@ describe('DefaultStateManager', () => {
 
       const plugin: PredicatePlugin = getPluginThatReturns([endStateObject])
 
-      const stateDB: StateDB = getStateDBThatReturns(verifiedStateUpdates)
+      const stateDB: StateDBInterface = getStateDBThatReturns(verifiedStateUpdates)
       const pluginManager: PluginManager = getPluginManagerThatReturns(
         new Map<string, PredicatePlugin>([[predicateAddress, plugin]])
       )
-      const stateManager: StateManager = new DefaultStateManager(
+      const stateManager: StateManagerInterface = new StateManager(
         stateDB,
         pluginManager
       )
@@ -360,11 +360,11 @@ describe('DefaultStateManager', () => {
 
       const plugin: PredicatePlugin = getPluginThatReturns([endStateObject])
 
-      const stateDB: StateDB = getStateDBThatReturns(verifiedStateUpdates)
+      const stateDB: StateDBInterface = getStateDBThatReturns(verifiedStateUpdates)
       const pluginManager: PluginManager = getPluginManagerThatReturns(
         new Map<string, PredicatePlugin>([[predicateAddress, plugin]])
       )
-      const stateManager: StateManager = new DefaultStateManager(
+      const stateManager: StateManagerInterface = new StateManager(
         stateDB,
         pluginManager
       )
@@ -402,11 +402,11 @@ describe('DefaultStateManager', () => {
       // This should never be called
       const plugin: PredicatePlugin = undefined
 
-      const stateDB: StateDB = getStateDBThatReturns(verifiedStateUpdates)
+      const stateDB: StateDBInterface = getStateDBThatReturns(verifiedStateUpdates)
       const pluginManager: PluginManager = getPluginManagerThatReturns(
         new Map<string, PredicatePlugin>([[predicateAddress, plugin]])
       )
-      const stateManager: StateManager = new DefaultStateManager(
+      const stateManager: StateManagerInterface = new StateManager(
         stateDB,
         pluginManager
       )
@@ -441,11 +441,11 @@ describe('DefaultStateManager', () => {
 
       const plugin: PredicatePlugin = getPluginThatReturns([endStateObject])
 
-      const stateDB: StateDB = getStateDBThatReturns(verifiedStateUpdates)
+      const stateDB: StateDBInterface = getStateDBThatReturns(verifiedStateUpdates)
       const pluginManager: PluginManager = getPluginManagerThatReturns(
         new Map<string, PredicatePlugin>([[predicateAddress, plugin]])
       )
-      const stateManager: StateManager = new DefaultStateManager(
+      const stateManager: StateManagerInterface = new StateManager(
         stateDB,
         pluginManager
       )
@@ -500,14 +500,14 @@ describe('DefaultStateManager', () => {
         secondStateObject,
       ])
 
-      const stateDB: StateDB = getStateDBThatReturns(verifiedStateUpdates)
+      const stateDB: StateDBInterface = getStateDBThatReturns(verifiedStateUpdates)
       const pluginManager: PluginManager = getPluginManagerThatReturns(
         new Map<string, PredicatePlugin>([
           [predicateAddress, plugin],
           [secondPredicateAddress, secondPlugin],
         ])
       )
-      const stateManager: StateManager = new DefaultStateManager(
+      const stateManager: StateManagerInterface = new StateManager(
         stateDB,
         pluginManager
       )
@@ -560,11 +560,11 @@ describe('DefaultStateManager', () => {
         secondStateObject,
       ])
 
-      const stateDB: StateDB = getStateDBThatReturns(verifiedStateUpdates)
+      const stateDB: StateDBInterface = getStateDBThatReturns(verifiedStateUpdates)
       const pluginManager: PluginManager = getPluginManagerThatReturns(
         new Map<string, PredicatePlugin>([[predicateAddress, plugin]])
       )
-      const stateManager: StateManager = new DefaultStateManager(
+      const stateManager: StateManagerInterface = new StateManager(
         stateDB,
         pluginManager
       )
@@ -594,11 +594,11 @@ describe('DefaultStateManager', () => {
 
       const plugin: PredicatePlugin = getPluginThatReturns([endStateObject])
 
-      const stateDB: StateDB = getStateDBThatReturns(verifiedStateUpdates)
+      const stateDB: StateDBInterface = getStateDBThatReturns(verifiedStateUpdates)
       const pluginManager: PluginManager = getPluginManagerThatReturns(
         new Map<string, PredicatePlugin>([[predicateAddress, plugin]])
       )
-      const stateManager: StateManager = new DefaultStateManager(
+      const stateManager: StateManagerInterface = new StateManager(
         stateDB,
         pluginManager
       )

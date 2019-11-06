@@ -15,7 +15,7 @@ import {
   abiEncodeState,
   abiEncodeStateReceipt,
   Address,
-  RollupStateSolver,
+  RollupStateSolverInterface,
   SignedStateReceipt,
   StateReceipt,
 } from '../index'
@@ -25,7 +25,7 @@ const log = getLogger('rollup-ovm')
 /**
  * The State Solver. Stores state, evaluates state validity, and sends fraud proofs to L1 as necessary.
  */
-export class DefaultRollupStateSolver implements RollupStateSolver {
+export class RollupStateSolver implements RollupStateSolverInterface {
   constructor(
     private readonly signedByDB: SignedByDBInterface,
     private readonly signedByDecider: Decider,

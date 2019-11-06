@@ -15,9 +15,9 @@ config({ path: resolve(__dirname, `../../../../config/.env`) })
 /* Internal Imports */
 import * as RollupChain from '../../../build/contracts/RollupChain.json'
 import * as fs from 'fs'
-import { Address, RollupStateValidator, State } from '../../types'
-import { DefaultRollupStateMachine, getGenesisState } from '../../common'
-import { DefaultRollupStateValidator } from '../rollup-state-validator'
+import { Address, RollupStateValidatorInterface, State } from '../../types'
+import { RollupStateMachine, getGenesisState } from '../../common'
+import { RollupStateValidator } from '../rollup-state-validator'
 import { RollupFraudGuard } from '../rollup-fraud-guard'
 
 const log = getLogger('monitor-and-validate')
@@ -66,13 +66,13 @@ async function runValidator() {
   )
   log.debug(`Connected`)
 
-  const rollupStateMachine: DefaultRollupStateMachine = (await DefaultRollupStateMachine.create(
+  const rollupStateMachine: RollupStateMachine = (await RollupStateMachine.create(
     getGenesisState(aggregatorAddress, genesisState),
     validatorDB,
     aggregatorAddress
-  )) as DefaultRollupStateMachine
+  )) as RollupStateMachine
 
-  const validator: RollupStateValidator = new DefaultRollupStateValidator(
+  const validator: RollupStateValidatorInterface = new RollupStateValidator(
     rollupStateMachine
   )
 

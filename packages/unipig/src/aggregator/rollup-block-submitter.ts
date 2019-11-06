@@ -8,11 +8,11 @@ import {
   abiEncodeTransition,
   parseTransitionFromABI,
 } from '../common/serialization'
-import { RollupBlock, RollupBlockSubmitter } from '../types'
+import { RollupBlock, RollupBlockSubmitterInterface } from '../types'
 
 const log = getLogger('rollup-block-submitter')
 
-export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
+export class RollupBlockSubmitter implements RollupBlockSubmitterInterface {
   public static readonly LAST_CONFIRMED_KEY: Buffer = Buffer.from(
     'last_confirmed'
   )
@@ -29,8 +29,8 @@ export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
   public static async create(
     db: DB,
     rollupContract: Contract
-  ): Promise<RollupBlockSubmitter> {
-    const submitter = new DefaultRollupBlockSubmitter(db, rollupContract)
+  ): Promise<RollupBlockSubmitterInterface> {
+    const submitter = new RollupBlockSubmitter(db, rollupContract)
 
     await submitter.init()
 
@@ -50,9 +50,9 @@ export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
       lastConfirmedBuffer,
       lastQueuedBuffer,
     ] = await Promise.all([
-      this.db.get(DefaultRollupBlockSubmitter.LAST_SUBMITTED_KEY),
-      this.db.get(DefaultRollupBlockSubmitter.LAST_CONFIRMED_KEY),
-      this.db.get(DefaultRollupBlockSubmitter.LAST_QUEUED_KEY),
+      this.db.get(RollupBlockSubmitter.LAST_SUBMITTED_KEY),
+      this.db.get(RollupBlockSubmitter.LAST_CONFIRMED_KEY),
+      this.db.get(RollupBlockSubmitter.LAST_QUEUED_KEY),
     ])
 
     this.lastSubmitted = !!lastSubmittedBuffer
@@ -78,12 +78,12 @@ export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
       let i: number = this.lastConfirmed + 1
       const promises: Array<Promise<Buffer>> = []
       for (; i <= this.lastQueued; i++) {
-        promises.push(this.db.get(DefaultRollupBlockSubmitter.getBlockKey(i)))
+        promises.push(this.db.get(RollupBlockSubmitter.getBlockKey(i)))
       }
 
       const blocks: Buffer[] = await Promise.all(promises)
       this.blockQueue = blocks.map((x) =>
-        DefaultRollupBlockSubmitter.deserializeRollupBlockFromStorage(x)
+        RollupBlockSubmitter.deserializeRollupBlockFromStorage(x)
       )
     }
 
@@ -103,13 +103,13 @@ export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
     log.info(`Queueing rollup block: ${JSON.stringify(rollupBlock)}}`)
     this.blockQueue.push(rollupBlock)
     await this.db.put(
-      DefaultRollupBlockSubmitter.getBlockKey(rollupBlock.blockNumber),
-      DefaultRollupBlockSubmitter.serializeRollupBlockForStorage(rollupBlock)
+      RollupBlockSubmitter.getBlockKey(rollupBlock.blockNumber),
+      RollupBlockSubmitter.serializeRollupBlockForStorage(rollupBlock)
     )
 
     this.lastQueued = rollupBlock.blockNumber
     await this.db.put(
-      DefaultRollupBlockSubmitter.LAST_QUEUED_KEY,
+      RollupBlockSubmitter.LAST_QUEUED_KEY,
       this.numberToBuffer(this.lastQueued)
     )
 
@@ -131,7 +131,7 @@ export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
       this.blockQueue.shift()
       this.lastConfirmed = rollupBlockNumber
       await this.db.put(
-        DefaultRollupBlockSubmitter.LAST_CONFIRMED_KEY,
+        RollupBlockSubmitter.LAST_CONFIRMED_KEY,
         this.numberToBuffer(this.lastConfirmed)
       )
 
@@ -139,7 +139,7 @@ export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
       if (this.lastSubmitted < this.lastConfirmed) {
         this.lastSubmitted = rollupBlockNumber
         await this.db.put(
-          DefaultRollupBlockSubmitter.LAST_SUBMITTED_KEY,
+          RollupBlockSubmitter.LAST_SUBMITTED_KEY,
           this.numberToBuffer(this.lastSubmitted)
         )
       }
@@ -177,7 +177,7 @@ export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
 
     try {
       const receipt = await this.rollupContract.submitBlock(
-        DefaultRollupBlockSubmitter.serializeRollupBlockForSubmission(block)
+        RollupBlockSubmitter.serializeRollupBlockForSubmission(block)
       )
       // TODO: do something with receipt?
     } catch (e) {
@@ -191,7 +191,7 @@ export class DefaultRollupBlockSubmitter implements RollupBlockSubmitter {
 
     this.lastSubmitted = block.blockNumber
     await this.db.put(
-      DefaultRollupBlockSubmitter.LAST_SUBMITTED_KEY,
+      RollupBlockSubmitter.LAST_SUBMITTED_KEY,
       this.numberToBuffer(this.lastSubmitted)
     )
   }

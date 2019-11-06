@@ -7,7 +7,7 @@ import {
   hexBufToStr,
   logError,
   SignatureVerifier,
-  DefaultSignatureVerifier,
+  Secp256k1SignatureVerifier,
   serializeObject,
   serializeObjectAsHexString,
   SignatureProvider,
@@ -23,8 +23,8 @@ import {
   isSwapTransaction,
   NotSyncedError,
   RollupBlock,
-  RollupBlockSubmitter,
-  RollupStateMachine,
+  RollupBlockSubmitterInterface,
+  RollupStateMachineInterface,
   RollupTransaction,
   RollupTransition,
   Signature,
@@ -80,10 +80,10 @@ export class RollupAggregator
 
   public static async create(
     db: DB,
-    rollupStateMachine: RollupStateMachine,
-    rollupBlockSubmitter: RollupBlockSubmitter,
+    rollupStateMachine: RollupStateMachineInterface,
+    rollupBlockSubmitter: RollupBlockSubmitterInterface,
     signatureProvider: SignatureProvider,
-    signatureVerifier: SignatureVerifier = DefaultSignatureVerifier.instance(),
+    signatureVerifier: SignatureVerifier = Secp256k1SignatureVerifier.instance(),
     blockSubmissionTransitionCount: number = 100,
     blockSubmissionIntervalMillis: number = 300_000,
     authorizedFaucetAddress?: Address
@@ -106,10 +106,10 @@ export class RollupAggregator
 
   private constructor(
     private readonly db: DB,
-    private readonly rollupStateMachine: RollupStateMachine,
-    private readonly rollupBlockSubmitter: RollupBlockSubmitter,
+    private readonly rollupStateMachine: RollupStateMachineInterface,
+    private readonly rollupBlockSubmitter: RollupBlockSubmitterInterface,
     private readonly signatureProvider: SignatureProvider,
-    private readonly signatureVerifier: SignatureVerifier = DefaultSignatureVerifier.instance(),
+    private readonly signatureVerifier: SignatureVerifier = Secp256k1SignatureVerifier.instance(),
     private readonly blockSubmissionTransitionCount: number = 100,
     private readonly blockSubmissionIntervalMillis: number = 300_000,
     private readonly authorizedFaucetAddress?: Address
@@ -123,7 +123,7 @@ export class RollupAggregator
   }
 
   /**
-   * Initialize method, required for the Aggregator to load existing state before
+   * Initialize method, required for the AggregatorInterface to load existing state before
    * it can handle requests.
    */
   private async init(): Promise<void> {

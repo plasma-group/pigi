@@ -4,7 +4,7 @@ import {
   logError,
   SignatureProvider,
   serializeObject,
-  DefaultSignatureProvider,
+  Secp256k1SignatureProvider,
   SimpleClient,
 } from '@pigi/core-utils'
 
@@ -23,7 +23,7 @@ import {
   Balances,
   FaucetRequest,
   isFaucetTransaction,
-  RollupStateSolver,
+  RollupStateSolverInterface,
   RollupTransaction,
   SignatureError,
   SignedStateReceipt,
@@ -32,7 +32,7 @@ import {
   TokenType,
   Transfer,
 } from '../types'
-import { DefaultRollupStateSolver } from './rollup-state-solver'
+import { RollupStateSolver } from './rollup-state-solver'
 import { RollupClient } from './rollup-client'
 import { EMPTY_AGGREGATOR_SIGNATURE, UNISWAP_ADDRESS } from './utils'
 
@@ -56,14 +56,14 @@ export class UnipigTransitioner {
     aggregatorURL: string = 'http://127.0.0.1:3000'
   ): Promise<UnipigTransitioner> {
     if (!signatureProvider) {
-      signatureProvider = new DefaultSignatureProvider()
+      signatureProvider = new Secp256k1SignatureProvider()
     }
     const signedByDB: SignedByDBInterface = new SignedByDB(db)
     const decider: SignedByDecider = new SignedByDecider(
       signedByDB,
       await signatureProvider.getAddress()
     )
-    const stateSolver: RollupStateSolver = new DefaultRollupStateSolver(
+    const stateSolver: RollupStateSolverInterface = new RollupStateSolver(
       signedByDB,
       decider,
       new MerkleInclusionProofDecider()
@@ -82,7 +82,7 @@ export class UnipigTransitioner {
 
   constructor(
     private readonly db: DB,
-    private readonly stateSolver: RollupStateSolver,
+    private readonly stateSolver: RollupStateSolverInterface,
     private readonly rollupClient: RollupClient,
     private readonly signatureProvider: SignatureProvider,
     private readonly aggregatorAddress: Address

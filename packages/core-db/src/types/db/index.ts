@@ -1,2 +1,2 @@
-export * from './db.interface'
-export * from './range-db.interface'
+export * from './db'
+export * from './range-db'

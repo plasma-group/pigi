@@ -4,7 +4,7 @@ import './setup'
 import { newInMemoryDB } from '@pigi/core-db'
 import {
   getLogger,
-  DefaultSignatureProvider,
+  Secp256k1SignatureProvider,
   SimpleClient,
 } from '@pigi/core-utils'
 
@@ -20,10 +20,10 @@ import {
 } from './helpers'
 import {
   AggregatorServer,
-  DefaultRollupStateMachine,
+  RollupStateMachine,
   UnipigTransitioner,
   RollupAggregator,
-  RollupStateMachine,
+  RollupStateMachineInterface,
   UNI_TOKEN_TYPE,
   PIGI_TOKEN_TYPE,
   RollupClient,
@@ -39,7 +39,7 @@ const log = getLogger('client-aggregator-integration', true)
 const timeout = 20_000
 const testRecipientAddress = '0x7777b66b3C70137264BE7303812090EC42D85B4d'
 
-describe('Mock Client/Aggregator Integration', () => {
+describe('Mock Client/AggregatorInterface Integration', () => {
   let accountAddress: string
   let aggregatorServer: AggregatorServer
   let aggregator: RollupAggregator
@@ -55,14 +55,14 @@ describe('Mock Client/Aggregator Integration', () => {
       newInMemoryDB(),
       ovm,
       rollupClient,
-      new DefaultSignatureProvider(),
+      new Secp256k1SignatureProvider(),
       AGGREGATOR_ADDRESS
     )
 
     // Now create a wallet account
     accountAddress = await unipigTransitioner.getAddress()
 
-    const rollupStateMachine: RollupStateMachine = await DefaultRollupStateMachine.create(
+    const rollupStateMachine: RollupStateMachineInterface = await RollupStateMachine.create(
       getGenesisState(accountAddress),
       newInMemoryDB(),
       AGGREGATOR_ADDRESS
@@ -73,7 +73,7 @@ describe('Mock Client/Aggregator Integration', () => {
       newInMemoryDB(),
       rollupStateMachine,
       new DummyBlockSubmitter(),
-      new DefaultSignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC))
+      new Secp256k1SignatureProvider(Wallet.fromMnemonic(AGGREGATOR_MNEMONIC))
     )
 
     // Assume we're in sync & initialized
@@ -123,7 +123,7 @@ describe('Mock Client/Aggregator Integration', () => {
         newInMemoryDB(),
         ovm,
         rollupClient,
-        new DefaultSignatureProvider(),
+        new Secp256k1SignatureProvider(),
         AGGREGATOR_ADDRESS
       )
       const newAddress = await secondTransitioner.getAddress()

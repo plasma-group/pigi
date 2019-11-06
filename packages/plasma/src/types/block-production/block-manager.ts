@@ -2,12 +2,14 @@
 import { BigNumber } from '@pigi/core-utils'
 
 /* Internal Imports */
-import { StateUpdate } from '../state.interface'
+import { StateUpdate } from '../state'
 
-export interface BlockDB {
+/**
+ * Block Manager wrapping Block CRUD operations.
+ */
+export interface BlockManagerInterface {
   getNextBlockNumber(): Promise<BigNumber>
   addPendingStateUpdate(stateUpdate: StateUpdate): Promise<void>
   getPendingStateUpdates(): Promise<StateUpdate[]>
-  getMerkleRoot(blockNumber: BigNumber): Promise<Buffer>
-  finalizeNextBlock(): Promise<void>
+  submitNextBlock(): Promise<void>
 }

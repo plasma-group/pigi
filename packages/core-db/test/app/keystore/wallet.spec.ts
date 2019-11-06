@@ -5,19 +5,19 @@ import { NULL_ADDRESS } from '@pigi/core-utils'
 import { ethers } from 'ethers'
 
 /* Internal Imports */
-import { DefaultWallet, DefaultWalletDB } from '../../../src/app/keystore'
+import { PersistedWallet, WalletKeyValueStoreDB } from '../../../src/app/keystore'
 import { newInMemoryDB } from '../../../src/app'
 
 const timeout = 15_000
 
 describe('DefaultWallet', () => {
-  let walletdb: DefaultWalletDB
-  let wallet: DefaultWallet
+  let walletdb: WalletKeyValueStoreDB
+  let wallet: PersistedWallet
 
   beforeEach(() => {
     // Typings for MemDown are wrong so we need to cast to `any`.
-    walletdb = new DefaultWalletDB(newInMemoryDB())
-    wallet = new DefaultWallet(walletdb)
+    walletdb = new WalletKeyValueStoreDB(newInMemoryDB())
+    wallet = new PersistedWallet(walletdb)
   })
 
   describe('createAccount', () => {

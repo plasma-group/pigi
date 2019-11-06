@@ -8,7 +8,7 @@ import { TransactionReceipt } from 'ethers/providers'
 
 /* Internal Imports */
 import { parseTransitionFromABI } from '../common/serialization'
-import { RollupBlock, RollupStateValidator } from '../types'
+import { RollupBlock, RollupStateValidatorInterface } from '../types'
 import { ContractFraudProof } from './types'
 
 const log = getLogger('rollup-fraud-guard')
@@ -27,7 +27,7 @@ export class RollupFraudGuard implements EthereumListener<EthereumEvent> {
 
   public static async create(
     db: DB,
-    validator: RollupStateValidator,
+    validator: RollupStateValidatorInterface,
     contract: Contract
   ): Promise<RollupFraudGuard> {
     const fraudGuard: RollupFraudGuard = new RollupFraudGuard(
@@ -43,7 +43,7 @@ export class RollupFraudGuard implements EthereumListener<EthereumEvent> {
 
   private constructor(
     private readonly db: DB,
-    private readonly validator: RollupStateValidator,
+    private readonly validator: RollupStateValidatorInterface,
     private readonly contract: Contract
   ) {
     this.lock = new AsyncLock()

@@ -45,7 +45,7 @@ yarn run serve
 ### Configuration
 The aggregator & validator expect an `.env` file that looks like the `/config/.env.service.example` in the same location. The idea is that there is some sensitive info there, so `.env` files are specifically ignored from git so that we never accidentally check in credentials.
 
-### Running Aggregator
+### Running AggregatorInterface
 Make sure the project is built and run:
 ```sh
 ./exec/runAggregator.sh
