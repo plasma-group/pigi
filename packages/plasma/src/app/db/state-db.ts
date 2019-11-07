@@ -5,7 +5,7 @@ import { BigNumber } from '@pigi/core-utils'
 import { StateDBInterface, VerifiedStateUpdate } from '../../types'
 
 /**
- * StateDBInterface used to store the state for different ranges.
+ * StateDB used to store the state for different ranges.
  *
  * See: http://spec.plasma.group/en/latest/src/05-client-architecture/state-db.html for more details.
  */

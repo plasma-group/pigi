@@ -8,7 +8,7 @@ import {
   KeyValueStore,
   RangeIterator,
   V,
-} from './DBInterface'
+} from './db'
 
 /**
  * Represents a range of values. Note start & end are big numbers!

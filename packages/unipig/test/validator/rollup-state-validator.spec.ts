@@ -24,7 +24,6 @@ import {
   UNISWAP_ADDRESS,
   PIGI_TOKEN_TYPE,
   RollupStateValidator,
-  RollupStateValidatorInterface,
   LocalFraudProof,
   CreateAndTransferTransition,
   StateSnapshot,
