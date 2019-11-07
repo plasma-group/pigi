@@ -1,7 +1,7 @@
 import { Address, SignedStateReceipt, StateReceipt } from './types'
 import { ImplicationProofItem } from '@pigi/ovm'
 
-export interface RollupStateSolver {
+export interface RollupStateSolverInterface {
   /**
    * Stores the SignedStateReceipt
    * @param signedReceipt The signed receipt

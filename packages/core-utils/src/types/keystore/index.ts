@@ -1,2 +1,2 @@
-export * from './keystore.interface'
-export * from './wallet.interface'
+export * from './keystore'
+export * from './wallet'

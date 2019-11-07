@@ -101,4 +101,4 @@ Returns
 
 .. _ChainService: services/chain.html
 .. _LevelDB: http://leveldb.org/
-.. _key-value store: https://en.wikipedia.org/wiki/Key-value_database
+.. _key-value store: https://en.wikipedia.org/wiki/KeyInterface-value_database

@@ -7,13 +7,13 @@ import {
   hexBufToStr,
   logError,
   SignatureVerifier,
-  DefaultSignatureVerifier,
+  Secp256k1SignatureVerifier,
   serializeObject,
   serializeObjectAsHexString,
   SignatureProvider,
 } from '@pigi/core-utils'
 
-import { DB, EthereumListener, EthereumEvent } from '@pigi/core-db'
+import { DBInterface, EthereumListener, EthereumEvent } from '@pigi/core-db'
 
 /* Internal Imports */
 import { UnipigAggregator } from '../types/unipig-aggregator'
@@ -23,8 +23,8 @@ import {
   isSwapTransaction,
   NotSyncedError,
   RollupBlock,
-  RollupBlockSubmitter,
-  RollupStateMachine,
+  RollupBlockSubmitterInterface,
+  RollupStateMachineInterface,
   RollupTransaction,
   RollupTransition,
   Signature,
@@ -79,11 +79,11 @@ export class RollupAggregator
   private lastBlockSubmission: Date
 
   public static async create(
-    db: DB,
-    rollupStateMachine: RollupStateMachine,
-    rollupBlockSubmitter: RollupBlockSubmitter,
+    db: DBInterface,
+    rollupStateMachine: RollupStateMachineInterface,
+    rollupBlockSubmitter: RollupBlockSubmitterInterface,
     signatureProvider: SignatureProvider,
-    signatureVerifier: SignatureVerifier = DefaultSignatureVerifier.instance(),
+    signatureVerifier: SignatureVerifier = Secp256k1SignatureVerifier.instance(),
     blockSubmissionTransitionCount: number = 100,
     blockSubmissionIntervalMillis: number = 300_000,
     authorizedFaucetAddress?: Address
@@ -105,11 +105,11 @@ export class RollupAggregator
   }
 
   private constructor(
-    private readonly db: DB,
-    private readonly rollupStateMachine: RollupStateMachine,
-    private readonly rollupBlockSubmitter: RollupBlockSubmitter,
+    private readonly db: DBInterface,
+    private readonly rollupStateMachine: RollupStateMachineInterface,
+    private readonly rollupBlockSubmitter: RollupBlockSubmitterInterface,
     private readonly signatureProvider: SignatureProvider,
-    private readonly signatureVerifier: SignatureVerifier = DefaultSignatureVerifier.instance(),
+    private readonly signatureVerifier: SignatureVerifier = Secp256k1SignatureVerifier.instance(),
     private readonly blockSubmissionTransitionCount: number = 100,
     private readonly blockSubmissionIntervalMillis: number = 300_000,
     private readonly authorizedFaucetAddress?: Address
@@ -123,7 +123,7 @@ export class RollupAggregator
   }
 
   /**
-   * Initialize method, required for the Aggregator to load existing state before
+   * Initialize method, required for the AggregatorInterface to load existing state before
    * it can handle requests.
    */
   private async init(): Promise<void> {
@@ -138,7 +138,7 @@ export class RollupAggregator
         this.db.get(RollupAggregator.TRANSACTION_COUNT_KEY),
       ])
 
-      // Fresh start -- nothing in the DB
+      // Fresh start -- nothing in the DBInterface
       if (!lastTransitionBuffer) {
         log.info(`Init returning -- no stored last transition.`)
         this.transactionCount = 0

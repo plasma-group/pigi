@@ -7,8 +7,8 @@ import * as assert from 'assert'
 import {
   PIGI_TOKEN_TYPE,
   RollupBlock,
-  RollupBlockSubmitter,
-  RollupStateSolver,
+  RollupBlockSubmitterInterface,
+  RollupStateSolverInterface,
   SignedStateReceipt,
   State,
   StateReceipt,
@@ -150,7 +150,7 @@ export const assertThrowsAsync = async (
   )
 }
 
-export class DummyRollupStateSolver implements RollupStateSolver {
+export class DummyRollupStateSolver implements RollupStateSolverInterface {
   private validityResult: boolean = true
   private fraudProof: ImplicationProofItem[]
   private storeErrorToThrow: Error
@@ -190,7 +190,7 @@ export class DummyRollupStateSolver implements RollupStateSolver {
   }
 }
 
-export class DummyBlockSubmitter implements RollupBlockSubmitter {
+export class DummyBlockSubmitter implements RollupBlockSubmitterInterface {
   public submitedBlocks: RollupBlock[] = []
 
   public async handleNewRollupBlock(rollupBlockNumber: number): Promise<void> {

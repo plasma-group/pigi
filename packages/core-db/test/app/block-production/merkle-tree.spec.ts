@@ -15,12 +15,12 @@ import * as assert from 'assert'
 
 /* Internal Imports */
 import {
-  SparseMerkleTreeImpl,
+  PersistedSparseMerkleTree,
   MerkleTree,
   MerkleTreeInclusionProof,
   MerkleUpdate,
   SparseMerkleTree,
-  DB,
+  DBInterface,
   newInMemoryDB,
 } from '../../../src'
 
@@ -28,7 +28,9 @@ const hashBuffer: Buffer = Buffer.alloc(64)
 const hashFunction: HashFunction = keccak256
 const bufferHashFunction: (buffer: Buffer) => Buffer = (buff: Buffer) =>
   Buffer.from(hashFunction(buff.toString('hex')), 'hex')
-const zeroHash: Buffer = bufferHashFunction(SparseMerkleTreeImpl.emptyBuffer)
+const zeroHash: Buffer = bufferHashFunction(
+  PersistedSparseMerkleTree.emptyBuffer
+)
 
 const verifyEmptyTreeWithDepth = async (
   tree: SparseMerkleTree,
@@ -47,7 +49,7 @@ const verifyEmptyTreeWithDepth = async (
   const inclusionProof: MerkleTreeInclusionProof = {
     rootHash: await tree.getRootHash(),
     key,
-    value: SparseMerkleTreeImpl.emptyBuffer,
+    value: PersistedSparseMerkleTree.emptyBuffer,
     siblings,
   }
 
@@ -58,11 +60,11 @@ const verifyEmptyTreeWithDepth = async (
 }
 
 const createAndVerifyEmptyTreeDepthWithDepth = async (
-  db: DB,
+  db: DBInterface,
   key: BigNumber,
   depth: number
 ): Promise<SparseMerkleTree> => {
-  const tree: SparseMerkleTree = await SparseMerkleTreeImpl.create(
+  const tree: SparseMerkleTree = await PersistedSparseMerkleTree.create(
     db,
     undefined,
     depth,
@@ -104,29 +106,35 @@ const getRootHashOnlyHashingWithEmptySiblings = (
 }
 
 describe('SparseMerkleTreeImpl', () => {
-  let db: DB
+  let db: DBInterface
   beforeEach(() => {
     db = newInMemoryDB()
   })
 
   describe('Constructor', () => {
     it('should construct without error', async () => {
-      await SparseMerkleTreeImpl.create(db)
+      await PersistedSparseMerkleTree.create(db)
     })
 
     it('accepts a non-empty root hash', async () => {
-      await SparseMerkleTreeImpl.create(db, Buffer.alloc(32).fill('root', 0))
+      await PersistedSparseMerkleTree.create(
+        db,
+        Buffer.alloc(32).fill('root', 0)
+      )
     })
 
     it('throws if root is not 32 bytes', async () => {
       await TestUtils.assertThrowsAsync(async () => {
-        await SparseMerkleTreeImpl.create(db, Buffer.alloc(31).fill('root', 0))
+        await PersistedSparseMerkleTree.create(
+          db,
+          Buffer.alloc(31).fill('root', 0)
+        )
       }, assert.AssertionError)
     })
 
     it('throws if height is < 0', async () => {
       await TestUtils.assertThrowsAsync(async () => {
-        await SparseMerkleTreeImpl.create(db, undefined, -1)
+        await PersistedSparseMerkleTree.create(db, undefined, -1)
       }, assert.AssertionError)
     })
   })
@@ -155,7 +163,7 @@ describe('SparseMerkleTreeImpl', () => {
     })
 
     it('fails on invalid proof for empty root', async () => {
-      const tree: SparseMerkleTree = await SparseMerkleTreeImpl.create(
+      const tree: SparseMerkleTree = await PersistedSparseMerkleTree.create(
         db,
         undefined,
         2,
@@ -166,7 +174,7 @@ describe('SparseMerkleTreeImpl', () => {
         rootHash: await tree.getRootHash(),
         key: ZERO,
         value: Buffer.from('this will fail.'),
-        siblings: [bufferHashFunction(SparseMerkleTreeImpl.emptyBuffer)],
+        siblings: [bufferHashFunction(PersistedSparseMerkleTree.emptyBuffer)],
       }
 
       assert(
@@ -180,10 +188,10 @@ describe('SparseMerkleTreeImpl', () => {
       const root: Buffer = bufferHashFunction(
         hashBuffer
           .fill(bufferHashFunction(value), 0, 32)
-          .fill(bufferHashFunction(SparseMerkleTreeImpl.emptyBuffer), 32)
+          .fill(bufferHashFunction(PersistedSparseMerkleTree.emptyBuffer), 32)
       )
 
-      const tree: SparseMerkleTree = await SparseMerkleTreeImpl.create(
+      const tree: SparseMerkleTree = await PersistedSparseMerkleTree.create(
         db,
         root,
         2,
@@ -194,7 +202,7 @@ describe('SparseMerkleTreeImpl', () => {
         rootHash: await tree.getRootHash(),
         key: ZERO,
         value,
-        siblings: [bufferHashFunction(SparseMerkleTreeImpl.emptyBuffer)],
+        siblings: [bufferHashFunction(PersistedSparseMerkleTree.emptyBuffer)],
       }
 
       assert(
@@ -207,11 +215,15 @@ describe('SparseMerkleTreeImpl', () => {
       const value: Buffer = Buffer.from('non-empty')
       const root: Buffer = bufferHashFunction(
         hashBuffer
-          .fill(bufferHashFunction(SparseMerkleTreeImpl.emptyBuffer), 0, 32)
+          .fill(
+            bufferHashFunction(PersistedSparseMerkleTree.emptyBuffer),
+            0,
+            32
+          )
           .fill(bufferHashFunction(value), 32)
       )
 
-      const tree: SparseMerkleTree = await SparseMerkleTreeImpl.create(
+      const tree: SparseMerkleTree = await PersistedSparseMerkleTree.create(
         db,
         root,
         2,
@@ -222,7 +234,7 @@ describe('SparseMerkleTreeImpl', () => {
         rootHash: await tree.getRootHash(),
         key: ONE,
         value,
-        siblings: [bufferHashFunction(SparseMerkleTreeImpl.emptyBuffer)],
+        siblings: [bufferHashFunction(PersistedSparseMerkleTree.emptyBuffer)],
       }
 
       assert(
@@ -236,10 +248,10 @@ describe('SparseMerkleTreeImpl', () => {
       const root: Buffer = bufferHashFunction(
         hashBuffer
           .fill(bufferHashFunction(value), 0, 32)
-          .fill(bufferHashFunction(SparseMerkleTreeImpl.emptyBuffer), 32)
+          .fill(bufferHashFunction(PersistedSparseMerkleTree.emptyBuffer), 32)
       )
 
-      const tree: SparseMerkleTree = await SparseMerkleTreeImpl.create(
+      const tree: SparseMerkleTree = await PersistedSparseMerkleTree.create(
         db,
         root,
         2,
@@ -250,7 +262,7 @@ describe('SparseMerkleTreeImpl', () => {
         rootHash: await tree.getRootHash(),
         key: ZERO,
         value: Buffer.from('not the right value'),
-        siblings: [bufferHashFunction(SparseMerkleTreeImpl.emptyBuffer)],
+        siblings: [bufferHashFunction(PersistedSparseMerkleTree.emptyBuffer)],
       }
 
       assert(
@@ -296,7 +308,7 @@ describe('SparseMerkleTreeImpl', () => {
 
   describe('update', () => {
     it('updates empty tree', async () => {
-      const tree: SparseMerkleTree = await SparseMerkleTreeImpl.create(
+      const tree: SparseMerkleTree = await PersistedSparseMerkleTree.create(
         db,
         undefined,
         3,
@@ -317,7 +329,7 @@ describe('SparseMerkleTreeImpl', () => {
     })
 
     it('updates empty tree at key 1', async () => {
-      const tree: SparseMerkleTree = await SparseMerkleTreeImpl.create(
+      const tree: SparseMerkleTree = await PersistedSparseMerkleTree.create(
         db,
         undefined,
         3,
@@ -339,7 +351,7 @@ describe('SparseMerkleTreeImpl', () => {
     })
 
     it('updates empty tree at key 2', async () => {
-      const tree: SparseMerkleTree = await SparseMerkleTreeImpl.create(
+      const tree: SparseMerkleTree = await PersistedSparseMerkleTree.create(
         db,
         undefined,
         3,
@@ -361,7 +373,7 @@ describe('SparseMerkleTreeImpl', () => {
     })
 
     it('updates empty tree at key 3', async () => {
-      const tree: SparseMerkleTree = await SparseMerkleTreeImpl.create(
+      const tree: SparseMerkleTree = await PersistedSparseMerkleTree.create(
         db,
         undefined,
         3,
@@ -391,7 +403,7 @@ describe('SparseMerkleTreeImpl', () => {
         zh  zh  zh  zh        A  zh  zh  zh     A    D  zh  zh
       */
 
-      const tree: SparseMerkleTree = await SparseMerkleTreeImpl.create(
+      const tree: SparseMerkleTree = await PersistedSparseMerkleTree.create(
         db,
         undefined,
         3,
@@ -442,7 +454,7 @@ describe('SparseMerkleTreeImpl', () => {
         zh  zh  zh  zh        A  zh  zh  zh     A    zh  D  zh
       */
 
-      const tree: SparseMerkleTree = await SparseMerkleTreeImpl.create(
+      const tree: SparseMerkleTree = await PersistedSparseMerkleTree.create(
         db,
         undefined,
         3,
@@ -488,7 +500,7 @@ describe('SparseMerkleTreeImpl', () => {
 
   describe('batchUpdate', () => {
     it('updates 2 values', async () => {
-      const tree: SparseMerkleTree = await SparseMerkleTreeImpl.create(
+      const tree: SparseMerkleTree = await PersistedSparseMerkleTree.create(
         db,
         undefined,
         3,
@@ -544,7 +556,7 @@ describe('SparseMerkleTreeImpl', () => {
     })
 
     it('updates 3 values', async () => {
-      const tree: SparseMerkleTree = await SparseMerkleTreeImpl.create(
+      const tree: SparseMerkleTree = await PersistedSparseMerkleTree.create(
         db,
         undefined,
         3,
@@ -619,7 +631,7 @@ describe('SparseMerkleTreeImpl', () => {
     })
 
     it('updates 4 values', async () => {
-      const tree: SparseMerkleTree = await SparseMerkleTreeImpl.create(
+      const tree: SparseMerkleTree = await PersistedSparseMerkleTree.create(
         db,
         undefined,
         3,
@@ -715,7 +727,7 @@ describe('SparseMerkleTreeImpl', () => {
     })
 
     it('fails if one proof fails', async () => {
-      const tree: SparseMerkleTree = await SparseMerkleTreeImpl.create(
+      const tree: SparseMerkleTree = await PersistedSparseMerkleTree.create(
         db,
         undefined,
         3,
@@ -814,10 +826,10 @@ describe('SparseMerkleTreeImpl', () => {
       )
       const proof: MerkleTreeInclusionProof = await tree.getMerkleProof(
         ZERO,
-        SparseMerkleTreeImpl.emptyBuffer
+        PersistedSparseMerkleTree.emptyBuffer
       )
 
-      assert(proof.value.equals(SparseMerkleTreeImpl.emptyBuffer))
+      assert(proof.value.equals(PersistedSparseMerkleTree.emptyBuffer))
       assert(proof.key.equals(ZERO))
       assert(proof.siblings.length === 2)
 
@@ -830,7 +842,7 @@ describe('SparseMerkleTreeImpl', () => {
     })
 
     it('gets empty merkle proof for disconnected empty leaf', async () => {
-      const tree: SparseMerkleTree = await SparseMerkleTreeImpl.create(
+      const tree: SparseMerkleTree = await PersistedSparseMerkleTree.create(
         db,
         undefined,
         3,
@@ -839,11 +851,11 @@ describe('SparseMerkleTreeImpl', () => {
 
       const proof: MerkleTreeInclusionProof = await tree.getMerkleProof(
         ZERO,
-        SparseMerkleTreeImpl.emptyBuffer
+        PersistedSparseMerkleTree.emptyBuffer
       )
 
       assert(!!proof, 'Proof should not be undefined!')
-      assert(proof.value.equals(SparseMerkleTreeImpl.emptyBuffer))
+      assert(proof.value.equals(PersistedSparseMerkleTree.emptyBuffer))
       assert(proof.key.equals(ZERO))
       assert(proof.siblings.length === 2)
 
@@ -856,7 +868,7 @@ describe('SparseMerkleTreeImpl', () => {
     })
 
     it('gets merkle proof for non-empty tree', async () => {
-      const tree: SparseMerkleTree = await SparseMerkleTreeImpl.create(
+      const tree: SparseMerkleTree = await PersistedSparseMerkleTree.create(
         db,
         undefined,
         3,
@@ -883,7 +895,7 @@ describe('SparseMerkleTreeImpl', () => {
     })
 
     it('gets merkle proof for disconnected empty leaf in non-empty tree', async () => {
-      const tree: SparseMerkleTree = await SparseMerkleTreeImpl.create(
+      const tree: SparseMerkleTree = await PersistedSparseMerkleTree.create(
         db,
         undefined,
         3,
@@ -894,11 +906,11 @@ describe('SparseMerkleTreeImpl', () => {
 
       const proof: MerkleTreeInclusionProof = await tree.getMerkleProof(
         TWO,
-        SparseMerkleTreeImpl.emptyBuffer
+        PersistedSparseMerkleTree.emptyBuffer
       )
 
       assert(!!proof, 'Proof should not be undefined!')
-      assert(proof.value.equals(SparseMerkleTreeImpl.emptyBuffer))
+      assert(proof.value.equals(PersistedSparseMerkleTree.emptyBuffer))
       assert(proof.key.equals(TWO))
       assert(proof.siblings.length === 2)
 
@@ -914,7 +926,7 @@ describe('SparseMerkleTreeImpl', () => {
     })
 
     it('gets merkle proof for non-empty siblings 0 & 1', async () => {
-      const tree: SparseMerkleTree = await SparseMerkleTreeImpl.create(
+      const tree: SparseMerkleTree = await PersistedSparseMerkleTree.create(
         db,
         undefined,
         3,
@@ -968,7 +980,7 @@ describe('SparseMerkleTreeImpl', () => {
     })
 
     it('gets merkle proof for non-empty siblings 0 & 2', async () => {
-      const tree: SparseMerkleTree = await SparseMerkleTreeImpl.create(
+      const tree: SparseMerkleTree = await PersistedSparseMerkleTree.create(
         db,
         undefined,
         3,
@@ -1034,7 +1046,7 @@ describe('SparseMerkleTreeImpl', () => {
       numUpdates: number,
       keyRange: number
     ): Promise<void> => {
-      const tree: SparseMerkleTree = await SparseMerkleTreeImpl.create(
+      const tree: SparseMerkleTree = await PersistedSparseMerkleTree.create(
         db,
         undefined,
         treeHeight,

@@ -6,7 +6,7 @@ import {
 } from 'abstract-leveldown'
 
 /* Internal Imports */
-import { RangeBucket, RangeEntry } from './range-db.interface'
+import { RangeBucketInterface, RangeEntry } from './range-db'
 
 export type K = NonNullable<Buffer>
 export type V = NonNullable<Buffer>
@@ -37,27 +37,27 @@ export interface DelBatch {
 export interface KeyValueStore {
   /**
    * Queries the value at a given key.
-   * @param key Key to query.
+   * @param key KeyInterface to query.
    * @returns the value at that key.
    */
   get(key: K): Promise<V>
 
   /**
    * Sets the value at a given key.
-   * @param key Key to set.
+   * @param key KeyInterface to set.
    * @param value Value to set to.
    */
   put(key: K, value: V): Promise<void>
 
   /**
    * Deletes a given key.
-   * @param key Key to delete.
+   * @param key KeyInterface to delete.
    */
   del(key: K): Promise<void>
 
   /**
    * Checks whether a given key is set.
-   * @param key Key to query.
+   * @param key KeyInterface to query.
    * @returns `true` if the key is set, `false` otherwise.
    */
   has(key: K): Promise<boolean>
@@ -73,7 +73,7 @@ export interface KeyValueStore {
    * @param options Parameters for the iterator.
    * @returns the iterator instance.
    */
-  iterator(options?: IteratorOptions): Iterator
+  iterator(options?: IteratorOptions): IteratorInterface
 
   /**
    * Creates a prefixed bucket underneath
@@ -81,7 +81,7 @@ export interface KeyValueStore {
    * @param prefix Prefix to use for the bucket.
    * @returns the bucket instance.
    */
-  bucket(prefix: K): Bucket
+  bucket(prefix: K): BucketInterface
 
   /**
    * Creates a prefixed range bucket underneath
@@ -89,13 +89,13 @@ export interface KeyValueStore {
    * @param prefix Prefix to use for the range bucket.
    * @returns the range bucket instance.
    */
-  rangeBucket(prefix: K): RangeBucket
+  rangeBucket(prefix: K): RangeBucketInterface
 }
 
 /**
  * Represents a key:value store.
  */
-export interface DB extends KeyValueStore {
+export interface DBInterface extends KeyValueStore {
   readonly db: AbstractLevelDOWN
 
   /**
@@ -111,11 +111,11 @@ export interface DB extends KeyValueStore {
 }
 
 /**
- * Bucket are effectively databases that only perform operations
+ * BucketInterface are effectively databases that only perform operations
  * on keys that share a common `prefix`.
  */
-export interface Bucket extends KeyValueStore {
-  readonly db: DB
+export interface BucketInterface extends KeyValueStore {
+  readonly db: DBInterface
   readonly prefix: K
 }
 
@@ -140,8 +140,8 @@ export interface IteratorOptions extends AbstractIteratorOptions {
  * the iterator is not impacted by writes
  * made after the iterator was created.
  */
-export interface Iterator {
-  readonly db: DB
+export interface IteratorInterface {
+  readonly db: DBInterface
 
   /**
    * Advances the iterator to the next key.
@@ -151,7 +151,7 @@ export interface Iterator {
 
   /**
    * Seeks the iterator to the target key.
-   * @param target Key to seek to.
+   * @param target KeyInterface to seek to.
    */
   seek(target: K): Promise<void>
 
@@ -183,6 +183,6 @@ export interface Iterator {
   end(): Promise<void>
 }
 
-export interface RangeIterator extends Iterator {
+export interface RangeIterator extends IteratorInterface {
   nextRange(): Promise<RangeEntry>
 }

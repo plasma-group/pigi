@@ -341,7 +341,7 @@ contract UnipigTransitionEvaluator is TransitionEvaluator {
 
         return (v, r, s);
     }
-    // verifies a signature on a 32 byte value--note this means we must be signing/verifying the hash of our transactions, not the encodings themselves--luckily, DefaultSignatureProvider now does this.
+    // verifies a signature on a 32 byte value--note this means we must be signing/verifying the hash of our transactions, not the encodings themselves--luckily, Secp256k1SignatureProvider now does this.
     function verifyEcdsaSignatureOnHash(bytes memory _signature, bytes32 _hash, address _pubkey) private pure returns(bool) {
         bytes memory prefixedMessage = abi.encodePacked("\x19Ethereum Signed Message:\n32", _hash);
         bytes32 digest = keccak256(prefixedMessage);

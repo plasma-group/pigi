@@ -2,7 +2,7 @@
 import {
   MerkleTreeInclusionProof,
   newInMemoryDB,
-  SparseMerkleTreeImpl,
+  PersistedSparseMerkleTree,
 } from '@pigi/core-db'
 
 /* Internal Imports */
@@ -20,7 +20,7 @@ export class MerkleInclusionProofDecider implements Decider {
     input: MerkleInclusionProofDeciderInput,
     _noCache?: boolean
   ): Promise<Decision> {
-    const tree = await SparseMerkleTreeImpl.create(
+    const tree = await PersistedSparseMerkleTree.create(
       newInMemoryDB(256),
       input.merkleProof.rootHash,
       input.merkleProof.siblings.length + 1

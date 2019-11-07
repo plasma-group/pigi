@@ -1,11 +1,11 @@
 /* External Imports */
 import * as Level from 'level'
 
-import { BaseDB, DB, EthereumEventProcessor } from '@pigi/core-db'
+import { DB, DBInterface, EthereumEventProcessor } from '@pigi/core-db'
 
 import {
-  DefaultSignatureProvider,
-  DefaultSignatureVerifier,
+  Secp256k1SignatureProvider,
+  Secp256k1SignatureVerifier,
   getLogger,
 } from '@pigi/core-utils'
 
@@ -21,9 +21,9 @@ config({ path: resolve(__dirname, `../../../../config/.env`) })
 
 /* Internal Imports */
 import * as RollupChain from '../../../build/contracts/RollupChain.json'
-import { Address, RollupStateMachine, State } from '../../types'
-import { DefaultRollupStateMachine, getGenesisState } from '../../common'
-import { DefaultRollupBlockSubmitter } from '../rollup-block-submitter'
+import { Address, RollupStateMachineInterface, State } from '../../types'
+import { RollupStateMachine, getGenesisState } from '../../common'
+import { RollupBlockSubmitter } from '../rollup-block-submitter'
 import { RollupAggregator } from '../rollup-aggregator'
 import { AggregatorServer } from '../aggregator-server'
 
@@ -68,11 +68,11 @@ async function runAggregator() {
     keyEncoding: 'binary',
     valueEncoding: 'binary',
   }
-  const stateDB = new BaseDB((await Level(
+  const stateDB = new DB((await Level(
     'build/level/state',
     levelOptions
   )) as any)
-  const blockDB = new BaseDB(
+  const blockDB = new DB(
     (await Level('build/level/blocks', levelOptions)) as any,
     4
   )
@@ -80,7 +80,7 @@ async function runAggregator() {
   const aggregatorWallet: Wallet = Wallet.fromMnemonic(
     aggregatorMnemonic
   ).connect(new JsonRpcProvider(jsonRpcUrl))
-  const rollupStateMachine: RollupStateMachine = await DefaultRollupStateMachine.create(
+  const rollupStateMachine: RollupStateMachineInterface = await RollupStateMachine.create(
     getGenesisState(aggregatorWallet.address, genesisState),
     stateDB,
     aggregatorWallet.address
@@ -94,11 +94,11 @@ async function runAggregator() {
     RollupChain.interface,
     aggregatorWallet
   )
-  const blockSubmitterDB: DB = new BaseDB(
+  const blockSubmitterDB: DBInterface = new DB(
     (await Level('build/level/blockSubmitter', levelOptions)) as any,
     256
   )
-  const blockSubmitter = await DefaultRollupBlockSubmitter.create(
+  const blockSubmitter = await RollupBlockSubmitter.create(
     blockSubmitterDB,
     contract
   )
@@ -108,14 +108,14 @@ async function runAggregator() {
     blockDB,
     rollupStateMachine,
     blockSubmitter,
-    new DefaultSignatureProvider(aggregatorWallet),
-    DefaultSignatureVerifier.instance(),
+    new Secp256k1SignatureProvider(aggregatorWallet),
+    Secp256k1SignatureVerifier.instance(),
     transitionsPerBlock,
     blockSubmissionIntervalMillis,
     authorizedFaucetAddress
   )
 
-  const blockProcessorDB: DB = new BaseDB(
+  const blockProcessorDB: DBInterface = new DB(
     (await Level('build/level/blockProcessor', levelOptions)) as any,
     256
   )

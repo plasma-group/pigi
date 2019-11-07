@@ -2,14 +2,14 @@
 import * as AsyncLock from 'async-lock'
 
 import {
-  DB,
+  DBInterface,
   SparseMerkleTree,
-  SparseMerkleTreeImpl,
+  PersistedSparseMerkleTree,
   MerkleTreeInclusionProof,
 } from '@pigi/core-db'
 
 import {
-  DefaultSignatureVerifier,
+  Secp256k1SignatureVerifier,
   serializeObject,
   SignatureVerifier,
   BigNumber,
@@ -51,7 +51,7 @@ import {
   InsufficientBalanceError,
   InvalidTransactionTypeError,
   NegativeAmountError,
-  RollupStateMachine,
+  RollupStateMachineInterface,
   SlippageError,
 } from '../types'
 
@@ -61,7 +61,7 @@ const log = getLogger('rollup-state-machine')
  * A Tree-backed Rollup State Machine, facilitating state transitions for
  * swaps and transactions for Uniswap.
  */
-export class DefaultRollupStateMachine implements RollupStateMachine {
+export class RollupStateMachine implements RollupStateMachineInterface {
   public static readonly ROOT_KEY: Buffer = Buffer.from('state_machine_root')
   public static readonly LAST_OPEN_KEY: Buffer = Buffer.from('last_open_key')
   public static readonly ADDRESS_TO_KEYS_COUNT_KEY: Buffer = Buffer.from(
@@ -78,25 +78,25 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
   private readonly lock: AsyncLock
 
   /**
-   * Creates and initializes a DefaultRollupStateMachine.
+   * Creates and initializes a RollupStateMachine.
    *
    * @param genesisState The genesis state to set
-   * @param db The DB to use
+   * @param db The DBInterface to use
    * @param aggregatorAddress The address of the aggregator
    * @param signatureVerifier The signature verifier to use
    * @param swapFeeBasisPoints The fee for swapping, in basis points
    * @param treeHeight The height of the tree to use for underlying storage
-   * @returns The constructed and initialized RollupStateMachine
+   * @returns The constructed and initialized RollupStateMachineInterface
    */
   public static async create(
     genesisState: State[],
-    db: DB,
+    db: DBInterface,
     aggregatorAddress: Address,
-    signatureVerifier: SignatureVerifier = DefaultSignatureVerifier.instance(),
+    signatureVerifier: SignatureVerifier = Secp256k1SignatureVerifier.instance(),
     swapFeeBasisPoints: number = 30,
     treeHeight: number = 32
-  ): Promise<RollupStateMachine> {
-    const stateMachine = new DefaultRollupStateMachine(
+  ): Promise<RollupStateMachineInterface> {
+    const stateMachine = new RollupStateMachine(
       db,
       aggregatorAddress,
       signatureVerifier,
@@ -116,7 +116,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
   }
 
   private constructor(
-    private readonly db: DB,
+    private readonly db: DBInterface,
     private readonly aggregatorAddress: Address,
     private readonly signatureVerifier: SignatureVerifier,
     private readonly swapFeeBasisPoints: number,
@@ -129,17 +129,15 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
   }
 
   /**
-   * Initializes this RollupStateMachine, reading stored state from the DB
+   * Initializes this RollupStateMachineInterface, reading stored state from the DBInterface
    * and populating local variables from saved state if there is any.
    *
    * @returns True if there was existing state, false otherwise.
    */
   private async init(): Promise<boolean> {
-    const storedRoot: Buffer = await this.db.get(
-      DefaultRollupStateMachine.ROOT_KEY
-    )
+    const storedRoot: Buffer = await this.db.get(RollupStateMachine.ROOT_KEY)
 
-    this.tree = await SparseMerkleTreeImpl.create(
+    this.tree = await PersistedSparseMerkleTree.create(
       this.db,
       storedRoot,
       this.treeHeight
@@ -156,8 +154,8 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     }
 
     const [lastKeyBuffer, addressToKeyCountBuffer] = await Promise.all([
-      this.db.get(DefaultRollupStateMachine.LAST_OPEN_KEY),
-      this.db.get(DefaultRollupStateMachine.ADDRESS_TO_KEYS_COUNT_KEY),
+      this.db.get(RollupStateMachine.LAST_OPEN_KEY),
+      this.db.get(RollupStateMachine.ADDRESS_TO_KEYS_COUNT_KEY),
     ])
 
     this.lastOpenKey = new BigNumber(lastKeyBuffer)
@@ -174,13 +172,13 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     const addressPromises: Array<Promise<Buffer>> = []
     for (let i = 0; i < addressCount; i++) {
       addressPromises.push(
-        this.db.get(DefaultRollupStateMachine.getAddressMapDBKey(i))
+        this.db.get(RollupStateMachine.getAddressMapDBKey(i))
       )
     }
 
     const addressToKeysBuffers: Buffer[] = await Promise.all(addressPromises)
     for (const addressKeyBuf of addressToKeysBuffers) {
-      const addressAndKey: any[] = DefaultRollupStateMachine.deserializeAddressToKeyFromDB(
+      const addressAndKey: any[] = RollupStateMachine.deserializeAddressToKeyFromDB(
         addressKeyBuf
       )
       this.addressesToKeys.set(addressAndKey[0], addressAndKey[1])
@@ -207,7 +205,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       Buffer,
       MerkleTreeInclusionProof,
       string
-    ] = await this.lock.acquire(DefaultRollupStateMachine.lockKey, async () => {
+    ] = await this.lock.acquire(RollupStateMachine.lockKey, async () => {
       const key: BigNumber = this.getAddressKey(address)
 
       if (!!key) {
@@ -236,7 +234,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       inclusionProof = undefined
       slotIndex = NON_EXISTENT_SLOT_INDEX
     } else {
-      state = DefaultRollupStateMachine.deserializeState(accountState)
+      state = RollupStateMachine.deserializeState(accountState)
       inclusionProof = proof.siblings.map((x: Buffer) => x.toString('hex'))
       slotIndex = this.getAddressKey(address).toNumber()
     }
@@ -259,7 +257,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     transactions: SignedTransaction[]
   ): Promise<StateUpdate[]> {
     return runInDomain(undefined, async () => {
-      return this.lock.acquire(DefaultRollupStateMachine.lockKey, async () => {
+      return this.lock.acquire(RollupStateMachine.lockKey, async () => {
         const stateUpdates: StateUpdate[] = []
 
         for (const tx of transactions) {
@@ -300,7 +298,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       throw new SignatureError()
     }
 
-    return this.lock.acquire(DefaultRollupStateMachine.lockKey, async () => {
+    return this.lock.acquire(RollupStateMachine.lockKey, async () => {
       const stateUpdate = { transaction: signedTransaction }
       const transaction: RollupTransaction = signedTransaction.transaction
       let updatedStates: State[]
@@ -323,7 +321,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       }
 
       const root: Buffer = await this.tree.getRootHash()
-      await this.db.put(DefaultRollupStateMachine.ROOT_KEY, root)
+      await this.db.put(RollupStateMachine.ROOT_KEY, root)
 
       const senderState: State = updatedStates[0]
       const receiverState: State = updatedStates[1]
@@ -337,10 +335,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       const inclusionProof = async (state: State): Promise<InclusionProof> => {
         const proof: MerkleTreeInclusionProof = await this.tree.getMerkleProof(
           this.getAddressKey(state.pubkey),
-          DefaultRollupStateMachine.serializeBalances(
-            state.pubkey,
-            state.balances
-          )
+          RollupStateMachine.serializeBalances(state.pubkey, state.balances)
         )
         return proof.siblings.map((p) => p.toString('hex'))
       }
@@ -359,7 +354,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
 
   public async getStateRoot(): Promise<Buffer> {
     const lockedRoot = await this.lock.acquire(
-      DefaultRollupStateMachine.lockKey,
+      RollupStateMachine.lockKey,
       async () => {
         return this.tree.getRootHash()
       }
@@ -376,13 +371,13 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
       Buffer,
       MerkleTreeInclusionProof,
       string
-    ] = await this.lock.acquire(DefaultRollupStateMachine.lockKey, async () => {
+    ] = await this.lock.acquire(RollupStateMachine.lockKey, async () => {
       const bigKey: BigNumber = new BigNumber(key, 10)
       let leaf: Buffer = await this.tree.getLeaf(bigKey)
 
-      if (!leaf || leaf.equals(SparseMerkleTreeImpl.siblingBuffer)) {
+      if (!leaf || leaf.equals(PersistedSparseMerkleTree.siblingBuffer)) {
         // if we didn't get the leaf it must be empty
-        leaf = SparseMerkleTreeImpl.emptyBuffer
+        leaf = PersistedSparseMerkleTree.emptyBuffer
       }
 
       const merkleProof: MerkleTreeInclusionProof = await this.tree.getMerkleProof(
@@ -404,8 +399,9 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     let state: State
     let inclusionProof: InclusionProof
     state =
-      !!accountState && !accountState.equals(SparseMerkleTreeImpl.emptyBuffer)
-        ? DefaultRollupStateMachine.deserializeState(accountState)
+      !!accountState &&
+      !accountState.equals(PersistedSparseMerkleTree.emptyBuffer)
+        ? RollupStateMachine.deserializeState(accountState)
         : {
             pubkey: NULL_ADDRESS,
             balances: { [UNI_TOKEN_TYPE]: 0, [PIGI_TOKEN_TYPE]: 0 },
@@ -432,7 +428,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     if (!!key) {
       const leaf: Buffer = await this.tree.getLeaf(key)
       if (!!leaf) {
-        return DefaultRollupStateMachine.deserializeState(leaf).balances
+        return RollupStateMachine.deserializeState(leaf).balances
       }
     }
     return { [UNI_TOKEN_TYPE]: 0, [PIGI_TOKEN_TYPE]: 0 }
@@ -450,7 +446,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     balances: Balances
   ): Promise<boolean> {
     const addressKey: BigNumber = await this.getOrCreateAddressKey(address)
-    const serializedBalances: Buffer = DefaultRollupStateMachine.serializeBalances(
+    const serializedBalances: Buffer = RollupStateMachine.serializeBalances(
       address,
       balances
     )
@@ -532,11 +528,8 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     ])
 
     return [
-      DefaultRollupStateMachine.getStateFromBalances(
-        transfer.sender,
-        senderBalances
-      ),
-      DefaultRollupStateMachine.getStateFromBalances(
+      RollupStateMachine.getStateFromBalances(transfer.sender, senderBalances),
+      RollupStateMachine.getStateFromBalances(
         transfer.recipient,
         recipientBalances
       ),
@@ -610,11 +603,8 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
     ])
 
     return [
-      DefaultRollupStateMachine.getStateFromBalances(sender, senderBalances),
-      DefaultRollupStateMachine.getStateFromBalances(
-        UNISWAP_ADDRESS,
-        uniswapBalances
-      ),
+      RollupStateMachine.getStateFromBalances(sender, senderBalances),
+      RollupStateMachine.getStateFromBalances(UNISWAP_ADDRESS, uniswapBalances),
     ]
   }
 
@@ -654,21 +644,16 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
 
     // Order of updates matters here, so can't parallelize
     await this.db.put(
-      DefaultRollupStateMachine.getAddressMapDBKey(
-        this.addressesToKeys.size - 1
-      ),
-      DefaultRollupStateMachine.serializeAddressToKeyForDB(
-        address,
-        this.lastOpenKey
-      )
+      RollupStateMachine.getAddressMapDBKey(this.addressesToKeys.size - 1),
+      RollupStateMachine.serializeAddressToKeyForDB(address, this.lastOpenKey)
     )
     await Promise.all([
       this.db.put(
-        DefaultRollupStateMachine.ADDRESS_TO_KEYS_COUNT_KEY,
+        RollupStateMachine.ADDRESS_TO_KEYS_COUNT_KEY,
         Buffer.from(this.addressesToKeys.size.toString(10))
       ),
       this.db.put(
-        DefaultRollupStateMachine.LAST_OPEN_KEY,
+        RollupStateMachine.LAST_OPEN_KEY,
         this.lastOpenKey.toBuffer()
       ),
     ])
@@ -682,9 +667,7 @@ export class DefaultRollupStateMachine implements RollupStateMachine {
 
   public static serializeBalances(address: string, balances: Balances): Buffer {
     return Buffer.from(
-      abiEncodeState(
-        DefaultRollupStateMachine.getStateFromBalances(address, balances)
-      )
+      abiEncodeState(RollupStateMachine.getStateFromBalances(address, balances))
     )
   }
 

@@ -14,11 +14,11 @@ import {
 
 /* Internal Imports */
 import {
-  RangeBucket,
+  RangeBucketInterface,
   RangeEntry,
-  Bucket,
+  BucketInterface,
   Batch,
-  DB,
+  DBInterface,
   IteratorOptions,
   KV,
   PUT_BATCH_TYPE,
@@ -34,16 +34,16 @@ const log = getLogger('range-db')
  * Simple bucket implementation that forwards all
  * calls up to the database but appends a prefix.
  */
-export class BaseRangeBucket implements RangeBucket {
+export class RangeBucket implements RangeBucketInterface {
   /**
-   * Creates the RangeBucket.
+   * Creates the RangeBucketInterface.
    * @param db Pointer to the Level instance to be used.
    * @param prefix A Buffer which is prepended to each range key.
    * @param keyLength The number of bytes which should be used for the range keys.
    * @param endianness The endianness of the range keys.
    */
   constructor(
-    readonly db: DB,
+    readonly db: DBInterface,
     readonly prefix: Buffer,
     readonly keyLength: number = 16,
     readonly endianness: Endianness = BIG_ENDIAN
@@ -62,7 +62,7 @@ export class BaseRangeBucket implements RangeBucket {
 
   /**
    * Adds the start position of a range to a Buffer value.
-   * This is used to generate the value we store in the DB
+   * This is used to generate the value we store in the DBInterface
    * because each range is stored internally as `end->start+data`.
    * @param start A BigNumber representing the start position.
    * @param value A Buffer value, likely to be stored.
@@ -136,12 +136,12 @@ export class BaseRangeBucket implements RangeBucket {
   }
 
   /**
-   * Transforms a result of the DB query (key, value) into a range object.
-   * @param result The resulting value which has been extracted from our DB.
+   * Transforms a result of the DBInterface query (key, value) into a range object.
+   * @param result The resulting value which has been extracted from our DBInterface.
    * @returns a range object with {start, end, value}
    */
   private resultToRange(result: KV): RangeEntry {
-    // Helper function which gets the start and end position from a DB seek result
+    // Helper function which gets the start and end position from a DBInterface seek result
     return {
       start: new BigNumber(this.getStartFromValue(result.value)),
       end: new BigNumber(result.key.slice(this.prefix.length)),
@@ -150,7 +150,7 @@ export class BaseRangeBucket implements RangeBucket {
   }
 
   /**
-   * Iterates through the DB to find all overlapping ranges & constructs an array of
+   * Iterates through the DBInterface to find all overlapping ranges & constructs an array of
    * batch operations to delete them. This is used in `del()` and `put()`
    * @param start The start of the range which we want deletion batch operations for.
    * @param end The end of the range which we want deletion batch operations for.
@@ -173,7 +173,7 @@ export class BaseRangeBucket implements RangeBucket {
   }
 
   /**
-   * Puts a new range in the DB. Note that it maps the values to a range.
+   * Puts a new range in the DBInterface. Note that it maps the values to a range.
    * Sometimes putting a new range will split old ranges, or delete them entirely.
    * For example: put(0,5,'$') might result in `$$$$$`, then put(1,4,'#') would result in `$###$`.
    * @param start The start of the range which we are putting values into.
@@ -330,7 +330,7 @@ export class BaseRangeBucket implements RangeBucket {
    * @param prefix Prefix to use for the bucket.
    * @returns the bucket instance.
    */
-  public bucket(prefix: Buffer): Bucket {
+  public bucket(prefix: Buffer): BucketInterface {
     return this.db.bucket(this.addPrefix(prefix))
   }
 
@@ -340,7 +340,7 @@ export class BaseRangeBucket implements RangeBucket {
    * @param prefix Prefix to use for the bucket.
    * @returns the range bucket instance.
    */
-  public rangeBucket(prefix: Buffer): RangeBucket {
+  public rangeBucket(prefix: Buffer): RangeBucketInterface {
     return this.db.rangeBucket(this.addPrefix(prefix))
   }
 }

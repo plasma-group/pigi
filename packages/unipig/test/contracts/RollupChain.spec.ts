@@ -2,13 +2,13 @@ import '../setup'
 
 /* External Imports */
 import { createMockProvider, deployContract, getWallets } from 'ethereum-waffle'
-import { SparseMerkleTreeImpl, newInMemoryDB } from '@pigi/core-db'
+import { PersistedSparseMerkleTree, newInMemoryDB } from '@pigi/core-db'
 
 import {
   hexStrToBuf,
   bufToHexString,
   BigNumber,
-  DefaultSignatureProvider,
+  Secp256k1SignatureProvider,
 } from '@pigi/core-utils'
 
 /* Internal Imports */
@@ -354,7 +354,7 @@ describe('RollupChain', () => {
    */
   describe('proveTransitionInvalid() ', async () => {
     it('should throw if attempting to prove invalid a valid transition', async () => {
-      const signatureProvider = new DefaultSignatureProvider()
+      const signatureProvider = new Secp256k1SignatureProvider()
       const sentAmount = 5
       const tokenType = 0
       const storageSlots = [5, 10]
@@ -383,7 +383,7 @@ describe('RollupChain', () => {
       const encodedPreStates = preStateObjects.map((obj) => abiEncodeState(obj))
       // Create the state tree
       const treeHeight = 32 // Default tree height
-      const stateTree = await SparseMerkleTreeImpl.create(
+      const stateTree = await PersistedSparseMerkleTree.create(
         newInMemoryDB(),
         undefined,
         treeHeight + 1

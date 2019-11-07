@@ -5,15 +5,15 @@ import { SignedByDB, SignedByDecider } from '@pigi/ovm'
 import {
   getLogger,
   SimpleClient,
-  DefaultSignatureProvider,
+  Secp256k1SignatureProvider,
 } from '@pigi/core-utils'
-import { DB, BaseDB } from '@pigi/core-db'
+import { DBInterface, DB } from '@pigi/core-db'
 import { ethers } from 'ethers'
 
 /* Internal Imports */
-import { Address, Balances, RollupStateSolver } from '../types'
+import { Address, Balances, RollupStateSolverInterface } from '../types'
 import {
-  DefaultRollupStateSolver,
+  RollupStateSolver,
   PIGI_TOKEN_TYPE,
   RollupClient,
   UNI_TOKEN_TYPE,
@@ -79,7 +79,7 @@ async function initialize() {
     valueEncoding: 'binary',
   }
 
-  const walletDB = new BaseDB(
+  const walletDB = new DB(
     (await Level('build/level/wallet', levelOptions)) as any,
     256
   )
@@ -94,7 +94,7 @@ async function initialize() {
     await walletDB.put(mnemonicKey, Buffer.from(wallet.mnemonic))
   }
 
-  const signatureDB: DB = new BaseDB(
+  const signatureDB: DBInterface = new DB(
     (await Level('build/level/signatures', levelOptions)) as any,
     256
   )
@@ -103,16 +103,16 @@ async function initialize() {
     signedByDB,
     wallet.address
   )
-  const rollupStateSolver: RollupStateSolver = new DefaultRollupStateSolver(
+  const rollupStateSolver: RollupStateSolverInterface = new RollupStateSolver(
     signedByDB,
     signedByDecider
   )
 
-  const clientDB: DB = new BaseDB(
+  const clientDB: DBInterface = new DB(
     (await Level('build/level/client', levelOptions)) as any,
     256
   )
-  const transitionerDB: DB = new BaseDB(
+  const transitionerDB: DBInterface = new DB(
     (await Level('build/level/transitioner', levelOptions)) as any,
     256
   )
@@ -125,7 +125,7 @@ async function initialize() {
     transitionerDB,
     rollupStateSolver,
     rollupClient,
-    new DefaultSignatureProvider(wallet),
+    new Secp256k1SignatureProvider(wallet),
     aggregatorAddress
   )
   // Update account address

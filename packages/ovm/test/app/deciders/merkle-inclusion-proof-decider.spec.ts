@@ -5,7 +5,7 @@ import { BigNumber, objectsEqual, ONE } from '@pigi/core-utils'
 import {
   MerkleTreeInclusionProof,
   newInMemoryDB,
-  SparseMerkleTreeImpl,
+  PersistedSparseMerkleTree,
 } from '@pigi/core-db'
 import * as assert from 'assert'
 
@@ -23,7 +23,7 @@ describe('MerkleTreeInclusionProofDecider', () => {
     const leafValue: Buffer = Buffer.from('Leaf value')
 
     it('should return true when inclusion proof is valid', async () => {
-      const merkleTree: SparseMerkleTreeImpl = await SparseMerkleTreeImpl.create(
+      const merkleTree: PersistedSparseMerkleTree = await PersistedSparseMerkleTree.create(
         newInMemoryDB(256)
       )
       assert(
@@ -52,7 +52,7 @@ describe('MerkleTreeInclusionProofDecider', () => {
     })
 
     it('should return true when inclusion proof is valid for 32-height tree', async () => {
-      const merkleTree: SparseMerkleTreeImpl = await SparseMerkleTreeImpl.create(
+      const merkleTree: PersistedSparseMerkleTree = await PersistedSparseMerkleTree.create(
         newInMemoryDB(256),
         undefined,
         32
@@ -85,7 +85,7 @@ describe('MerkleTreeInclusionProofDecider', () => {
 
     it('should return true when inclusion proof is valid for different key', async () => {
       const key: BigNumber = new BigNumber(10)
-      const merkleTree: SparseMerkleTreeImpl = await SparseMerkleTreeImpl.create(
+      const merkleTree: PersistedSparseMerkleTree = await PersistedSparseMerkleTree.create(
         newInMemoryDB(256)
       )
       assert(
@@ -115,7 +115,7 @@ describe('MerkleTreeInclusionProofDecider', () => {
 
     it('should return false when inclusion proof is invalid', async () => {
       const key: BigNumber = new BigNumber(10)
-      const merkleTree: SparseMerkleTreeImpl = await SparseMerkleTreeImpl.create(
+      const merkleTree: PersistedSparseMerkleTree = await PersistedSparseMerkleTree.create(
         newInMemoryDB(256)
       )
       assert(

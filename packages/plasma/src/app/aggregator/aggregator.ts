@@ -4,19 +4,19 @@ import { doRangesSpanRange } from '@pigi/core-db'
 
 /* Internal Imports */
 import {
-  Aggregator,
-  BlockManager,
-  StateManager,
+  AggregatorInterface,
+  BlockManagerInterface,
+  StateManagerInterface,
   BlockTransaction,
   BlockTransactionCommitment,
   Transaction,
   TransactionResult,
 } from '../../types'
 
-export class DefaultAggregator implements Aggregator {
+export class Aggregator implements AggregatorInterface {
   public constructor(
-    private readonly stateManager: StateManager,
-    private readonly blockManager: BlockManager,
+    private readonly stateManager: StateManagerInterface,
+    private readonly blockManager: BlockManagerInterface,
     private readonly publicKey: string,
     private readonly signatureProvider: SignatureProvider
   ) {}

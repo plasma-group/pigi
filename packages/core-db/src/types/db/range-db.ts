@@ -3,12 +3,12 @@ import { BigNumber, Endianness } from '@pigi/core-utils'
 
 /* Internal Imports */
 import {
-  Bucket,
+  BucketInterface,
   IteratorOptions,
   KeyValueStore,
   RangeIterator,
   V,
-} from './db.interface'
+} from './db'
 
 /**
  * Represents a range of values. Note start & end are big numbers!
@@ -68,14 +68,14 @@ export interface RangeStore {
   iterator(options?: IteratorOptions): RangeIterator
 }
 
-export interface RangeBucket extends RangeStore {
+export interface RangeBucketInterface extends RangeStore {
   /**
    * Creates a prefixed bucket underneath
    * this bucket.
    * @param prefix Prefix to use for the bucket.
    * @returns the bucket instance.
    */
-  bucket(prefix: Buffer): Bucket
+  bucket(prefix: Buffer): BucketInterface
 
   /**
    * Creates a prefixed range bucket underneath
@@ -83,5 +83,5 @@ export interface RangeBucket extends RangeStore {
    * @param prefix Prefix to use for the bucket.
    * @returns the range bucket instance.
    */
-  rangeBucket(prefix: Buffer): RangeBucket
+  rangeBucket(prefix: Buffer): RangeBucketInterface
 }

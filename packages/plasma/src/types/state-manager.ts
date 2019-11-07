@@ -8,9 +8,9 @@ import {
   StateQueryResult,
   Transaction,
   TransactionResult,
-} from './state.interface'
+} from './state'
 
-export interface StateManager {
+export interface StateManagerInterface {
   /**
    * Executes the provided Transaction against the current verified State.
    *

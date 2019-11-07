@@ -8,7 +8,7 @@ import {
 } from './types'
 import { ContractFraudProof } from '../validator'
 
-export interface RollupStateValidator {
+export interface RollupStateValidatorInterface {
   /**
    * Gets the most recent transition and block number wich the guard has verified so far.
    *

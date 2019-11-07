@@ -1,7 +1,11 @@
 import '../setup'
 
 /* External Imports */
-import { DB, newInMemoryDB, SparseMerkleTreeImpl } from '@pigi/core-db'
+import {
+  DBInterface,
+  newInMemoryDB,
+  PersistedSparseMerkleTree,
+} from '@pigi/core-db'
 
 import { ZERO, IdentityVerifier } from '@pigi/core-utils'
 
@@ -20,7 +24,7 @@ import {
   UNISWAP_GENESIS_STATE_INDEX,
 } from '../helpers'
 import {
-  DefaultRollupStateMachine,
+  RollupStateMachine,
   InsufficientBalanceError,
   NON_EXISTENT_SLOT_INDEX,
   PIGI_TOKEN_TYPE,
@@ -35,17 +39,17 @@ import {
  *********/
 
 describe('RollupStateMachine', () => {
-  let rollupState: DefaultRollupStateMachine
-  let db: DB
+  let rollupState: RollupStateMachine
+  let db: DBInterface
 
   beforeEach(async () => {
     db = newInMemoryDB()
-    rollupState = (await DefaultRollupStateMachine.create(
+    rollupState = (await RollupStateMachine.create(
       getGenesisState(),
       db,
       AGGREGATOR_ADDRESS,
       IdentityVerifier.instance()
-    )) as DefaultRollupStateMachine
+    )) as RollupStateMachine
   })
 
   describe('getState', () => {
@@ -179,12 +183,12 @@ describe('RollupStateMachine', () => {
 
     it('should update balances after swap including fee', async () => {
       const feeBasisPoints = 30
-      rollupState = (await DefaultRollupStateMachine.create(
+      rollupState = (await RollupStateMachine.create(
         getGenesisStateLargeEnoughForFees(),
         db,
         AGGREGATOR_ADDRESS,
         IdentityVerifier.instance()
-      )) as DefaultRollupStateMachine
+      )) as RollupStateMachine
 
       uniInput = 2500
       expectedPigiAfterFees = calculateSwapWithFees(
@@ -242,51 +246,48 @@ describe('RollupStateMachine', () => {
     })
 
     it('should initialize with no previous state', async () => {
-      rollupState = (await DefaultRollupStateMachine.create(
+      rollupState = (await RollupStateMachine.create(
         getGenesisState(),
         db,
         AGGREGATOR_ADDRESS,
         IdentityVerifier.instance()
-      )) as DefaultRollupStateMachine
+      )) as RollupStateMachine
     })
 
     it('should initialize with previous state and ignore genesis state', async () => {
-      const tree: SparseMerkleTreeImpl = await SparseMerkleTreeImpl.create(
+      const tree: PersistedSparseMerkleTree = await PersistedSparseMerkleTree.create(
         db,
         undefined,
         32
       )
 
       await Promise.all([
+        db.put(RollupStateMachine.ADDRESS_TO_KEYS_COUNT_KEY, Buffer.from('1')),
+        db.put(RollupStateMachine.LAST_OPEN_KEY, ZERO.toBuffer()),
         db.put(
-          DefaultRollupStateMachine.ADDRESS_TO_KEYS_COUNT_KEY,
-          Buffer.from('1')
-        ),
-        db.put(DefaultRollupStateMachine.LAST_OPEN_KEY, ZERO.toBuffer()),
-        db.put(
-          DefaultRollupStateMachine.getAddressMapDBKey(0),
-          DefaultRollupStateMachine.serializeAddressToKeyForDB(
+          RollupStateMachine.getAddressMapDBKey(0),
+          RollupStateMachine.serializeAddressToKeyForDB(
             AGGREGATOR_ADDRESS,
             ZERO
           )
         ),
         tree.update(
           ZERO,
-          DefaultRollupStateMachine.serializeBalances(AGGREGATOR_ADDRESS, {
+          RollupStateMachine.serializeBalances(AGGREGATOR_ADDRESS, {
             [UNI_TOKEN_TYPE]: 999,
             [PIGI_TOKEN_TYPE]: 9_999,
           })
         ),
       ])
 
-      await db.put(DefaultRollupStateMachine.ROOT_KEY, await tree.getRootHash())
+      await db.put(RollupStateMachine.ROOT_KEY, await tree.getRootHash())
 
-      rollupState = (await DefaultRollupStateMachine.create(
+      rollupState = (await RollupStateMachine.create(
         getGenesisState(),
         db,
         AGGREGATOR_ADDRESS,
         IdentityVerifier.instance()
-      )) as DefaultRollupStateMachine
+      )) as RollupStateMachine
 
       rollupState.getUsedKeys().size.should.equal(1)
       rollupState

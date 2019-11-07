@@ -1,8 +1,8 @@
 /* External Imports */
 import { BIG_ENDIAN, BigNumber, MAX_BIG_NUM, ONE, ZERO } from '@pigi/core-utils'
 import {
-  BaseKey,
-  BaseRangeBucket,
+  Key,
+  RangeBucket,
   KeyValueStore,
   RangeStore,
   GenericMerkleIntervalTree,
@@ -11,18 +11,18 @@ import { Mutex } from 'async-mutex'
 
 /* Internal Imports */
 
-import { BlockDB, StateUpdate } from '../../types'
+import { BlockDBInterface, StateUpdate } from '../../types'
 import { deserializeStateUpdate, serializeStateUpdate } from '../serialization'
 
 const KEYS = {
   NEXT_BLOCK: Buffer.from('nextblock'),
-  BLOCK: new BaseKey('b', ['buffer']),
+  BLOCK: new Key('b', ['buffer']),
 }
 
 /**
- * Simple BlockDB implementation.
+ * Simple BlockDBInterface implementation.
  */
-export class DefaultBlockDB implements BlockDB {
+export class BlockDB implements BlockDBInterface {
   private readonly blockMutex: Mutex
 
   /**
@@ -125,7 +125,7 @@ export class DefaultBlockDB implements BlockDB {
   private async getBlockStore(blockNumber: BigNumber): Promise<RangeStore> {
     const key = KEYS.BLOCK.encode([blockNumber.toBuffer(BIG_ENDIAN)])
     const bucket = this.blocks.bucket(key)
-    return new BaseRangeBucket(bucket.db, bucket.prefix)
+    return new RangeBucket(bucket.db, bucket.prefix)
   }
 
   /**

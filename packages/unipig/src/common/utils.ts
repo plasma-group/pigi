@@ -25,7 +25,7 @@ export const generateTransferTx = (
   }
 }
 
-/* Aggregator API */
+/* AggregatorInterface API */
 export const AGGREGATOR_API = {
   getState: 'getState',
   getUniswapState: 'getUniswapBalances',

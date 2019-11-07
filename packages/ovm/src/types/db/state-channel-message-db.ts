@@ -1,6 +1,6 @@
-import { MessageDB } from './message-db.interface'
+import { MessageDB } from './message-db'
 import { ParsedMessage } from '../serialization'
-import { SignedByDBInterface } from './signed-by-db.interface'
+import { SignedByDBInterface } from './signed-by-db'
 
 /**
  * The MessageDB interface specific to StateChannelMessages, offering various

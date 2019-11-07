@@ -3,14 +3,14 @@ import { ethers } from 'ethers'
 import { SignatureProvider, SignatureVerifier } from '../types'
 import { hexStrToBuf } from './misc'
 
-export class DefaultSignatureVerifier implements SignatureVerifier {
+export class Secp256k1SignatureVerifier implements SignatureVerifier {
   private static _instance: SignatureVerifier
 
   public static instance(): SignatureVerifier {
-    if (!DefaultSignatureVerifier._instance) {
-      DefaultSignatureVerifier._instance = new DefaultSignatureVerifier()
+    if (!Secp256k1SignatureVerifier._instance) {
+      Secp256k1SignatureVerifier._instance = new Secp256k1SignatureVerifier()
     }
-    return DefaultSignatureVerifier._instance
+    return Secp256k1SignatureVerifier._instance
   }
 
   public verifyMessage(message: string, signature: string): string {
@@ -21,7 +21,7 @@ export class DefaultSignatureVerifier implements SignatureVerifier {
   }
 }
 
-export class DefaultSignatureProvider implements SignatureProvider {
+export class Secp256k1SignatureProvider implements SignatureProvider {
   public constructor(
     private readonly wallet: ethers.Wallet = ethers.Wallet.createRandom()
   ) {}

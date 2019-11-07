@@ -45,7 +45,7 @@ yarn run serve
 ### Configuration
 The aggregator & validator expect an `.env` file that looks like the `/config/.env.service.example` in the same location. The idea is that there is some sensitive info there, so `.env` files are specifically ignored from git so that we never accidentally check in credentials.
 
-### Running Aggregator
+### Running AggregatorInterface
 Make sure the project is built and run:
 ```sh
 ./exec/runAggregator.sh
@@ -58,4 +58,4 @@ Make sure the project is built and run:
 ```
 
 ## Clearing Data
-All data is stored within the `/build` directory at the moment, so if you'd like to blow away data, just run `yarn clean && yarn build` and run the aggregator / validator again. The DB for the aggregator & validator is leveldb, which persists to files in the `/build` directory that get blown away when you `yarn clean`
+All data is stored within the `/build` directory at the moment, so if you'd like to blow away data, just run `yarn clean && yarn build` and run the aggregator / validator again. The DBInterface for the aggregator & validator is leveldb, which persists to files in the `/build` directory that get blown away when you `yarn clean`

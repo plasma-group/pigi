@@ -5,7 +5,7 @@ import { Keystore } from '@pigi/core-utils'
 import { ethers } from 'ethers'
 
 /* Internal Imports */
-import { DefaultWalletDB, newInMemoryDB } from '../../../src/app'
+import { WalletKeyValueStoreDB, newInMemoryDB } from '../../../src/app'
 
 const keystore: Keystore = {
   address: '2600a448db443dc49f3c0b6bf46e6f9110914568',
@@ -32,10 +32,10 @@ const keystore: Keystore = {
 const checksummed = ethers.utils.getAddress(keystore.address)
 
 describe('DefaultWalletDB', () => {
-  let walletdb: DefaultWalletDB
+  let walletdb: WalletKeyValueStoreDB
   beforeEach(() => {
     // Typings for MemDown are wrong so we need to cast to `any`.
-    walletdb = new DefaultWalletDB(newInMemoryDB())
+    walletdb = new WalletKeyValueStoreDB(newInMemoryDB())
   })
 
   describe('putKeystore', () => {

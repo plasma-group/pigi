@@ -18,7 +18,7 @@ import {
   LocalFraudProof,
   LocalMachineError,
   RollupBlock,
-  RollupStateValidator,
+  RollupStateValidatorInterface,
   RollupTransaction,
   RollupTransition,
   RollupTransitionPosition,
@@ -28,7 +28,7 @@ import {
   ValidationOutOfOrderError,
 } from '../types'
 import {
-  DefaultRollupStateMachine,
+  RollupStateMachine,
   PIGI_TOKEN_TYPE,
   UNI_TOKEN_TYPE,
   UNISWAP_STORAGE_SLOT,
@@ -36,15 +36,15 @@ import {
 import { ContractFraudProof, DefaultRollupBlock } from './types'
 
 const log = getLogger('rollup-state-validator')
-export class DefaultRollupStateValidator implements RollupStateValidator {
-  public rollupMachine: DefaultRollupStateMachine
+export class RollupStateValidator implements RollupStateValidatorInterface {
+  public rollupMachine: RollupStateMachine
   private currentPosition: RollupTransitionPosition = {
     blockNumber: 1,
     transitionIndex: 0,
   }
   private storedBlocks: RollupBlock[] = []
 
-  public constructor(theRollupMachine: DefaultRollupStateMachine) {
+  public constructor(theRollupMachine: RollupStateMachine) {
     this.rollupMachine = theRollupMachine
   }
 

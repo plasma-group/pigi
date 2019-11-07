@@ -1,1 +1,1 @@
-export * from './aggregator.interface'
+export * from './aggregator'

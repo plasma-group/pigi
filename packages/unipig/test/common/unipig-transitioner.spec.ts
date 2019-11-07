@@ -5,7 +5,7 @@ import { newInMemoryDB } from '@pigi/core-db'
 import {
   SimpleServer,
   SimpleClient,
-  DefaultSignatureProvider,
+  Secp256k1SignatureProvider,
 } from '@pigi/core-utils'
 
 /* Internal Imports */
@@ -77,7 +77,7 @@ describe('UnipigTransitioner', async () => {
       newInMemoryDB(),
       ovm,
       rollupClient,
-      new DefaultSignatureProvider(),
+      new Secp256k1SignatureProvider(),
       AGGREGATOR_ADDRESS
     )
     // Now create a wallet account

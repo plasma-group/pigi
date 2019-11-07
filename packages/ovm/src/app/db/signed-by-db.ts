@@ -4,25 +4,25 @@ import {
   getLogger,
   Md5Hash,
   SignatureVerifier,
-  DefaultSignatureVerifier,
+  Secp256k1SignatureVerifier,
   serializeObject,
   deserializeObject,
 } from '@pigi/core-utils'
-import { DB } from '@pigi/core-db'
+import { DBInterface } from '@pigi/core-db'
 
 /* Internal Imports */
-import { SignedByDBInterface } from '../../types/db/signed-by-db.interface'
+import { SignedByDBInterface } from '../../types/db/signed-by-db'
 import { SignedMessage } from '../../types/serialization'
 
 const log: Logger = getLogger('signed-by-db')
 
 /**
- * DB to store and access message signatures.
+ * DBInterface to store and access message signatures.
  */
 export class SignedByDB implements SignedByDBInterface {
   public constructor(
-    private readonly db: DB,
-    private readonly singatureVerifier: SignatureVerifier = DefaultSignatureVerifier.instance()
+    private readonly db: DBInterface,
+    private readonly singatureVerifier: SignatureVerifier = Secp256k1SignatureVerifier.instance()
   ) {}
 
   public async handleMessage(

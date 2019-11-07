@@ -7,7 +7,15 @@
 import { AbstractIterator } from 'abstract-leveldown'
 
 /* Internal Imports */
-import { Iterator, IteratorOptions, K, V, KV, DB, RangeEntry } from '../types'
+import {
+  IteratorInterface,
+  IteratorOptions,
+  K,
+  V,
+  KV,
+  DBInterface,
+  RangeEntry,
+} from '../types'
 
 const defaultIteratorOptions: IteratorOptions = {
   reverse: false,
@@ -22,19 +30,19 @@ const defaultIteratorOptions: IteratorOptions = {
 /**
  * Wrapper for an abstract-leveldown compliant iterator.
  */
-export class BaseIterator implements Iterator {
+export class Iterator implements IteratorInterface {
   private readonly options: IteratorOptions
   private readonly prefix: Buffer
   private iterator: AbstractIterator<K, V>
   private finished: boolean
 
-  constructor(readonly db: DB, options: IteratorOptions = {}) {
+  constructor(readonly db: DBInterface, options: IteratorOptions = {}) {
     this.prefix = options.prefix || defaultIteratorOptions.prefix
 
     /**
      * Option values for iterators cannot be `null` or `undefined`.
      * We need to be careful not to set these values
-     * accidentally or risk an error in the underlying DB.
+     * accidentally or risk an error in the underlying DBInterface.
      */
 
     if (options.gte !== undefined) {
@@ -82,7 +90,7 @@ export class BaseIterator implements Iterator {
 
   /**
    * Seeks to a target key.
-   * @param target Key to seek to.
+   * @param target KeyInterface to seek to.
    */
   public async seek(target: K): Promise<void> {
     this.start()
@@ -220,15 +228,15 @@ export class BaseIterator implements Iterator {
 
 /**
  * A special purpose iterator which includes a nextRange() function that returns RangeEntrys instead of simple KVs.
- * This is used by the RangeBucket class.
+ * This is used by the RangeBucketInterface class.
  */
-export class BaseRangeIterator extends BaseIterator {
+export class BaseRangeIterator extends Iterator {
   /**
    * Constructs a RangeIterator with a particular `resultToRange()` function that will transform
    * the it.next() result into a RangeEntry.
    */
   constructor(
-    db: DB,
+    db: DBInterface,
     options: IteratorOptions = {},
     readonly resultToRange: (result: KV) => RangeEntry
   ) {

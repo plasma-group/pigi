@@ -7,11 +7,11 @@ import * as assert from 'assert'
 /* Internal Imports */
 import {
   StateUpdate,
-  BlockDB,
-  BlockManager,
+  BlockDBInterface,
+  BlockManagerInterface,
   CommitmentContract,
 } from '../../../src'
-import { DefaultBlockManager } from '../../../src/app/block-production'
+import { BlockManager } from '../../../src/app/block-production'
 import { stateUpdatesEqual } from '../../../src/app/utils'
 import { TestUtils } from '../test-utils'
 
@@ -34,7 +34,7 @@ class DummyCommitmentContract implements CommitmentContract {
   }
 }
 
-class DummyBlockDB implements BlockDB {
+class DummyBlockDB implements BlockDBInterface {
   private nextBlockNumber: BigNumber = ONE
   private pendingStateUpdates: StateUpdate[] = []
   private throwOnFinalize: boolean = false
@@ -70,7 +70,7 @@ class DummyBlockDB implements BlockDB {
 }
 
 const addStateUpdateToBlockManager = async (
-  blockManager: BlockManager
+  blockManager: BlockManagerInterface
 ): Promise<void> => {
   const stateUpdate: StateUpdate = TestUtils.generateNSequentialStateUpdates(
     1
@@ -91,24 +91,24 @@ const addStateUpdateToBlockManager = async (
  *********/
 
 describe('DefaultBlockManager', () => {
-  let blockManager: BlockManager
+  let blockManager: BlockManagerInterface
   let blockDB: DummyBlockDB
   let commitmentContract: DummyCommitmentContract
 
   beforeEach(async () => {
     blockDB = new DummyBlockDB()
     commitmentContract = new DummyCommitmentContract()
-    blockManager = new DefaultBlockManager(blockDB, commitmentContract)
+    blockManager = new BlockManager(blockDB, commitmentContract)
   })
 
   describe('getNextBlockNumber', () => {
-    it('is in sync with BlockDB', async () => {
+    it('is in sync with BlockDBInterface', async () => {
       const blockDBNextBlock: BigNumber = await blockDB.getNextBlockNumber()
       const blockManagerNextBlock: BigNumber = await blockManager.getNextBlockNumber()
 
       assert(
         blockManagerNextBlock.eq(blockDBNextBlock),
-        'BlockDB and BlockManager are out of sync'
+        'BlockDBInterface and BlockManagerInterface are out of sync'
       )
     })
   })

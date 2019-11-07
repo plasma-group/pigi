@@ -3,7 +3,7 @@ import {
   JsonRpcErrorResponse,
   JsonRpcRequest,
   JsonRpcResponse,
-} from './transport.interface'
+} from './transport'
 import { Range } from './range'
 import { ZERO } from '../app'
 

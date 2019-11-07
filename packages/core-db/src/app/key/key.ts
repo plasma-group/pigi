@@ -6,14 +6,14 @@
 /* Internal Imports */
 import { types } from './types'
 import { makeID, assert } from './utils'
-import { Key, KeyType } from '../../types'
+import { KeyInterface, KeyType } from '../../types'
 
 type KeyTypeName = keyof typeof types
 
 /**
  * Simple key implementation.
  */
-export class BaseKey implements Key {
+export class Key implements KeyInterface {
   private id: number
   private ops: KeyType[] = []
   private size = 0
@@ -94,7 +94,7 @@ export class BaseKey implements Key {
 
   /**
    * Decodes a key to its component arguments.
-   * @param key Key to decode.
+   * @param key KeyInterface to decode.
    * @returns the components.
    */
   public decode(key: Buffer): any | any[] {
@@ -103,7 +103,7 @@ export class BaseKey implements Key {
     }
 
     if (key.length === 0 || key[0] !== this.id) {
-      throw new Error('Key prefix mismatch.')
+      throw new Error('KeyInterface prefix mismatch.')
     }
 
     const args = []

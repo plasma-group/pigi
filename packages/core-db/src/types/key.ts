@@ -4,7 +4,7 @@ import { K } from './db'
 /**
  * Keys are formatting helpers for inserting into the database.
  */
-export interface Key {
+export interface KeyInterface {
   /**
    * Encode a value based on this key.
    * @param args Arguments to encode.
@@ -14,7 +14,7 @@ export interface Key {
 
   /**
    * Decodes a key into its components.
-   * @param key Key to decode.
+   * @param key KeyInterface to decode.
    * @returns the decoded key as an array.
    */
   decode(key: K): any[]

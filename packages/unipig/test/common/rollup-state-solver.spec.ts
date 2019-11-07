@@ -17,9 +17,9 @@ import * as assert from 'assert'
 /* Internal Imports */
 import {
   InclusionProof,
-  RollupStateSolver,
+  RollupStateSolverInterface,
   SignedStateReceipt,
-  DefaultRollupStateSolver,
+  RollupStateSolver,
   PIGI_TOKEN_TYPE,
   UNI_TOKEN_TYPE,
 } from '../../src'
@@ -52,7 +52,7 @@ const signedStateReceipt: SignedStateReceipt = {
 }
 
 describe('RollupStateSolver', () => {
-  let rollupStateSolver: RollupStateSolver
+  let rollupStateSolver: RollupStateSolverInterface
   let signedByDB: SignedByDB
   describe('Merkle Proof true decider', () => {
     describe('isStateReceiptProvablyValid', () => {
@@ -62,7 +62,7 @@ describe('RollupStateSolver', () => {
           IdentityVerifier.instance()
         )
 
-        rollupStateSolver = new DefaultRollupStateSolver(
+        rollupStateSolver = new RollupStateSolver(
           signedByDB,
           trueDecider,
           trueDecider
@@ -83,7 +83,7 @@ describe('RollupStateSolver', () => {
           IdentityVerifier.instance()
         )
 
-        rollupStateSolver = new DefaultRollupStateSolver(
+        rollupStateSolver = new RollupStateSolver(
           signedByDB,
           falseDecider,
           trueDecider
@@ -105,7 +105,7 @@ describe('RollupStateSolver', () => {
           IdentityVerifier.instance()
         )
 
-        rollupStateSolver = new DefaultRollupStateSolver(
+        rollupStateSolver = new RollupStateSolver(
           signedByDB,
           trueDecider,
           falseDecider
@@ -129,7 +129,7 @@ describe('RollupStateSolver', () => {
           IdentityVerifier.instance()
         )
 
-        rollupStateSolver = new DefaultRollupStateSolver(
+        rollupStateSolver = new RollupStateSolver(
           signedByDB,
           trueDecider,
           trueDecider
@@ -152,7 +152,7 @@ describe('RollupStateSolver', () => {
           IdentityVerifier.instance()
         )
 
-        rollupStateSolver = new DefaultRollupStateSolver(
+        rollupStateSolver = new RollupStateSolver(
           signedByDB,
           falseDecider,
           trueDecider
@@ -174,7 +174,7 @@ describe('RollupStateSolver', () => {
           IdentityVerifier.instance()
         )
 
-        rollupStateSolver = new DefaultRollupStateSolver(
+        rollupStateSolver = new RollupStateSolver(
           signedByDB,
           trueDecider,
           falseDecider

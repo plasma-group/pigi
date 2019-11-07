@@ -1,68 +1,68 @@
 import '../setup'
 
 /* External Imports */
-import { DB, newInMemoryDB } from '@pigi/core-db'
-import { keccak256, DefaultSignatureProvider } from '@pigi/core-utils'
+import { DBInterface, newInMemoryDB } from '@pigi/core-db'
+import { keccak256, Secp256k1SignatureProvider } from '@pigi/core-utils'
 
 /* Internal Imports */
 import {
   abiEncodeTransition,
-  DefaultRollupBlockSubmitter,
-  RollupBlock,
   RollupBlockSubmitter,
+  RollupBlock,
+  RollupBlockSubmitterInterface,
 } from '../../src'
 
-const getIntFromDB = async (db: DB, key: Buffer): Promise<number> => {
+const getIntFromDB = async (db: DBInterface, key: Buffer): Promise<number> => {
   return parseInt((await db.get(key)).toString(), 10)
 }
 
-const getLastQueuedFromDB = async (db: DB): Promise<number> => {
-  return getIntFromDB(db, DefaultRollupBlockSubmitter.LAST_QUEUED_KEY)
+const getLastQueuedFromDB = async (db: DBInterface): Promise<number> => {
+  return getIntFromDB(db, RollupBlockSubmitter.LAST_QUEUED_KEY)
 }
 
-const getLastSubmittedFromDB = async (db: DB): Promise<number> => {
-  return getIntFromDB(db, DefaultRollupBlockSubmitter.LAST_SUBMITTED_KEY)
+const getLastSubmittedFromDB = async (db: DBInterface): Promise<number> => {
+  return getIntFromDB(db, RollupBlockSubmitter.LAST_SUBMITTED_KEY)
 }
 
-const getLastConfirmedFromDB = async (db: DB): Promise<number> => {
-  return getIntFromDB(db, DefaultRollupBlockSubmitter.LAST_CONFIRMED_KEY)
+const getLastConfirmedFromDB = async (db: DBInterface): Promise<number> => {
+  return getIntFromDB(db, RollupBlockSubmitter.LAST_CONFIRMED_KEY)
 }
 
 const initQueuedSubmittedConfirmed = async (
-  db: DB,
+  db: DBInterface,
   dummyContract: DummyContract,
   queued: number,
   submitted: number,
   confirmed: number,
   blocks: RollupBlock[] = []
-): Promise<RollupBlockSubmitter> => {
+): Promise<RollupBlockSubmitterInterface> => {
   if (queued > 0) {
     await db.put(
-      DefaultRollupBlockSubmitter.LAST_QUEUED_KEY,
+      RollupBlockSubmitter.LAST_QUEUED_KEY,
       Buffer.from(queued.toString(10))
     )
   }
   if (submitted > 0) {
     await db.put(
-      DefaultRollupBlockSubmitter.LAST_SUBMITTED_KEY,
+      RollupBlockSubmitter.LAST_SUBMITTED_KEY,
       Buffer.from(submitted.toString(10))
     )
   }
   if (confirmed > 0) {
     await db.put(
-      DefaultRollupBlockSubmitter.LAST_CONFIRMED_KEY,
+      RollupBlockSubmitter.LAST_CONFIRMED_KEY,
       Buffer.from(confirmed.toString(10))
     )
   }
 
   for (const block of blocks) {
     await db.put(
-      DefaultRollupBlockSubmitter.getBlockKey(block.blockNumber),
-      DefaultRollupBlockSubmitter.serializeRollupBlockForStorage(block)
+      RollupBlockSubmitter.getBlockKey(block.blockNumber),
+      RollupBlockSubmitter.serializeRollupBlockForStorage(block)
     )
   }
 
-  const blockSubmitter: DefaultRollupBlockSubmitter = await DefaultRollupBlockSubmitter.create(
+  const blockSubmitter: RollupBlockSubmitter = await RollupBlockSubmitter.create(
     db,
     // @ts-ignore
     dummyContract
@@ -102,7 +102,7 @@ const initQueuedSubmittedConfirmed = async (
 
 describe('DefaultRollupBlockSubmitter', () => {
   let dummyContract: DummyContract
-  let db: DB
+  let db: DBInterface
   let rollupBlock: RollupBlock
   let rollupBlock2: RollupBlock
 
@@ -121,7 +121,7 @@ describe('DefaultRollupBlockSubmitter', () => {
           recipientSlotIndex: 1,
           tokenType: 0,
           amount: 10,
-          signature: await new DefaultSignatureProvider().sign('test'),
+          signature: await new Secp256k1SignatureProvider().sign('test'),
         },
       ],
     }
@@ -137,14 +137,14 @@ describe('DefaultRollupBlockSubmitter', () => {
           recipientSlotIndex: 0,
           tokenType: 1,
           amount: 100,
-          signature: await new DefaultSignatureProvider().sign('test'),
+          signature: await new Secp256k1SignatureProvider().sign('test'),
         },
       ],
     }
   })
 
   describe('init()', () => {
-    it('should init without error when DB empty', async () => {
+    it('should init without error when DBInterface empty', async () => {
       await initQueuedSubmittedConfirmed(db, dummyContract, 0, 0, 0)
     })
 
@@ -178,7 +178,7 @@ describe('DefaultRollupBlockSubmitter', () => {
   describe('submitBlock()', () => {
     it('should submit new block with no previous blocks', async () => {
       // @ts-ignore
-      const blockSubmitter: RollupBlockSubmitter = await DefaultRollupBlockSubmitter.create(
+      const blockSubmitter: RollupBlockSubmitterInterface = await RollupBlockSubmitter.create(
         db,
         // @ts-ignore
         dummyContract
@@ -277,7 +277,7 @@ describe('DefaultRollupBlockSubmitter', () => {
   describe('handleNewRollupBlock()', () => {
     it('should do nothing when there are no pending blocks', async () => {
       // @ts-ignore
-      const blockSubmitter: RollupBlockSubmitter = await DefaultRollupBlockSubmitter.create(
+      const blockSubmitter: RollupBlockSubmitterInterface = await RollupBlockSubmitter.create(
         db,
         // @ts-ignore
         dummyContract
@@ -350,7 +350,7 @@ describe('DefaultRollupBlockSubmitter', () => {
             recipientSlotIndex: 0,
             tokenType: 1,
             amount: 100,
-            signature: await new DefaultSignatureProvider().sign('test'),
+            signature: await new Secp256k1SignatureProvider().sign('test'),
           },
         ],
       }

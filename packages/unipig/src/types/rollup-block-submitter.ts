@@ -1,6 +1,6 @@
 import { RollupBlock } from './types'
 
-export interface RollupBlockSubmitter {
+export interface RollupBlockSubmitterInterface {
   /* Getters */
   getLastSubmitted(): number
   getLastConfirmed(): number

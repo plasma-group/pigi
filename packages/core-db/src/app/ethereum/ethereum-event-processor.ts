@@ -6,7 +6,7 @@ import { Filter, Log, Provider } from 'ethers/providers'
 
 /* Internal Imports */
 import { EthereumEvent, EthereumListener } from '../../types/ethereum'
-import { DB } from '../../types/db'
+import { DBInterface } from '../../types/db'
 
 const log = getLogger('ethereum- event-processor')
 
@@ -29,7 +29,7 @@ export class EthereumEventProcessor {
   private syncStatuses: Map<string, SyncStatus>
 
   constructor(
-    private readonly db: DB,
+    private readonly db: DBInterface,
     private readonly earliestBlock: number = 0
   ) {
     this.subscriptions = new Map<string, Set<EthereumListener<EthereumEvent>>>()

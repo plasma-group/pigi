@@ -3,8 +3,8 @@ import '../../setup'
 /* External Imports */
 import {
   BigNumber,
-  DefaultSignatureProvider,
-  DefaultSignatureVerifier,
+  Secp256k1SignatureProvider,
+  Secp256k1SignatureVerifier,
   objectsEqual,
   ONE,
   SignatureVerifier,
@@ -47,7 +47,7 @@ class TestStateChannelMessageDB implements StateChannelMessageDBInterface {
 
   public constructor(
     private readonly myAddress: string,
-    private readonly signatureVerifier: SignatureVerifier = DefaultSignatureVerifier.instance()
+    private readonly signatureVerifier: SignatureVerifier = Secp256k1SignatureVerifier.instance()
   ) {}
 
   public async handleMessage(
@@ -382,7 +382,7 @@ const checkSignedMessage = async (
   channelID?: string,
   signers?: string[],
   addressBalance?: AddressBalance,
-  signatureVerifier: SignatureVerifier = DefaultSignatureVerifier.instance()
+  signatureVerifier: SignatureVerifier = Secp256k1SignatureVerifier.instance()
 ): Promise<void> => {
   assert(
     !!signedMessage,
@@ -462,10 +462,10 @@ const getChannelId = async (
 
 describe('State Channel Tests', () => {
   let aAddress: string
-  const aSigner: DefaultSignatureProvider = new DefaultSignatureProvider()
+  const aSigner: Secp256k1SignatureProvider = new Secp256k1SignatureProvider()
 
   let bAddress: string
-  const bSigner: DefaultSignatureProvider = new DefaultSignatureProvider()
+  const bSigner: Secp256k1SignatureProvider = new Secp256k1SignatureProvider()
 
   let a: StateChannelClient
   let aMessageDB: TestStateChannelMessageDB

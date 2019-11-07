@@ -1,2 +1,2 @@
-export * from './block-production.types'
-export * from './merkle-tree.interface'
+export * from './block-production'
+export * from './merkle-tree'

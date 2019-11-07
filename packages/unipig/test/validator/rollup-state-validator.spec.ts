@@ -2,7 +2,7 @@ import '../setup'
 
 /* External Imports */
 import * as assert from 'assert'
-import { DB, newInMemoryDB } from '@pigi/core-db'
+import { DBInterface, newInMemoryDB } from '@pigi/core-db'
 
 import {
   bufToHexString,
@@ -23,7 +23,6 @@ import {
   UNI_TOKEN_TYPE,
   UNISWAP_ADDRESS,
   PIGI_TOKEN_TYPE,
-  DefaultRollupStateValidator,
   RollupStateValidator,
   LocalFraudProof,
   CreateAndTransferTransition,
@@ -35,7 +34,7 @@ import {
   ValidationOutOfOrderError,
   AggregatorUnsupportedError,
   ContractFraudProof,
-  DefaultRollupStateMachine,
+  RollupStateMachine,
 } from '../../src'
 
 /***********
@@ -85,19 +84,19 @@ function getMultiBalanceGenesis(
  *********/
 
 describe('RollupStateValidator', () => {
-  let rollupGuard: DefaultRollupStateValidator
-  let stateDb: DB
+  let rollupGuard: RollupStateValidator
+  let stateDb: DBInterface
 
   beforeEach(async () => {
     stateDb = newInMemoryDB()
-    const rollupStateMachine: DefaultRollupStateMachine = (await DefaultRollupStateMachine.create(
+    const rollupStateMachine: RollupStateMachine = (await RollupStateMachine.create(
       getMultiBalanceGenesis(),
       stateDb,
       AGGREGATOR_ADDRESS,
       ChecksumAgnosticIdentityVerifier.instance()
-    )) as DefaultRollupStateMachine
+    )) as RollupStateMachine
 
-    rollupGuard = new DefaultRollupStateValidator(rollupStateMachine)
+    rollupGuard = new RollupStateValidator(rollupStateMachine)
   })
 
   afterEach(async () => {

@@ -1,4 +1,4 @@
-import { SignatureProvider } from '../signatures.interface'
+import { SignatureProvider } from '../signatures'
 
 export interface Wallet {
   listAccounts(): Promise<string[]>

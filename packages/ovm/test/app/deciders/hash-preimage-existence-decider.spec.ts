@@ -7,7 +7,7 @@ import {
   keccak256,
   serializeObject,
 } from '@pigi/core-utils'
-import { DB, newInMemoryDB } from '@pigi/core-db'
+import { DBInterface, newInMemoryDB } from '@pigi/core-db'
 import * as assert from 'assert'
 
 /* Internal Imports */
@@ -39,7 +39,7 @@ describe('HashPreimageExistenceDecider', () => {
   describe('decide', () => {
     let decider: HashPreimageExistenceDecider
     let preimageDB: HashPreimageDBInterface
-    let db: DB
+    let db: DBInterface
 
     beforeEach(() => {
       db = newInMemoryDB()

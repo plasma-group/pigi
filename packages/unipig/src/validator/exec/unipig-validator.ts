@@ -3,7 +3,7 @@ import * as Level from 'level'
 import { Contract, Wallet } from 'ethers'
 import { JsonRpcProvider } from 'ethers/providers'
 
-import { BaseDB, DB, EthereumEventProcessor } from '@pigi/core-db'
+import { DB, DBInterface, EthereumEventProcessor } from '@pigi/core-db'
 import { getLogger } from '@pigi/core-utils'
 
 import { config } from 'dotenv'
@@ -15,9 +15,9 @@ config({ path: resolve(__dirname, `../../../../config/.env`) })
 /* Internal Imports */
 import * as RollupChain from '../../../build/contracts/RollupChain.json'
 import * as fs from 'fs'
-import { Address, RollupStateValidator, State } from '../../types'
-import { DefaultRollupStateMachine, getGenesisState } from '../../common'
-import { DefaultRollupStateValidator } from '../rollup-state-validator'
+import { Address, RollupStateValidatorInterface, State } from '../../types'
+import { RollupStateMachine, getGenesisState } from '../../common'
+import { RollupStateValidator } from '../rollup-state-validator'
 import { RollupFraudGuard } from '../rollup-fraud-guard'
 
 const log = getLogger('monitor-and-validate')
@@ -51,7 +51,7 @@ async function runValidator() {
     keyEncoding: 'binary',
     valueEncoding: 'binary',
   }
-  const validatorDB = new BaseDB((await Level(
+  const validatorDB = new DB((await Level(
     'build/level/validator',
     levelOptions
   )) as any)
@@ -66,13 +66,13 @@ async function runValidator() {
   )
   log.debug(`Connected`)
 
-  const rollupStateMachine: DefaultRollupStateMachine = (await DefaultRollupStateMachine.create(
+  const rollupStateMachine: RollupStateMachine = (await RollupStateMachine.create(
     getGenesisState(aggregatorAddress, genesisState),
     validatorDB,
     aggregatorAddress
-  )) as DefaultRollupStateMachine
+  )) as RollupStateMachine
 
-  const validator: RollupStateValidator = new DefaultRollupStateValidator(
+  const validator: RollupStateValidatorInterface = new RollupStateValidator(
     rollupStateMachine
   )
 
@@ -82,7 +82,7 @@ async function runValidator() {
     contract
   )
 
-  const blockProcessorDB: DB = new BaseDB(
+  const blockProcessorDB: DBInterface = new DB(
     (await Level('build/level/validator-blockProcessor', levelOptions)) as any,
     256
   )

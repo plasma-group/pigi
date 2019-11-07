@@ -1,8 +1,8 @@
-import { BlockTransactionCommitment, Transaction } from '../state.interface'
+import { BlockTransactionCommitment, Transaction } from '../state'
 
-export interface Aggregator {
+export interface AggregatorInterface {
   /**
-   * Notifies the Aggregator of the provided Transaction so it may be included in the next block.
+   * Notifies the AggregatorInterface of the provided Transaction so it may be included in the next block.
    *
    * @param transaction the Transaction in question
    *
@@ -13,7 +13,7 @@ export interface Aggregator {
   ): Promise<BlockTransactionCommitment>
 
   /**
-   * Gets the public key of the Aggregator to be able to validate signatures
+   * Gets the public key of the AggregatorInterface to be able to validate signatures
    *
    * @returns the public key
    */
