@@ -12,7 +12,7 @@ The Basics
 ----------
 The idea of the "sidechain" was first popularized by `this paper published in 2014`_.
 First applied mainly to Bitcoin, the sidechain concept was basically to run another blockchain *alongside* some other "main" blockchain.
-These two blockchains could then talk to each other in a special way that made is possible for assets to move between the two chains.
+These two blockchains could then talk to each other in a special way that made it possible for assets to move between the two chains.
 
 Let's take a look at how this might look in the world of Ethereum.
 If we want to create an Ethereum sidechain, we first have to create another blockchain.
