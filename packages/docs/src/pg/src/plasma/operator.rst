@@ -52,7 +52,7 @@ Being censored obviously isn't great, but it's not as bad when you can always ta
 Decentralizing the Operator
 ===========================
 The one thing that wasn't really mentioned here is the fact that the "operator" can actually consist of multiple people making decisions about what blocks to publish.
-This could be as simple as a having a few designed people who take turns making blocks, or as complex as a Proof-of-Stake system that selects block producers randomly.
-Either way, it's complicated than just having a single person run everything, but it's probably the way to go for projects that want to get rid of censorship.
+This could be as simple as a having a few designated people who take turns making blocks, or as complex as a Proof-of-Stake system that selects block producers randomly.
+Either way, it's more complicated than just having a single person run everything, but it's probably the way to go for projects that want to get rid of censorship.
 At the same time, it tends to be unimportant research-wise whether the operator is a single person or many people.
 As a result, you'll often see people just assuming the operator is a single person for simplicity.
