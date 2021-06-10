@@ -84,7 +84,7 @@ If the plasma chain consensus mechanism stops creating blocks, users can use the
 
 Effectively, this means that plasma chains are safer than sidechains by design.
 Your funds are only ever at risk if *Ethereum* fails, but you probably have bigger problems.
-Simply stated, a plasma chain is as secure as the main chain consensus mechanism, whereas as sidechain is only as secure as its own consensus mechanism.
+Simply stated, a plasma chain is as secure as the main chain consensus mechanism, whereas a sidechain is only as secure as its own consensus mechanism.
 This convenient property also means that the plasma chain can use really simple consensus mechanisms (like just a single authority!) and still be safe.
 
 .. todo::
